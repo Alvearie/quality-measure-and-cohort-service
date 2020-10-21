@@ -34,6 +34,7 @@
 		
 		<cqframework.version>1.5.1-SNAPSHOT</cqframework.version>
 		<engine.version>1.5.1-SNAPSHOT</engine.version>
+	    <ruler.version>0.4.0</ruler.version>
 
 		<jackson.version>2.10.1</jackson.version>
 		<jacoco.version>0.8.6</jacoco.version>

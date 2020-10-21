@@ -1,9 +1,3 @@
-/*
- * (C) Copyright IBM Copr. 2020, 2020
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 package com.ibm.cohort.engine;
 
 import java.io.File;
@@ -62,10 +56,7 @@ import com.beust.jcommander.internal.DefaultConsole;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.rest.client.api.IClientInterceptor;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
-import ca.uhn.fhir.rest.client.interceptor.AdditionalRequestHeadersInterceptor;
-import ca.uhn.fhir.rest.client.interceptor.BasicAuthInterceptor;
 
 /**
  * Provide a wrapper around the open source reference implementation of a CQL
@@ -79,9 +70,20 @@ public class CqlEngineWrapper {
 	private static Logger LOG = LoggerFactory.getLogger(CqlEngineWrapper.class);
 
 	private List<Library> libraries = new ArrayList<>();
-	private FhirServerConfig dataServerConfig;
-	private FhirServerConfig measureServerConfig;
-	private FhirServerConfig terminologyServerConfig;
+
+	private FhirClientFactory clientFactory;
+
+	private IGenericClient dataServerClient;
+	private IGenericClient measureServerClient;
+	private IGenericClient terminologyServerClient;
+
+	public CqlEngineWrapper() {
+		this(FhirClientFactory.newInstance(FhirContext.forR4()));
+	}
+
+	public CqlEngineWrapper(FhirClientFactory clientFactory) {
+		this.clientFactory = clientFactory;
+	}
 
 	/**
 	 * Add library content to the list of libraries available to the CQL engine at
@@ -207,12 +209,10 @@ public class CqlEngineWrapper {
 	 * @return number of libraries loaded
 	 */
 	public int addLibrariesFromFhirResource(String libraryId, LibraryFormat sourceFormat) throws Exception {
-		FhirContext fhirContext = FhirContext.forR4();
-		IGenericClient client = initializeFhirClient(fhirContext, this.measureServerConfig);
-		org.hl7.fhir.r4.model.Library library = client.read().resource(org.hl7.fhir.r4.model.Library.class)
+		org.hl7.fhir.r4.model.Library library = measureServerClient.read().resource(org.hl7.fhir.r4.model.Library.class)
 				.withId(libraryId).execute();
 
-		return addLibrariesFromFhirResource(client, library, sourceFormat);
+		return addLibrariesFromFhirResource(measureServerClient, library, sourceFormat);
 	}
 
 	/**
@@ -226,10 +226,7 @@ public class CqlEngineWrapper {
 	 */
 	public int addLibrariesFromFhirResource(org.hl7.fhir.r4.model.Library library, LibraryFormat sourceFormat)
 			throws Exception {
-		FhirContext fhirContext = FhirContext.forR4();
-		IGenericClient client = initializeFhirClient(fhirContext, this.measureServerConfig);
-
-		return addLibrariesFromFhirResource(client, library, sourceFormat);
+		return addLibrariesFromFhirResource(measureServerClient, library, sourceFormat);
 	}
 
 	/**
@@ -276,7 +273,25 @@ public class CqlEngineWrapper {
 	 * @param config
 	 */
 	public void setDataServerConnectionProperties(FhirServerConfig config) {
-		this.dataServerConfig = config;
+		setDataServerClient(clientFactory.createFhirClient(config));
+	}
+
+	/**
+	 * Set the FHIR client used for data operations.
+	 * 
+	 * @param config
+	 */
+	public void setDataServerClient(IGenericClient client) {
+		this.dataServerClient = client;
+	}
+
+	/**
+	 * Get the data server client object
+	 * 
+	 * @return data server client
+	 */
+	public IGenericClient getDataServerClient() {
+		return this.dataServerClient;
 	}
 
 	/**
@@ -285,7 +300,25 @@ public class CqlEngineWrapper {
 	 * @param config
 	 */
 	public void setMeasureServerConnectionProperties(FhirServerConfig config) {
-		this.measureServerConfig = config;
+		setMeasureServerClient(clientFactory.createFhirClient(config));
+	}
+
+	/**
+	 * Set the FHIR client used to interact with the FHIR measure server.
+	 * 
+	 * @param client
+	 */
+	public void setMeasureServerClient(IGenericClient client) {
+		this.measureServerClient = client;
+	}
+
+	/**
+	 * Get the measure server client.
+	 * 
+	 * @return measure server client.
+	 */
+	public IGenericClient getMeasureServerClient() {
+		return this.measureServerClient;
 	}
 
 	/**
@@ -294,7 +327,25 @@ public class CqlEngineWrapper {
 	 * @param config
 	 */
 	public void setTerminologyServerConnectionProperties(FhirServerConfig config) {
-		this.terminologyServerConfig = config;
+		this.terminologyServerClient = clientFactory.createFhirClient(config);
+	}
+
+	/**
+	 * Set the FHIR client used for terminology data access.
+	 * 
+	 * @param client
+	 */
+	public void setTerminologyServerClient(IGenericClient client) {
+		this.terminologyServerClient = client;
+	}
+
+	/**
+	 * Get the terminology server client.
+	 * 
+	 * @return terminology server client.
+	 */
+	public IGenericClient getTerminologyServerClient() {
+		return this.terminologyServerClient;
 	}
 
 	/**
@@ -324,9 +375,10 @@ public class CqlEngineWrapper {
 	protected void evaluateExpressionByExpression(final String libraryName, final String libraryVersion,
 			final Map<String, Object> parameters, final Set<String> expressions, final List<String> contextIds,
 			final EvaluationResultCallback callback) {
-		if (this.libraries == null || this.dataServerConfig == null || this.terminologyServerConfig == null) {
+		if (this.libraries == null || this.dataServerClient == null || this.terminologyServerClient == null
+				|| this.measureServerClient == null) {
 			throw new IllegalArgumentException(
-					"Missing one or more required initialization parameters (libraries, dataServerConfig, terminologyServerConfig)");
+					"Missing one or more required initialization parameters (libraries, dataServerClient, terminologyServerClient, measureServerClient)");
 		}
 
 		if (libraryName == null || contextIds == null || contextIds.isEmpty()) {
@@ -334,25 +386,17 @@ public class CqlEngineWrapper {
 					"Missing one or more required input parameters (libraryName, contextIds)");
 		}
 
-		FhirContext fhirContext = FhirContext.forR4();
-
 		LibraryLoader ll = new InMemoryLibraryLoader(libraries);
 
-		// TODO: provide a way for users to further customize the client settings (e.g.
-		// cookies, tenant-based URL)
-		IGenericClient dataClient = initializeFhirClient(fhirContext, this.dataServerConfig);
 		ModelResolver modelResolver = new R4FhirModelResolver();
-		SearchParameterResolver resolver = new SearchParameterResolver(fhirContext);
-		RetrieveProvider retrieveProvider = new RestFhirRetrieveProvider(resolver, dataClient);
+		SearchParameterResolver resolver = new SearchParameterResolver(this.dataServerClient.getFhirContext());
+		RetrieveProvider retrieveProvider = new RestFhirRetrieveProvider(resolver, this.dataServerClient);
 		CompositeDataProvider dataProvider = new CompositeDataProvider(modelResolver, retrieveProvider);
 
 		Map<String, DataProvider> dataProviders = new HashMap<>();
 		dataProviders.put("http://hl7.org/fhir", dataProvider);
 
-		// TODO: provide a way for users to further customize the client settings (e.g.
-		// cookies, tenant-based URL)
-		IGenericClient terminologyClient = initializeFhirClient(fhirContext, this.terminologyServerConfig);
-		TerminologyProvider termProvider = new R4FhirTerminologyProvider(terminologyClient);
+		TerminologyProvider termProvider = new R4FhirTerminologyProvider(this.terminologyServerClient);
 
 		VersionedIdentifier libraryId = new VersionedIdentifier().withId(libraryName);
 		if (libraryVersion != null) {
@@ -429,9 +473,10 @@ public class CqlEngineWrapper {
 	 */
 	protected void evaluateWithEngineWrapper(String libraryName, String libraryVersion, Map<String, Object> parameters,
 			Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback) {
-		if (this.libraries == null || this.dataServerConfig == null || this.terminologyServerConfig == null) {
+		if (this.libraries == null || this.dataServerClient == null || this.terminologyServerClient == null
+				|| this.measureServerClient == null) {
 			throw new IllegalArgumentException(
-					"Missing one or more required initialization parameters (libraries, dataServerConfig, terminologyServerConfig)");
+					"Missing one or more required initialization parameters (libraries, dataServerClient, terminologyServerClient, measureServerClient)");
 		}
 
 		if (libraryName == null || contextIds == null || contextIds.isEmpty()) {
@@ -439,25 +484,17 @@ public class CqlEngineWrapper {
 					"Missing one or more required input parameters (libraryName, contextIds)");
 		}
 
-		FhirContext fhirContext = FhirContext.forR4();
-
 		LibraryLoader ll = new InMemoryLibraryLoader(libraries);
 
-		// TODO: provide a way for users to further customize the client settings (e.g.
-		// cookies, tenant-based URL)
-		IGenericClient dataClient = initializeFhirClient(fhirContext, this.dataServerConfig);
 		ModelResolver modelResolver = new R4FhirModelResolver();
-		SearchParameterResolver resolver = new SearchParameterResolver(fhirContext);
-		RetrieveProvider retrieveProvider = new RestFhirRetrieveProvider(resolver, dataClient);
+		SearchParameterResolver resolver = new SearchParameterResolver(this.dataServerClient.getFhirContext());
+		RetrieveProvider retrieveProvider = new RestFhirRetrieveProvider(resolver, this.dataServerClient);
 		CompositeDataProvider dataProvider = new CompositeDataProvider(modelResolver, retrieveProvider);
 
 		Map<String, DataProvider> dataProviders = new HashMap<>();
 		dataProviders.put("http://hl7.org/fhir", dataProvider);
 
-		// TODO: provide a way for users to further customize the client settings (e.g.
-		// cookies, tenant-based URL)
-		IGenericClient terminologyClient = initializeFhirClient(fhirContext, this.terminologyServerConfig);
-		TerminologyProvider termProvider = new R4FhirTerminologyProvider(terminologyClient);
+		TerminologyProvider termProvider = new R4FhirTerminologyProvider(this.terminologyServerClient);
 
 		VersionedIdentifier libraryId = new VersionedIdentifier().withId(libraryName);
 		if (libraryVersion != null) {
@@ -529,42 +566,6 @@ public class CqlEngineWrapper {
 					String.format("Missing parameter values for one or more non-default library parameters {}",
 							missingParameters.toString()));
 		}
-	}
-
-	/**
-	 * Create a HAPI FHIR client with appropriate configuration settings for the
-	 * provided FhirServerConfig
-	 * 
-	 * @param fhirContext HAPI FHIR Context
-	 * @param config      FhirServerConfig containing configuration details for the
-	 *                    HAPI client
-	 * @return configured HAPI FHIR client
-	 */
-	protected IGenericClient initializeFhirClient(FhirContext fhirContext, FhirServerConfig config) {
-
-		IGenericClient client = fhirContext.newRestfulGenericClient(config.getEndpoint());
-
-		if (config.getUser() != null && config.getPassword() != null) {
-			/**
-			 * @see https://hapifhir.io/hapi-fhir/docs/interceptors/built_in_client_interceptors.html#section2
-			 */
-			IClientInterceptor authInterceptor = new BasicAuthInterceptor(config.getUser(), config.getPassword());
-			client.registerInterceptor(authInterceptor);
-		}
-
-		Map<String, String> additionalHeaders = config.getAdditionalHeaders();
-		if (additionalHeaders != null && additionalHeaders.size() > 0) {
-			/**
-			 * @see https://hapifhir.io/hapi-fhir/docs/interceptors/built_in_client_interceptors.html#section4
-			 */
-			AdditionalRequestHeadersInterceptor tenantInterceptor = new AdditionalRequestHeadersInterceptor();
-			for (Map.Entry<String, String> entry : additionalHeaders.entrySet()) {
-				tenantInterceptor.addHeaderValue(entry.getKey(), entry.getValue());
-			}
-			client.registerInterceptor(tenantInterceptor);
-		}
-
-		return client;
 	}
 
 	/**
@@ -769,8 +770,8 @@ public class CqlEngineWrapper {
 		if (arguments.measureServerConfigFile != null) {
 			measureConfig = om.readValue(arguments.measureServerConfigFile, FhirServerConfig.class);
 		}
-		setMeasureServerConnectionProperties(measureConfig);		
-		
+		setMeasureServerConnectionProperties(measureConfig);
+
 		Path libraryFolder = Paths.get(arguments.libraryPath);
 		out.println(String.format("Loading libraries from %s ...", libraryFolder.toString()));
 		if (libraryFolder.toFile().isDirectory()) {
@@ -778,7 +779,8 @@ public class CqlEngineWrapper {
 		} else if (libraryFolder.toFile().isFile() && libraryFolder.toString().endsWith(".zip")) {
 			addLibrariesFromZip(libraryFolder, arguments.sourceFormat);
 		} else {
-			// if all else fails, assume that the argument value is a FHIR library resource ID
+			// if all else fails, assume that the argument value is a FHIR library resource
+			// ID
 			addLibrariesFromFhirResource(arguments.libraryPath, arguments.sourceFormat);
 		}
 
