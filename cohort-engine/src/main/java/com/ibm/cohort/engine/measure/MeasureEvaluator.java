@@ -31,6 +31,7 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
  * @todo - figure out how to capture/prevent the debugging from showing up in
  *       stdout
  * @todo - cqf-ruler populates supplementaldata in the MeasureReport. Do we want that?
+ * @todo - add support for CDM population extensions "caregap"
  */
 public class MeasureEvaluator {
 
