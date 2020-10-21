@@ -1,8 +1,10 @@
-library test_2_practice
+library Test
 include "FHIRHelpers" version '4.0.0' called FHIRHelpers
 using FHIR
-
-parameter MeasurementPeriod default Interval[DateTime(2013, 1, 1, 0, 0, 0, 0), DateTime(2021, 1, 1, 0, 0, 0, 0))
+parameter MeasurementPeriod default Interval[
+  @1900-01-01T00:00:00.0,
+  @2021-01-01T00:00:00.0
+)
 
 define "EncounterWithinPeriod":
 	(["Encounter"] D where Interval[start of D."period", end of D."period"] overlaps MeasurementPeriod)

@@ -17,11 +17,7 @@ define "Observations":
   [Observation] O
     with Conditions C
       such that O.effective 1 years or less  after C.abatement
-define "ValidEncounters2":
-  [Encounter] E2
-    with ValidEncounters E1
-      such that start of E2.period 1 years or less after end of E1.period
+define "Observations Exist":
+    exists(Observations)
 define "E1Count":
   Count(ValidEncounters)
-define "E2Count":
-  Count(ValidEncounters2)
