@@ -3,10 +3,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
 package com.ibm.cohort.engine;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -81,9 +81,8 @@ public abstract class CqlTranslatorWrapperTest {
 			}
 		}
 		assertEquals(2, libraries.size());
-		Library library = libraries.get(0);
-		assertEquals(1, library.getAnnotation().size());
-		assertEquals("Breast-Cancer-Screening", library.getIdentifier().getId());
+		Library library = getById(libraries, "Breast-Cancer-Screening");
+		assertNotNull(library);
 	}
 
 	@Test
@@ -110,5 +109,16 @@ public abstract class CqlTranslatorWrapperTest {
 		assertTrue( o instanceof CqlToElmInfo );
 		CqlToElmInfo info = (CqlToElmInfo) o;
 		assertEquals("EnableAnnotations,EnableLocators,DisableListDemotion,DisableListPromotion", info.getTranslatorOptions());
+	}
+	
+	private Library getById(List<Library> libraries, String libraryName) {
+		Library library = null;
+		for( Library l : libraries ) {
+			if( l.getIdentifier().getId().equals(libraryName) ) {
+				library = l;
+				break;
+			}
+		}
+		return library;
 	}
 }
