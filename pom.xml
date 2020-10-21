@@ -2,51 +2,52 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	
-    <modelVersion>4.0.0</modelVersion>
+	<modelVersion>4.0.0</modelVersion>
 
-    <!-- This shared pom should be flattened away during the build -->
-    <groupId>com.ibm.cohort</groupId>
-    <artifactId>cohort-parent</artifactId>
-    <version>${revision}</version>
-    
-    <packaging>pom</packaging>
-    
-    <modules>
-        <module>cohort-engine</module>
-        <module>cdm-modelinfo-tooling</module>
-    </modules>
+	<!-- This shared pom should be flattened away during the build -->
+	<groupId>com.ibm.cohort</groupId>
+	<artifactId>cohort-parent</artifactId>
+	<version>${revision}</version>
+	
+	<packaging>pom</packaging>
+	
+	<modules>
+		<module>cohort-engine</module>
+		<module>cdm-modelinfo-tooling</module>
+	</modules>
 
-    <licenses>
-        <license>
-            <name>The Apache Software License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-        </license>
-    </licenses>
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
 
-    <properties>
+	<properties>
 		<base-version>0.0.1</base-version>
 		<revision>${base-version}-SNAPSHOT</revision>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		
 		<cqframework.version>1.5.1-SNAPSHOT</cqframework.version>
 		<engine.version>1.5.1-SNAPSHOT</engine.version>
+		<ruler.version>0.4.0</ruler.version>
 
 		<jackson.version>2.10.1</jackson.version>
 		<jacoco.version>0.8.6</jacoco.version>
-    </properties>
-    
-    <scm>
+	</properties>
+	
+	<scm>
 		<!-- TODO: These will have to change when we go public -->
 		<url>https://github.ibm.com/watson-health-cohorting/cohort-engine/engine</url>
 		<connection>scm:git:git://github.ibm.com/watson-health-cohorting/cohort-engine.git</connection>
 		<developerConnection>scm:git:git@github.ibm.com:watson-health-cohorting/cohort-engine.git</developerConnection>
 	</scm>
 
-    <repositories>
+	<repositories>
 		<repository>
 			<id>cql.releases</id>
 			<name>CQL Framework and Engine Releases</name>
@@ -69,36 +70,15 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>		
-
-		<!-- TODO: This needs to change once we go public -->
-		<repository>
-			<id>ibm-all</id>
-			<name>IBM WH All Repository</name>
-			<url>https://na.artifactory.swg-devops.com/artifactory/wh-cohort-team-all-maven-virtual</url>
-		</repository>
 	</repositories>
 
-   	<!-- TODO: This needs to change once we go public -->
-    <distributionManagement>
-		<repository>
-			<id>ibm-releases</id>
-			<name>IBM WH Releases</name>
-			<url>https://na.artifactory.swg-devops.com:443/artifactory/wh-cohort-team-release-maven-local</url>
-		</repository>
-		<snapshotRepository>
-			<id>ibm-snapshots</id>
-			<name>IBM WH Snapshots</name>
-			<url>https://na.artifactory.swg-devops.com:443/artifactory/wh-cohort-team-snapshot-maven-local</url>
-		</snapshotRepository>
-	</distributionManagement>
-
-    <profiles>
-        <profile>
-            <id>release</id>
-            <properties>
-                <revision>${base-version}</revision>
-            </properties>
-        </profile>
-    </profiles>
+	<profiles>
+		<profile>
+			<id>release</id>
+			<properties>
+				<revision>${base-version}</revision>
+			</properties>
+		</profile>
+	</profiles>
 </project>
 
