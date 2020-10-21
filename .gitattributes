@@ -1,0 +1,8 @@
+* text=auto
+
+*.java text
+*.xml text
+*.cql text
+
+*.jar binary
+
