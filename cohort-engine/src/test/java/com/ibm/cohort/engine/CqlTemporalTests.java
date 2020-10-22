@@ -9,6 +9,7 @@ package com.ibm.cohort.engine;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.junit.Assert.assertEquals;
 
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -27,7 +28,7 @@ import org.junit.Test;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
-public class CqlTemporalTests {
+public class CqlTemporalTests extends BaseFhirTest {
 
 	@Rule
 	public WireMockRule wireMockRule = new WireMockRule(options().port(8089)/* .notifier(new ConsoleNotifier(true)) */);
@@ -40,7 +41,7 @@ public class CqlTemporalTests {
 
 	@Test
 	public void confirmCanFindEventAfterSecondEvent() throws Exception {
-		Patient patient = CqlTestUtil.getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
 		Observation observationIN = new Observation();
 		DateTimeType observationEffective = new DateTimeType(new Date());
@@ -52,11 +53,11 @@ public class CqlTemporalTests {
 		FhirServerConfig fhirConfig = new FhirServerConfig();
 		fhirConfig.setEndpoint("http://localhost:8089");
 
-		CqlEngineWrapper wrapper = CqlTestUtil.setupTestFor(patient, fhirConfig,"cql/temporal/test_1.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_1.xml", "cql/includes/FHIRHelpers.xml");
 
-		CqlTestUtil.mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", CqlTestUtil.getFhirParser(), CONDITION_IN, fhirConfig);
-		CqlTestUtil.mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", CqlTestUtil.getFhirParser(), ENCOUNTER_1, fhirConfig);
-		CqlTestUtil.mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", CqlTestUtil.getFhirParser(), observationIN, fhirConfig);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
+		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), ENCOUNTER_1, fhirConfig);
+		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", getFhirParser(), observationIN, fhirConfig);
 
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
 				new HashSet<>(Arrays.asList("Observations Exist")), Arrays.asList("123"), (patientId, expression, result) -> {
@@ -67,7 +68,7 @@ public class CqlTemporalTests {
 
 	@Test
 	public void doesNotFindEventAfterSecondEvent() throws Exception {
-		Patient patient = CqlTestUtil.getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
 		Observation observationOUT = new Observation();
 		DateTimeType observationEffective2 = new DateTimeType(new Date());
@@ -79,11 +80,11 @@ public class CqlTemporalTests {
 		FhirServerConfig fhirConfig = new FhirServerConfig();
 		fhirConfig.setEndpoint("http://localhost:8089");
 
-		CqlEngineWrapper wrapper = CqlTestUtil.setupTestFor(patient, fhirConfig,"cql/temporal/test_1.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_1.xml", "cql/includes/FHIRHelpers.xml");
 
-		CqlTestUtil.mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", CqlTestUtil.getFhirParser(), CONDITION_IN, fhirConfig);
-		CqlTestUtil.mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", CqlTestUtil.getFhirParser(), ENCOUNTER_1, fhirConfig);
-		CqlTestUtil.mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", CqlTestUtil.getFhirParser(), observationOUT, fhirConfig);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
+		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), ENCOUNTER_1, fhirConfig);
+		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", getFhirParser(), observationOUT, fhirConfig);
 
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
 				new HashSet<>(Arrays.asList("Observations Exist")), Arrays.asList("123"), (patientId, expression, result) -> {
@@ -94,7 +95,7 @@ public class CqlTemporalTests {
 
 	@Test
 	public void confirmCanFindEventWithExistenceOfThirdEvent() throws Exception {
-		Patient patient = CqlTestUtil.getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
 		Observation observation = new Observation();
 		DateTimeType observationEffective = new DateTimeType(new Date());
@@ -106,11 +107,11 @@ public class CqlTemporalTests {
 		FhirServerConfig fhirConfig = new FhirServerConfig();
 		fhirConfig.setEndpoint("http://localhost:8089");
 
-		CqlEngineWrapper wrapper = CqlTestUtil.setupTestFor(patient, fhirConfig,"cql/temporal/test_2.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_2.xml", "cql/includes/FHIRHelpers.xml");
 
-		CqlTestUtil.mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", CqlTestUtil.getFhirParser(), CONDITION_IN, fhirConfig);
-		CqlTestUtil.mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", CqlTestUtil.getFhirParser(), ENCOUNTER_1, fhirConfig);
-		CqlTestUtil.mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", CqlTestUtil.getFhirParser(), observation, fhirConfig);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
+		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), ENCOUNTER_1, fhirConfig);
+		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", getFhirParser(), observation, fhirConfig);
 
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
@@ -126,7 +127,7 @@ public class CqlTemporalTests {
 
 	@Test
 	public void cannotFindEventWithoutExistenceOfThirdEvent() throws Exception {
-		Patient patient = CqlTestUtil.getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
 		Observation observation = new Observation();
 		DateTimeType observationEffective = new DateTimeType(new Date());
@@ -138,11 +139,11 @@ public class CqlTemporalTests {
 		FhirServerConfig fhirConfig = new FhirServerConfig();
 		fhirConfig.setEndpoint("http://localhost:8089");
 
-		CqlEngineWrapper wrapper = CqlTestUtil.setupTestFor(patient, fhirConfig,"cql/temporal/test_2.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_2.xml", "cql/includes/FHIRHelpers.xml");
 
-		CqlTestUtil.mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", CqlTestUtil.getFhirParser(), CONDITION_IN, fhirConfig);
-		CqlTestUtil.mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", CqlTestUtil.getFhirParser(), ENCOUNTER_1, fhirConfig);
-		CqlTestUtil.mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", CqlTestUtil.getFhirParser(), observation, fhirConfig);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
+		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), ENCOUNTER_1, fhirConfig);
+		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", getFhirParser(), observation, fhirConfig);
 
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
@@ -158,13 +159,13 @@ public class CqlTemporalTests {
 
 	@Test
 	public void canFindMultipleEncountersFollowingEachOther() throws Exception {
-		Patient patient = CqlTestUtil.getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
 
 		FhirServerConfig fhirConfig = new FhirServerConfig();
 		fhirConfig.setEndpoint("http://localhost:8089");
 
-		CqlEngineWrapper wrapper = CqlTestUtil.setupTestFor(patient, fhirConfig,"cql/temporal/test_3.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_3.xml", "cql/includes/FHIRHelpers.xml");
 
 		Bundle bundle = new Bundle();
 		Bundle.BundleEntryComponent firstEncounter = new Bundle.BundleEntryComponent();
@@ -174,7 +175,7 @@ public class CqlTemporalTests {
 		bundle.addEntry(firstEncounter);
 		bundle.addEntry(secondEncounter);
 
-		CqlTestUtil.mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", CqlTestUtil.getFhirParser(), bundle, fhirConfig);
+		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), bundle, fhirConfig);
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
 				new HashSet<>(Arrays.asList("ValidEncounters2")), Arrays.asList("123"), (patientId, expression, result) -> {
@@ -189,13 +190,13 @@ public class CqlTemporalTests {
 
 	@Test
 	public void cannotFindEncountersThatDontExist() throws Exception {
-		Patient patient = CqlTestUtil.getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
 
 		FhirServerConfig fhirConfig = new FhirServerConfig();
 		fhirConfig.setEndpoint("http://localhost:8089");
 
-		CqlEngineWrapper wrapper = CqlTestUtil.setupTestFor(patient, fhirConfig,"cql/temporal/test_3.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_3.xml", "cql/includes/FHIRHelpers.xml");
 
 		Bundle bundle = new Bundle();
 		Bundle.BundleEntryComponent firstEncounter = new Bundle.BundleEntryComponent();
@@ -205,7 +206,7 @@ public class CqlTemporalTests {
 		bundle.addEntry(firstEncounter);
 		bundle.addEntry(secondEncounter);
 
-		CqlTestUtil.mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", CqlTestUtil.getFhirParser(), bundle, fhirConfig);
+		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), bundle, fhirConfig);
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
 				new HashSet<>(Arrays.asList("ValidEncounters2")), Arrays.asList("123"), (patientId, expression, result) -> {
@@ -220,16 +221,16 @@ public class CqlTemporalTests {
 
 	@Test
 	public void determineIfAnEventFollows() throws Exception {
-		Patient patient = CqlTestUtil.getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
 
 		FhirServerConfig fhirConfig = new FhirServerConfig();
 		fhirConfig.setEndpoint("http://localhost:8089");
 
-		CqlEngineWrapper wrapper = CqlTestUtil.setupTestFor(patient, fhirConfig,"cql/temporal/test_4.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_4.xml", "cql/includes/FHIRHelpers.xml");
 
-		CqlTestUtil.mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", CqlTestUtil.getFhirParser(), ENCOUNTER_3, fhirConfig);
-		CqlTestUtil.mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", CqlTestUtil.getFhirParser(), CONDITION_IN, fhirConfig);
+		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), ENCOUNTER_3, fhirConfig);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
 				new HashSet<>(Arrays.asList("NotFollowedByCondition")), Arrays.asList("123"), (patientId, expression, result) -> {
@@ -244,15 +245,15 @@ public class CqlTemporalTests {
 
 	@Test
 	public void anEventDoesFollow() throws Exception {
-		Patient patient = CqlTestUtil.getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
 		FhirServerConfig fhirConfig = new FhirServerConfig();
 		fhirConfig.setEndpoint("http://localhost:8089");
 
-		CqlEngineWrapper wrapper = CqlTestUtil.setupTestFor(patient, fhirConfig,"cql/temporal/test_4.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_4.xml", "cql/includes/FHIRHelpers.xml");
 
-		CqlTestUtil.mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", CqlTestUtil.getFhirParser(), ENCOUNTER_1, fhirConfig);
-		CqlTestUtil.mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", CqlTestUtil.getFhirParser(), CONDITION_IN, fhirConfig);
+		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), ENCOUNTER_1, fhirConfig);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
 				new HashSet<>(Arrays.asList("NotFollowedByCondition")), Arrays.asList("123"), (patientId, expression, result) -> {
@@ -267,7 +268,7 @@ public class CqlTemporalTests {
 
 	@Test
 	public void eventHappensWithin4Days() throws Exception {
-		Patient patient = CqlTestUtil.getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
 		FhirServerConfig fhirConfig = new FhirServerConfig();
 		fhirConfig.setEndpoint("http://localhost:8089");
@@ -296,10 +297,10 @@ public class CqlTemporalTests {
 		bundle.addEntry(firstEncounter);
 		bundle.addEntry(secondEncounter);
 
-		CqlEngineWrapper wrapper = CqlTestUtil.setupTestFor(patient, fhirConfig,"cql/temporal/test_5.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_5.xml", "cql/includes/FHIRHelpers.xml");
 
-		CqlTestUtil.mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", CqlTestUtil.getFhirParser(), bundle, fhirConfig);
-		CqlTestUtil.mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", CqlTestUtil.getFhirParser(), CONDITION_IN, fhirConfig);
+		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", getFhirParser(), bundle, fhirConfig);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
 				new HashSet<>(Arrays.asList("ValidObservation within 4 days")), Arrays.asList("123"), (patientId, expression, result) -> {
@@ -314,7 +315,7 @@ public class CqlTemporalTests {
 
 	@Test
 	public void noEventWithinFourDays() throws Exception {
-		Patient patient = CqlTestUtil.getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
 		FhirServerConfig fhirConfig = new FhirServerConfig();
 		fhirConfig.setEndpoint("http://localhost:8089");
@@ -341,10 +342,10 @@ public class CqlTemporalTests {
 		bundle.addEntry(firstEncounter);
 		bundle.addEntry(secondEncounter);
 
-		CqlEngineWrapper wrapper = CqlTestUtil.setupTestFor(patient, fhirConfig,"cql/temporal/test_5.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_5.xml", "cql/includes/FHIRHelpers.xml");
 
-		CqlTestUtil.mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", CqlTestUtil.getFhirParser(), bundle, fhirConfig);
-		CqlTestUtil.mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", CqlTestUtil.getFhirParser(), CONDITION_IN, fhirConfig);
+		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", getFhirParser(), bundle, fhirConfig);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
 				new HashSet<>(Arrays.asList("ValidObservation not within 4 days")), Arrays.asList("123"), (patientId, expression, result) -> {
@@ -376,5 +377,26 @@ public class CqlTemporalTests {
 		encounterPeriod.setEnd(encounterDate);
 		encounter.setPeriod(encounterPeriod);
 		return encounter;
+	}
+
+	private CqlEngineWrapper setupTestFor(Patient patient, FhirServerConfig fhirConfig, String... elm)
+			throws Exception {
+
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval(patient);
+
+		CqlEngineWrapper wrapper = new CqlEngineWrapper();
+		if (elm != null) {
+			for (String resource : elm) {
+				try (InputStream is = ClassLoader.getSystemResourceAsStream(resource)) {
+					wrapper.addLibrary(is, LibraryFormat.forString(resource), null);
+				}
+			}
+		}
+
+		wrapper.setDataServerConnectionProperties(fhirConfig);
+		wrapper.setTerminologyServerConnectionProperties(fhirConfig);
+		wrapper.setMeasureServerConnectionProperties(fhirConfig);
+		return wrapper;
 	}
 }
