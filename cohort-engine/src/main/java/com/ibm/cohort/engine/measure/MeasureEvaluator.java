@@ -14,7 +14,6 @@ import org.hl7.fhir.r4.model.MeasureReport;
 import org.opencds.cqf.common.evaluation.EvaluationProviderFactory;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
-import org.opencds.cqf.r4.evaluation.MeasureEvaluation;
 import org.opencds.cqf.r4.evaluation.MeasureEvaluationSeed;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
@@ -31,7 +30,6 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
  * @todo - figure out how to capture/prevent the debugging from showing up in
  *       stdout
  * @todo - cqf-ruler populates supplementaldata in the MeasureReport. Do we want that?
- * @todo - add support for CDM population extensions "caregap"
  */
 public class MeasureEvaluator {
 
@@ -98,11 +96,7 @@ public class MeasureEvaluator {
 			}
 		}
 
-		// The DaoRegistry parameter is only used for practitioner and subject-list type
-		// measures, so we can safely null it out right now. It is based on HAPI JPA
-		// ResourceProvider interface that we won't be able to use with IBM FHIR.
-		MeasureEvaluation evaluation = new MeasureEvaluation(seed.getDataProvider(), /* daoRegistry= */null,
-				seed.getMeasurementPeriod());
+		CDMMeasureEvaluation evaluation = new CDMMeasureEvaluation(seed.getDataProvider(), seed.getMeasurementPeriod());
 		return evaluation.evaluatePatientMeasure(measure, seed.getContext(), patientId);
 	}
 }
