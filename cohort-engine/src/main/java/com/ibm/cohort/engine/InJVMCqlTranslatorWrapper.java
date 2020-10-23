@@ -40,6 +40,7 @@ public class InJVMCqlTranslatorWrapper extends BaseCqlTranslatorWrapper {
 	public InJVMCqlTranslatorWrapper() {
 		this.modelManager = new ModelManager();
 		this.libraryManager = new LibraryManager(modelManager);
+		libraryManager.getLibrarySourceLoader().registerProvider(new FhirLibrarySourceProvider());
 	}
 
 	public InJVMCqlTranslatorWrapper addLibrarySourceProvider(LibrarySourceProvider provider) {
@@ -59,7 +60,6 @@ public class InJVMCqlTranslatorWrapper extends BaseCqlTranslatorWrapper {
 			optionsList.addAll(options);
 		}
 
-		libraryManager.getLibrarySourceLoader().registerProvider(new FhirLibrarySourceProvider());
 		CqlTranslator translator = CqlTranslator.fromStream(cql, modelManager, libraryManager, ucumService,
 				CqlTranslatorException.ErrorSeverity.Info, signatureLevel,
 				optionsList.toArray(new Options[optionsList.size()]));
