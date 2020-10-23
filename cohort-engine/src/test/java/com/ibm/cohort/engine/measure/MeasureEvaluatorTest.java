@@ -46,7 +46,7 @@ import com.ibm.cohort.engine.FhirServerConfig;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 public class MeasureEvaluatorTest extends BaseFhirTest {
-	
+
 	private static final String NUMERATOR_EXCLUSION = "Numerator Exclusion";
 
 	private static final String NUMERATOR = "Numerator";
@@ -58,7 +58,7 @@ public class MeasureEvaluatorTest extends BaseFhirTest {
 	private static final String DENOMINATOR = "Denominator";
 
 	private static final String INITIAL_POPULATION = "Initial Population";
-	
+
 	private MeasureEvaluator evaluator;
 	private Map<MeasurePopulationType, String> expressionsByPopulationType;
 	private Map<MeasurePopulationType, Integer> expectationsByPopulationType;
@@ -69,7 +69,7 @@ public class MeasureEvaluatorTest extends BaseFhirTest {
 		IGenericClient client = FhirClientFactory.newInstance(fhirContext).createFhirClient(config);
 
 		evaluator = new MeasureEvaluator(client, client, client);
-		
+
 		expressionsByPopulationType = new HashMap<>();
 		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
 		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOR, DENOMINATOR);
@@ -77,7 +77,7 @@ public class MeasureEvaluatorTest extends BaseFhirTest {
 		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOREXCEPTION, DENOMINATOR_EXCEPTION);
 		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
 		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOREXCLUSION, NUMERATOR_EXCLUSION);
-		
+
 		expectationsByPopulationType = new HashMap<>();
 		expectationsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, 1);
 		expectationsByPopulationType.put(MeasurePopulationType.DENOMINATOR, 1);
@@ -85,18 +85,19 @@ public class MeasureEvaluatorTest extends BaseFhirTest {
 		expectationsByPopulationType.put(MeasurePopulationType.DENOMINATOREXCEPTION, 0);
 		expectationsByPopulationType.put(MeasurePopulationType.NUMERATOR, 0);
 		expectationsByPopulationType.put(MeasurePopulationType.NUMERATOREXCLUSION, 0);
-		
+
 	}
 
 	@Test
-	public void in_initial_population___cohort_evaluated_correctly() throws Exception {
+	public void elm_in_initial_population___cohort_evaluated_correctly() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
 		mockFhirResourceRetrieval("/metadata", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
 
-		Library library = mockLibraryRetrieval("TestDummyPopulations", "cql/fhir-measure/test-dummy-populations.cql");
+		Library library = mockLibraryRetrieval("TestDummyPopulations", "cql/fhir-measure/test-dummy-populations.xml",
+				"application/elm+xml");
 
 		Measure measure = getCohortMeasure("CohortMeasureName", library, INITIAL_POPULATION);
 		mockFhirResourceRetrieval(measure);
@@ -107,9 +108,38 @@ public class MeasureEvaluatorTest extends BaseFhirTest {
 
 		verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
 		// TODO: cache resolved Libraries to avoid multiple REST calls
+
+		// 1. The first call is to load the root library by ID based on the measure
+		// configuration and is done indirectly via the library loader
+		// 3. The second call is during MeasureEvaluationSeed after libraries have been
+		// resolved. There is a call LibraryHelper.resolvePrimaryLibrary that goes back
+		// and gets it by ID again.
 		verify(2, getRequestedFor(urlEqualTo("/Library/TestDummyPopulations")));
-		verify(1, getRequestedFor(urlEqualTo("/Library?name=" + library.getName() + "&_sort=-date")));
+		// 2. This call is directly to the LibraryResourceProvider because they want the
+		// FHIR resource this time and not the ELM library.
 		verify(1, getRequestedFor(urlEqualTo("/Library?name=" + library.getName() + "&version=1.0.0&_sort=-date")));
+		// 4. This call happens during LibraryHelper.resolvePrimaryLibrary indirectly via
+		// the library loader pass through and because
+		verify(1, getRequestedFor(urlEqualTo("/Library?name=" + library.getName() + "&_sort=-date")));
+	}
+
+	@Test
+	public void elm_and_cql_in_initial_population___cohort_evaluated_correctly() throws Exception {
+		CapabilityStatement metadata = getCapabilityStatement();
+		mockFhirResourceRetrieval("/metadata", metadata);
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = mockLibraryRetrieval("TestDummyPopulations", "cql/fhir-measure/test-dummy-populations.cql",
+				"text/cql", "cql/fhir-measure/test-dummy-populations.xml", "application/elm+xml");
+
+		Measure measure = getCohortMeasure("CohortMeasureName", library, INITIAL_POPULATION);
+		mockFhirResourceRetrieval(measure);
+
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null);
+		assertNotNull(report);
+		assertEquals(1, report.getGroupFirstRep().getPopulationFirstRep().getCount());
 	}
 
 	@Test
@@ -149,84 +179,85 @@ public class MeasureEvaluatorTest extends BaseFhirTest {
 				fail("Unexpected population type in result");
 			}
 		}
-	} 
+	}
 
 	@Test
 	public void in_initial_population_and_denominator___caregaps_evaluated_correctly() throws Exception {
-		
-		Map<String,Integer> careGapExpectations = new HashMap<>();
+
+		Map<String, Integer> careGapExpectations = new HashMap<>();
 		careGapExpectations.put("CareGap1", 0);
 		careGapExpectations.put("CareGap2", 1);
-		
+
 		runCareGapTest(null, careGapExpectations);
 	}
-	
+
 	@Test
 	public void not_in_initial_population___caregaps_evaluated_correctly() throws Exception {
-		
-		Map<String,Object> parameters = new HashMap<>();
+
+		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("InInitialPopulation", Boolean.FALSE);
-		
+
 		expectationsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, 0);
 		expectationsByPopulationType.put(MeasurePopulationType.DENOMINATOR, 0);
-		
-		Map<String,Integer> expectationsByCareGap = new HashMap<>();
+
+		Map<String, Integer> expectationsByCareGap = new HashMap<>();
 		expectationsByCareGap.put("CareGap1", 0);
 		expectationsByCareGap.put("CareGap2", 0);
-		
-		runCareGapTest(parameters, expectationsByCareGap);
-	}
-	
-	@Test
-	public void not_in_denominator___caregaps_evaluated_correctly() throws Exception {
-		
-		Map<String,Object> parameters = new HashMap<>();
-		parameters.put("InDenominator", Boolean.FALSE);
-		
-		expectationsByPopulationType.put(MeasurePopulationType.DENOMINATOR, 0);
-		
-		Map<String,Integer> expectationsByCareGap = new HashMap<>();
-		expectationsByCareGap.put("CareGap1", 0);
-		expectationsByCareGap.put("CareGap2", 0);
-		
-		runCareGapTest(parameters, expectationsByCareGap);
-	}
-	
-	@Test
-	public void in_denominator_and_denominator_exclusions___caregaps_evaluated_correctly() throws Exception {
-		
-		Map<String,Object> parameters = new HashMap<>();
-		parameters.put("InDenominator", Boolean.TRUE);
-		parameters.put("InDenominatorExclusion", Boolean.TRUE);
-		
-		expectationsByPopulationType.put(MeasurePopulationType.DENOMINATOR, 0);
-		expectationsByPopulationType.put(MeasurePopulationType.DENOMINATOREXCLUSION, 1);
-		
-		Map<String,Integer> expectationsByCareGap = new HashMap<>();
-		expectationsByCareGap.put("CareGap1", 0);
-		expectationsByCareGap.put("CareGap2", 0);
-		
-		runCareGapTest(parameters, expectationsByCareGap);
-	}
-	
-	@Test
-	public void in_numerator_and_numerator_exclusions___caregaps_evaluated_correctly() throws Exception {
-		
-		Map<String,Object> parameters = new HashMap<>();
-		parameters.put("InNumerator", Boolean.TRUE);
-		parameters.put("InNumeratorExclusion", Boolean.TRUE);
-		
-		expectationsByPopulationType.put(MeasurePopulationType.NUMERATOR, 0);
-		expectationsByPopulationType.put(MeasurePopulationType.NUMERATOREXCLUSION, 1);
-		
-		Map<String,Integer> expectationsByCareGap = new HashMap<>();
-		expectationsByCareGap.put("CareGap1", 0);
-		expectationsByCareGap.put("CareGap2", 1);
-		
+
 		runCareGapTest(parameters, expectationsByCareGap);
 	}
 
-	private void runCareGapTest(Map<String,Object> parameters, Map<String,Integer> careGapExpectations) throws ParseException, Exception {
+	@Test
+	public void not_in_denominator___caregaps_evaluated_correctly() throws Exception {
+
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("InDenominator", Boolean.FALSE);
+
+		expectationsByPopulationType.put(MeasurePopulationType.DENOMINATOR, 0);
+
+		Map<String, Integer> expectationsByCareGap = new HashMap<>();
+		expectationsByCareGap.put("CareGap1", 0);
+		expectationsByCareGap.put("CareGap2", 0);
+
+		runCareGapTest(parameters, expectationsByCareGap);
+	}
+
+	@Test
+	public void in_denominator_and_denominator_exclusions___caregaps_evaluated_correctly() throws Exception {
+
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("InDenominator", Boolean.TRUE);
+		parameters.put("InDenominatorExclusion", Boolean.TRUE);
+
+		expectationsByPopulationType.put(MeasurePopulationType.DENOMINATOR, 0);
+		expectationsByPopulationType.put(MeasurePopulationType.DENOMINATOREXCLUSION, 1);
+
+		Map<String, Integer> expectationsByCareGap = new HashMap<>();
+		expectationsByCareGap.put("CareGap1", 0);
+		expectationsByCareGap.put("CareGap2", 0);
+
+		runCareGapTest(parameters, expectationsByCareGap);
+	}
+
+	@Test
+	public void in_numerator_and_numerator_exclusions___caregaps_evaluated_correctly() throws Exception {
+
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("InNumerator", Boolean.TRUE);
+		parameters.put("InNumeratorExclusion", Boolean.TRUE);
+
+		expectationsByPopulationType.put(MeasurePopulationType.NUMERATOR, 0);
+		expectationsByPopulationType.put(MeasurePopulationType.NUMERATOREXCLUSION, 1);
+
+		Map<String, Integer> expectationsByCareGap = new HashMap<>();
+		expectationsByCareGap.put("CareGap1", 0);
+		expectationsByCareGap.put("CareGap2", 1);
+
+		runCareGapTest(parameters, expectationsByCareGap);
+	}
+
+	private void runCareGapTest(Map<String, Object> parameters, Map<String, Integer> careGapExpectations)
+			throws ParseException, Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
 		mockFhirResourceRetrieval("/metadata", metadata);
 
@@ -234,22 +265,26 @@ public class MeasureEvaluatorTest extends BaseFhirTest {
 		mockFhirResourceRetrieval(patient);
 
 		Library library = mockLibraryRetrieval("TestDummyPopulations", "cql/fhir-measure/test-dummy-populations.cql");
-		
-		Measure measure = getCareGapMeasure("ProportionMeasureName", library, expressionsByPopulationType, "CareGap1", "CareGap2");
+
+		Measure measure = getCareGapMeasure("ProportionMeasureName", library, expressionsByPopulationType, "CareGap1",
+				"CareGap2");
 		mockFhirResourceRetrieval(measure);
 
 		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), parameters);
 		assertNotNull(report);
-		assertEquals( measure.getGroupFirstRep().getPopulation().size(), report.getGroupFirstRep().getPopulation().size());
+		assertEquals(measure.getGroupFirstRep().getPopulation().size(),
+				report.getGroupFirstRep().getPopulation().size());
 		List<MeasureReport.MeasureReportGroupPopulationComponent> careGapPopulations = verifyStandardPopulationCounts(
 				report);
-		
-		assertEquals( 2, careGapPopulations.size() );
-		for( MeasureReport.MeasureReportGroupPopulationComponent pop : careGapPopulations ) {
-			assertEquals( CDMMeasureEvaluation.CDM_CODE_SYSTEM_MEASURE_POPULATION_TYPE, pop.getCode().getCodingFirstRep().getSystem() );
-			assertEquals( CDMMeasureEvaluation.CARE_GAP, pop.getCode().getCodingFirstRep().getCode() );
-			assertTrue( pop.getId().startsWith("CareGap") ); // this is part of the test fixture and may not match production behavior
-			assertEquals( pop.getId(), careGapExpectations.get(pop.getId()).intValue(), pop.getCount() );
+
+		assertEquals(2, careGapPopulations.size());
+		for (MeasureReport.MeasureReportGroupPopulationComponent pop : careGapPopulations) {
+			assertEquals(CDMMeasureEvaluation.CDM_CODE_SYSTEM_MEASURE_POPULATION_TYPE,
+					pop.getCode().getCodingFirstRep().getSystem());
+			assertEquals(CDMMeasureEvaluation.CARE_GAP, pop.getCode().getCodingFirstRep().getCode());
+			assertTrue(pop.getId().startsWith("CareGap")); // this is part of the test fixture and may not match
+															// production behavior
+			assertEquals(pop.getId(), careGapExpectations.get(pop.getId()).intValue(), pop.getCount());
 		}
 	}
 
@@ -258,16 +293,16 @@ public class MeasureEvaluatorTest extends BaseFhirTest {
 		List<MeasureReport.MeasureReportGroupPopulationComponent> careGapPopulations = new ArrayList<>();
 		for (MeasureReport.MeasureReportGroupPopulationComponent pop : report.getGroupFirstRep().getPopulation()) {
 			MeasurePopulationType type = MeasurePopulationType.fromCode(pop.getCode().getCodingFirstRep().getCode());
-			if( type != null ) {
-				assertEquals( type.toCode(), expectationsByPopulationType.get( type ).intValue(), pop.getCount() );
+			if (type != null) {
+				assertEquals(type.toCode(), expectationsByPopulationType.get(type).intValue(), pop.getCount());
 			} else {
-				careGapPopulations.add( pop );
+				careGapPopulations.add(pop);
 			}
 		}
 		return careGapPopulations;
 	}
 
-	private Library mockLibraryRetrieval(String libraryName, String cqlResource) throws Exception {
+	private Library mockLibraryRetrieval(String libraryName, String... cqlResource) throws Exception {
 		Library library = getLibrary(libraryName, cqlResource);
 		mockFhirResourceRetrieval(library);
 
@@ -276,7 +311,7 @@ public class MeasureEvaluatorTest extends BaseFhirTest {
 		mockFhirResourceRetrieval("/Library?name=" + library.getName() + "&version=1.0.0&_sort=-date", bundle);
 		return library;
 	}
-	
+
 	// TODO: test behavior when measure library cannot be resolved
 
 	private Bundle getBundle(Resource... resources) {
@@ -309,7 +344,7 @@ public class MeasureEvaluatorTest extends BaseFhirTest {
 
 		return measure;
 	}
-	
+
 	public Measure getCareGapMeasure(String measureName, Library library,
 			Map<MeasurePopulationType, String> expressionsByPopType, String... careGapExpressions) {
 		Measure measure = getProportionMeasure(measureName, library, expressionsByPopType);
@@ -320,8 +355,8 @@ public class MeasureEvaluatorTest extends BaseFhirTest {
 			pop.setId(expression);
 			pop.setCode(new CodeableConcept(new Coding(CDMMeasureEvaluation.CDM_CODE_SYSTEM_MEASURE_POPULATION_TYPE,
 					CDMMeasureEvaluation.CARE_GAP, "Care Gap")));
-			pop.setCriteria( new Expression().setLanguage( "text/cql+identifier" ).setExpression( expression ) );
-			measure.getGroupFirstRep().addPopulation( pop );
+			pop.setCriteria(new Expression().setLanguage("text/cql+identifier").setExpression(expression));
+			measure.getGroupFirstRep().addPopulation(pop);
 		}
 
 		return measure;

@@ -7,11 +7,10 @@ package com.ibm.cohort.engine.measure;
 
 import java.util.Base64;
 
-import org.cqframework.cql.cql2elm.LibraryManager;
-import org.cqframework.cql.cql2elm.ModelManager;
-import org.opencds.cqf.common.evaluation.LibraryLoader;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.common.providers.LibrarySourceProvider;
+
+import com.ibm.cohort.engine.InJVMCqlTranslatorWrapper;
 
 /**
  * Helper functions for working with FHIR Libraries
@@ -26,14 +25,10 @@ public class LibraryHelper {
 	 * @return LibraryLoader that will base64 decode CQL text
 	 */
 	public static LibraryLoader createLibraryLoader(LibraryResolutionProvider<org.hl7.fhir.r4.model.Library> provider) {
-		ModelManager modelManager = new ModelManager();
-		LibraryManager libraryManager = new LibraryManager(modelManager);
-		libraryManager.getLibrarySourceLoader().clearProviders();
+		InJVMCqlTranslatorWrapper translator = new InJVMCqlTranslatorWrapper();
+		translator.addLibrarySourceProvider(new LibrarySourceProvider<org.hl7.fhir.r4.model.Library, org.hl7.fhir.r4.model.Attachment>(provider,
+				x -> x.getContent(), x -> x.getContentType(), x -> Base64.getDecoder().decode(x.getData())));
 
-		libraryManager.getLibrarySourceLoader().registerProvider(
-				new LibrarySourceProvider<org.hl7.fhir.r4.model.Library, org.hl7.fhir.r4.model.Attachment>(provider,
-						x -> x.getContent(), x -> x.getContentType(), x -> Base64.getDecoder().decode(x.getData())));
-
-		return new LibraryLoader(libraryManager, modelManager);
+		return new LibraryLoader(provider, translator);
 	}
 }
