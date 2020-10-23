@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<library xmlns="urn:hl7-org:elm:r1" xmlns:t="urn:hl7-org:elm-types:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:fhir="http://hl7.org/fhir" xmlns:qdm43="urn:healthit-gov:qdm:v4_3" xmlns:qdm53="urn:healthit-gov:qdm:v5_3" xmlns:a="urn:hl7-org:cql-annotations:r1">
+   <annotation translatorOptions="" xsi:type="a:CqlToElmInfo"/>
+   <identifier id="TestDummyPopulations" version="1.0.0"/>
+   <schemaIdentifier id="urn:hl7-org:elm" version="r1"/>
+   <usings>
+      <def localIdentifier="System" uri="urn:hl7-org:elm-types:r1"/>
+      <def localIdentifier="FHIR" uri="http://hl7.org/fhir" version="4.0.0"/>
+   </usings>
+   <parameters>
+      <def name="MeasurementPeriod" accessLevel="Public">
+         <parameterTypeSpecifier xsi:type="IntervalTypeSpecifier">
+            <pointType name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+         </parameterTypeSpecifier>
+      </def>
+      <def name="InInitialPopulation" accessLevel="Public">
+         <default valueType="t:Boolean" value="true" xsi:type="Literal"/>
+         <parameterTypeSpecifier name="t:Boolean" xsi:type="NamedTypeSpecifier"/>
+      </def>
+      <def name="InDenominator" accessLevel="Public">
+         <default valueType="t:Boolean" value="true" xsi:type="Literal"/>
+         <parameterTypeSpecifier name="t:Boolean" xsi:type="NamedTypeSpecifier"/>
+      </def>
+      <def name="InDenominatorException" accessLevel="Public">
+         <default valueType="t:Boolean" value="false" xsi:type="Literal"/>
+         <parameterTypeSpecifier name="t:Boolean" xsi:type="NamedTypeSpecifier"/>
+      </def>
+      <def name="InDenominatorExclusion" accessLevel="Public">
+         <default valueType="t:Boolean" value="false" xsi:type="Literal"/>
+         <parameterTypeSpecifier name="t:Boolean" xsi:type="NamedTypeSpecifier"/>
+      </def>
+      <def name="InNumerator" accessLevel="Public">
+         <default valueType="t:Boolean" value="false" xsi:type="Literal"/>
+         <parameterTypeSpecifier name="t:Boolean" xsi:type="NamedTypeSpecifier"/>
+      </def>
+      <def name="InNumeratorExclusion" accessLevel="Public">
+         <default valueType="t:Boolean" value="false" xsi:type="Literal"/>
+         <parameterTypeSpecifier name="t:Boolean" xsi:type="NamedTypeSpecifier"/>
+      </def>
+      <def name="InCareGap1" accessLevel="Public">
+         <default valueType="t:Boolean" value="false" xsi:type="Literal"/>
+         <parameterTypeSpecifier name="t:Boolean" xsi:type="NamedTypeSpecifier"/>
+      </def>
+      <def name="InCareGap2" accessLevel="Public">
+         <default valueType="t:Boolean" value="true" xsi:type="Literal"/>
+         <parameterTypeSpecifier name="t:Boolean" xsi:type="NamedTypeSpecifier"/>
+      </def>
+   </parameters>
+   <contexts>
+      <def name="Patient"/>
+   </contexts>
+   <statements>
+      <def name="Patient" context="Patient">
+         <expression xsi:type="SingletonFrom">
+            <operand dataType="fhir:Patient" xsi:type="Retrieve"/>
+         </expression>
+      </def>
+      <def name="Initial Population" context="Patient" accessLevel="Public">
+         <expression name="InInitialPopulation" xsi:type="ParameterRef"/>
+      </def>
+      <def name="Denominator" context="Patient" accessLevel="Public">
+         <expression name="InDenominator" xsi:type="ParameterRef"/>
+      </def>
+      <def name="Numerator" context="Patient" accessLevel="Public">
+         <expression name="InNumerator" xsi:type="ParameterRef"/>
+      </def>
+      <def name="Numerator Exclusion" context="Patient" accessLevel="Public">
+         <expression name="InNumeratorExclusion" xsi:type="ParameterRef"/>
+      </def>
+      <def name="Denominator Exception" context="Patient" accessLevel="Public">
+         <expression name="InDenominatorException" xsi:type="ParameterRef"/>
+      </def>
+      <def name="Denominator Exclusion" context="Patient" accessLevel="Public">
+         <expression name="InDenominatorExclusion" xsi:type="ParameterRef"/>
+      </def>
+      <def name="CareGap1" context="Patient" accessLevel="Public">
+         <expression name="InCareGap1" xsi:type="ParameterRef"/>
+      </def>
+      <def name="CareGap2" context="Patient" accessLevel="Public">
+         <expression name="InCareGap2" xsi:type="ParameterRef"/>
+      </def>
+   </statements>
+</library>
+
+
