@@ -1,0 +1,6 @@
+{
+  "licenser.license": "Custom",
+  "licenser.customHeader": "\n(C) Copyright IBM Corp. @YEAR@, @YEAR@\n\nSPDX-License-Identifier: Apache-2.0",
+  "licenser.useSingleLineStyle": false
+}
+
