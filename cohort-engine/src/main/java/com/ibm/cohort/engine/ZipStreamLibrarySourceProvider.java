@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Copr. 2020, 2020
+ * (C) Copyright IBM Corp. 2020, 2020
  *
  * SPDX-License-Identifier: Apache-2.0
  */

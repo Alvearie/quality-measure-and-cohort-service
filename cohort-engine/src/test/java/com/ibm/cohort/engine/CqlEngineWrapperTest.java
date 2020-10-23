@@ -1,19 +1,14 @@
 /*
- * (C) Copyright IBM Copr. 2020, 2020
+ * (C) Copyright IBM Corp. 2020, 2020
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package com.ibm.cohort.engine;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.matching;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -25,23 +20,15 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.Writer;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.IOUtils;
-import org.hl7.fhir.r4.model.Attachment;
-import org.hl7.fhir.r4.model.CapabilityStatement;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Condition;
@@ -51,9 +38,7 @@ import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.RelatedArtifact;
 import org.hl7.fhir.r4.model.RelatedArtifact.RelatedArtifactType;
-import org.hl7.fhir.r4.model.Resource;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.opencds.cqf.cql.engine.runtime.Code;
 import org.opencds.cqf.cql.engine.runtime.DateTime;
@@ -62,17 +47,10 @@ import org.opencds.cqf.cql.engine.runtime.Quantity;
 import org.opencds.cqf.cql.engine.runtime.Time;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.client.MappingBuilder;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
-import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
-import ca.uhn.fhir.rest.client.api.IGenericClient;
 
-public class CqlEngineWrapperTest {
-
-	@Rule
-	public WireMockRule wireMockRule = new WireMockRule(options().port(8089)/* .notifier(new ConsoleNotifier(true)) */);
+public class CqlEngineWrapperTest extends BaseFhirTest {
 
 	@Test
 	public void testPatientIsFemaleTrue() throws Exception {
@@ -153,7 +131,7 @@ public class CqlEngineWrapperTest {
 	@Test
 	public void testRequiredCQLParameterSpecifiedPatientOutOfRange() throws Exception {
 
-		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-08-01");
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("MaxAge", 40);
@@ -173,7 +151,7 @@ public class CqlEngineWrapperTest {
 	@Test
 	public void testRequiredCQLParameterSpecifiedPatientInRange() throws Exception {
 
-		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-08-01");
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("MaxAge", 50);
@@ -248,9 +226,7 @@ public class CqlEngineWrapperTest {
 
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
-		FhirServerConfig fhirConfig = new FhirServerConfig();
-		fhirConfig.setEndpoint("http://localhost:8089");
-
+		FhirServerConfig fhirConfig = getFhirServerConfig();
 		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig, "cql/basic/test.xml");
 
 		final AtomicInteger count = new AtomicInteger(0);
@@ -282,7 +258,7 @@ public class CqlEngineWrapperTest {
 		FhirServerConfig fhirConfig = new FhirServerConfig();
 		fhirConfig.setEndpoint("http://localhost:8089");
 
-		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), condition, fhirConfig);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", condition);
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig, "cql/condition/FHIRHelpers.xml",
 				"cql/condition/test-status-active.xml");
@@ -303,8 +279,7 @@ public class CqlEngineWrapperTest {
 	public void testMainWithParams() throws Exception {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
-		FhirServerConfig fhirConfig = new FhirServerConfig();
-		fhirConfig.setEndpoint("http://localhost:8089");
+		FhirServerConfig fhirConfig = getFhirServerConfig();
 
 		setupTestFor(patient, fhirConfig, "cql/basic/test.xml");
 
@@ -340,9 +315,7 @@ public class CqlEngineWrapperTest {
 	public void testMainNoParams() throws Exception {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
-		FhirServerConfig fhirConfig = new FhirServerConfig();
-		fhirConfig.setEndpoint("http://localhost:8089");
-
+		FhirServerConfig fhirConfig = getFhirServerConfig();
 		setupTestFor(patient, fhirConfig, "cql/basic/test.xml");
 
 		File tmpFile = new File("target/fhir-stub.json");
@@ -376,21 +349,18 @@ public class CqlEngineWrapperTest {
 	@Test
 	public void testMainZippedLibraries() throws Exception {
 
-		FhirServerConfig fhirConfig = new FhirServerConfig();
-		fhirConfig.setEndpoint("http://localhost:8089");
+		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		IParser encoder = getFhirParser();
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 
-		mockFhirResourceRetrieval("/metadata", encoder, getCapabilityStatement(), fhirConfig);
-
-		Patient justRight = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-08-01");
-		mockFhirResourceRetrieval("/Patient/" + justRight.getId(), encoder, justRight, fhirConfig);
+		Patient justRight = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
+		mockFhirResourceRetrieval(justRight);
 
 		Patient tooOld = getPatient("456", Enumerations.AdministrativeGender.FEMALE, "1900-08-01");
-		mockFhirResourceRetrieval("/Patient/" + tooOld.getId(), encoder, tooOld, fhirConfig);
+		mockFhirResourceRetrieval(tooOld);
 
-		Patient tooManly = getPatient("789", Enumerations.AdministrativeGender.MALE, "1978-08-01");
-		mockFhirResourceRetrieval("/Patient/" + tooManly.getId(), encoder, tooManly, fhirConfig);
+		Patient tooManly = getPatient("789", Enumerations.AdministrativeGender.MALE, "1978-05-06");
+		mockFhirResourceRetrieval(tooManly);
 
 		File tmpFile = new File("target/fhir-stub.json");
 		ObjectMapper om = new ObjectMapper();
@@ -428,21 +398,20 @@ public class CqlEngineWrapperTest {
 	@Test
 	public void testMainZippedLibrariesWithCompilation() throws Exception {
 
-		FhirServerConfig fhirConfig = new FhirServerConfig();
-		fhirConfig.setEndpoint("http://localhost:8089");
+		FhirServerConfig fhirConfig = getFhirServerConfig();
 
 		IParser encoder = getFhirParser();
 
 		mockFhirResourceRetrieval("/metadata", encoder, getCapabilityStatement(), fhirConfig);
 
-		Patient justRight = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-08-01");
-		mockFhirResourceRetrieval("/Patient/" + justRight.getId(), encoder, justRight, fhirConfig);
+		Patient justRight = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
+		mockFhirResourceRetrieval(justRight);
 
 		Patient tooOld = getPatient("456", Enumerations.AdministrativeGender.FEMALE, "1900-08-01");
-		mockFhirResourceRetrieval("/Patient/" + tooOld.getId(), encoder, tooOld, fhirConfig);
+		mockFhirResourceRetrieval(tooOld);
 
-		Patient tooManly = getPatient("789", Enumerations.AdministrativeGender.MALE, "1978-08-01");
-		mockFhirResourceRetrieval("/Patient/" + tooManly.getId(), encoder, tooManly, fhirConfig);
+		Patient tooManly = getPatient("789", Enumerations.AdministrativeGender.MALE, "1978-05-06");
+		mockFhirResourceRetrieval(tooManly);
 
 		File tmpFile = new File("target/fhir-stub.json");
 		ObjectMapper om = new ObjectMapper();
@@ -480,15 +449,12 @@ public class CqlEngineWrapperTest {
 	@Test
 	public void testMainFHIRLibrariesWithDependencies() throws Exception {
 
-		FhirServerConfig fhirConfig = new FhirServerConfig();
-		fhirConfig.setEndpoint("http://localhost:8089");
+		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		IParser encoder = getFhirParser();
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 
-		mockFhirResourceRetrieval("/metadata", encoder, getCapabilityStatement(), fhirConfig);
-
-		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-08-01");
-		mockFhirResourceRetrieval("/Patient/" + patient.getId(), encoder, patient, fhirConfig);
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
+		mockFhirResourceRetrieval(patient);
 
 		Library root = getLibrary("Breast-Cancer-Screening", "cql/includes/Breast-Cancer-Screening.cql");
 		Library helpers = getLibrary("FHIRHelpers", "cql/includes/FHIRHelpers.cql", "text/cql",
@@ -499,8 +465,8 @@ public class CqlEngineWrapperTest {
 		related.setResource("/Library/" + helpers.getId());
 		root.addRelatedArtifact(related);
 
-		mockFhirResourceRetrieval("/Library/" + root.getId(), encoder, root, fhirConfig);
-		mockFhirResourceRetrieval("/Library/" + helpers.getId(), encoder, helpers, fhirConfig);
+		mockFhirResourceRetrieval(root);
+		mockFhirResourceRetrieval(helpers);
 
 		File tmpFile = new File("target/fhir-stub.json");
 		ObjectMapper om = new ObjectMapper();
@@ -533,64 +499,9 @@ public class CqlEngineWrapperTest {
 		}
 	}
 
-	protected IParser getFhirParser() {
-		FhirContext fhirContext = FhirContext.forR4();
-		IParser encoder = fhirContext.newJsonParser().setPrettyPrint(true);
-		return encoder;
-	}
-
-	protected Patient getPatient(String id, Enumerations.AdministrativeGender administrativeGender, String birthDateStr)
-			throws ParseException {
-		Patient patient = new Patient();
-		patient.setId(id);
-		patient.setGender(administrativeGender);
-
-		if (birthDateStr != null) {
-			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-			Date birthDate = format.parse(birthDateStr);
-			patient.setBirthDate(birthDate);
-		}
-		return patient;
-	}
-
-	protected Library getLibrary(String id, String... attachmentData) throws Exception {
-		if (attachmentData == null || attachmentData.length == 0
-				|| (attachmentData.length > 2) && ((attachmentData.length % 2) != 0)) {
-			fail("Invalid attachment data. Data must consist of one or more pairs of resource path and content-type strings");
-		}
-
-		List<String> pairs = new ArrayList<String>(Arrays.asList(attachmentData));
-		if (pairs.size() == 1) {
-			pairs.add("text/cql");
-		}
-
-		List<Attachment> attachments = new ArrayList<Attachment>(pairs.size() / 2);
-		for (int i = 0; i < pairs.size(); i += 2) {
-			String resource = pairs.get(i);
-			String contentType = pairs.get(i + 1);
-
-			try (InputStream is = ClassLoader.getSystemResourceAsStream(resource)) {
-				assertNotNull(String.format("No such resource %s found in classpath", resource), is);
-				String text = IOUtils.toString(is, StandardCharsets.UTF_8);
-
-				Attachment attachment = new Attachment();
-				attachment.setContentType(contentType);
-				attachment.setData(Base64.encodeBase64(text.getBytes()));
-				attachments.add(attachment);
-			}
-		}
-
-		Library library = new Library();
-		library.setId(id);
-		library.setName(id);
-		library.setContent(attachments);
-
-		return library;
-	}
-
 	@Test
 	public void testNumCallsUsingEngineWrapperMethod() throws Exception {
-		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-08-01");
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/basic/test.xml");
 
@@ -607,7 +518,7 @@ public class CqlEngineWrapperTest {
 
 	@Test
 	public void testNumCallsUsingPerDefineMethod() throws Exception {
-		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-08-01");
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/basic/test.xml");
 
@@ -625,7 +536,7 @@ public class CqlEngineWrapperTest {
 	@Test
 	// @Ignore // This isn't working right now due to weirdness in the CqlEngine
 	public void testNumCallsWithParamsUsingEngineWrapperMethod() throws Exception {
-		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-08-01");
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/parameters/test-with-params.xml");
 
@@ -672,7 +583,7 @@ public class CqlEngineWrapperTest {
 	@Ignore // uncomment when JSON starts working -
 			// https://github.com/DBCG/cql_engine/issues/405
 	public void testJsonCQLWithIncludes() throws Exception {
-		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-08-01");
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/includes/Breast-Cancer-Screening.json",
 				"cql/includes/FHIRHelpers.json");
@@ -739,7 +650,7 @@ public class CqlEngineWrapperTest {
 
 	private CqlEngineWrapper setupTestFor(Patient patient, String... elm) throws Exception {
 		IBMFhirServerConfig fhirConfig = new IBMFhirServerConfig();
-		fhirConfig.setEndpoint("http://localhost:8089");
+		fhirConfig.setEndpoint("http://localhost:" + HTTP_PORT);
 		fhirConfig.setUser("fhiruser");
 		fhirConfig.setPassword("change-password");
 		fhirConfig.setTenantId("default");
@@ -749,14 +660,9 @@ public class CqlEngineWrapperTest {
 
 	private CqlEngineWrapper setupTestFor(Patient patient, FhirServerConfig fhirConfig, String... elm)
 			throws Exception {
-		CapabilityStatement metadata = getCapabilityStatement();
 
-		FhirContext fhirContext = FhirContext.forR4();
-		IParser encoder = fhirContext.newJsonParser().setPrettyPrint(true);
-
-		mockFhirResourceRetrieval("/metadata", encoder, metadata, fhirConfig);
-
-		mockFhirResourceRetrieval("/Patient/" + patient.getId(), encoder, patient, fhirConfig);
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval(patient);
 
 		CqlEngineWrapper wrapper = new CqlEngineWrapper();
 		if (elm != null) {
@@ -769,31 +675,8 @@ public class CqlEngineWrapperTest {
 
 		wrapper.setDataServerConnectionProperties(fhirConfig);
 		wrapper.setTerminologyServerConnectionProperties(fhirConfig);
+		wrapper.setMeasureServerConnectionProperties(fhirConfig);
 		return wrapper;
-	}
-
-	protected CapabilityStatement getCapabilityStatement() {
-		CapabilityStatement metadata = new CapabilityStatement();
-		metadata.setFhirVersion(Enumerations.FHIRVersion._4_0_1);
-		return metadata;
-	}
-
-	private void mockFhirResourceRetrieval(String resourcePath, IParser encoder, Resource resource,
-			FhirServerConfig fhirConfig) {
-		MappingBuilder builder = get(urlEqualTo(resourcePath));
-		if (fhirConfig.getUser() != null && fhirConfig.getPassword() != null) {
-			builder = builder.withBasicAuth(fhirConfig.getUser(), fhirConfig.getPassword());
-		}
-
-		Map<String, String> additionalHeaders = fhirConfig.getAdditionalHeaders();
-		if (additionalHeaders != null) {
-			for (Map.Entry<String, String> header : additionalHeaders.entrySet()) {
-				builder = builder.withHeader(header.getKey(), matching(header.getValue()));
-			}
-		}
-
-		stubFor(builder.willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json")
-				.withBody(encoder.encodeResourceToString(resource))));
 	}
 
 	@Test
@@ -968,16 +851,5 @@ public class CqlEngineWrapperTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void testResolveUnsupportedFormatParameter() {
 		CqlEngineWrapper.parseParameters(Arrays.asList("gibberish"));
-	}
-
-	@Test
-	public void testSimpleFhirConfig() {
-		FhirServerConfig simple = new FhirServerConfig();
-		simple.setEndpoint("http://hapi.fhir.org/baseR4");
-
-		FhirContext ctx = FhirContext.forR4();
-		CqlEngineWrapper wrapper = new CqlEngineWrapper();
-		IGenericClient client = wrapper.initializeFhirClient(ctx, simple);
-		assertEquals(0, client.getInterceptorService().getAllRegisteredInterceptors().size());
 	}
 }
