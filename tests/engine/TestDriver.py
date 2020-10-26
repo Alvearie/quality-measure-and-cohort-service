@@ -46,9 +46,11 @@ class Test(object):
 
     def setup_class(self):
         global engineWrapper
-        javabridge.start_vm(run_headless=True, class_path=javabridge.JARS + [baseDir+'cohort-engine-0.0.1-SNAPSHOT-shaded.jar', baseDir+'TestWrapper.jar']) # Start the JVM with modified classpath.
+        testWrapper = baseDir+os.environ['TEST_WRAPPER']
+        cohortEngine = baseDir+os.environ['COHORT_ENGINE']
+        javabridge.start_vm(run_headless=True, class_path=javabridge.JARS + [cohortEngine, testWrapper]) # Start the JVM with modified classpath.
         engineWrapper = javabridge.JClassWrapper("com.ibm.cohort.engine.test.TestWrapper")() # Get an instance of the test wrapper.
-        engineWrapper.warm("config/remote-hapi-fhir.json","config/remote-hapi-fhir.json",libraries, "Test", "1235008") # Warm up the JV and submit a noise query.
+        engineWrapper.warm(baseDir+os.environ['DATA_FHIR_SERVER_DETAILS'],baseDir+os.environ['TERM_FHIR_SERVER_DETAILS'],libraries, "Test", "1235008") # Warm up the JV and submit a noise query.
 
     def teardown_class(self):
         javabridge.kill_vm() # The JVM must die.

@@ -1,8 +1,12 @@
 settings:
   env:
-    LIBRARY_PATH: src/test/resources/cql/basic
+    LIBRARY_PATH: cohort-engine/src/test/resources/cql/basic
     PERF_EXECUTION_COUNT: 3
     TESTS_CSV: tests/testObjects/sample.csv
+    TEST_WRAPPER: tests/target/TestWrapper-0.0.1-SNAPSHOT.jar
+    COHORT_ENGINE: cohort-engine/target/cohort-engine-0.0.1-SNAPSHOT-shaded.jar
+    DATA_FHIR_SERVER_DETAILS: cohort-engine/config/remote-hapi-fhir.json
+    TERM_FHIR_SERVER_DETAILS: cohort-engine/config/remote-hapi-fhir.json
 
 execution:
 - executor: pytest
@@ -11,7 +15,7 @@ execution:
 scenarios:
 
   pytest-test:
-    script: ../engine/Test.py
+    script: ../engine/TestDriver.py
 
 reporting:
 - module: junit-xml
