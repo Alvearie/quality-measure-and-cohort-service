@@ -82,6 +82,20 @@ public class BaseFhirTest {
 	protected void mockFhirResourceRetrieval(String resourcePath, IParser encoder, Resource resource,
 			FhirServerConfig fhirConfig) {
 		MappingBuilder builder = get(urlEqualTo(resourcePath));
+		mockFhirResourceRetrieval(builder, encoder, resource, fhirConfig);
+	}
+
+	protected void mockFhirResourceRetrieval(MappingBuilder builder, Resource resource) {
+		mockFhirResourceRetrieval(builder, getFhirParser(), resource, getFhirServerConfig());
+	}
+	
+	protected void mockFhirResourceRetrieval(MappingBuilder builder, IParser encoder, Resource resource, FhirServerConfig fhirConfig) {
+		builder = setAuthenticationParameters(fhirConfig, builder);
+		stubFor(builder.willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json")
+				.withBody(encoder.encodeResourceToString(resource))));
+	}
+
+	protected MappingBuilder setAuthenticationParameters(FhirServerConfig fhirConfig, MappingBuilder builder) {
 		if (fhirConfig.getUser() != null && fhirConfig.getPassword() != null) {
 			builder = builder.withBasicAuth(fhirConfig.getUser(), fhirConfig.getPassword());
 		}
@@ -92,9 +106,7 @@ public class BaseFhirTest {
 				builder = builder.withHeader(header.getKey(), matching(header.getValue()));
 			}
 		}
-
-		stubFor(builder.willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json")
-				.withBody(encoder.encodeResourceToString(resource))));
+		return builder;
 	}
 
 	protected IParser getFhirParser() {
