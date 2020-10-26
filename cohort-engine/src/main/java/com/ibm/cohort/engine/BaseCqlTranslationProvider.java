@@ -18,7 +18,7 @@ import org.cqframework.cql.elm.execution.Library;
  * Common functionality for use when implementing CQL translator
  * wrapper implementations.
  */
-public abstract class BaseCqlTranslatorWrapper implements CqlTranslatorWrapper {
+public abstract class BaseCqlTranslationProvider implements CqlTranslationProvider {
 
 	public static final LibraryFormat DEFAULT_TARGET_FORMAT = LibraryFormat.XML;
 	

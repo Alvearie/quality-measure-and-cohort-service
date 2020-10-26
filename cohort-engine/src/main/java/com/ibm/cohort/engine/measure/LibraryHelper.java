@@ -10,7 +10,7 @@ import java.util.Base64;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.common.providers.LibrarySourceProvider;
 
-import com.ibm.cohort.engine.InJVMCqlTranslatorWrapper;
+import com.ibm.cohort.engine.InJVMCqlTranslationProvider;
 
 /**
  * Helper functions for working with FHIR Libraries
@@ -25,7 +25,7 @@ public class LibraryHelper {
 	 * @return LibraryLoader that will base64 decode CQL text
 	 */
 	public static LibraryLoader createLibraryLoader(LibraryResolutionProvider<org.hl7.fhir.r4.model.Library> provider) {
-		InJVMCqlTranslatorWrapper translator = new InJVMCqlTranslatorWrapper();
+		InJVMCqlTranslationProvider translator = new InJVMCqlTranslationProvider();
 		translator.addLibrarySourceProvider(new LibrarySourceProvider<org.hl7.fhir.r4.model.Library, org.hl7.fhir.r4.model.Attachment>(provider,
 				x -> x.getContent(), x -> x.getContentType(), x -> Base64.getDecoder().decode(x.getData())));
 

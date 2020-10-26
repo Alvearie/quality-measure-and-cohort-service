@@ -12,16 +12,16 @@ import java.util.zip.ZipFile;
 import org.cqframework.cql.cql2elm.DefaultLibrarySourceProvider;
 import org.junit.Before;
 
-public class InJVMCqlTranslatorWrapperTest extends CqlTranslatorWrapperTest {
+public class InJVMCqlTranslationProviderTest extends CqlTranslatorWrapperTest {
 
-	private InJVMCqlTranslatorWrapper translator;
+	private InJVMCqlTranslationProvider translator;
 	
 	@Before
 	public void setUp() {
-		translator = new InJVMCqlTranslatorWrapper();
+		translator = new InJVMCqlTranslationProvider();
 	}
 	
-	protected CqlTranslatorWrapper getTranslator() {
+	protected CqlTranslationProvider getTranslator() {
 		return translator;
 	}
 

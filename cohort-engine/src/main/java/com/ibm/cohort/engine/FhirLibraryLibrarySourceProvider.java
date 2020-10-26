@@ -19,10 +19,11 @@ import org.hl7.fhir.r4.model.RelatedArtifact;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 /**
- * Implementation of the MultiFormatLibrarySourceProvider that uses FHIR R4 Library
- * resources as its source. Library relatedArtifacts with depends-on relationships
- * are walked recursively and any {@link LibraryFormat$isSupportedMimeType(String)}
- * is added to the source collection.
+ * Implementation of the MultiFormatLibrarySourceProvider that uses FHIR R4
+ * Library resources as its source. Library relatedArtifacts with depends-on
+ * relationships are walked recursively and any
+ * {@link LibraryFormat$isSupportedMimeType(String)} is added to the source
+ * collection.
  */
 public class FhirLibraryLibrarySourceProvider extends MultiFormatLibrarySourceProvider {
 
@@ -75,6 +76,8 @@ public class FhirLibraryLibrarySourceProvider extends MultiFormatLibrarySourcePr
 		// TODO - Add cycle and duplicate detection
 		if (library.hasRelatedArtifact()) {
 			for (RelatedArtifact related : library.getRelatedArtifact()) {
+				// TODO: Beef this logic up to handle situations where this logic uses a full
+				// canonical URL
 				if (related.getResource().matches("(^|/)Library.*")) {
 					org.hl7.fhir.r4.model.Library relatedLibrary = fhirClient.read()
 							.resource(org.hl7.fhir.r4.model.Library.class).withUrl(related.getResource()).execute();

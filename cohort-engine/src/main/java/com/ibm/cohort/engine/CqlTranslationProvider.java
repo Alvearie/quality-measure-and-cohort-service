@@ -17,7 +17,7 @@ import org.cqframework.cql.elm.execution.Library;
  * implementations of a CqlTranslator such as linking directly to the translator
  * JAR or calling out to the CqlTranslationService microservice.
  */
-public interface CqlTranslatorWrapper {
+public interface CqlTranslationProvider {
 	public Library translate(InputStream cql) throws Exception;
 
 	public Library translate(InputStream cql, List<Options> options) throws Exception;

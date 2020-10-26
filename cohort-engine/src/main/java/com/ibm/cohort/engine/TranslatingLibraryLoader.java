@@ -23,14 +23,14 @@ public class TranslatingLibraryLoader implements LibraryLoader {
 
 	private MultiFormatLibrarySourceProvider provider;
 	private Map<VersionedIdentifier, Library> libraryCache = new HashMap<>();
-	private CqlTranslatorWrapper translator;
+	private CqlTranslationProvider translator;
 	private boolean isForceTranslation = false;
 
 	public void setSourceProvider(MultiFormatLibrarySourceProvider provider) {
 		this.provider = provider;
 	}
 
-	public void setTranslationProvider(CqlTranslatorWrapper translator) {
+	public void setTranslationProvider(CqlTranslationProvider translator) {
 		this.translator = translator;
 	}
 	

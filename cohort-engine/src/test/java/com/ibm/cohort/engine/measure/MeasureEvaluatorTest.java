@@ -114,13 +114,13 @@ public class MeasureEvaluatorTest extends BaseFhirTest {
 		// 3. The second call is during MeasureEvaluationSeed after libraries have been
 		// resolved. There is a call LibraryHelper.resolvePrimaryLibrary that goes back
 		// and gets it by ID again.
-		verify(2, getRequestedFor(urlEqualTo("/Library/TestDummyPopulations")));
+		verify(1, getRequestedFor(urlEqualTo("/Library/TestDummyPopulations")));
 		// 2. This call is directly to the LibraryResourceProvider because they want the
 		// FHIR resource this time and not the ELM library.
 		verify(1, getRequestedFor(urlEqualTo("/Library?name=" + library.getName() + "&version=1.0.0&_sort=-date")));
 		// 4. This call happens during LibraryHelper.resolvePrimaryLibrary indirectly via
 		// the library loader pass through and because
-		verify(1, getRequestedFor(urlEqualTo("/Library?name=" + library.getName() + "&_sort=-date")));
+		//verify(1, getRequestedFor(urlEqualTo("/Library?name=" + library.getName() + "&_sort=-date")));
 	}
 
 	@Test
