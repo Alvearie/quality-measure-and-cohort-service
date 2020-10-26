@@ -6,8 +6,10 @@
 
 package com.ibm.cohort.engine;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -52,6 +54,7 @@ import org.opencds.cqf.cql.engine.runtime.Quantity;
 import org.opencds.cqf.cql.engine.runtime.Time;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
 
 import ca.uhn.fhir.parser.IParser;
 
@@ -293,8 +296,8 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 		condition.setSubject(new Reference("Patient/123"));
 		condition.setRecordedDate( date );
 
-		//mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", condition);
-		mockFhirResourceRetrieval("/Condition?recorded-date=ge1998-12-31T23%3A00%3A00.000-05%3A00&recorded-date=le2000-12-31T23%3A00%3A00.000-05%3A00&subject=Patient%2F123", condition);
+		MappingBuilder builder = get(urlMatching("/Condition\\?(recorded-date=[lg]e.*&){2}subject=Patient%2F123"));
+		mockFhirResourceRetrieval(builder, condition);
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig, "cql/condition/FHIRHelpers.xml",
