@@ -579,7 +579,7 @@ public class CqlEngineWrapper {
 	 */
 	private static final class Arguments {
 		@Parameter(names = { "-f",
-				"--files" }, description = "Zip or folder path to the object containing the cohort definitions", required = true)
+				"--files" }, description = "Resource that contains the CQL library sources. Valid options are the path to a zip file or folder containing the cohort definitions or the resource ID of a FHIR Library resource contained in the measure server.", required = true)
 		private String libraryPath;
 
 		@Parameter(names = { "-d",
@@ -616,6 +616,10 @@ public class CqlEngineWrapper {
 		@Parameter(names = { "-s",
 				"--source-format" }, description = "Indicates which files in the file source should be processed", required = false)
 		private LibraryFormat sourceFormat = DEFAULT_SOURCE_FORMAT;
+		
+		@Parameter(names = { "-h",
+				"--help" }, description = "Display this help", required = false, help = true)
+		private boolean isDisplayHelp;
 	}
 
 	/**
@@ -759,47 +763,53 @@ public class CqlEngineWrapper {
 	public void runWithArgs(String[] args, PrintStream out) throws Exception {
 		Arguments arguments = new Arguments();
 		Console console = new DefaultConsole(out);
-		JCommander.newBuilder().console(console).addObject(arguments).build().parse(args);
-
-		ObjectMapper om = new ObjectMapper();
-
-		FhirServerConfig dataConfig = om.readValue(arguments.dataServerConfigFile, FhirServerConfig.class);
-		setDataServerConnectionProperties(dataConfig);
-
-		FhirServerConfig terminologyConfig = dataConfig;
-		if (arguments.terminologyServerConfigFile != null) {
-			terminologyConfig = om.readValue(arguments.terminologyServerConfigFile, FhirServerConfig.class);
-		}
-		setTerminologyServerConnectionProperties(terminologyConfig);
-
-		FhirServerConfig measureConfig = dataConfig;
-		if (arguments.measureServerConfigFile != null) {
-			measureConfig = om.readValue(arguments.measureServerConfigFile, FhirServerConfig.class);
-		}
-		setMeasureServerConnectionProperties(measureConfig);
-
-		Path libraryFolder = Paths.get(arguments.libraryPath);
-		out.println(String.format("Loading libraries from %s ...", libraryFolder.toString()));
-		if (libraryFolder.toFile().isDirectory()) {
-			addLibrariesFromFolder(libraryFolder, arguments.sourceFormat);
-		} else if (libraryFolder.toFile().isFile() && libraryFolder.toString().endsWith(".zip")) {
-			addLibrariesFromZip(libraryFolder, arguments.sourceFormat);
+		JCommander jc = JCommander.newBuilder().programName("cql-engine").console(console).addObject(arguments).build();
+		jc.parse(args);
+		
+		if( arguments.isDisplayHelp ) {
+			jc.usage();
 		} else {
-			// if all else fails, assume that the argument value is a FHIR library resource
-			// ID
-			addLibrariesFromFhirResource(arguments.libraryPath, arguments.sourceFormat);
-		}
 
-		Map<String, Object> parameters = null;
-		if (arguments.parameters != null) {
-			parameters = parseParameters(arguments.parameters);
+			ObjectMapper om = new ObjectMapper();
+	
+			FhirServerConfig dataConfig = om.readValue(arguments.dataServerConfigFile, FhirServerConfig.class);
+			setDataServerConnectionProperties(dataConfig);
+	
+			FhirServerConfig terminologyConfig = dataConfig;
+			if (arguments.terminologyServerConfigFile != null) {
+				terminologyConfig = om.readValue(arguments.terminologyServerConfigFile, FhirServerConfig.class);
+			}
+			setTerminologyServerConnectionProperties(terminologyConfig);
+	
+			FhirServerConfig measureConfig = dataConfig;
+			if (arguments.measureServerConfigFile != null) {
+				measureConfig = om.readValue(arguments.measureServerConfigFile, FhirServerConfig.class);
+			}
+			setMeasureServerConnectionProperties(measureConfig);
+	
+			Path libraryFolder = Paths.get(arguments.libraryPath);
+			out.println(String.format("Loading libraries from %s ...", libraryFolder.toString()));
+			if (libraryFolder.toFile().isDirectory()) {
+				addLibrariesFromFolder(libraryFolder, arguments.sourceFormat);
+			} else if (libraryFolder.toFile().isFile() && libraryFolder.toString().endsWith(".zip")) {
+				addLibrariesFromZip(libraryFolder, arguments.sourceFormat);
+			} else {
+				// if all else fails, assume that the argument value is a FHIR library resource
+				// ID
+				addLibrariesFromFhirResource(arguments.libraryPath, arguments.sourceFormat);
+			}
+	
+			Map<String, Object> parameters = null;
+			if (arguments.parameters != null) {
+				parameters = parseParameters(arguments.parameters);
+			}
+	
+			evaluate(arguments.libraryName, arguments.libraryVersion, parameters, arguments.expressions,
+					arguments.contextIds, (contextId, expression, result) -> {
+						out.println(String.format("Expression: %s, Context: %s, Result: %s", expression, contextId,
+								(result != null) ? String.format("%s", result.toString()) : "null"));
+					});
 		}
-
-		evaluate(arguments.libraryName, arguments.libraryVersion, parameters, arguments.expressions,
-				arguments.contextIds, (contextId, expression, result) -> {
-					out.println(String.format("Expression: %s, Context: %s, Result: %s", expression, contextId,
-							(result != null) ? String.format("%s", result.toString()) : "null"));
-				});
 	}
 
 	public static void main(String[] args) throws Exception {
