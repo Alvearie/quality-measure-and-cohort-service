@@ -1,5 +1,8 @@
 package com.ibm.cohort.engine.measure;
 
+import java.util.Map;
+import java.util.WeakHashMap;
+
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Library;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
@@ -20,44 +23,60 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
  */
 public class RestFhirLibraryResolutionProvider implements LibraryResolutionProvider<Library> {
 
-	private IGenericClient libraryClient;
+	private Map<String,Library> cacheByNameVersion = new WeakHashMap<>();	
+	private Map<String,Library> cacheById = new WeakHashMap<>();
 
+	private IGenericClient libraryClient;
+	
 	public RestFhirLibraryResolutionProvider(IGenericClient libraryClient) {
 		this.libraryClient = libraryClient;
 	}
 
 	@Override
 	public Library resolveLibraryById(String libraryId) {
-		return libraryClient.read().resource(Library.class).withId(libraryId).execute();
+		//System.out.println("resolveByLibraryId("+libraryId+")");
+		Library library = cacheById.computeIfAbsent(libraryId, k -> {
+			return libraryClient.read().resource(Library.class).withId(libraryId).execute();
+		});
+		cacheByNameVersion.computeIfAbsent( getCacheKey(library), k ->  library );
+		return library;
 	}
 
 	@Override
 	public Library resolveLibraryByName(String libraryName, String libraryVersion) {
-		try {
-			Bundle bundle = libraryClient.search().forResource(Library.class)
-					.where(Library.NAME.matches().value(libraryName))
-					.and(Library.VERSION.exactly().code(libraryVersion)).returnBundle(Bundle.class).sort()
-					.descending(Library.DATE).execute();
-
-			if (bundle.getTotal() == 0) {
-				throw new IllegalArgumentException(
-						String.format("No library found matching %s version %s", libraryName, libraryVersion));
+		//System.out.println("resolveByLibraryName("+libraryName+","+libraryVersion+")");
+		String cacheKey = getCacheKey(libraryName, libraryVersion);
+		Library library = cacheByNameVersion.computeIfAbsent( cacheKey, k -> {
+			//System.out.println(getClass().getSimpleName() +"|CACHE MISS-"+cacheKey);
+			try {
+				Bundle bundle = libraryClient.search().forResource(Library.class)
+						.where(Library.NAME.matches().value(libraryName))
+						.and(Library.VERSION.exactly().code(libraryVersion))
+						.returnBundle(Bundle.class).sort()
+						.descending(Library.DATE).execute();
+	
+				if (bundle.getTotal() == 0) {
+					throw new IllegalArgumentException(
+							String.format("No library found matching %s version %s", libraryName, libraryVersion));
+				}
+	
+				return (Library) bundle.getEntry().get(0).getResource();
+			} catch (Exception ex) {
+				throw new RuntimeException(ex);
 			}
-
-			return (Library) bundle.getEntry().get(0).getResource();
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			throw ex;
-		}
+		});
+		return library;
 	}
 
 	@Override
 	public Library resolveLibraryByCanonicalUrl(String libraryUrl) {
+		//System.out.println("resolveByCanonicalUrl("+libraryUrl+")");
+		
 		Bundle bundle = libraryClient.search().forResource(Library.class).where(Library.URL.matches().value(libraryUrl))
-				.returnBundle(Bundle.class).sort().descending(Library.DATE).execute();
+				.returnBundle(Bundle.class).execute();
 
-		if (bundle.getTotal() == 0) {
-			throw new IllegalArgumentException(String.format("No library found matching url %s ", libraryUrl));
+		if (bundle.getTotal() != 1) {
+			throw new IllegalArgumentException(String.format("Unexpected number of libraries %d matching url %s ", bundle.getTotal(), libraryUrl));
 		}
 
 		return (Library) bundle.getEntry().get(0).getResource();
@@ -67,5 +86,16 @@ public class RestFhirLibraryResolutionProvider implements LibraryResolutionProvi
 	public void update(Library library) {
 		throw new UnsupportedOperationException("No support for Library updates");
 	}
-
+	
+	protected String getCacheKey(Library library) { 
+		return getCacheKey( library.getName(), library.getVersion() );
+	}
+	
+	protected String getCacheKey(String name, String version) {
+		String key = name;
+		if( version != null ) {
+			key = key + "-" + version;
+		}
+		return key;
+	}
 }

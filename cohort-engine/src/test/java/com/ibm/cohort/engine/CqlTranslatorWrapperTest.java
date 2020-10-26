@@ -35,7 +35,7 @@ import org.junit.Test;
  */
 public abstract class CqlTranslatorWrapperTest {
 
-	protected abstract CqlTranslatorWrapper getTranslator();
+	protected abstract CqlTranslationProvider getTranslator();
 
 	protected abstract void prepareForZip(ZipFile zipFile) throws Exception;
 	

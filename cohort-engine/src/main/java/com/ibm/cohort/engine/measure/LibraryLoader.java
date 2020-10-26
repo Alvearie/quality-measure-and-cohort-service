@@ -1,3 +1,8 @@
+/*
+ * (C) Copyright IBM Corp. 2020, 2020
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package com.ibm.cohort.engine.measure;
 
 import java.io.ByteArrayInputStream;
@@ -13,27 +18,38 @@ import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.execution.CqlLibraryReader;
 
 import com.helger.commons.base64.Base64;
-import com.ibm.cohort.engine.CqlTranslatorWrapper;
+import com.ibm.cohort.engine.CqlTranslationProvider;
 
+/**
+ * Implementation of a library loader that resolves FHIR R4 Library resources
+ * using the <code>LibraryResolutionProvider</code>. Library resources are 
+ * expected to have either an XML-formatted ELM (application/elm+xml) or raw
+ * CQL (text/cql) attachment. The ELM is preferred. When only CQL is present
+ * the loader will automatically translate to ELM using the configured
+ * translation provider
+ */
 public class LibraryLoader implements org.opencds.cqf.cql.engine.execution.LibraryLoader {
 
 	private Map<String, Library> libraries = new HashMap<>();
 
 	private LibraryResolutionProvider<org.hl7.fhir.r4.model.Library> provider;
-	private CqlTranslatorWrapper translationProvider;
+	private CqlTranslationProvider translationProvider;
 
 	public LibraryLoader(LibraryResolutionProvider<org.hl7.fhir.r4.model.Library> provider,
-			CqlTranslatorWrapper translationProvider) {
+			CqlTranslationProvider translationProvider) {
 		this.provider = provider;
 		this.translationProvider = translationProvider;
 	}
 
 	public Library resolveLibrary(VersionedIdentifier libraryIdentifier) {
-		String key = mangleIdentifier(libraryIdentifier);
+		String key = getCacheKey(libraryIdentifier);
 		Library library = libraries.get(key);
 		if (library == null) {
 			library = loadLibrary(libraryIdentifier);
 			libraries.put(key, library);
+			//System.out.println(getClass().getSimpleName() +"|CACHE UPDATE");
+		} else { 
+			//System.out.println(getClass().getSimpleName() +"|CACHE HIT");
 		}
 		return library;
 	}
@@ -99,7 +115,7 @@ public class LibraryLoader implements org.opencds.cqf.cql.engine.execution.Libra
 		return resolveLibrary(libraryIdentifier);
 	}
 
-	protected String mangleIdentifier(VersionedIdentifier libraryIdentifier) {
+	protected String getCacheKey(VersionedIdentifier libraryIdentifier) {
 		String id = libraryIdentifier.getId();
 		String version = libraryIdentifier.getVersion();
 

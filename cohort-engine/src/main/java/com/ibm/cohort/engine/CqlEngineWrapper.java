@@ -109,7 +109,7 @@ public class CqlEngineWrapper {
 			throws Exception {
 		switch (sourceFormat) {
 		case CQL:
-			InJVMCqlTranslatorWrapper translator = new InJVMCqlTranslatorWrapper();
+			InJVMCqlTranslationProvider translator = new InJVMCqlTranslationProvider();
 			translator.addLibrarySourceProvider(provider);
 			libraries.add(translator.translate(libraryData));
 			break;

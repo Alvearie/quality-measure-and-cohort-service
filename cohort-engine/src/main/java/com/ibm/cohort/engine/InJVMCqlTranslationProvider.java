@@ -31,19 +31,24 @@ import org.slf4j.LoggerFactory;
  * which is a longer term goal and something we've tested with, but
  * are not ready to deliver.
  */
-public class InJVMCqlTranslatorWrapper extends BaseCqlTranslatorWrapper {
+public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
 
-	private static final Logger LOG = LoggerFactory.getLogger(InJVMCqlTranslatorWrapper.class);
+	private static final Logger LOG = LoggerFactory.getLogger(InJVMCqlTranslationProvider.class);
 	private ModelManager modelManager;
 	private LibraryManager libraryManager;
 
-	public InJVMCqlTranslatorWrapper() {
+	public InJVMCqlTranslationProvider() {
 		this.modelManager = new ModelManager();
 		this.libraryManager = new LibraryManager(modelManager);
 		libraryManager.getLibrarySourceLoader().registerProvider(new FhirLibrarySourceProvider());
 	}
+	
+	public InJVMCqlTranslationProvider(LibraryManager libraryManager, ModelManager modelManager) {
+		this.modelManager = modelManager;
+		this.libraryManager = libraryManager;
+	}
 
-	public InJVMCqlTranslatorWrapper addLibrarySourceProvider(LibrarySourceProvider provider) {
+	public InJVMCqlTranslationProvider addLibrarySourceProvider(LibrarySourceProvider provider) {
 		libraryManager.getLibrarySourceLoader().registerProvider(provider);
 		return this;
 	}
