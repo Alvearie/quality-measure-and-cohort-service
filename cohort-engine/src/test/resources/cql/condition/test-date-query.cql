@@ -4,11 +4,9 @@ using FHIR version '4.0.0'
 
 include "FHIRHelpers" version '4.0.0' called FHIRHelpers  
 
-context Patient
+parameter "MeasurementPeriod" Interval<DateTime>
 
-parameter MeasurementPeriod Interval<Date>
+context Patient
 
 define ConditionInInterval:
 	[Condition] c where c.recordedDate in "MeasurementPeriod"
-	
-	

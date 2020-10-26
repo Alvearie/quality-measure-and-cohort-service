@@ -293,14 +293,19 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 		condition.setSubject(new Reference("Patient/123"));
 		condition.setRecordedDate( date );
 
-		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", condition);
+		//mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", condition);
+		mockFhirResourceRetrieval("/Condition?recorded-date=ge1998-12-31T23%3A00%3A00.000-05%3A00&recorded-date=le2000-12-31T23%3A00%3A00.000-05%3A00&subject=Patient%2F123", condition);
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig, "cql/condition/FHIRHelpers.xml",
-				"cql/condition/test-date-query.cql");
+				"cql/condition/test-date-query.xml");
+		
+		Map<String,Object> parameters = new HashMap<>();
+		parameters.put("MeasurementPeriod", new Interval( CqlEngineWrapper.resolveDateTimeParameter("1999-01-01"), true,
+				CqlEngineWrapper.resolveDateTimeParameter("2001-01-01"), false ) );
 
 		final AtomicInteger count = new AtomicInteger(0);
-		wrapper.evaluateWithEngineWrapper("Test", "1.0.0", /* parameters= */null,
+		wrapper.evaluateWithEngineWrapper("Test", "1.0.0", parameters,
 				new HashSet<>(Arrays.asList("ConditionInInterval")), Arrays.asList("123"),
 				(patientId, expression, result) -> {
 					count.incrementAndGet();
@@ -524,7 +529,7 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 			String output = new String(baos.toByteArray());
 			String[] lines = output.split("\r?\n");
 
-			assertEquals(output, 11, lines.length);
+			assertEquals(output, 10, lines.length);
 			System.out.println(output);
 
 			verify(1, getRequestedFor(urlEqualTo("/Patient/" + patient.getId())));
