@@ -378,25 +378,4 @@ public class CqlTemporalTests extends BaseFhirTest {
 		encounter.setPeriod(encounterPeriod);
 		return encounter;
 	}
-
-	private CqlEngineWrapper setupTestFor(Patient patient, FhirServerConfig fhirConfig, String... elm)
-			throws Exception {
-
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
-		mockFhirResourceRetrieval(patient);
-
-		CqlEngineWrapper wrapper = new CqlEngineWrapper();
-		if (elm != null) {
-			for (String resource : elm) {
-				try (InputStream is = ClassLoader.getSystemResourceAsStream(resource)) {
-					wrapper.addLibrary(is, LibraryFormat.forString(resource), null);
-				}
-			}
-		}
-
-		wrapper.setDataServerConnectionProperties(fhirConfig);
-		wrapper.setTerminologyServerConnectionProperties(fhirConfig);
-		wrapper.setMeasureServerConnectionProperties(fhirConfig);
-		return wrapper;
-	}
 }
