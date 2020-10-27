@@ -1,5 +1,0 @@
-Avg,Library,Output
-1.0,Test,"Expression: Over the hill, Context: 1235008, Result: true"
-0.4,Test,"Expression: Male, Context: 1235008, Result: true"
-0.9,Test,"Expression: Female, Context: 1235008, Result: false"
-1.0,Test,"Random Stuff that doesnt exist."
