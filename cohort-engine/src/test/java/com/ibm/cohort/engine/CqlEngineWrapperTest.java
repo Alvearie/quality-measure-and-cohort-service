@@ -296,6 +296,10 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 		condition.setSubject(new Reference("Patient/123"));
 		condition.setRecordedDate( date );
 
+		// Wiremock does not support request matching withQueryParam() function does not support
+		// the same parameter multiple times, so we do some regex work and try to make it 
+		// somewhat order independent while still readable.
+		// @see https://github.com/tomakehurst/wiremock/issues/398
 		MappingBuilder builder = get(urlMatching("/Condition\\?(recorded-date=[lg]e.*&){2}subject=Patient%2F123"));
 		mockFhirResourceRetrieval(builder, condition);
 
