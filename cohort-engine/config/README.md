@@ -10,8 +10,8 @@ The CQL engine needs to trust the SSL certificate for the FHIR server. In IBM Cl
 
 2) Import the certificate into a new Java keystore
 
-`keytool -noprompt -importcert -keystore trustStore.jks -storepass change-password -alias fhir-server < fhir-server.cer`
+`keytool -noprompt -importcert -keystore trustStore.pkcs12 -storepass change-password -alias fhir-server -storetype pkcs12 < fhir-server.cer`
 
 3) Specify the location and password of the keystore in the JVM arguments
 
-`java -Djavax.net.ssl.trustStore=/path/to/trustStore.jks -Djavax.net.ssl.trustStorePassword=change-password -jar target/cohort-engine*-shaded.jar ...`
+`java -Djavax.net.ssl.trustStore=/path/to/trustStore.pkcs12 -Djavax.net.ssl.trustStorePassword=change-password -Djavax.net.ssl.trustStoreType=pkcs12 -jar target/cohort-engine*-shaded.jar ...`
