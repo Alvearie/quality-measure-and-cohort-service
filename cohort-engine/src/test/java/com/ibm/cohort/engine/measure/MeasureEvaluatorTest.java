@@ -107,20 +107,10 @@ public class MeasureEvaluatorTest extends BaseFhirTest {
 		assertEquals(1, report.getGroupFirstRep().getPopulationFirstRep().getCount());
 
 		verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
-		// TODO: cache resolved Libraries to avoid multiple REST calls
 
-		// 1. The first call is to load the root library by ID based on the measure
-		// configuration and is done indirectly via the library loader
-		// 3. The second call is during MeasureEvaluationSeed after libraries have been
-		// resolved. There is a call LibraryHelper.resolvePrimaryLibrary that goes back
-		// and gets it by ID again.
+		// These ensure that the cache is working
 		verify(1, getRequestedFor(urlEqualTo("/Library/TestDummyPopulations")));
-		// 2. This call is directly to the LibraryResourceProvider because they want the
-		// FHIR resource this time and not the ELM library.
 		verify(1, getRequestedFor(urlEqualTo("/Library?name=" + library.getName() + "&version=1.0.0&_sort=-date")));
-		// 4. This call happens during LibraryHelper.resolvePrimaryLibrary indirectly via
-		// the library loader pass through and because
-		//verify(1, getRequestedFor(urlEqualTo("/Library?name=" + library.getName() + "&_sort=-date")));
 	}
 
 	@Test
