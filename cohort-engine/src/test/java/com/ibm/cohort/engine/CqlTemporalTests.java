@@ -6,10 +6,8 @@
 
 package com.ibm.cohort.engine;
 
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.junit.Assert.assertEquals;
 
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -23,15 +21,11 @@ import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Period;
-import org.junit.Rule;
 import org.junit.Test;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import java.util.Calendar;
 
 public class CqlTemporalTests extends BaseFhirTest {
-
-	@Rule
-	public WireMockRule wireMockRule = new WireMockRule(options().port(8089)/* .notifier(new ConsoleNotifier(true)) */);
 
 	private final Condition CONDITION_IN = getCondition(2015, 1, 10);
 
@@ -50,8 +44,7 @@ public class CqlTemporalTests extends BaseFhirTest {
 		observationEffective.setDay(15);
 		observationIN.setEffective(observationEffective);
 
-		FhirServerConfig fhirConfig = new FhirServerConfig();
-		fhirConfig.setEndpoint("http://localhost:8089");
+		FhirServerConfig fhirConfig = getFhirServerConfig();
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_1.xml", "cql/includes/FHIRHelpers.xml");
 
@@ -77,8 +70,7 @@ public class CqlTemporalTests extends BaseFhirTest {
 		observationEffective2.setDay(15);
 		observationOUT.setEffective(observationEffective2);
 
-		FhirServerConfig fhirConfig = new FhirServerConfig();
-		fhirConfig.setEndpoint("http://localhost:8089");
+		FhirServerConfig fhirConfig = getFhirServerConfig();
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_1.xml", "cql/includes/FHIRHelpers.xml");
 
@@ -104,8 +96,7 @@ public class CqlTemporalTests extends BaseFhirTest {
 		observationEffective.setDay(5);
 		observation.setEffective(observationEffective);
 
-		FhirServerConfig fhirConfig = new FhirServerConfig();
-		fhirConfig.setEndpoint("http://localhost:8089");
+		FhirServerConfig fhirConfig = getFhirServerConfig();
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_2.xml", "cql/includes/FHIRHelpers.xml");
 
@@ -136,8 +127,7 @@ public class CqlTemporalTests extends BaseFhirTest {
 		observationEffective.setDay(5);
 		observation.setEffective(observationEffective);
 
-		FhirServerConfig fhirConfig = new FhirServerConfig();
-		fhirConfig.setEndpoint("http://localhost:8089");
+		FhirServerConfig fhirConfig = getFhirServerConfig();
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_2.xml", "cql/includes/FHIRHelpers.xml");
 
@@ -162,8 +152,7 @@ public class CqlTemporalTests extends BaseFhirTest {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
 
-		FhirServerConfig fhirConfig = new FhirServerConfig();
-		fhirConfig.setEndpoint("http://localhost:8089");
+		FhirServerConfig fhirConfig = getFhirServerConfig();
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_3.xml", "cql/includes/FHIRHelpers.xml");
 
@@ -193,8 +182,7 @@ public class CqlTemporalTests extends BaseFhirTest {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
 
-		FhirServerConfig fhirConfig = new FhirServerConfig();
-		fhirConfig.setEndpoint("http://localhost:8089");
+		FhirServerConfig fhirConfig = getFhirServerConfig();
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_3.xml", "cql/includes/FHIRHelpers.xml");
 
@@ -224,8 +212,7 @@ public class CqlTemporalTests extends BaseFhirTest {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
 
-		FhirServerConfig fhirConfig = new FhirServerConfig();
-		fhirConfig.setEndpoint("http://localhost:8089");
+		FhirServerConfig fhirConfig = getFhirServerConfig();
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_4.xml", "cql/includes/FHIRHelpers.xml");
 
@@ -247,8 +234,7 @@ public class CqlTemporalTests extends BaseFhirTest {
 	public void anEventDoesFollow() throws Exception {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
-		FhirServerConfig fhirConfig = new FhirServerConfig();
-		fhirConfig.setEndpoint("http://localhost:8089");
+		FhirServerConfig fhirConfig = getFhirServerConfig();
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_4.xml", "cql/includes/FHIRHelpers.xml");
 
@@ -270,8 +256,7 @@ public class CqlTemporalTests extends BaseFhirTest {
 	public void eventHappensWithin4Days() throws Exception {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
-		FhirServerConfig fhirConfig = new FhirServerConfig();
-		fhirConfig.setEndpoint("http://localhost:8089");
+		FhirServerConfig fhirConfig = getFhirServerConfig();
 
 		Observation observationIN = new Observation();
 		DateTimeType observationEffective = new DateTimeType(new Date());
@@ -317,8 +302,7 @@ public class CqlTemporalTests extends BaseFhirTest {
 	public void noEventWithinFourDays() throws Exception {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
-		FhirServerConfig fhirConfig = new FhirServerConfig();
-		fhirConfig.setEndpoint("http://localhost:8089");
+		FhirServerConfig fhirConfig = getFhirServerConfig();
 
 		Observation observationIN = new Observation();
 		DateTimeType observationEffective = new DateTimeType(new Date());
@@ -372,7 +356,9 @@ public class CqlTemporalTests extends BaseFhirTest {
 	public Encounter getEncounter(int year, int month, int day) {
 		Encounter encounter = new Encounter();
 		Period encounterPeriod = new Period();
-		Date encounterDate = new Date(year-1900, month - 1, day);
+		Calendar c = Calendar.getInstance();
+		c.set(year, month-1, day);
+		Date encounterDate = c.getTime();
 		encounterPeriod.setStart(encounterDate);
 		encounterPeriod.setEnd(encounterDate);
 		encounter.setPeriod(encounterPeriod);
