@@ -21,15 +21,6 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 /**
  * Provide an interface for doing quality measure evaluation against a FHIR R4
  * server.
- * 
- * @todo - figure out how to support CDM (includes translation)
- * @todo - add support for pre-translated ELM instead of always doing the
- *       translation ourselves
- * @todo - add support for custom modelinfo during translation
- * @todo - reduce the number of calls to FHIR for library resolution
- * @todo - figure out how to capture/prevent the debugging from showing up in
- *       stdout
- * @todo - cqf-ruler populates supplementaldata in the MeasureReport. Do we want that?
  */
 public class MeasureEvaluator {
 
