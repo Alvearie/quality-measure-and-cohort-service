@@ -12,6 +12,12 @@
 	<groupId>com.ibm.cohort</groupId>
 	<artifactId>cdm-modelinfo-tooling</artifactId>
 	<packaging>jar</packaging>
+
+	<scm>
+		<url>https://github.com/Alvearie/quality-measure-and-cohort-service</url>
+		<connection>scm:git:git@github.com:Alvearie/quality-measure-and-cohort-service.git</connection>
+		<developerConnection>scm:git:git@github.com:Alvearie/quality-measure-and-cohort-service.git</developerConnection>
+	</scm>
 	
 </project>
 
