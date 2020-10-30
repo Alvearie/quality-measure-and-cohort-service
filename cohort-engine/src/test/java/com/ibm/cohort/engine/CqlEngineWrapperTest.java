@@ -681,8 +681,7 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 		Patient patient = new Patient();
 		patient.setGender(Enumerations.AdministrativeGender.FEMALE);
 
-		FhirServerConfig fhirConfig = new FhirServerConfig();
-		fhirConfig.setEndpoint("http://its.not.me");
+		FhirServerConfig fhirConfig = getFhirServerConfig();
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig, "cql/basic/test.xml");
 		wrapper.evaluate("NotCorrect", /* version= */null, /* parameters= */null, /* expressions= */null,
@@ -690,15 +689,22 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 					fail("Execution should not reach here");
 				});
 	}
+	
+	@Test
+	public void testUsingUSCoreSuccessfulExecution() throws Exception {
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1983-12-02");
 
-	private CqlEngineWrapper setupTestFor(Patient patient, String... elm) throws Exception {
-		IBMFhirServerConfig fhirConfig = new IBMFhirServerConfig();
-		fhirConfig.setEndpoint("http://localhost:" + HTTP_PORT);
-		fhirConfig.setUser("fhiruser");
-		fhirConfig.setPassword("change-password");
-		fhirConfig.setTenantId("default");
-
-		return setupTestFor(patient, fhirConfig, elm);
+		final AtomicInteger resultCount = new AtomicInteger(0);
+		// Using pre-compiled ELM that is correctly formatted for consumption. If you try to compile
+		// this from CQL with the latest translator it will blow up. 
+		// @see https://github.com/DBCG/cql_engine/issues/424
+		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/uscore/test-uscore.xml");
+		wrapper.evaluate("Test", /* version= */null, /* parameters= */null, new HashSet<>(Arrays.asList("QueryByGender")),
+				Arrays.asList("123"), (p, e, r) -> {
+					assertEquals("QueryByGender", e);
+					resultCount.incrementAndGet(); 
+				});
+		assertEquals(1, resultCount.get());
 	}
 
 	@Test

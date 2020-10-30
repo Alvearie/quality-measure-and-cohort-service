@@ -25,9 +25,12 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.cqframework.cql.cql2elm.LibrarySourceProvider;
+import org.hl7.elm.r1.VersionedIdentifier;
 import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CapabilityStatement;
@@ -182,18 +185,53 @@ public class BaseFhirTest {
 		metadata.setFhirVersion(Enumerations.FHIRVersion._4_0_1);
 		return metadata;
 	}
+	
 
-	protected CqlEngineWrapper setupTestFor(Patient patient, FhirServerConfig fhirConfig, String... elm)
+	protected CqlEngineWrapper setupTestFor(Patient patient, String... elm) throws Exception {
+		IBMFhirServerConfig fhirConfig = new IBMFhirServerConfig();
+		fhirConfig.setEndpoint("http://localhost:" + HTTP_PORT);
+		fhirConfig.setUser("fhiruser");
+		fhirConfig.setPassword("change-password");
+		fhirConfig.setTenantId("default");
+
+		return setupTestFor(patient, fhirConfig, elm);
+	}
+
+	protected CqlEngineWrapper setupTestFor(Patient patient, FhirServerConfig fhirConfig, String... resources)
 			throws Exception {
 
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 		mockFhirResourceRetrieval(patient);
 
+		// This is a hack to get a single CQL resource from the provided set
+		// of library resources. This will be translated as needed.
+		final AtomicReference<String> cql = new AtomicReference<>();
+		if( resources != null ) {
+			for( String resource : resources ) {
+				LibraryFormat format = LibraryFormat.forString(resource);
+				if( format == LibraryFormat.CQL ) {
+					if( cql.get() == null ) {
+						cql.set(resource);
+					} else { 
+						fail("Only one CQL translation is supported in the test framework");
+					}
+				}
+			}
+		}
+		
+		LibrarySourceProvider provider = new LibrarySourceProvider() {
+			@Override
+			public InputStream getLibrarySource(VersionedIdentifier libraryIdentifier) {
+				return ClassLoader.getSystemResourceAsStream(cql.get());
+			}
+			
+		};
+		
 		CqlEngineWrapper wrapper = new CqlEngineWrapper();
-		if (elm != null) {
-			for (String resource : elm) {
+		if (resources != null) {
+			for (String resource : resources) {
 				try (InputStream is = ClassLoader.getSystemResourceAsStream(resource)) {
-					wrapper.addLibrary(is, LibraryFormat.forString(resource), null);
+					wrapper.addLibrary(is, LibraryFormat.forString(resource), provider);
 				}
 			}
 		}

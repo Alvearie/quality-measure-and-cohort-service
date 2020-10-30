@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -70,6 +71,13 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
  * providing utilities for loading library contents from various sources.
  */
 public class CqlEngineWrapper {
+	
+	public static final List<String> SUPPORTED_MODELS = Arrays.asList(
+		"http://hl7.org/fhir",
+		"http://hl7.org/fhir/us/core",
+		"http://hl7.org/fhir/us/qicore",
+		"http://ibm.com/fhir/cdm"
+	);
 
 	private static final LibraryFormat DEFAULT_SOURCE_FORMAT = LibraryFormat.XML;
 
@@ -399,9 +407,8 @@ public class CqlEngineWrapper {
 		RetrieveProvider retrieveProvider = new RestFhirRetrieveProvider(resolver, this.dataServerClient);
 		CompositeDataProvider dataProvider = new CompositeDataProvider(modelResolver, retrieveProvider);
 
-		Map<String, DataProvider> dataProviders = new HashMap<>();
-		dataProviders.put("http://hl7.org/fhir", dataProvider);
-
+		Map<String, DataProvider> dataProviders = getDataProviders(dataProvider);
+		
 		TerminologyProvider termProvider = new R4FhirTerminologyProvider(this.terminologyServerClient);
 
 		VersionedIdentifier libraryId = new VersionedIdentifier().withId(libraryName);
@@ -416,7 +423,9 @@ public class CqlEngineWrapper {
 
 		for (String contextId : contextIds) {
 			Context context = new Context(library);
-			context.registerDataProvider("http://hl7.org/fhir", dataProvider);
+			for( Map.Entry<String,DataProvider> e : dataProviders.entrySet() ) {
+				context.registerDataProvider(e.getKey(), e.getValue());
+			}
 			context.registerTerminologyProvider(termProvider);
 			context.registerLibraryLoader(ll);
 			context.setExpressionCaching(true);
@@ -497,8 +506,7 @@ public class CqlEngineWrapper {
 		RetrieveProvider retrieveProvider = new RestFhirRetrieveProvider(resolver, this.dataServerClient);
 		CompositeDataProvider dataProvider = new CompositeDataProvider(modelResolver, retrieveProvider);
 
-		Map<String, DataProvider> dataProviders = new HashMap<>();
-		dataProviders.put("http://hl7.org/fhir", dataProvider);
+		Map<String, DataProvider> dataProviders = getDataProviders(dataProvider);
 
 		TerminologyProvider termProvider = new R4FhirTerminologyProvider(this.terminologyServerClient);
 
@@ -519,6 +527,18 @@ public class CqlEngineWrapper {
 				callback.onEvaluationComplete(contextId, result.getKey(), result.getValue());
 			}
 		}
+	}
+
+	/**
+	 * Helper method for turning the list of supported models into a Map of DataProviders
+	 * to be used when registering with the CQLEngine.
+	 * @param dataProvider DataProvider that will be used in support of the SUPPORTED_MODELS
+	 * @return Map of model url to the <code>dataProvider</code>
+	 */
+	protected Map<String, DataProvider> getDataProviders(CompositeDataProvider dataProvider) {
+		Map<String, DataProvider> dataProviders = SUPPORTED_MODELS.stream().map(url -> Map.entry(url, dataProvider))
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+		return dataProviders;
 	}
 
 	/**
