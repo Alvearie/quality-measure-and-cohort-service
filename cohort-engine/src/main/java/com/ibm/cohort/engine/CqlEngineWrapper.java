@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -536,7 +537,8 @@ public class CqlEngineWrapper {
 	 * @return Map of model url to the <code>dataProvider</code>
 	 */
 	protected Map<String, DataProvider> getDataProviders(CompositeDataProvider dataProvider) {
-		Map<String, DataProvider> dataProviders = SUPPORTED_MODELS.stream().map(url -> Map.entry(url, dataProvider))
+		Map<String, DataProvider> dataProviders = SUPPORTED_MODELS.stream()
+				.map(url -> new SimpleEntry<String, DataProvider>(url, dataProvider))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 		return dataProviders;
 	}
