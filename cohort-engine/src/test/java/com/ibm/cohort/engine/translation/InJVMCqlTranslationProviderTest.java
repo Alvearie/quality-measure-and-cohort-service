@@ -13,8 +13,6 @@ import org.cqframework.cql.cql2elm.DefaultLibrarySourceProvider;
 import org.junit.Before;
 
 import com.ibm.cohort.engine.ZipLibrarySourceProvider;
-import com.ibm.cohort.engine.translation.CqlTranslationProvider;
-import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
 
 public class InJVMCqlTranslationProviderTest extends CqlTranslatorProviderTest {
 
