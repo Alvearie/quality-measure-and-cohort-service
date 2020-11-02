@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.cohort.engine;
+package com.ibm.cohort.engine.translation;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -27,13 +27,15 @@ import org.cqframework.cql.elm.execution.Library;
 import org.hl7.cql_annotations.r1.CqlToElmInfo;
 import org.junit.Test;
 
+import com.ibm.cohort.engine.LibraryUtils;
+
 /**
  * Baseline tests that can be run against multiple CqlTranslatorWrapper
  * implementations. The prepare methods provide call out points for 
  * implementations that have specific needs based on the source
  * of the input data. 
  */
-public abstract class CqlTranslatorWrapperTest {
+public abstract class CqlTranslatorProviderTest {
 
 	protected abstract CqlTranslationProvider getTranslator();
 

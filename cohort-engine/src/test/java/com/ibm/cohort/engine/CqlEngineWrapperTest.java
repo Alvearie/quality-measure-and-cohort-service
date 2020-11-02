@@ -269,12 +269,12 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluateWithEngineWrapper("Test", "1.0.0", /* parameters= */null,
 				new HashSet<>(Arrays.asList("HasActiveCondition")), Arrays.asList("123"),
-				(patientId, expression, result) -> {
+				new ProxyingEvaluationResultCallback((patientId, expression, result) -> {
 					count.incrementAndGet();
 
 					assertEquals("HasActiveCondition", expression);
 					assertEquals(Boolean.TRUE, result);
-				});
+				}));
 		assertEquals(1, count.get());
 	}
 	
@@ -309,12 +309,12 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluateWithEngineWrapper("Test", "1.0.0", parameters,
 				new HashSet<>(Arrays.asList("ConditionInInterval")), Arrays.asList("123"),
-				(patientId, expression, result) -> {
+				new ProxyingEvaluationResultCallback((patientId, expression, result) -> {
 					count.incrementAndGet();
 
 					assertEquals("ConditionInInterval", expression);
 					//assertEquals(Boolean.TRUE, result);
-				});
+				}));
 		assertEquals(1, count.get());
 	}
 
@@ -338,7 +338,7 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 			try (PrintStream captureOut = new PrintStream(baos)) {
 				System.setOut(captureOut);
 				CqlEngineWrapper.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-t", tmpFile.getAbsolutePath(),
-						"-f", "src/test/resources/cql/parameters", "-l", "Test", "-e", "Female", "-e", "Male", "-c",
+						"-f", "src/test/resources/cql/parameters", "-l", "test-with", "-v", "params", "-e", "Female", "-e", "Male", "-c",
 						"123", "-p", "MaxAge:integer:40" });
 			} finally {
 				System.setOut(originalOut);
@@ -373,7 +373,7 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 			try (PrintStream captureOut = new PrintStream(baos)) {
 				System.setOut(captureOut);
 				CqlEngineWrapper.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-t", tmpFile.getAbsolutePath(),
-						"-f", "src/test/resources/cql/basic", "-l", "Test", "-e", "Female", "-e", "Male", "-e",
+						"-f", "src/test/resources/cql/basic", "-l", "test", "-e", "Female", "-e", "Male", "-e",
 						"Over the hill", "-c", "123" });
 			} finally {
 				System.setOut(originalOut);
@@ -418,7 +418,7 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 				System.setOut(captureOut);
 				CqlEngineWrapper.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-t", tmpFile.getAbsolutePath(),
 						"-f", "src/test/resources/cql/zip/breast_cancer_screening_v1_0_0_cql.zip", "-l",
-						"Breast-Cancer-Screening", "-v", "1.0.0", "-e", "Female", "-e", "40-65 years of age", "-e",
+						"Breast-Cancer", "-v", "Screening", "-e", "Female", "-e", "40-65 years of age", "-e",
 						"MeetsInclusionCriteria", "-c", "123", "-c", "456", "-c", "789" });
 			} finally {
 				System.setOut(originalOut);
@@ -469,7 +469,7 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 				System.setOut(captureOut);
 				CqlEngineWrapper.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-t", tmpFile.getAbsolutePath(),
 						"-f", "src/test/resources/cql/zip/breast_cancer_screening_v1_0_0_cql.zip", "-l",
-						"Breast-Cancer-Screening", "-v", "1.0.0", "-e", "Female", "-e", "40-65 years of age", "-e",
+						"Breast-Cancer", "-v", "Screening", "-e", "Female", "-e", "40-65 years of age", "-e",
 						"MeetsInclusionCriteria", "-c", "123", "-c", "456", "-c", "789", "-s", "CQL" });
 			} finally {
 				System.setOut(originalOut);
@@ -550,11 +550,11 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluateWithEngineWrapper("Test", null, /* parameters= */null, null, Arrays.asList("123"),
-				(p, e, r) -> {
+				new ProxyingEvaluationResultCallback((p, e, r) -> {
 					count.incrementAndGet();
 					System.out.println("Expression: " + e);
 					System.out.println("Result: " + r);
-				});
+				}));
 		assertEquals(4, count.get());
 		verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
 	}
@@ -567,11 +567,11 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluateExpressionByExpression("Test", null, /* parameters= */null, null, Arrays.asList("123"),
-				(p, e, r) -> {
+				new ProxyingEvaluationResultCallback((p, e, r) -> {
 					count.incrementAndGet();
 					System.out.println("Expression: " + e);
 					System.out.println("Result: " + r);
-				});
+				}));
 		assertEquals(4, count.get());
 		verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
 	}
@@ -588,13 +588,13 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 
 		final AtomicBoolean found = new AtomicBoolean(false);
 		final AtomicInteger count = new AtomicInteger(0);
-		wrapper.evaluateWithEngineWrapper("Test", null, parameters, null, Arrays.asList("123"), (p, e, r) -> {
+		wrapper.evaluateWithEngineWrapper("Test", null, parameters, null, Arrays.asList("123"), new ProxyingEvaluationResultCallback((p, e, r) -> {
 			count.incrementAndGet();
 			if (e.equals("ParamMaxAge")) {
 				assertEquals("Unexpected value for expression result", "40", r);
 				found.set(true);
 			}
-		});
+		}));
 		assertEquals("Missing expression result", true, found.get());
 
 		verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
@@ -611,13 +611,13 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 
 		final AtomicBoolean found = new AtomicBoolean(false);
 		final AtomicInteger count = new AtomicInteger(0);
-		wrapper.evaluateExpressionByExpression("Test", null, parameters, null, Arrays.asList("123"), (p, e, r) -> {
+		wrapper.evaluateExpressionByExpression("Test", null, parameters, null, Arrays.asList("123"), new ProxyingEvaluationResultCallback((p, e, r) -> {
 			count.incrementAndGet();
 			if (e.equals("ParamMaxAge")) {
 				assertEquals("Unexpected value for expression result", "40", r);
 				found.set(true);
 			}
-		});
+		}));
 		assertEquals("Missing expression result", true, found.get());
 		verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
 	}
@@ -691,14 +691,30 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 	}
 	
 	@Test
-	public void testUsingUSCoreSuccessfulExecution() throws Exception {
+	public void testUsingUSCoreELMSuccessfulExecution() throws Exception {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1983-12-02");
 
 		final AtomicInteger resultCount = new AtomicInteger(0);
-		// Using pre-compiled ELM that is correctly formatted for consumption. If you try to compile
-		// this from CQL with the latest translator it will blow up. 
-		// @see https://github.com/DBCG/cql_engine/issues/424
+		// Using pre-compiled ELM that is correctly formatted for consumption. There is a test
+		// case below that does the same thing with translation.
 		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/uscore/test-uscore.xml");
+		wrapper.evaluate("Test", /* version= */null, /* parameters= */null, new HashSet<>(Arrays.asList("QueryByGender")),
+				Arrays.asList("123"), (p, e, r) -> {
+					assertEquals("QueryByGender", e);
+					resultCount.incrementAndGet(); 
+				});
+		assertEquals(1, resultCount.get());
+	}
+	
+	@Test
+	@Ignore
+	// If you try to compile CQL using USCore 3.0.1 with the latest translator it will blow up. 
+	// @see https://github.com/DBCG/cql_engine/issues/424
+	public void testUsingUSCoreWithTranslationSuccessfulExecution() throws Exception {
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1983-12-02");
+
+		final AtomicInteger resultCount = new AtomicInteger(0);
+		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/uscore/test-uscore.cql");
 		wrapper.evaluate("Test", /* version= */null, /* parameters= */null, new HashSet<>(Arrays.asList("QueryByGender")),
 				Arrays.asList("123"), (p, e, r) -> {
 					assertEquals("QueryByGender", e);

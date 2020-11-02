@@ -4,13 +4,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.ibm.cohort.engine;
+package com.ibm.cohort.engine.translation;
 
 import java.io.InputStream;
 import java.util.List;
 
 import org.cqframework.cql.cql2elm.CqlTranslator.Options;
 import org.cqframework.cql.elm.execution.Library;
+
+import com.ibm.cohort.engine.LibraryFormat;
 
 /**
  * A general interface that can be used to abstract interaction with multiple

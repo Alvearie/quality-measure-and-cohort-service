@@ -32,7 +32,6 @@ import org.cqframework.cql.cql2elm.LibrarySourceProvider;
 import org.cqframework.cql.elm.execution.ExpressionDef;
 import org.cqframework.cql.elm.execution.FunctionDef;
 import org.cqframework.cql.elm.execution.Library;
-import org.cqframework.cql.elm.execution.ParameterDef;
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
 import org.opencds.cqf.cql.engine.data.CompositeDataProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
@@ -62,6 +61,8 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.cohort.engine.translation.CqlTranslationProvider;
+import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
@@ -72,19 +73,16 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
  * providing utilities for loading library contents from various sources.
  */
 public class CqlEngineWrapper {
-	
-	public static final List<String> SUPPORTED_MODELS = Arrays.asList(
-		"http://hl7.org/fhir",
-		"http://hl7.org/fhir/us/core",
-		"http://hl7.org/fhir/us/qicore",
-		"http://ibm.com/fhir/cdm"
-	);
+
+	public static final List<String> SUPPORTED_MODELS = Arrays.asList("http://hl7.org/fhir",
+			"http://hl7.org/fhir/us/core", "http://hl7.org/fhir/us/qicore", "http://ibm.com/fhir/cdm");
 
 	private static final LibraryFormat DEFAULT_SOURCE_FORMAT = LibraryFormat.XML;
 
 	private static Logger LOG = LoggerFactory.getLogger(CqlEngineWrapper.class);
 
-	private List<Library> libraries = new ArrayList<>();
+	private LibraryLoader libraryLoader = null;
+	// private List<Library> libraries = new ArrayList<>();
 
 	private FhirClientFactory clientFactory;
 
@@ -114,24 +112,22 @@ public class CqlEngineWrapper {
 	 *                     sourceFormat is not CQL, this can safely be null.
 	 * @throws Exception
 	 */
-	public void addLibrary(InputStream libraryData, LibraryFormat sourceFormat, LibrarySourceProvider provider)
+	public Library addLibrary(InputStream libraryData, LibraryFormat sourceFormat, LibrarySourceProvider provider)
 			throws Exception {
+		Library library = null;
 		switch (sourceFormat) {
 		case CQL:
 			InJVMCqlTranslationProvider translator = new InJVMCqlTranslationProvider();
 			translator.addLibrarySourceProvider(provider);
-			libraries.add(translator.translate(libraryData));
+			library = translator.translate(libraryData);
 			break;
 		case XML:
-			libraries.add(CqlLibraryReader.read(libraryData));
+			library = CqlLibraryReader.read(libraryData);
 			break;
-//TODO: uncomment when JSON deserialization issues are addressed
-//		case JSON:
-//			libraries.add(JsonCqlLibraryReader.read(new InputStreamReader(libraryData)));
-//			break;
 		default:
 			throw new IllegalArgumentException("Unsupported library format");
 		}
+		return library;
 	}
 
 	/**
@@ -272,14 +268,24 @@ public class CqlEngineWrapper {
 	 * @return number of libraries loaded
 	 */
 	public int addLibraries(MultiFormatLibrarySourceProvider provider, LibraryFormat sourceFormat) throws Exception {
-		int numLoaded = 0;
+		List<Library> libraries = new ArrayList<>();
 		Map<org.hl7.elm.r1.VersionedIdentifier, InputStream> sources = provider.getSourcesByFormat(sourceFormat);
 		for (InputStream is : sources.values()) {
-			this.addLibrary(is, sourceFormat, provider);
-			numLoaded++;
+			libraries.add(addLibrary(is, sourceFormat, provider));
 		}
-		LOG.info("Loaded {} libraries", numLoaded);
-		return numLoaded;
+		this.libraryLoader = new InMemoryLibraryLoader(libraries);
+
+		LOG.info("Loaded {} libraries", libraries.size());
+		return libraries.size();
+	}
+
+	/**
+	 * Configure the library loader to be used when loading CQL libraries.
+	 * 
+	 * @param libraryLoader the libraryLoader
+	 */
+	public void setLibraryLoader(LibraryLoader libraryLoader) {
+		this.libraryLoader = libraryLoader;
 	}
 
 	/**
@@ -389,8 +395,8 @@ public class CqlEngineWrapper {
 	 */
 	protected void evaluateExpressionByExpression(final String libraryName, final String libraryVersion,
 			final Map<String, Object> parameters, final Set<String> expressions, final List<String> contextIds,
-			final EvaluationResultCallback callback) {
-		if (this.libraries == null || this.dataServerClient == null || this.terminologyServerClient == null
+			final EvaluationResultCallback callback) throws Exception {
+		if (this.libraryLoader == null || this.dataServerClient == null || this.terminologyServerClient == null
 				|| this.measureServerClient == null) {
 			throw new IllegalArgumentException(
 					"Missing one or more required initialization parameters (libraries, dataServerClient, terminologyServerClient, measureServerClient)");
@@ -401,34 +407,28 @@ public class CqlEngineWrapper {
 					"Missing one or more required input parameters (libraryName, contextIds)");
 		}
 
-		LibraryLoader ll = new InMemoryLibraryLoader(libraries);
+		Map<String, DataProvider> dataProviders = getDataProviders();
 
-		ModelResolver modelResolver = new R4FhirModelResolver();
-		SearchParameterResolver resolver = new SearchParameterResolver(this.dataServerClient.getFhirContext());
-		RetrieveProvider retrieveProvider = new RestFhirRetrieveProvider(resolver, this.dataServerClient);
-		CompositeDataProvider dataProvider = new CompositeDataProvider(modelResolver, retrieveProvider);
-
-		Map<String, DataProvider> dataProviders = getDataProviders(dataProvider);
-		
-		TerminologyProvider termProvider = new R4FhirTerminologyProvider(this.terminologyServerClient);
+		TerminologyProvider termProvider = getTerminologyProvider();
 
 		VersionedIdentifier libraryId = new VersionedIdentifier().withId(libraryName);
 		if (libraryVersion != null) {
 			libraryId.setVersion(libraryVersion);
 		}
-		Library library = ll.load(libraryId);
-		// TODO - check to make sure there aren't any errors in the library (see
-		// library.getAnnotations())
 
-		requireNonDefaultParameters(library, parameters);
+		Library library = libraryLoader.load(libraryId);
+		LibraryUtils.requireNoTranslationErrors(library);
+		LibraryUtils.requireValuesForNonDefaultParameters(library, parameters);
 
 		for (String contextId : contextIds) {
+			callback.onContextBegin(contextId);
+
 			Context context = new Context(library);
-			for( Map.Entry<String,DataProvider> e : dataProviders.entrySet() ) {
+			for (Map.Entry<String, DataProvider> e : dataProviders.entrySet()) {
 				context.registerDataProvider(e.getKey(), e.getValue());
 			}
 			context.registerTerminologyProvider(termProvider);
-			context.registerLibraryLoader(ll);
+			context.registerLibraryLoader(libraryLoader);
 			context.setExpressionCaching(true);
 
 			if (parameters != null) {
@@ -465,7 +465,62 @@ public class CqlEngineWrapper {
 
 				callback.onEvaluationComplete(contextId, def.getName(), result);
 			}
+
+			callback.onContextComplete(contextId);
 		}
+	}
+
+	/**
+	 * Initialize the data providers for the CQL Engine
+	 * 
+	 * @return Map of supported model URL to data provider
+	 */
+	protected Map<String, DataProvider> getDataProviders() {
+		ModelResolver modelResolver = new R4FhirModelResolver();
+		SearchParameterResolver resolver = new SearchParameterResolver(this.dataServerClient.getFhirContext());
+		RetrieveProvider retrieveProvider = new RestFhirRetrieveProvider(resolver, this.dataServerClient);
+		CompositeDataProvider dataProvider = new CompositeDataProvider(modelResolver, retrieveProvider);
+
+		Map<String, DataProvider> dataProviders = mapSupportedModelsToDataProvider(dataProvider);
+		return dataProviders;
+	}
+
+	/**
+	 * Helper method for turning the list of supported models into a Map of
+	 * DataProviders to be used when registering with the CQLEngine.
+	 * 
+	 * @param dataProvider DataProvider that will be used in support of the
+	 *                     SUPPORTED_MODELS
+	 * @return Map of model url to the <code>dataProvider</code>
+	 */
+	protected Map<String, DataProvider> mapSupportedModelsToDataProvider(CompositeDataProvider dataProvider) {
+		return mapSupportedModelsToDataProvider(SUPPORTED_MODELS, dataProvider);
+	}
+
+	/**
+	 * Helper method for turning the list of supported models into a Map of
+	 * DataProviders to be used when registering with the CQLEngine.
+	 * 
+	 * @param dataProvider DataProvider that will be used in support of the
+	 *                     SUPPORTED_MODELS
+	 * @return Map of model url to the <code>dataProvider</code>
+	 */
+	protected Map<String, DataProvider> mapSupportedModelsToDataProvider(List<String> supportedModels,
+			CompositeDataProvider dataProvider) {
+		Map<String, DataProvider> dataProviders = supportedModels.stream()
+				.map(url -> new SimpleEntry<String, DataProvider>(url, dataProvider))
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+		return dataProviders;
+	}
+
+	/**
+	 * Initialize the terminology provider for the CQL Engine
+	 * 
+	 * @return terminology provider
+	 * @return
+	 */
+	protected R4FhirTerminologyProvider getTerminologyProvider() {
+		return new R4FhirTerminologyProvider(this.terminologyServerClient);
 	}
 
 	/**
@@ -488,8 +543,8 @@ public class CqlEngineWrapper {
 	 *                       executed define
 	 */
 	protected void evaluateWithEngineWrapper(String libraryName, String libraryVersion, Map<String, Object> parameters,
-			Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback) {
-		if (this.libraries == null || this.dataServerClient == null || this.terminologyServerClient == null
+			Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback) throws Exception {
+		if (this.libraryLoader == null || this.dataServerClient == null || this.terminologyServerClient == null
 				|| this.measureServerClient == null) {
 			throw new IllegalArgumentException(
 					"Missing one or more required initialization parameters (libraries, dataServerClient, terminologyServerClient, measureServerClient)");
@@ -500,47 +555,53 @@ public class CqlEngineWrapper {
 					"Missing one or more required input parameters (libraryName, contextIds)");
 		}
 
-		LibraryLoader ll = new InMemoryLibraryLoader(libraries);
+		Map<String, DataProvider> dataProviders = getDataProviders();
 
-		ModelResolver modelResolver = new R4FhirModelResolver();
-		SearchParameterResolver resolver = new SearchParameterResolver(this.dataServerClient.getFhirContext());
-		RetrieveProvider retrieveProvider = new RestFhirRetrieveProvider(resolver, this.dataServerClient);
-		CompositeDataProvider dataProvider = new CompositeDataProvider(modelResolver, retrieveProvider);
-
-		Map<String, DataProvider> dataProviders = getDataProviders(dataProvider);
-
-		TerminologyProvider termProvider = new R4FhirTerminologyProvider(this.terminologyServerClient);
+		TerminologyProvider termProvider = getTerminologyProvider();
 
 		VersionedIdentifier libraryId = new VersionedIdentifier().withId(libraryName);
 		if (libraryVersion != null) {
 			libraryId.setVersion(libraryVersion);
 		}
 
-		Library library = ll.load(libraryId);
-		requireNonDefaultParameters(library, parameters);
+		Library library = libraryLoader.load(libraryId);
+		LibraryUtils.requireNoTranslationErrors(library);
+		LibraryUtils.requireValuesForNonDefaultParameters(library, parameters);
 
-		CqlEngine cqlEngine = new CqlEngine(ll, dataProviders, termProvider);
+		CqlEngine cqlEngine = new CqlEngine(libraryLoader, dataProviders, termProvider);
 
 		for (String contextId : contextIds) {
+			callback.onContextBegin(contextId);
 			EvaluationResult er = cqlEngine.evaluate(libraryId, expressions, Pair.of(ContextNames.PATIENT, contextId),
 					parameters, /* debugMap= */null);
 			for (Map.Entry<String, Object> result : er.expressionResults.entrySet()) {
 				callback.onEvaluationComplete(contextId, result.getKey(), result.getValue());
 			}
+			callback.onContextComplete(contextId);
 		}
 	}
 
 	/**
-	 * Helper method for turning the list of supported models into a Map of DataProviders
-	 * to be used when registering with the CQLEngine.
-	 * @param dataProvider DataProvider that will be used in support of the SUPPORTED_MODELS
-	 * @return Map of model url to the <code>dataProvider</code>
+	 * Execute the given <code>libraryName</code> for each context id specified in
+	 * <code>contextIds</code> using a FHIR R4 data provider and FHIR R4 terminology
+	 * provider. Library content and FHIR server configuration data should be
+	 * configured prior to invoking this method.
+	 * 
+	 * @param libraryName    Library identifier
+	 * @param libraryVersion Library version (optional/null)
+	 * @param parameters     parameter values for required input parameters in the
+	 *                       CQL (optional/null)
+	 * @param expressions    list of defines to be executed from the specified
+	 *                       <code>libraryName</code> (optional/null). When not
+	 *                       provided, all defines in the library will be executed.
+	 * @param contextIds     list of contexts (generally patient IDs) for which the
+	 *                       specified <code>expressions</code> will be executed. At
+	 *                       least one value is required.
+	 * @param callback       callback function for receiving engine execution events
 	 */
-	protected Map<String, DataProvider> getDataProviders(CompositeDataProvider dataProvider) {
-		Map<String, DataProvider> dataProviders = SUPPORTED_MODELS.stream()
-				.map(url -> new SimpleEntry<String, DataProvider>(url, dataProvider))
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-		return dataProviders;
+	public void evaluate(String libraryName, String libraryVersion, Map<String, Object> parameters,
+			Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback) throws Exception {
+		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters, expressions, contextIds, callback);
 	}
 
 	/**
@@ -563,37 +624,9 @@ public class CqlEngineWrapper {
 	 *                       executed define
 	 */
 	public void evaluate(String libraryName, String libraryVersion, Map<String, Object> parameters,
-			Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback) {
-		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters, expressions, contextIds, callback);
-	}
-
-	/**
-	 * Interrogate the CQL Library for parameters with no default values and throw
-	 * and exception when the parameters collection is missing at least one of those
-	 * values.
-	 * 
-	 * @param library    CQL Library
-	 * @param parameters parameter values, expected to include all non-default
-	 *                   parameters in the provided library
-	 */
-	private void requireNonDefaultParameters(Library library, Map<String, Object> parameters) {
-		List<String> missingParameters = new ArrayList<>();
-
-		if (library.getParameters() != null) {
-			for (ParameterDef pd : library.getParameters().getDef()) {
-				if (pd.getDefault() == null) {
-					if (parameters == null || !parameters.containsKey(pd.getName())) {
-						missingParameters.add(pd.getName());
-					}
-				}
-			}
-		}
-
-		if (!missingParameters.isEmpty()) {
-			throw new IllegalArgumentException(
-					String.format("Missing parameter values for one or more non-default library parameters {}",
-							missingParameters.toString()));
-		}
+			Set<String> expressions, List<String> contextIds, ExpressionResultCallback callback) throws Exception {
+		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters, expressions, contextIds,
+				new ProxyingEvaluationResultCallback(callback));
 	}
 
 	/**
@@ -638,9 +671,8 @@ public class CqlEngineWrapper {
 		@Parameter(names = { "-s",
 				"--source-format" }, description = "Indicates which files in the file source should be processed", required = false)
 		private LibraryFormat sourceFormat = DEFAULT_SOURCE_FORMAT;
-		
-		@Parameter(names = { "-h",
-				"--help" }, description = "Display this help", required = false, help = true)
+
+		@Parameter(names = { "-h", "--help" }, description = "Display this help", required = false, help = true)
 		private boolean isDisplayHelp;
 	}
 
@@ -787,45 +819,49 @@ public class CqlEngineWrapper {
 		Console console = new DefaultConsole(out);
 		JCommander jc = JCommander.newBuilder().programName("cql-engine").console(console).addObject(arguments).build();
 		jc.parse(args);
-		
-		if( arguments.isDisplayHelp ) {
+
+		if (arguments.isDisplayHelp) {
 			jc.usage();
 		} else {
 
 			ObjectMapper om = new ObjectMapper();
-	
+
 			FhirServerConfig dataConfig = om.readValue(arguments.dataServerConfigFile, FhirServerConfig.class);
 			setDataServerConnectionProperties(dataConfig);
-	
+
 			FhirServerConfig terminologyConfig = dataConfig;
 			if (arguments.terminologyServerConfigFile != null) {
 				terminologyConfig = om.readValue(arguments.terminologyServerConfigFile, FhirServerConfig.class);
 			}
 			setTerminologyServerConnectionProperties(terminologyConfig);
-	
+
 			FhirServerConfig measureConfig = dataConfig;
 			if (arguments.measureServerConfigFile != null) {
 				measureConfig = om.readValue(arguments.measureServerConfigFile, FhirServerConfig.class);
 			}
 			setMeasureServerConnectionProperties(measureConfig);
-	
+
 			Path libraryFolder = Paths.get(arguments.libraryPath);
 			out.println(String.format("Loading libraries from %s ...", libraryFolder.toString()));
+			MultiFormatLibrarySourceProvider sourceProvider = null;
 			if (libraryFolder.toFile().isDirectory()) {
-				addLibrariesFromFolder(libraryFolder, arguments.sourceFormat);
+				sourceProvider = new DirectoryLibrarySourceProvider(libraryFolder);
 			} else if (libraryFolder.toFile().isFile() && libraryFolder.toString().endsWith(".zip")) {
-				addLibrariesFromZip(libraryFolder, arguments.sourceFormat);
+				try (InputStream is = new FileInputStream(libraryFolder.toFile())) {
+					sourceProvider = new ZipStreamLibrarySourceProvider(new ZipInputStream(is));
+				}
 			} else {
-				// if all else fails, assume that the argument value is a FHIR library resource
-				// ID
-				addLibrariesFromFhirResource(arguments.libraryPath, arguments.sourceFormat);
+				sourceProvider = new FhirLibraryLibrarySourceProvider(getMeasureServerClient(), arguments.libraryPath);
 			}
-	
+			
+			CqlTranslationProvider translationProvider = new InJVMCqlTranslationProvider(sourceProvider);			
+			setLibraryLoader(new TranslatingLibraryLoader(sourceProvider, translationProvider));
+
 			Map<String, Object> parameters = null;
 			if (arguments.parameters != null) {
 				parameters = parseParameters(arguments.parameters);
 			}
-	
+
 			evaluate(arguments.libraryName, arguments.libraryVersion, parameters, arguments.expressions,
 					arguments.contextIds, (contextId, expression, result) -> {
 						out.println(String.format("Expression: %s, Context: %s, Result: %s", expression, contextId,

@@ -45,6 +45,4 @@ public class ZipStreamLibrarySourceProvider extends MultiFormatLibrarySourceProv
 					new ByteArrayInputStream(baos.toByteArray()));
 		}
 	}
-
-
 }

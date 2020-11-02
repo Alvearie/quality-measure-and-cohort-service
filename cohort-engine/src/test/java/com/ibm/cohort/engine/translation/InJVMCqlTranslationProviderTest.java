@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.ibm.cohort.engine;
+package com.ibm.cohort.engine.translation;
 
 import java.nio.file.Path;
 import java.util.zip.ZipFile;
@@ -12,7 +12,11 @@ import java.util.zip.ZipFile;
 import org.cqframework.cql.cql2elm.DefaultLibrarySourceProvider;
 import org.junit.Before;
 
-public class InJVMCqlTranslationProviderTest extends CqlTranslatorWrapperTest {
+import com.ibm.cohort.engine.ZipLibrarySourceProvider;
+import com.ibm.cohort.engine.translation.CqlTranslationProvider;
+import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
+
+public class InJVMCqlTranslationProviderTest extends CqlTranslatorProviderTest {
 
 	private InJVMCqlTranslationProvider translator;
 	

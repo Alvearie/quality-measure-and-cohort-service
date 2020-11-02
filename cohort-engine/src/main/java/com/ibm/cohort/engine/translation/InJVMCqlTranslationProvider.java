@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.ibm.cohort.engine;
+package com.ibm.cohort.engine.translation;
 
 import java.io.InputStream;
 import java.io.StringReader;
@@ -25,6 +25,8 @@ import org.fhir.ucum.UcumService;
 import org.opencds.cqf.cql.engine.execution.CqlLibraryReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.ibm.cohort.engine.LibraryFormat;
 
 /**
  * Uses the CqlTranslator inprocess to convert CQL to ELM. This is an
@@ -47,6 +49,11 @@ public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
 	public InJVMCqlTranslationProvider(LibraryManager libraryManager, ModelManager modelManager) {
 		this.modelManager = modelManager;
 		this.libraryManager = libraryManager;
+	}
+	
+	public InJVMCqlTranslationProvider(LibrarySourceProvider provider) {
+		this();
+		addLibrarySourceProvider(provider);
 	}
 
 	public InJVMCqlTranslationProvider addLibrarySourceProvider(LibrarySourceProvider provider) {

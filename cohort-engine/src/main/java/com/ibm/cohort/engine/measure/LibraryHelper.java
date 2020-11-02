@@ -10,7 +10,7 @@ import java.util.Base64;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.common.providers.LibrarySourceProvider;
 
-import com.ibm.cohort.engine.InJVMCqlTranslationProvider;
+import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
 
 /**
  * Helper functions for working with FHIR Libraries

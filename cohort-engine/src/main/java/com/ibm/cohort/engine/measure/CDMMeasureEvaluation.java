@@ -104,7 +104,6 @@ public class CDMMeasureEvaluation {
 	 */
 	public MeasureReport evaluatePatientMeasure(Measure measure, Context context, String patientId) {
 		MeasureReport report = evaluation.evaluatePatientMeasure(measure, context, patientId);
-		;
 
 		MeasureScoring scoring = MeasureScoring.fromCode(measure.getScoring().getCodingFirstRep().getCode());
 		switch (scoring) {

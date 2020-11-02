@@ -60,11 +60,8 @@ public class FhirLibraryLibrarySourceProvider extends MultiFormatLibrarySourcePr
 
 					LibraryFormat sourceFormat = LibraryFormat.forMimeType(attachment.getContentType());
 
-					Map<LibraryFormat, InputStream> formats = sources.get(id);
-					if (formats == null) {
-						formats = new HashMap<>();
-						sources.put(id, formats);
-					}
+					Map<LibraryFormat, InputStream> formats = sources.computeIfAbsent(id,
+							vid -> new HashMap<LibraryFormat, InputStream>());
 
 					byte[] decoded = Base64.getDecoder().decode(attachment.getData());
 					formats.put(sourceFormat, new ByteArrayInputStream(decoded));
