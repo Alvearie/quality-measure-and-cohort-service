@@ -18,6 +18,7 @@ import org.cqframework.cql.elm.execution.Library;
 import org.cqframework.cql.elm.execution.ParameterDef;
 import org.hl7.cql_annotations.r1.CqlToElmError;
 import org.hl7.cql_annotations.r1.CqlToElmInfo;
+import org.hl7.cql_annotations.r1.ErrorSeverity;
 import org.hl7.cql_annotations.r1.ObjectFactory;
 import org.w3c.dom.Element;
 
@@ -69,7 +70,9 @@ public class LibraryUtils {
 	 * @return true if the library contains errors. Otherwise, false.
 	 */
 	public static boolean hasErrors(List<Object> annotations) throws Exception {
-		return annotations.stream().filter( a -> a instanceof CqlToElmError ).count() > 0;
+		return annotations.stream().filter(
+				a -> a instanceof CqlToElmError && ((CqlToElmError) a).getErrorSeverity() == ErrorSeverity.ERROR)
+				.count() > 0;
 	}
 
 	/**
