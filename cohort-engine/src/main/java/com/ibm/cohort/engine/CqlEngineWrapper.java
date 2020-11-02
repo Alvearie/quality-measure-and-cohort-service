@@ -15,7 +15,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -28,7 +27,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.cqframework.cql.cql2elm.LibrarySourceProvider;
 import org.cqframework.cql.elm.execution.ExpressionDef;
 import org.cqframework.cql.elm.execution.FunctionDef;
 import org.cqframework.cql.elm.execution.Library;
@@ -37,9 +35,7 @@ import org.opencds.cqf.cql.engine.data.CompositeDataProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.execution.CqlEngine;
-import org.opencds.cqf.cql.engine.execution.CqlLibraryReader;
 import org.opencds.cqf.cql.engine.execution.EvaluationResult;
-import org.opencds.cqf.cql.engine.execution.InMemoryLibraryLoader;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
 import org.opencds.cqf.cql.engine.fhir.retrieve.RestFhirRetrieveProvider;
@@ -53,8 +49,6 @@ import org.opencds.cqf.cql.engine.runtime.Interval;
 import org.opencds.cqf.cql.engine.runtime.Quantity;
 import org.opencds.cqf.cql.engine.runtime.Time;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -79,10 +73,7 @@ public class CqlEngineWrapper {
 
 	private static final LibraryFormat DEFAULT_SOURCE_FORMAT = LibraryFormat.XML;
 
-	private static Logger LOG = LoggerFactory.getLogger(CqlEngineWrapper.class);
-
 	private LibraryLoader libraryLoader = null;
-	// private List<Library> libraries = new ArrayList<>();
 
 	private FhirClientFactory clientFactory;
 
@@ -96,187 +87,6 @@ public class CqlEngineWrapper {
 
 	public CqlEngineWrapper(FhirClientFactory clientFactory) {
 		this.clientFactory = clientFactory;
-	}
-
-	/**
-	 * Add library content to the list of libraries available to the CQL engine at
-	 * runtime.
-	 * 
-	 * @param libraryData  Data representing the library content. Can be CQL or ELM.
-	 * @param sourceFormat LibrayFormat indicating which source files and format to
-	 *                     read from the ZIP stream
-	 * @param provider     When <code>sourceFormat</code> is CQL, provider is
-	 *                     required and is an interface the allows the translator to
-	 *                     load library includes. The provider implementation
-	 *                     differs based on where the source data is coming from. If
-	 *                     sourceFormat is not CQL, this can safely be null.
-	 * @throws Exception
-	 */
-	public Library addLibrary(InputStream libraryData, LibraryFormat sourceFormat, LibrarySourceProvider provider)
-			throws Exception {
-		Library library = null;
-		switch (sourceFormat) {
-		case CQL:
-			InJVMCqlTranslationProvider translator = new InJVMCqlTranslationProvider();
-			translator.addLibrarySourceProvider(provider);
-			library = translator.translate(libraryData);
-			break;
-		case XML:
-			library = CqlLibraryReader.read(libraryData);
-			break;
-		default:
-			throw new IllegalArgumentException("Unsupported library format");
-		}
-		return library;
-	}
-
-	/**
-	 * Add all CQL libraries in path pointing to a directory using the default
-	 * source format as input.
-	 * 
-	 * @param libraryFolder path to a folder
-	 * @return number of libraries loaded
-	 * @throws Exception
-	 */
-	public int addLibrariesFromZip(Path libraryFolder) throws Exception {
-		return addLibrariesFromZip(libraryFolder, DEFAULT_SOURCE_FORMAT);
-	}
-
-	/**
-	 * Add all CQL libraries in path pointing to a ZIP file
-	 * 
-	 * @param zipFilePath  path to a ZIP file
-	 * @param sourceFormat LibrayFormat indicating which source files and format to
-	 *                     read from the ZIP stream
-	 * @return number of libraries loaded
-	 */
-	public int addLibrariesFromZip(Path zipFilePath, LibraryFormat sourceFormat) throws Exception {
-		int numLoaded = 0;
-		try (InputStream is = new FileInputStream(zipFilePath.toFile())) {
-			numLoaded = addLibrariesFromZipStream(is, sourceFormat);
-		}
-		return numLoaded;
-	}
-
-	/**
-	 * Add all CQL libraries in provided input stream
-	 * 
-	 * @param is input stream containing ZIP contents. Callers are responsible for
-	 *           closing the stream when they are done with it.
-	 * @return number of libraries loaded
-	 */
-	public int addLibrariesFromZipStream(InputStream is) throws Exception {
-		return addLibrariesFromZipStream(is, DEFAULT_SOURCE_FORMAT);
-	}
-
-	/**
-	 * Add all CQL libraries in provided input stream
-	 * 
-	 * @param is           input stream containing ZIP contents. Callers are
-	 *                     responsible for closing the stream when they are done
-	 *                     with it.
-	 * @param sourceFormat LibrayFormat indicating which source files and format to
-	 *                     read from the ZIP stream
-	 * @return number of libraries loaded
-	 */
-	public int addLibrariesFromZipStream(InputStream is, LibraryFormat sourceFormat) throws Exception {
-		ZipInputStream zis = new ZipInputStream(is);
-		ZipStreamLibrarySourceProvider provider = new ZipStreamLibrarySourceProvider(zis);
-
-		return addLibraries(provider, sourceFormat);
-	}
-
-	/**
-	 * Add all CQL libraries in path pointing to a filesystem folder
-	 * 
-	 * @param libraryFolder path to a folder
-	 * @return number of libraries loaded
-	 */
-	public int addLibrariesFromFolder(Path libraryFolder) throws Exception {
-		return addLibrariesFromFolder(libraryFolder, DEFAULT_SOURCE_FORMAT);
-	}
-
-	/**
-	 * Add all CQL libraries in path pointing to a filesystem folder
-	 * 
-	 * @param libraryFolder path to a folder containing files of the specified
-	 *                      <code>sourceFormat</code>
-	 * @param sourceFormat  LibrayFormat indicating which source files and format to
-	 *                      read from the ZIP stream
-	 * @return number of libraries loaded
-	 */
-	public int addLibrariesFromFolder(Path libraryFolder, LibraryFormat sourceFormat) throws Exception {
-		MultiFormatLibrarySourceProvider provider = new DirectoryLibrarySourceProvider(libraryFolder);
-		return addLibraries(provider, sourceFormat);
-	}
-
-	/**
-	 * Add all CQL Libraries from the target FHIR Library including any
-	 * dependencies.
-	 * 
-	 * @param libraryId    resource ID of a FHIR Library resource
-	 * @param sourceFormat LibrayFormat indicating which source files and format to
-	 *                     read from the FHIR Library resource
-	 * @return number of libraries loaded
-	 */
-	public int addLibrariesFromFhirResource(String libraryId, LibraryFormat sourceFormat) throws Exception {
-		org.hl7.fhir.r4.model.Library library = measureServerClient.read().resource(org.hl7.fhir.r4.model.Library.class)
-				.withId(libraryId).execute();
-
-		return addLibrariesFromFhirResource(measureServerClient, library, sourceFormat);
-	}
-
-	/**
-	 * Add all CQL Libraries from the provided FHIR Library including any
-	 * dependencies.
-	 * 
-	 * @param library      FHIR Library resource
-	 * @param sourceFormat LibrayFormat indicating which source files and format to
-	 *                     read from the FHIR Library resource
-	 * @return number of libraries loaded
-	 */
-	public int addLibrariesFromFhirResource(org.hl7.fhir.r4.model.Library library, LibraryFormat sourceFormat)
-			throws Exception {
-		return addLibrariesFromFhirResource(measureServerClient, library, sourceFormat);
-	}
-
-	/**
-	 * Add all CQL Libraries from the provided FHIR Library including any
-	 * dependencies.
-	 * 
-	 * @param fhirClient   HAPI FHIR client that has been configured to interact
-	 *                     with the FHIR server containing the Library resources of
-	 *                     interest.
-	 * @param library      FHIR Library resource
-	 * @param sourceFormat LibrayFormat indicating which source files and format to
-	 *                     read from the FHIR Library resource
-	 * @return number of libraries loaded
-	 */
-	public int addLibrariesFromFhirResource(IGenericClient fhirClient, org.hl7.fhir.r4.model.Library library,
-			LibraryFormat sourceFormat) throws Exception {
-		MultiFormatLibrarySourceProvider provider = new FhirLibraryLibrarySourceProvider(fhirClient, library);
-
-		return addLibraries(provider, sourceFormat);
-	}
-
-	/**
-	 * Add all CQL Libraries from the provided source collection
-	 * 
-	 * @param provider     MultiSource collection of library resources
-	 * @param sourceFormat LibrayFormat indicating which source files and format to
-	 *                     read from the FHIR Library resource
-	 * @return number of libraries loaded
-	 */
-	public int addLibraries(MultiFormatLibrarySourceProvider provider, LibraryFormat sourceFormat) throws Exception {
-		List<Library> libraries = new ArrayList<>();
-		Map<org.hl7.elm.r1.VersionedIdentifier, InputStream> sources = provider.getSourcesByFormat(sourceFormat);
-		for (InputStream is : sources.values()) {
-			libraries.add(addLibrary(is, sourceFormat, provider));
-		}
-		this.libraryLoader = new InMemoryLibraryLoader(libraries);
-
-		LOG.info("Loaded {} libraries", libraries.size());
-		return libraries.size();
 	}
 
 	/**
@@ -493,7 +303,7 @@ public class CqlEngineWrapper {
 	 *                     SUPPORTED_MODELS
 	 * @return Map of model url to the <code>dataProvider</code>
 	 */
-	protected Map<String, DataProvider> mapSupportedModelsToDataProvider(CompositeDataProvider dataProvider) {
+	protected Map<String, DataProvider> mapSupportedModelsToDataProvider(DataProvider dataProvider) {
 		return mapSupportedModelsToDataProvider(SUPPORTED_MODELS, dataProvider);
 	}
 
@@ -506,7 +316,7 @@ public class CqlEngineWrapper {
 	 * @return Map of model url to the <code>dataProvider</code>
 	 */
 	protected Map<String, DataProvider> mapSupportedModelsToDataProvider(List<String> supportedModels,
-			CompositeDataProvider dataProvider) {
+			DataProvider dataProvider) {
 		Map<String, DataProvider> dataProviders = supportedModels.stream()
 				.map(url -> new SimpleEntry<String, DataProvider>(url, dataProvider))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -519,7 +329,7 @@ public class CqlEngineWrapper {
 	 * @return terminology provider
 	 * @return
 	 */
-	protected R4FhirTerminologyProvider getTerminologyProvider() {
+	protected TerminologyProvider getTerminologyProvider() {
 		return new R4FhirTerminologyProvider(this.terminologyServerClient);
 	}
 
@@ -842,20 +652,23 @@ public class CqlEngineWrapper {
 			setMeasureServerConnectionProperties(measureConfig);
 
 			Path libraryFolder = Paths.get(arguments.libraryPath);
-			out.println(String.format("Loading libraries from %s ...", libraryFolder.toString()));
 			MultiFormatLibrarySourceProvider sourceProvider = null;
 			if (libraryFolder.toFile().isDirectory()) {
+				out.println(String.format("Loading libraries from folder '%s'", libraryFolder.toString()));
 				sourceProvider = new DirectoryLibrarySourceProvider(libraryFolder);
 			} else if (libraryFolder.toFile().isFile() && libraryFolder.toString().endsWith(".zip")) {
+				out.println(String.format("Loading libraries from ZIP '%s'", libraryFolder.toString()));
 				try (InputStream is = new FileInputStream(libraryFolder.toFile())) {
 					sourceProvider = new ZipStreamLibrarySourceProvider(new ZipInputStream(is));
 				}
 			} else {
+				out.println(String.format("Loading libraries from FHIR Library '%s'", libraryFolder.toString()));
 				sourceProvider = new FhirLibraryLibrarySourceProvider(getMeasureServerClient(), arguments.libraryPath);
 			}
-			
-			CqlTranslationProvider translationProvider = new InJVMCqlTranslationProvider(sourceProvider);			
-			setLibraryLoader(new TranslatingLibraryLoader(sourceProvider, translationProvider));
+
+			boolean isForceTranslation = arguments.sourceFormat == LibraryFormat.CQL;
+			CqlTranslationProvider translationProvider = new InJVMCqlTranslationProvider(sourceProvider);
+			setLibraryLoader(new TranslatingLibraryLoader(sourceProvider, translationProvider, isForceTranslation));
 
 			Map<String, Object> parameters = null;
 			if (arguments.parameters != null) {
@@ -863,9 +676,23 @@ public class CqlEngineWrapper {
 			}
 
 			evaluate(arguments.libraryName, arguments.libraryVersion, parameters, arguments.expressions,
-					arguments.contextIds, (contextId, expression, result) -> {
-						out.println(String.format("Expression: %s, Context: %s, Result: %s", expression, contextId,
-								(result != null) ? String.format("%s", result.toString()) : "null"));
+					arguments.contextIds, new EvaluationResultCallback() {
+
+						@Override
+						public void onContextBegin(String contextId) {
+							out.println("Context: " + contextId);
+						}
+
+						@Override
+						public void onEvaluationComplete(String contextId, String expression, Object result) {
+							out.println(String.format("Expression: %s, Result: %s", expression,
+									(result != null) ? String.format("%s", result.toString()) : "null"));
+						}
+
+						@Override
+						public void onContextComplete(String contextId) {
+							out.println("---");
+						}
 					});
 		}
 	}

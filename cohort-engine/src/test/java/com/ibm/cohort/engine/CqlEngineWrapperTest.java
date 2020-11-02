@@ -346,7 +346,7 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 
 			String output = new String(baos.toByteArray());
 			String[] lines = output.split("\r?\n");
-			assertEquals(3, lines.length);
+			assertEquals(5, lines.length);
 
 			verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
 		} finally {
@@ -381,7 +381,7 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 
 			String output = new String(baos.toByteArray());
 			String[] lines = output.split("\r?\n");
-			assertEquals(4, lines.length);
+			assertEquals(6, lines.length);
 
 			verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
 		} finally {
@@ -427,7 +427,7 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 			String output = new String(baos.toByteArray());
 			String[] lines = output.split("\r?\n");
 
-			assertEquals(output, 10, lines.length);
+			assertEquals(output, 16, lines.length);
 			System.out.println(output);
 
 			verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
@@ -478,7 +478,7 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 			String output = new String(baos.toByteArray());
 			String[] lines = output.split("\r?\n");
 
-			assertEquals(output, 10, lines.length);
+			assertEquals(output, 16, lines.length);
 			System.out.println(output);
 
 			verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
@@ -488,6 +488,49 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 			tmpFile.delete();
 		}
 	}
+	
+	@Test
+	public void testMainZippedLibrariesMultiFolderWithExtraEntries() throws Exception {
+
+		FhirServerConfig fhirConfig = getFhirServerConfig();
+
+		IParser encoder = getFhirParser();
+
+		mockFhirResourceRetrieval("/metadata", encoder, getCapabilityStatement(), fhirConfig);
+
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
+		mockFhirResourceRetrieval(patient);
+
+		File tmpFile = new File("target/fhir-stub.json");
+		ObjectMapper om = new ObjectMapper();
+		try (Writer w = new FileWriter(tmpFile)) {
+			w.write(om.writeValueAsString(fhirConfig));
+		}
+
+		try {
+			PrintStream originalOut = System.out;
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			try (PrintStream captureOut = new PrintStream(baos)) {
+				System.setOut(captureOut);
+				CqlEngineWrapper.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-t", tmpFile.getAbsolutePath(),
+						"-f", "src/test/resources/cql/zip-with-folders/cohorts.zip", "-l",
+						"Breast-Cancer", "-v", "Screening", "-e", "Female", "-e", "Ages 40 to 75", "-e",
+						"MeetsInclusionCriteria", "-c", "123", "-s", "CQL" });
+			} finally {
+				System.setOut(originalOut);
+			}
+
+			String output = new String(baos.toByteArray());
+			String[] lines = output.split("\r?\n");
+
+			assertEquals(output, 6, lines.length);
+			System.out.println(output);
+
+			verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
+		} finally {
+			tmpFile.delete();
+		}
+	}	
 
 	@Test
 	public void testMainFHIRLibrariesWithDependencies() throws Exception {
@@ -531,7 +574,7 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 			String output = new String(baos.toByteArray());
 			String[] lines = output.split("\r?\n");
 
-			assertEquals(output, 10, lines.length);
+			assertEquals(output, 12, lines.length);
 			System.out.println(output);
 
 			verify(1, getRequestedFor(urlEqualTo("/Patient/" + patient.getId())));
