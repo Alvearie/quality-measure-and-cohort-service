@@ -59,7 +59,6 @@ public class BaseFhirTest {
 	public static void setUpBeforeClass() {
 		// get a random local port for test use
 		try (ServerSocket socket = new ServerSocket(0)) {
-			;
 			HTTP_PORT = socket.getLocalPort();
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);

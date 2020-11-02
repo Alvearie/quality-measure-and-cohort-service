@@ -29,10 +29,7 @@ import org.slf4j.LoggerFactory;
 import com.ibm.cohort.engine.LibraryFormat;
 
 /**
- * Uses the CqlTranslator inprocess to convert CQL to ELM. This is an
- * alternative to using the CQL Translation Service microservice which is a
- * longer term goal and something we've tested with, but are not ready to
- * deliver.
+ * Uses the CqlTranslator inprocess to convert CQL to ELM. 
  */
 public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
 
