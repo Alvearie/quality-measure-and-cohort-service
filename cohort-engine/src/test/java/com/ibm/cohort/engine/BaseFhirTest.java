@@ -27,8 +27,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-
 import org.hl7.elm.r1.VersionedIdentifier;
 import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.CanonicalType;
@@ -42,7 +42,6 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 
-import com.github.dnault.xmlpatch.repackaged.org.apache.commons.io.FilenameUtils;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.ibm.cohort.engine.translation.CqlTranslationProvider;
