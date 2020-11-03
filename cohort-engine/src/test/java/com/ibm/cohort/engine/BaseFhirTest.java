@@ -22,11 +22,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.hl7.elm.r1.VersionedIdentifier;
@@ -161,7 +161,7 @@ public class BaseFhirTest {
 
 				Attachment attachment = new Attachment();
 				attachment.setContentType(contentType);
-				attachment.setData(Base64.encodeBase64(text.getBytes()));
+				attachment.setData(Base64.getEncoder().encode(text.getBytes()));
 				attachments.add(attachment);
 			}
 		}

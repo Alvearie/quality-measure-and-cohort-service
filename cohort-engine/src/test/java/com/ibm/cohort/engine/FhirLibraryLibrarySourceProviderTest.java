@@ -9,8 +9,8 @@ package com.ibm.cohort.engine;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
+import java.util.Base64;
 
-import org.apache.commons.codec.binary.Base64;
 import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.Library;
 import org.junit.Before;
@@ -39,7 +39,7 @@ public class FhirLibraryLibrarySourceProviderTest {
 		
 		Attachment attachment = new Attachment();
 		attachment.setContentType("text/cql");
-		attachment.setData( Base64.encodeBase64( cql.getBytes() ) );
+		attachment.setData( Base64.getEncoder().encode( cql.getBytes() ) );
 		
 		Library library = new Library();
 		library.setContent(Arrays.asList(attachment));
