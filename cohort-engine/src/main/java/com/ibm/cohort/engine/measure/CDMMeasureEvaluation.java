@@ -156,7 +156,7 @@ public class CDMMeasureEvaluation {
 		// exception has already been applied by the standard report generator and the
 		// patient has been removed from the following populations as needed, so we can
 		// keep this logic simple.
-		if (results.inInitialPopulation() && results.inDenominator() && !results.inNumerator()) {
+		if (results.inDenominator() && !results.inNumerator()) {
 			isEligibleForCareGap = true;
 		}
 		return isEligibleForCareGap;
