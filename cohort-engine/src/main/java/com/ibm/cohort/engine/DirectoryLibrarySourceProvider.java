@@ -44,19 +44,16 @@ public class DirectoryLibrarySourceProvider extends MultiFormatLibrarySourceProv
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(folderPath, filter)) {
 			for (Path entry : stream) {
 				try (InputStream is = Files.newInputStream(entry)) {
-					String filename = entry.getFileName().toString();
-					
-					VersionedIdentifier id = idStrategy.filenameToVersionedIdentifier(filename);
-					
 					LibraryFormat sourceFormat = LibraryFormat.forPath( entry );
-					Map<LibraryFormat, InputStream> formats = sources.get( id );
-					if( formats == null ) {
-						formats = new HashMap<>();
-						sources.put( id, formats);
+					if( sourceFormat != null ) {
+						String filename = entry.getFileName().toString();
+						VersionedIdentifier id = idStrategy.filenameToVersionedIdentifier(filename);
+						
+						Map<LibraryFormat, InputStream> formats = sources.computeIfAbsent( id, key -> new HashMap<>() );
+						
+						String text = FileUtils.readFileToString(entry.toFile(), StandardCharsets.UTF_8);
+						formats.put(sourceFormat, new ByteArrayInputStream( text.getBytes() ) );
 					}
-					
-					String text = FileUtils.readFileToString(entry.toFile(), StandardCharsets.UTF_8);
-					formats.put(sourceFormat, new ByteArrayInputStream( text.getBytes() ) );
 				}
 			}
 		}

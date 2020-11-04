@@ -4,12 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.ibm.cohort.engine;
+package com.ibm.cohort.engine.translation;
 
 import java.io.InputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.cqframework.cql.cql2elm.CqlTranslator;
 import org.cqframework.cql.cql2elm.CqlTranslator.Options;
@@ -25,24 +26,34 @@ import org.opencds.cqf.cql.engine.execution.CqlLibraryReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Uses the CqlTranslator inprocess to convert CQL to ELM. This is
- * an alternative to using the CQL Translation Service microservice
- * which is a longer term goal and something we've tested with, but
- * are not ready to deliver.
- */
-public class InJVMCqlTranslatorWrapper extends BaseCqlTranslatorWrapper {
+import com.ibm.cohort.engine.LibraryFormat;
 
-	private static final Logger LOG = LoggerFactory.getLogger(InJVMCqlTranslatorWrapper.class);
+/**
+ * Uses the CqlTranslator inprocess to convert CQL to ELM. 
+ */
+public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
+
+	private static final Logger LOG = LoggerFactory.getLogger(InJVMCqlTranslationProvider.class);
 	private ModelManager modelManager;
 	private LibraryManager libraryManager;
 
-	public InJVMCqlTranslatorWrapper() {
+	public InJVMCqlTranslationProvider() {
 		this.modelManager = new ModelManager();
 		this.libraryManager = new LibraryManager(modelManager);
+		libraryManager.getLibrarySourceLoader().registerProvider(new FhirLibrarySourceProvider());
 	}
 
-	public InJVMCqlTranslatorWrapper addLibrarySourceProvider(LibrarySourceProvider provider) {
+	public InJVMCqlTranslationProvider(LibraryManager libraryManager, ModelManager modelManager) {
+		this.modelManager = modelManager;
+		this.libraryManager = libraryManager;
+	}
+	
+	public InJVMCqlTranslationProvider(LibrarySourceProvider provider) {
+		this();
+		addLibrarySourceProvider(provider);
+	}
+
+	public InJVMCqlTranslationProvider addLibrarySourceProvider(LibrarySourceProvider provider) {
 		libraryManager.getLibrarySourceLoader().registerProvider(provider);
 		return this;
 	}
@@ -59,12 +70,15 @@ public class InJVMCqlTranslatorWrapper extends BaseCqlTranslatorWrapper {
 			optionsList.addAll(options);
 		}
 
-		libraryManager.getLibrarySourceLoader().registerProvider(new FhirLibrarySourceProvider());
 		CqlTranslator translator = CqlTranslator.fromStream(cql, modelManager, libraryManager, ucumService,
 				CqlTranslatorException.ErrorSeverity.Info, signatureLevel,
 				optionsList.toArray(new Options[optionsList.size()]));
 
 		LOG.debug("Translated CQL contains {} errors", translator.getErrors().size());
+		if (translator.getErrors().size() > 0) {
+			throw new Exception("CQL translation contained errors: " + String.join("\n",
+					translator.getErrors().stream().map(x -> x.toString()).collect(Collectors.toList())));
+		}
 
 		switch (targetFormat) {
 		case XML:

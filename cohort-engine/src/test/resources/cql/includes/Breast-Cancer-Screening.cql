@@ -19,14 +19,7 @@ define "MeetsInclusionCriteria":
   and "Female"
 
 define "MeetsExclusionCriteria":
-  "Breast Cancer"
-  or "Bilateral Mastectomy"
-  or "Unilateral mastectomy left and right."
-  or "Recent Mammogram"
-
-define "Unilateral mastectomy left and right.":
-  "Unilateral Mastectomy Left"
-  and "Unilateral Mastectomy Right"
+  false
 
 define "InPopulation":
   "MeetsInclusionCriteria" and not "MeetsExclusionCriteria" 

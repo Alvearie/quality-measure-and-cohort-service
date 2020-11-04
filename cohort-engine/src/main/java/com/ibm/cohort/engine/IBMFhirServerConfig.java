@@ -22,8 +22,19 @@ public class IBMFhirServerConfig extends FhirServerConfig {
 	 */
 	public static final String DEFAULT_TENANT_ID_HEADER = "X-FHIR-TENANT-ID";
 	
+	/**
+	 * IBM FHIR Server uses HTTP headers to control which underlying datasource contains
+	 * the data being retrieved. This is the default header name used in the base
+	 * configuration files, but it can be changed by the user as needed for their
+	 * execution environment.
+	 */
+	public static final String DEFAULT_DATASOURCE_ID_HEADER = "X-FHIR-DSID";
+	
 	private String tenantId;
 	private String tenantIdHeader = DEFAULT_TENANT_ID_HEADER;
+	
+	private String dataSourceId;
+	private String dataSourceIdHeader = DEFAULT_DATASOURCE_ID_HEADER;
 	
 	public String getTenantId() {
 		return tenantId;
@@ -41,10 +52,32 @@ public class IBMFhirServerConfig extends FhirServerConfig {
 		this.tenantIdHeader = tenantIdHeader;
 	}
 	
+
+	public String getDataSourceId() {
+		return dataSourceId;
+	}
+
+	public void setDataSourceId(String dataSourceId) {
+		this.dataSourceId = dataSourceId;
+	}
+
+	public String getDataSourceIdHeader() {
+		return dataSourceIdHeader;
+	}
+
+	public void setDataSourceIdHeader(String dataSourceIdHeader) {
+		this.dataSourceIdHeader = dataSourceIdHeader;
+	}
+	
 	@Override
 	public Map<String,String> getAdditionalHeaders() {
 		Map<String,String> headers = new HashMap<String,String>();
-		headers.put( this.tenantIdHeader, this.tenantId );
+		if( this.tenantId != null ) {
+			headers.put( this.tenantIdHeader, this.tenantId );
+		}
+		if( this.dataSourceId != null ) {
+			headers.put( this.dataSourceIdHeader, this.dataSourceId );
+		}
 		return headers;
 	}
 }

@@ -43,9 +43,13 @@ public 	enum LibraryFormat {
 	}
 	
 	public static boolean isSupportedPath( Path path ) {
+		return isSupportedPath(path.getFileName().toString());
+	}
+
+	public static boolean isSupportedPath(String pathString) {
 		boolean isSupported = false;
 		for( String key : EXTENSION_TO_FORMAT.keySet() ) {
-			isSupported = path.getFileName().toString().endsWith( key );
+			isSupported = pathString.endsWith( key );
 			if( isSupported ) {
 				break;
 			}
@@ -67,8 +71,6 @@ public 	enum LibraryFormat {
 			result = XML;
 		} else if (pathString.matches("(?i).*cql")) {
 			result = CQL;
-		} else {
-			throw new IllegalArgumentException(String.format("Unsupported file type \"%s\"", pathString));
 		}
 		return result;
 	}

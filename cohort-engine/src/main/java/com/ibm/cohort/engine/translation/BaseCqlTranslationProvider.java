@@ -4,26 +4,31 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.ibm.cohort.engine;
+package com.ibm.cohort.engine.translation;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.cqframework.cql.cql2elm.CqlTranslator;
 import org.cqframework.cql.cql2elm.CqlTranslator.Options;
 import org.cqframework.cql.cql2elm.CqlTranslatorOptions;
 import org.cqframework.cql.elm.execution.Library;
+
+import com.ibm.cohort.engine.LibraryFormat;
 
 /**
  * Common functionality for use when implementing CQL translator
  * wrapper implementations.
  */
-public abstract class BaseCqlTranslatorWrapper implements CqlTranslatorWrapper {
+public abstract class BaseCqlTranslationProvider implements CqlTranslationProvider {
 
 	public static final LibraryFormat DEFAULT_TARGET_FORMAT = LibraryFormat.XML;
 	
 	public List<Options> getDefaultOptions() {
-		return new ArrayList<>(CqlTranslatorOptions.defaultOptions().getOptions());
+		List<CqlTranslator.Options> defaults = new ArrayList<>(CqlTranslatorOptions.defaultOptions().getOptions());
+		//defaults.add( CqlTranslator.Options.EnableDateRangeOptimization );
+		return defaults;
 	}
 	
 	@Override

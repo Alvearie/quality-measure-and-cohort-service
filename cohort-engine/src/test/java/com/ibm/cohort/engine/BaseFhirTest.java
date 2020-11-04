@@ -22,12 +22,14 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.hl7.elm.r1.VersionedIdentifier;
 import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CapabilityStatement;
@@ -38,27 +40,30 @@ import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.junit.BeforeClass;
 import org.junit.Rule;
+import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.ibm.cohort.engine.translation.CqlTranslationProvider;
+import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 
 public class BaseFhirTest {
-	
+
 	static int HTTP_PORT = 0;
-	
+
 	@BeforeClass
 	public static void setUpBeforeClass() {
 		// get a random local port for test use
-		try( ServerSocket socket = new ServerSocket(0) ) {;
+		try (ServerSocket socket = new ServerSocket(0)) {
 			HTTP_PORT = socket.getLocalPort();
-		} catch( Exception ex ) {
+		} catch (Exception ex) {
 			throw new RuntimeException(ex);
 		}
 	}
-	
+
 	@Rule
 	public WireMockRule wireMockRule = new WireMockRule(
 			options().port(HTTP_PORT)/* .notifier(new ConsoleNotifier(true)) */);
@@ -82,6 +87,21 @@ public class BaseFhirTest {
 	protected void mockFhirResourceRetrieval(String resourcePath, IParser encoder, Resource resource,
 			FhirServerConfig fhirConfig) {
 		MappingBuilder builder = get(urlEqualTo(resourcePath));
+		mockFhirResourceRetrieval(builder, encoder, resource, fhirConfig);
+	}
+
+	protected void mockFhirResourceRetrieval(MappingBuilder builder, Resource resource) {
+		mockFhirResourceRetrieval(builder, getFhirParser(), resource, getFhirServerConfig());
+	}
+
+	protected void mockFhirResourceRetrieval(MappingBuilder builder, IParser encoder, Resource resource,
+			FhirServerConfig fhirConfig) {
+		builder = setAuthenticationParameters(fhirConfig, builder);
+		stubFor(builder.willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json")
+				.withBody(encoder.encodeResourceToString(resource))));
+	}
+
+	protected MappingBuilder setAuthenticationParameters(FhirServerConfig fhirConfig, MappingBuilder builder) {
 		if (fhirConfig.getUser() != null && fhirConfig.getPassword() != null) {
 			builder = builder.withBasicAuth(fhirConfig.getUser(), fhirConfig.getPassword());
 		}
@@ -92,9 +112,7 @@ public class BaseFhirTest {
 				builder = builder.withHeader(header.getKey(), matching(header.getValue()));
 			}
 		}
-
-		stubFor(builder.willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json")
-				.withBody(encoder.encodeResourceToString(resource))));
+		return builder;
 	}
 
 	protected IParser getFhirParser() {
@@ -143,7 +161,7 @@ public class BaseFhirTest {
 
 				Attachment attachment = new Attachment();
 				attachment.setContentType(contentType);
-				attachment.setData(Base64.encodeBase64(text.getBytes()));
+				attachment.setData(Base64.getEncoder().encode(text.getBytes()));
 				attachments.add(attachment);
 			}
 		}
@@ -151,7 +169,7 @@ public class BaseFhirTest {
 		Library library = new Library();
 		library.setId(id);
 		library.setName(id);
-		//library.setVersion("1.0.0");
+		// library.setVersion("1.0.0");
 		library.setContent(attachments);
 
 		return library;
@@ -162,7 +180,7 @@ public class BaseFhirTest {
 	}
 
 	public CanonicalType asCanonical(Resource resource) {
-		return new CanonicalType( resource.getClass().getSimpleName() + "/" + resource.getId() );
+		return new CanonicalType(resource.getClass().getSimpleName() + "/" + resource.getId());
 	}
 
 	protected CapabilityStatement getCapabilityStatement() {
@@ -171,19 +189,49 @@ public class BaseFhirTest {
 		return metadata;
 	}
 
-	protected CqlEngineWrapper setupTestFor(Patient patient, FhirServerConfig fhirConfig, String... elm)
+	protected CqlEngineWrapper setupTestFor(Patient patient, String... elm) throws Exception {
+		IBMFhirServerConfig fhirConfig = new IBMFhirServerConfig();
+		fhirConfig.setEndpoint("http://localhost:" + HTTP_PORT);
+		fhirConfig.setUser("fhiruser");
+		fhirConfig.setPassword("change-password");
+		fhirConfig.setTenantId("default");
+
+		return setupTestFor(patient, fhirConfig, elm);
+	}
+
+	protected CqlEngineWrapper setupTestFor(Patient patient, FhirServerConfig fhirConfig, String... resources)
 			throws Exception {
 
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 		mockFhirResourceRetrieval(patient);
 
 		CqlEngineWrapper wrapper = new CqlEngineWrapper();
-		if (elm != null) {
-			for (String resource : elm) {
-				try (InputStream is = ClassLoader.getSystemResourceAsStream(resource)) {
-					wrapper.addLibrary(is, LibraryFormat.forString(resource), null);
+		if (resources != null) {
+			/**
+			 * Do some hacking to make the pre-existing test resources still function 
+			 * with the updated design.
+			 */
+			FilenameToVersionedIdentifierStrategy strategy = new DefaultFilenameToVersionedIdentifierStrategy() {
+				@Override
+				public VersionedIdentifier filenameToVersionedIdentifier(String filename) {
+					VersionedIdentifier result = null;
+					String basename = FilenameUtils.getBaseName(filename);
+					if( basename.startsWith("test") ) {
+						result = new VersionedIdentifier().withId("Test").withVersion("1.0.0");
+					} else { 
+						result = super.filenameToVersionedIdentifier( basename );
+					}
+					return result;
 				}
-			}
+			};
+			
+			MultiFormatLibrarySourceProvider sourceProvider = new ClasspathLibrarySourceProvider(
+					Arrays.asList(resources),
+					strategy);
+			CqlTranslationProvider translationProvider = new InJVMCqlTranslationProvider(sourceProvider);
+
+			LibraryLoader libraryLoader = new TranslatingLibraryLoader(sourceProvider, translationProvider);
+			wrapper.setLibraryLoader(libraryLoader);
 		}
 
 		wrapper.setDataServerConnectionProperties(fhirConfig);

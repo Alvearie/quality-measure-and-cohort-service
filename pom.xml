@@ -100,6 +100,16 @@
 			</dependency>
 			<dependency>
 				<groupId>info.cqframework</groupId>
+				<artifactId>quick</artifactId>
+				<version>${cqframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>info.cqframework</groupId>
+				<artifactId>qdm</artifactId>
+				<version>${cqframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>info.cqframework</groupId>
 				<artifactId>cql-to-elm</artifactId>
 				<version>${cqframework.version}</version>
 			</dependency>
@@ -122,6 +132,10 @@
 						<groupId>ch.qos.logback</groupId>
 						<artifactId>logback-classic</artifactId>
 					</exclusion>
+					<exclusion>
+						<groupId>ca.uhn.hapi.fhir</groupId>
+						<artifactId>hapi-fhir-jpaserver-base</artifactId>
+					</exclusion>
 				</exclusions>
 			</dependency>
 			<dependency>
@@ -133,6 +147,10 @@
 						<groupId>ch.qos.logback</groupId>
 						<artifactId>logback-classic</artifactId>
 					</exclusion>
+					<exclusion>
+						<groupId>ca.uhn.hapi.fhir</groupId>
+						<artifactId>hapi-fhir-jpaserver-base</artifactId>
+					</exclusion>					
 				</exclusions>
 			</dependency>
 			<dependency>
