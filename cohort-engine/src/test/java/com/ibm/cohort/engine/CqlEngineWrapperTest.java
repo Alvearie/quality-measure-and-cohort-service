@@ -388,6 +388,40 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 			tmpFile.delete();
 		}
 	}
+	
+	@Test
+	public void testMainMultiFolder() throws Exception {
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
+
+		FhirServerConfig fhirConfig = getFhirServerConfig();
+		setupTestFor(patient, fhirConfig, "cql/basic/test.xml");
+
+		File tmpFile = new File("target/fhir-stub.json");
+		ObjectMapper om = new ObjectMapper();
+		try (Writer w = new FileWriter(tmpFile)) {
+			w.write(om.writeValueAsString(fhirConfig));
+		}
+
+		try {
+			PrintStream originalOut = System.out;
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			try (PrintStream captureOut = new PrintStream(baos)) {
+				System.setOut(captureOut);
+				CqlEngineWrapper.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-t", tmpFile.getAbsolutePath(),
+						"-f", "src/test/resources/cql/multi-folder", "-l", "Cohort1", "-v", "1.0.0", "-c", "123" });
+			} finally {
+				System.setOut(originalOut);
+			}
+
+			String output = new String(baos.toByteArray());
+			String[] lines = output.split("\r?\n");
+			assertEquals( String.join("\n", lines), 5, lines.length);
+
+			verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
+		} finally {
+			tmpFile.delete();
+		}
+	}
 
 	@Test
 	public void testMainZippedLibraries() throws Exception {
