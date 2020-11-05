@@ -26,11 +26,16 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.ZipInputStream;
 
+import javax.xml.bind.JAXB;
+
 import org.apache.commons.lang3.tuple.Pair;
+import org.cqframework.cql.cql2elm.ModelInfoLoader;
+import org.cqframework.cql.cql2elm.ModelInfoProvider;
 import org.cqframework.cql.elm.execution.ExpressionDef;
 import org.cqframework.cql.elm.execution.FunctionDef;
 import org.cqframework.cql.elm.execution.Library;
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
+import org.hl7.elm_modelinfo.r1.ModelInfo;
 import org.opencds.cqf.cql.engine.data.CompositeDataProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.execution.Context;
@@ -482,6 +487,10 @@ public class CqlEngineWrapper {
 				"--source-format" }, description = "Indicates which files in the file source should be processed", required = false)
 		private LibraryFormat sourceFormat = DEFAULT_SOURCE_FORMAT;
 
+		@Parameter(names = { "-i",
+				"--model-info" }, description = "Model info file used when translating CQL", required = false)
+		private File modelInfoFile;
+
 		@Parameter(names = { "-h", "--help" }, description = "Display this help", required = false, help = true)
 		private boolean isDisplayHelp;
 	}
@@ -664,6 +673,16 @@ public class CqlEngineWrapper {
 			} else {
 				out.println(String.format("Loading libraries from FHIR Library '%s'", libraryFolder.toString()));
 				sourceProvider = new FhirLibraryLibrarySourceProvider(getMeasureServerClient(), arguments.libraryPath);
+			}
+
+			if (arguments.modelInfoFile !=  null && arguments.modelInfoFile.exists()) {
+				ModelInfo modelInfo = JAXB.unmarshal(arguments.modelInfoFile, ModelInfo.class);
+				// Force mapping  to FHIR 4.0.1. Consider supporting different versions in the future
+				modelInfo.setTargetVersion("4.0.1");
+				modelInfo.setTargetUrl("http://hl7.org/fhir");
+				org.hl7.elm.r1.VersionedIdentifier modelId = (new org.hl7.elm.r1.VersionedIdentifier()).withId(modelInfo.getName()).withVersion(modelInfo.getVersion());
+				ModelInfoProvider modelProvider = () -> modelInfo;
+				ModelInfoLoader.registerModelInfoProvider(modelId, modelProvider);
 			}
 
 			boolean isForceTranslation = arguments.sourceFormat == LibraryFormat.CQL;
