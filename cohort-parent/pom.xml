@@ -1,19 +1,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	
+
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.ibm.cohort</groupId>
 	<artifactId>cohort-parent</artifactId>
 	<version>${revision}</version>
-	
+
 	<packaging>pom</packaging>
-	
+
 	<modules>
-		<module>cohort-engine</module>
-		<module>cdm-modelinfo-tooling</module>
-		<module>tests</module>
+		<module>../cohort-engine</module>
+		<module>../cdm-modelinfo-tooling</module>
+		<module>../tests</module>
 	</modules>
 
 	<licenses>
@@ -31,7 +31,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-		
+
 		<cqframework.version>1.5.1-SNAPSHOT</cqframework.version>
 		<engine.version>1.5.1-SNAPSHOT</engine.version>
 		<ruler.version>0.4.0</ruler.version>
@@ -39,7 +39,7 @@
 		<jackson.version>2.10.1</jackson.version>
 		<jacoco.version>0.8.6</jacoco.version>
 	</properties>
-	
+
 	<scm>
 		<url>https://github.com/Alvearie/quality-measure-and-cohort-service</url>
 		<connection>scm:git:git@github.com:Alvearie/quality-measure-and-cohort-service.git</connection>
@@ -57,7 +57,7 @@
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
-		</repository>	
+		</repository>
 		<repository>
 			<id>cql.snapshots</id>
 			<name>CQL Framework and Engine Snapshots</name>
@@ -68,7 +68,7 @@
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
-		</repository>		
+		</repository>
 	</repositories>
 
 	<dependencyManagement>
@@ -150,7 +150,7 @@
 					<exclusion>
 						<groupId>ca.uhn.hapi.fhir</groupId>
 						<artifactId>hapi-fhir-jpaserver-base</artifactId>
-					</exclusion>					
+					</exclusion>
 				</exclusions>
 			</dependency>
 			<dependency>
@@ -188,6 +188,31 @@
 							</goals>
 						</execution>
 					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.codehaus.mojo</groupId>
+										<artifactId>flatten-maven-plugin</artifactId>
+										<versionRange>[1.0.0,)</versionRange>
+										<goals>
+											<goal>flatten</goal>
+											<goal>clean</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore />
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>
