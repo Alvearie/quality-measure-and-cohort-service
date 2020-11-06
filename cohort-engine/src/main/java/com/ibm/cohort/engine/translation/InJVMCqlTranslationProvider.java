@@ -6,6 +6,7 @@
 
 package com.ibm.cohort.engine.translation;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -47,10 +48,17 @@ public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
 		this.modelManager = modelManager;
 		this.libraryManager = libraryManager;
 	}
-	
+
 	public InJVMCqlTranslationProvider(LibrarySourceProvider provider) {
+		this(provider, null);
+	}
+	
+	public InJVMCqlTranslationProvider(LibrarySourceProvider provider, File modelInfoFile) {
 		this();
 		addLibrarySourceProvider(provider);
+		if (modelInfoFile != null && modelInfoFile.exists()) {
+			BaseCqlTranslationProvider.registerModelInfo(modelInfoFile);
+		}
 	}
 
 	public InJVMCqlTranslationProvider addLibrarySourceProvider(LibrarySourceProvider provider) {
