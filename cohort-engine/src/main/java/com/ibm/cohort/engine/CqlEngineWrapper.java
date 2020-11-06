@@ -677,7 +677,8 @@ public class CqlEngineWrapper {
 
 			if (arguments.modelInfoFile !=  null && arguments.modelInfoFile.exists()) {
 				ModelInfo modelInfo = JAXB.unmarshal(arguments.modelInfoFile, ModelInfo.class);
-				// Force mapping  to FHIR 4.0.1. Consider supporting different versions in the future
+				// Force mapping  to FHIR 4.0.1. Consider supporting different versions in the future.
+				// Possibly add support for auto-loading model info files.
 				modelInfo.setTargetVersion("4.0.1");
 				modelInfo.setTargetUrl("http://hl7.org/fhir");
 				org.hl7.elm.r1.VersionedIdentifier modelId = (new org.hl7.elm.r1.VersionedIdentifier()).withId(modelInfo.getName()).withVersion(modelInfo.getVersion());
