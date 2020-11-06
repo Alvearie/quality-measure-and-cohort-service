@@ -622,6 +622,17 @@ public class CqlEngineWrapper {
 		typedValue = new Quantity().withValue(new BigDecimal(parts[0])).withUnit(parts[1]);
 		return typedValue;
 	}
+	
+	protected static void registerModelInfo(File modelInfoFile) {
+		ModelInfo modelInfo = JAXB.unmarshal(modelInfoFile, ModelInfo.class);
+		// Force mapping  to FHIR 4.0.1. Consider supporting different versions in the future.
+		// Possibly add support for auto-loading model info files.
+		modelInfo.setTargetVersion("4.0.1");
+		modelInfo.setTargetUrl("http://hl7.org/fhir");
+		org.hl7.elm.r1.VersionedIdentifier modelId = (new org.hl7.elm.r1.VersionedIdentifier()).withId(modelInfo.getName()).withVersion(modelInfo.getVersion());
+		ModelInfoProvider modelProvider = () -> modelInfo;
+		ModelInfoLoader.registerModelInfoProvider(modelId, modelProvider);
+	}
 
 	/**
 	 * Simulate main method behavior in a non-static context for use in testing
@@ -676,14 +687,7 @@ public class CqlEngineWrapper {
 			}
 
 			if (arguments.modelInfoFile !=  null && arguments.modelInfoFile.exists()) {
-				ModelInfo modelInfo = JAXB.unmarshal(arguments.modelInfoFile, ModelInfo.class);
-				// Force mapping  to FHIR 4.0.1. Consider supporting different versions in the future.
-				// Possibly add support for auto-loading model info files.
-				modelInfo.setTargetVersion("4.0.1");
-				modelInfo.setTargetUrl("http://hl7.org/fhir");
-				org.hl7.elm.r1.VersionedIdentifier modelId = (new org.hl7.elm.r1.VersionedIdentifier()).withId(modelInfo.getName()).withVersion(modelInfo.getVersion());
-				ModelInfoProvider modelProvider = () -> modelInfo;
-				ModelInfoLoader.registerModelInfoProvider(modelId, modelProvider);
+				registerModelInfo(arguments.modelInfoFile);
 			}
 
 			boolean isForceTranslation = arguments.sourceFormat == LibraryFormat.CQL;
