@@ -85,6 +85,11 @@
 				<version>2.8.0</version>
 			</dependency>
 			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>3.11</version>
+			</dependency>			
+			<dependency>
 				<groupId>info.cqframework</groupId>
 				<artifactId>cql</artifactId>
 				<version>${cqframework.version}</version>
@@ -158,6 +163,19 @@
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-servlets</artifactId>
 				<version>9.4.30.v20200611</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>4.13</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>com.github.tomakehurst</groupId>
+				<artifactId>wiremock-jre8</artifactId>
+				<version>2.27.2</version>
+				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
