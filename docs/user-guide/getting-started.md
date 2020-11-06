@@ -131,3 +131,48 @@ An UnsupportedOperationException is thrown if a parameter type of "concept" is a
 
 When a context (aka Patient ID) is provided that does not match a valid Patient resource in the FHIR server, HAPI will bubble up and HTTP 404 exception. And HTTP 404 might also be thrown if FHIR Library resource loading is used and the provided Library ID does not exist. 
 
+# Measure Evaluation
+
+A similar command-line interface is provided for evaluation of a quality measure definition that is stored in a FHIR Measure resource. The input parameters are very similar with the main difference being that instead of "-f", "-l", and "-v", and "-e" options to identify the library resource(s) and expression(s) that should be evaluated, a FHIR Measure resource is used and the "-r" command-line parameter provides the resource ID of that resource.
+
+```
+$ java -classpath target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar com.ibm.cohort.cli.MeasureCLI --help
+Usage: measure-engine [options]
+  Options:
+  * -c, --context-id
+      FHIR resource ID for one or more patients to evaluate.
+  * -d, --data-server
+      Path to JSON configuration data for the FHIR server connection that will
+      be used to retrieve data.
+    -h, --help
+      Display this help
+    -m, --measure-server
+      Path to JSON configuration data for the FHIR server connection that will
+      be used to retrieve measure and library resources.
+    -p, --parameters
+      Parameter value(s) in format name:type:value where value can contain
+      additional parameterized elements separated by comma
+  * -r, --resource
+      FHIR Resource ID for the measure resource to be evaluated
+    -t, --terminology-server
+      Path to JSON configuration data for the FHIR server connection that will
+      be used to retrieve terminology.
+
+```
+
+With a local IBM FHIR test instance pre-loaded with a sample measure and patient...
+
+```
+$ java -Djavax.net.ssl.trustStore=config/trustStore.pkcs12 -Djavax.net.ssl.trustStorePassword=change-password -Djavax.net.ssl.trustStoreType=pkcs12 -classpath target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar com.ibm.cohort.cli.MeasureCLI -d config/local-ibm-fhir.json -r wh-cohort-Over-the-Hill-Female-1.0.0 -c '1747edf2ef3-cd7133f1-3131-4ba8-a71a-da98c594cbab'
+[main] INFO ca.uhn.fhir.util.VersionUtil - HAPI FHIR version 5.0.2 - Rev ecf175a352
+[main] INFO ca.uhn.fhir.context.FhirContext - Creating new FHIR context for FHIR version [R4]
+[main] INFO ca.uhn.fhir.util.XmlUtil - Unable to determine StAX implementation: java.xml/META-INF/MANIFEST.MF not found
+Evaluating: 1747edf2ef3-cd7133f1-3131-4ba8-a71a-da98c594cbab
+[main] INFO ca.uhn.fhir.context.FhirContext - Creating new FHIR context for FHIR version [R4]
+[main] INFO org.opencds.cqf.r4.evaluation.MeasureEvaluation - Generating individual report
+Population: initial-population = 1
+Population: numerator = 0
+Population: denominator = 1
+---
+```
+

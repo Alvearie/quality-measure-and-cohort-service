@@ -39,7 +39,7 @@ public class MeasureCLI extends BaseCLI {
 		private List<String> parameters;
 
 		@Parameter(names = { "-r",
-				"--resource" }, description = "FHIR Resource ID for the measure resorce to be evaluated", required = true )
+				"--resource" }, description = "FHIR Resource ID for the measure resource to be evaluated", required = true )
 		private String resourceId;
 		
 		@Parameter(names = { "-h", "--help" }, description = "Display this help", required = false, help = true)
@@ -47,37 +47,43 @@ public class MeasureCLI extends BaseCLI {
 	}
 	
 	public MeasureEvaluator runWithArgs(String[] args, PrintStream out) throws Exception {
+		MeasureEvaluator evaluator = null;
+
 		Arguments arguments = new Arguments();
 		Console console = new DefaultConsole(out);
 		JCommander jc = JCommander.newBuilder().programName("measure-engine").console(console).addObject(arguments).build();
 		jc.parse(args);
 
-		readConnectionConfiguration(arguments);
-		
-		FhirClientFactory factory = FhirClientFactory.newInstance(FhirContext.forR4());
-		IGenericClient dataServerClient = factory.createFhirClient(dataServerConfig);
-		IGenericClient terminologyServerClient = factory.createFhirClient(terminologyServerConfig);
-		IGenericClient measureServerClient = factory.createFhirClient(measureServerConfig);
-		
-		Map<String, Object> parameters = null;
-		if (arguments.parameters != null) {
-			parameters = parseParameters(arguments.parameters);
-		}
-		
-		MeasureEvaluator evaluator = new MeasureEvaluator(dataServerClient, terminologyServerClient, measureServerClient);
-		for( String contextId : arguments.contextIds ) {
-			out.println("Evaluating: " + contextId);
-			MeasureReport report = evaluator.evaluatePatientMeasure(arguments.resourceId, contextId, parameters);
-			for( MeasureReport.MeasureReportGroupComponent group : report.getGroup() ) {
-				for( MeasureReport.MeasureReportGroupPopulationComponent pop : group.getPopulation() ) {
-					String popCode = pop.getCode().getCodingFirstRep().getCode();
-					if( pop.getId() != null ) {
-						popCode += "(" + pop.getId() + ")";
-					}
-					out.println( String.format("Population: %s = %d", popCode, pop.getCount() ) );
-				}
+		if( arguments.isDisplayHelp ) {
+			jc.usage();
+		} else {
+			readConnectionConfiguration(arguments);
+			
+			FhirClientFactory factory = FhirClientFactory.newInstance(FhirContext.forR4());
+			IGenericClient dataServerClient = factory.createFhirClient(dataServerConfig);
+			IGenericClient terminologyServerClient = factory.createFhirClient(terminologyServerConfig);
+			IGenericClient measureServerClient = factory.createFhirClient(measureServerConfig);
+			
+			Map<String, Object> parameters = null;
+			if (arguments.parameters != null) {
+				parameters = parseParameters(arguments.parameters);
 			}
-			out.println("---");
+			
+			evaluator = new MeasureEvaluator(dataServerClient, terminologyServerClient, measureServerClient);
+			for( String contextId : arguments.contextIds ) {
+				out.println("Evaluating: " + contextId);
+				MeasureReport report = evaluator.evaluatePatientMeasure(arguments.resourceId, contextId, parameters);
+				for( MeasureReport.MeasureReportGroupComponent group : report.getGroup() ) {
+					for( MeasureReport.MeasureReportGroupPopulationComponent pop : group.getPopulation() ) {
+						String popCode = pop.getCode().getCodingFirstRep().getCode();
+						if( pop.getId() != null ) {
+							popCode += "(" + pop.getId() + ")";
+						}
+						out.println( String.format("Population: %s = %d", popCode, pop.getCount() ) );
+					}
+				}
+				out.println("---");
+			}
 		}
 		return evaluator;
 	}
