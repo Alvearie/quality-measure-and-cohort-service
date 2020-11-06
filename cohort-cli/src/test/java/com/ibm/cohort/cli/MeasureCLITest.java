@@ -26,9 +26,9 @@ import org.junit.Test;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.measure.MeasureEvaluatorTest;
+import com.ibm.cohort.engine.measure.BaseMeasureTest;
 
-public class MeasureCLITest extends MeasureEvaluatorTest {
+public class MeasureCLITest extends BaseMeasureTest {
 	@Test
 	public void testCohortMeasureSinglePatient() throws Exception {
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
