@@ -26,16 +26,11 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.ZipInputStream;
 
-import javax.xml.bind.JAXB;
-
 import org.apache.commons.lang3.tuple.Pair;
-import org.cqframework.cql.cql2elm.ModelInfoLoader;
-import org.cqframework.cql.cql2elm.ModelInfoProvider;
 import org.cqframework.cql.elm.execution.ExpressionDef;
 import org.cqframework.cql.elm.execution.FunctionDef;
 import org.cqframework.cql.elm.execution.Library;
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
-import org.hl7.elm_modelinfo.r1.ModelInfo;
 import org.opencds.cqf.cql.engine.data.CompositeDataProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.execution.Context;
@@ -60,6 +55,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.cohort.engine.translation.BaseCqlTranslationProvider;
 import com.ibm.cohort.engine.translation.CqlTranslationProvider;
 import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
 
@@ -622,17 +618,6 @@ public class CqlEngineWrapper {
 		typedValue = new Quantity().withValue(new BigDecimal(parts[0])).withUnit(parts[1]);
 		return typedValue;
 	}
-	
-	protected static void registerModelInfo(File modelInfoFile) {
-		ModelInfo modelInfo = JAXB.unmarshal(modelInfoFile, ModelInfo.class);
-		// Force mapping  to FHIR 4.0.1. Consider supporting different versions in the future.
-		// Possibly add support for auto-loading model info files.
-		modelInfo.setTargetVersion("4.0.1");
-		modelInfo.setTargetUrl("http://hl7.org/fhir");
-		org.hl7.elm.r1.VersionedIdentifier modelId = (new org.hl7.elm.r1.VersionedIdentifier()).withId(modelInfo.getName()).withVersion(modelInfo.getVersion());
-		ModelInfoProvider modelProvider = () -> modelInfo;
-		ModelInfoLoader.registerModelInfoProvider(modelId, modelProvider);
-	}
 
 	/**
 	 * Simulate main method behavior in a non-static context for use in testing
@@ -686,12 +671,13 @@ public class CqlEngineWrapper {
 				sourceProvider = new FhirLibraryLibrarySourceProvider(getMeasureServerClient(), arguments.libraryPath);
 			}
 
-			if (arguments.modelInfoFile !=  null && arguments.modelInfoFile.exists()) {
-				registerModelInfo(arguments.modelInfoFile);
-			}
-
 			boolean isForceTranslation = arguments.sourceFormat == LibraryFormat.CQL;
 			CqlTranslationProvider translationProvider = new InJVMCqlTranslationProvider(sourceProvider);
+
+			if (arguments.modelInfoFile !=  null && arguments.modelInfoFile.exists()) {
+				BaseCqlTranslationProvider.registerModelInfo(arguments.modelInfoFile);
+			}
+			
 			setLibraryLoader(new TranslatingLibraryLoader(sourceProvider, translationProvider, isForceTranslation));
 
 			Map<String, Object> parameters = null;
