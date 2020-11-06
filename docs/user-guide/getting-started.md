@@ -28,7 +28,7 @@ CQL is a public specification and there are a number of helpful resources on the
 
 ## Command-line interface
 
-A command-line interface (CLI) is provided for use in testing the cohort engine. A sample execution using the command-line interface and the public HAPI FHIR server would look something like this...
+A command-line interface (CLI) is provided for use in testing the cohort engine. There is a simple CLI execution packaged with the Maven build that can be executed from the cohort-cli project using ``mvn exec:java``. This will demonstrate connectivity with the public HAPI FHIR server using a very simple CQL library. An execution where you run the command yourself would look like the following...
 
 ```bash
 $ java -jar target/cohort-engine-0.0.1-SNAPSHOT-shaded.jar -d config/remote-hapi-fhir.json -f src/test/resources/cql/basic -l test -c 1235008

@@ -111,12 +111,12 @@
 					</execution>
 				</executions>
 				<configuration>
-					<mainClass>com.ibm.cohort.engine.CqlEngineWrapper</mainClass>
+					<mainClass>com.ibm.cohort.cli.CohortCLI</mainClass>
 					<arguments>
 						<argument>-f</argument>
 						<argument>src/test/resources/cql/basic</argument>
 						<argument>-l</argument>
-						<argument>Test</argument>
+						<argument>test</argument>
 						<argument>-e</argument>
 						<argument>Male</argument>
 						<argument>-e</argument>
