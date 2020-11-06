@@ -1,0 +1,150 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.ibm.cohort</groupId>
+		<artifactId>cohort-parent</artifactId>
+		<version>${revision}</version>
+		<relativePath>../cohort-parent</relativePath>
+	</parent>
+
+	<artifactId>cohort-cli</artifactId>
+	<packaging>jar</packaging>
+
+	<scm>
+		<url>https://github.com/Alvearie/quality-measure-and-cohort-service</url>
+		<connection>scm:git:git@github.com:Alvearie/quality-measure-and-cohort-service.git</connection>
+		<developerConnection>scm:git:git@github.com:Alvearie/quality-measure-and-cohort-service.git</developerConnection>
+	</scm>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-engine</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-engine</artifactId>
+			<version>${project.version}</version>
+			<classifier>tests</classifier>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.30</version>
+		</dependency>
+		<dependency>
+			<groupId>com.beust</groupId>
+			<artifactId>jcommander</artifactId>
+			<version>1.78</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.13</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.tomakehurst</groupId>
+			<artifactId>wiremock-jre8</artifactId>
+			<version>2.27.2</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<!-- maven-shade-plugin used to compile into a single executable jar -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.2.4</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<!-- <minimizeJar>true</minimizeJar> -->
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>com.ibm.cohort.cli.CohortCLI</mainClass>
+								</transformer>
+								<!-- https://stackoverflow.com/a/16357984/161022 -->
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+									<resource>META-INF/cxf/bus-extensions.txt</resource>
+								</transformer>
+							</transformers>
+							<!-- filter out META-INF files to avoid issues with signed jar files -->
+							<!-- http://zhentao-li.blogspot.com/2012/06/maven-shade-plugin-invalid-signature.html -->
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.0.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>java</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<mainClass>com.ibm.cohort.engine.CqlEngineWrapper</mainClass>
+					<arguments>
+						<argument>-f</argument>
+						<argument>src/test/resources/cql/basic</argument>
+						<argument>-l</argument>
+						<argument>Test</argument>
+						<argument>-e</argument>
+						<argument>Male</argument>
+						<argument>-e</argument>
+						<argument>Female</argument>
+						<argument>-d</argument>
+						<argument>config/remote-hapi-fhir.json</argument>
+						<argument>-t</argument>
+						<argument>config/remote-hapi-fhir.json</argument>
+						<argument>-c</argument>
+						<argument>1235008</argument>
+						<argument>-c</argument>
+						<argument>1235008</argument>
+					</arguments>
+					<systemProperties>
+						<systemProperty>
+							<key>javax.net.ssl.trustStore</key>
+							<value>config/trustStore.jks</value>
+						</systemProperty>
+						<systemProperty>
+							<key>javax.net.ssl.trustStorePassword</key>
+							<value>change-password</value>
+						</systemProperty>
+					</systemProperties>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
+

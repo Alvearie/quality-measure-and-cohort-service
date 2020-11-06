@@ -60,8 +60,8 @@ public class MeasureEvaluatorTest extends BaseFhirTest {
 	private static final String INITIAL_POPULATION = "Initial Population";
 
 	private MeasureEvaluator evaluator;
-	private Map<MeasurePopulationType, String> expressionsByPopulationType;
-	private Map<MeasurePopulationType, Integer> expectationsByPopulationType;
+	protected Map<MeasurePopulationType, String> expressionsByPopulationType;
+	protected Map<MeasurePopulationType, Integer> expectationsByPopulationType;
 
 	@Before
 	public void setUp() {
@@ -292,7 +292,7 @@ public class MeasureEvaluatorTest extends BaseFhirTest {
 		return careGapPopulations;
 	}
 
-	private Library mockLibraryRetrieval(String libraryName, String... cqlResource) throws Exception {
+	protected Library mockLibraryRetrieval(String libraryName, String... cqlResource) throws Exception {
 		Library library = getLibrary(libraryName, cqlResource);
 		mockFhirResourceRetrieval(library);
 
@@ -304,7 +304,7 @@ public class MeasureEvaluatorTest extends BaseFhirTest {
 
 	// TODO: test behavior when measure library cannot be resolved
 
-	private Bundle getBundle(Resource... resources) {
+	protected Bundle getBundle(Resource... resources) {
 		Bundle bundle = new Bundle();
 		bundle.setId(UUID.randomUUID().toString());
 		bundle.setTotal(1);

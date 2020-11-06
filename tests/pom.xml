@@ -10,7 +10,6 @@
 		<relativePath>../cohort-parent</relativePath>
 	</parent>
 
-	<groupId>com.ibm.cohort</groupId>
 	<artifactId>TestWrapper</artifactId>
 	<packaging>jar</packaging>
 
@@ -21,6 +20,11 @@
 	</scm>
 
 	<dependencies>
+		<dependency>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-cli</artifactId>
+			<version>${revision}</version>
+		</dependency>
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
 			<artifactId>cohort-engine</artifactId>
