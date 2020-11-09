@@ -6,20 +6,14 @@
 
 package com.ibm.cohort.engine.translation;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.JAXB;
-
 import org.cqframework.cql.cql2elm.CqlTranslator;
 import org.cqframework.cql.cql2elm.CqlTranslator.Options;
 import org.cqframework.cql.cql2elm.CqlTranslatorOptions;
-import org.cqframework.cql.cql2elm.ModelInfoLoader;
-import org.cqframework.cql.cql2elm.ModelInfoProvider;
 import org.cqframework.cql.elm.execution.Library;
-import org.hl7.elm_modelinfo.r1.ModelInfo;
 
 import com.ibm.cohort.engine.LibraryFormat;
 
