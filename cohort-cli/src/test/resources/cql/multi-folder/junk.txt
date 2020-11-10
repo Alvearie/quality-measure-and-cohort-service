@@ -1,0 +1,1 @@
+Checking to make sure that the directory loader ignores extra files.

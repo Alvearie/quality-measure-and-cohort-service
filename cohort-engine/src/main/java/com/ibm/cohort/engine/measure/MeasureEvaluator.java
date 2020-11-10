@@ -13,6 +13,7 @@ import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
 import org.opencds.cqf.common.evaluation.EvaluationProviderFactory;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
+import org.opencds.cqf.cql.engine.debug.DebugMap;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 import org.opencds.cqf.r4.evaluation.MeasureEvaluationSeed;
 
@@ -27,12 +28,25 @@ public class MeasureEvaluator {
 	private IGenericClient dataClient;
 	private IGenericClient terminologyClient;
 	private IGenericClient measureClient;
+	private MeasureResolutionProvider<Measure> provider = null;
 	private MeasurementPeriodStrategy measurementPeriodStrategy;
 
+	
 	public MeasureEvaluator(IGenericClient dataClient, IGenericClient terminologyClient, IGenericClient measureClient) {
 		this.dataClient = dataClient;
 		this.terminologyClient = terminologyClient;
-		this.measureClient = measureClient;
+		this.measureClient = measureClient; 
+	}
+	
+	public void setMeasureResolutionProvider(MeasureResolutionProvider<Measure> provider) {
+		this.provider = provider;
+	}
+	
+	public MeasureResolutionProvider<Measure> getMeasureResolutionProvider() {
+		if( this.provider == null ) {
+			this.provider = new RestFhirMeasureResolutionProvider(measureClient);
+		}
+		return this.provider;
 	}
 
 	public void setMeasurementPeriodStrategy(MeasurementPeriodStrategy strategy) {
@@ -47,7 +61,7 @@ public class MeasureEvaluator {
 	}
 
 	public MeasureReport evaluatePatientMeasure(String measureId, String patientId, Map<String, Object> parameters) {
-		Measure measure = measureClient.read().resource(Measure.class).withId(measureId).execute();
+		Measure measure = MeasureHelper.loadMeasure(measureId, getMeasureResolutionProvider());
 		return evaluatePatientMeasure(measure, patientId, parameters);
 	}
 
@@ -71,8 +85,13 @@ public class MeasureEvaluator {
 		// configuration of our FHIR server.
 		seed.setup(measure, periodStart, periodEnd, /* productLine= */"ProductLine", /* source= */"", /* user= */"",
 				/* pass= */"");
+		
+		// This is enabled by default in cqf-ruler and we don't want it.
+		DebugMap debugMap = new DebugMap();
+		debugMap.setIsLoggingEnabled(false);
+		seed.getContext().setDebugMap(debugMap);
 
-		// TODO - The OSS logic takes converts the period start and end into an
+		// TODO - The OSS logic converts the period start and end into an
 		// Interval and creates a parameter named "Measurement Period" that is populated
 		// with that value. We need to sync with the authoring and clinical informatics
 		// teams to confirm that every measure will have a measurement period and to

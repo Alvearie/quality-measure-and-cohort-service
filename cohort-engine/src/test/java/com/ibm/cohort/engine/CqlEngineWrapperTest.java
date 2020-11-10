@@ -12,17 +12,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintStream;
-import java.io.Writer;
-import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -35,25 +29,14 @@ import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Condition;
 import org.hl7.fhir.r4.model.Enumerations;
-import org.hl7.fhir.r4.model.Extension;
-import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Reference;
-import org.hl7.fhir.r4.model.RelatedArtifact;
-import org.hl7.fhir.r4.model.RelatedArtifact.RelatedArtifactType;
-import org.hl7.fhir.r4.model.StringType;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.opencds.cqf.cql.engine.runtime.Code;
 import org.opencds.cqf.cql.engine.runtime.DateTime;
 import org.opencds.cqf.cql.engine.runtime.Interval;
-import org.opencds.cqf.cql.engine.runtime.Quantity;
-import org.opencds.cqf.cql.engine.runtime.Time;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
-
-import ca.uhn.fhir.parser.IParser;
 
 public class CqlEngineWrapperTest extends BaseFhirTest {
 
@@ -305,8 +288,11 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 				"cql/condition/test-date-query.xml");
 		
 		Map<String,Object> parameters = new HashMap<>();
-		parameters.put("MeasurementPeriod", new Interval( CqlEngineWrapper.resolveDateTimeParameter("1999-01-01"), true,
-				CqlEngineWrapper.resolveDateTimeParameter("2001-01-01"), false ) );
+		
+		ZoneOffset offset = ZoneOffset.of("-05:00");
+		DateTime start = new DateTime("1999-01-01", offset);
+		DateTime end = new DateTime("2001-01-01", offset);
+		parameters.put("MeasurementPeriod", new Interval( start, true, end, false ) );
 
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluateWithEngineWrapper("Test", "1.0.0", parameters,
@@ -320,272 +306,7 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 		assertEquals(1, count.get());
 	}
 
-	@Test
-	public void testMainWithParams() throws Exception {
-		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
-		FhirServerConfig fhirConfig = getFhirServerConfig();
-
-		setupTestFor(patient, fhirConfig, "cql/basic/test.xml");
-
-		File tmpFile = new File("target/fhir-stub.json");
-		ObjectMapper om = new ObjectMapper();
-		try (Writer w = new FileWriter(tmpFile)) {
-			w.write(om.writeValueAsString(fhirConfig));
-		}
-
-		try {
-			PrintStream originalOut = System.out;
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			try (PrintStream captureOut = new PrintStream(baos)) {
-				System.setOut(captureOut);
-				CqlEngineWrapper.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-t", tmpFile.getAbsolutePath(),
-						"-f", "src/test/resources/cql/parameters", "-l", "test-with", "-v", "params", "-e", "Female", "-e", "Male", "-c",
-						"123", "-p", "MaxAge:integer:40" });
-			} finally {
-				System.setOut(originalOut);
-			}
-
-			String output = new String(baos.toByteArray());
-			String[] lines = output.split("\r?\n");
-			assertEquals(5, lines.length);
-
-			verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
-		} finally {
-			tmpFile.delete();
-		}
-	}
-
-	@Test
-	public void testMainNoParams() throws Exception {
-		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
-
-		FhirServerConfig fhirConfig = getFhirServerConfig();
-		setupTestFor(patient, fhirConfig, "cql/basic/test.xml");
-
-		File tmpFile = new File("target/fhir-stub.json");
-		ObjectMapper om = new ObjectMapper();
-		try (Writer w = new FileWriter(tmpFile)) {
-			w.write(om.writeValueAsString(fhirConfig));
-		}
-
-		try {
-			PrintStream originalOut = System.out;
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			try (PrintStream captureOut = new PrintStream(baos)) {
-				System.setOut(captureOut);
-				CqlEngineWrapper.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-t", tmpFile.getAbsolutePath(),
-						"-f", "src/test/resources/cql/basic", "-l", "test", "-e", "Female", "-e", "Male", "-e",
-						"Over the hill", "-c", "123" });
-			} finally {
-				System.setOut(originalOut);
-			}
-
-			String output = new String(baos.toByteArray());
-			String[] lines = output.split("\r?\n");
-			assertEquals(6, lines.length);
-
-			verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
-		} finally {
-			tmpFile.delete();
-		}
-	}
-
-	@Test
-	public void testMainZippedLibraries() throws Exception {
-
-		FhirServerConfig fhirConfig = getFhirServerConfig();
-
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
-
-		Patient justRight = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
-		mockFhirResourceRetrieval(justRight);
-
-		Patient tooOld = getPatient("456", Enumerations.AdministrativeGender.FEMALE, "1900-08-01");
-		mockFhirResourceRetrieval(tooOld);
-
-		Patient tooManly = getPatient("789", Enumerations.AdministrativeGender.MALE, "1978-05-06");
-		mockFhirResourceRetrieval(tooManly);
-
-		File tmpFile = new File("target/fhir-stub.json");
-		ObjectMapper om = new ObjectMapper();
-		try (Writer w = new FileWriter(tmpFile)) {
-			w.write(om.writeValueAsString(fhirConfig));
-		}
-
-		try {
-			PrintStream originalOut = System.out;
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			try (PrintStream captureOut = new PrintStream(baos)) {
-				System.setOut(captureOut);
-				CqlEngineWrapper.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-t", tmpFile.getAbsolutePath(),
-						"-f", "src/test/resources/cql/zip/breast_cancer_screening_v1_0_0_cql.zip", "-l",
-						"Breast-Cancer", "-v", "Screening", "-e", "Female", "-e", "40-65 years of age", "-e",
-						"MeetsInclusionCriteria", "-c", "123", "-c", "456", "-c", "789" });
-			} finally {
-				System.setOut(originalOut);
-			}
-
-			String output = new String(baos.toByteArray());
-			String[] lines = output.split("\r?\n");
-
-			assertEquals(output, 16, lines.length);
-			System.out.println(output);
-
-			verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
-			verify(1, getRequestedFor(urlEqualTo("/Patient/456")));
-			verify(1, getRequestedFor(urlEqualTo("/Patient/789")));
-		} finally {
-			tmpFile.delete();
-		}
-	}
-
-	@Test
-	public void testMainZippedLibrariesWithCompilation() throws Exception {
-
-		FhirServerConfig fhirConfig = getFhirServerConfig();
-
-		IParser encoder = getFhirParser();
-
-		mockFhirResourceRetrieval("/metadata", encoder, getCapabilityStatement(), fhirConfig);
-
-		Patient justRight = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
-		mockFhirResourceRetrieval(justRight);
-
-		Patient tooOld = getPatient("456", Enumerations.AdministrativeGender.FEMALE, "1900-08-01");
-		mockFhirResourceRetrieval(tooOld);
-
-		Patient tooManly = getPatient("789", Enumerations.AdministrativeGender.MALE, "1978-05-06");
-		mockFhirResourceRetrieval(tooManly);
-
-		File tmpFile = new File("target/fhir-stub.json");
-		ObjectMapper om = new ObjectMapper();
-		try (Writer w = new FileWriter(tmpFile)) {
-			w.write(om.writeValueAsString(fhirConfig));
-		}
-
-		try {
-			PrintStream originalOut = System.out;
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			try (PrintStream captureOut = new PrintStream(baos)) {
-				System.setOut(captureOut);
-				CqlEngineWrapper.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-t", tmpFile.getAbsolutePath(),
-						"-f", "src/test/resources/cql/zip/breast_cancer_screening_v1_0_0_cql.zip", "-l",
-						"Breast-Cancer", "-v", "Screening", "-e", "Female", "-e", "40-65 years of age", "-e",
-						"MeetsInclusionCriteria", "-c", "123", "-c", "456", "-c", "789", "-s", "CQL" });
-			} finally {
-				System.setOut(originalOut);
-			}
-
-			String output = new String(baos.toByteArray());
-			String[] lines = output.split("\r?\n");
-
-			assertEquals(output, 16, lines.length);
-			System.out.println(output);
-
-			verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
-			verify(1, getRequestedFor(urlEqualTo("/Patient/456")));
-			verify(1, getRequestedFor(urlEqualTo("/Patient/789")));
-		} finally {
-			tmpFile.delete();
-		}
-	}
-	
-	@Test
-	public void testMainZippedLibrariesMultiFolderWithExtraEntries() throws Exception {
-
-		FhirServerConfig fhirConfig = getFhirServerConfig();
-
-		IParser encoder = getFhirParser();
-
-		mockFhirResourceRetrieval("/metadata", encoder, getCapabilityStatement(), fhirConfig);
-
-		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
-		mockFhirResourceRetrieval(patient);
-
-		File tmpFile = new File("target/fhir-stub.json");
-		ObjectMapper om = new ObjectMapper();
-		try (Writer w = new FileWriter(tmpFile)) {
-			w.write(om.writeValueAsString(fhirConfig));
-		}
-
-		try {
-			PrintStream originalOut = System.out;
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			try (PrintStream captureOut = new PrintStream(baos)) {
-				System.setOut(captureOut);
-				CqlEngineWrapper.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-t", tmpFile.getAbsolutePath(),
-						"-f", "src/test/resources/cql/zip-with-folders/cohorts.zip", "-l",
-						"Breast-Cancer", "-v", "Screening", "-e", "Female", "-e", "Ages 40 to 75", "-e",
-						"MeetsInclusionCriteria", "-c", "123", "-s", "CQL" });
-			} finally {
-				System.setOut(originalOut);
-			}
-
-			String output = new String(baos.toByteArray());
-			String[] lines = output.split("\r?\n");
-
-			assertEquals(output, 6, lines.length);
-			System.out.println(output);
-
-			verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
-		} finally {
-			tmpFile.delete();
-		}
-	}	
-
-	@Test
-	public void testMainFHIRLibrariesWithDependencies() throws Exception {
-
-		FhirServerConfig fhirConfig = getFhirServerConfig();
-
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
-
-		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
-		mockFhirResourceRetrieval(patient);
-
-		Library root = getLibrary("Breast-Cancer-Screening", "cql/includes/Breast-Cancer-Screening.cql");
-		Library helpers = getLibrary("FHIRHelpers", "cql/includes/FHIRHelpers.cql", "text/cql",
-				"cql/includes/FHIRHelpers.xml", "application/elm+json");
-
-		RelatedArtifact related = new RelatedArtifact();
-		related.setType(RelatedArtifactType.DEPENDSON);
-		related.setResource("/Library/" + helpers.getId());
-		root.addRelatedArtifact(related);
-
-		mockFhirResourceRetrieval(root);
-		mockFhirResourceRetrieval(helpers);
-
-		File tmpFile = new File("target/fhir-stub.json");
-		ObjectMapper om = new ObjectMapper();
-		try (Writer w = new FileWriter(tmpFile)) {
-			w.write(om.writeValueAsString(fhirConfig));
-		}
-
-		try {
-			PrintStream originalOut = System.out;
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			try (PrintStream captureOut = new PrintStream(baos)) {
-				System.setOut(captureOut);
-				CqlEngineWrapper.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-f", root.getId(), "-l",
-						root.getId(), "-v", "1", "-c", patient.getId(), "-s", "CQL" });
-			} finally {
-				System.setOut(originalOut);
-			}
-
-			String output = new String(baos.toByteArray());
-			String[] lines = output.split("\r?\n");
-
-			assertEquals(output, 12, lines.length);
-			System.out.println(output);
-
-			verify(1, getRequestedFor(urlEqualTo("/Patient/" + patient.getId())));
-			verify(1, getRequestedFor(urlEqualTo("/Library/" + root.getId())));
-			verify(1, getRequestedFor(urlEqualTo("/Library/" + helpers.getId())));
-		} finally {
-			tmpFile.delete();
-		}
-	}
 
 	@Test
 	public void testNumCallsUsingEngineWrapperMethod() throws Exception {
@@ -736,56 +457,6 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 	}
 	
 	@Test
-	public void testCQLTranslationCustomIGWithTargetUrl()  throws Exception{
-		FhirServerConfig fhirConfig = getFhirServerConfig();
-
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
-
-		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
-		patient.addExtension(new Extension("http://fakeIg.com/fake-extension", new StringType("fakeValue")));
-		mockFhirResourceRetrieval(patient);
-
-		Library root = getLibrary("test", "cql/ig-test/test.cql");
-		Library helpers = getLibrary("FHIRHelpers", "cql/includes/FHIRHelpers.cql", "text/cql",
-									 "cql/includes/FHIRHelpers.xml", "application/elm+json");
-
-		RelatedArtifact related = new RelatedArtifact();
-		related.setType(RelatedArtifactType.DEPENDSON);
-		related.setResource("/Library/" + helpers.getId());
-		root.addRelatedArtifact(related);
-
-		mockFhirResourceRetrieval(root);
-		mockFhirResourceRetrieval(helpers);
-
-		File tmpFile = new File("target/fhir-stub.json");
-		ObjectMapper om = new ObjectMapper();
-		try (Writer w = new FileWriter(tmpFile)) {
-			w.write(om.writeValueAsString(fhirConfig));
-		}
-
-		try {
-			PrintStream originalOut = System.out;
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			try (PrintStream captureOut = new PrintStream(baos)) {
-				System.setOut(captureOut);
-				CqlEngineWrapper.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-f", root.getId(), "-l",
-						root.getId(), "-v", "1.0.0", "-c", patient.getId(), "-s", "CQL", "-i", "src/test/resources/modelinfo/ig-with-target-modelinfo-0.0.1.xml" });
-			} finally {
-				System.setOut(originalOut);
-			}
-
-			String output = new String(baos.toByteArray());
-			System.out.println(output);
-
-			verify(2, getRequestedFor(urlEqualTo("/Patient/" + patient.getId())));
-			verify(1, getRequestedFor(urlEqualTo("/Library/" + root.getId())));
-			verify(1, getRequestedFor(urlEqualTo("/Library/" + helpers.getId())));
-		} finally {
-			tmpFile.delete();
-		}
-	}
-	
-	@Test
 	public void testUsingUSCoreELMSuccessfulExecution() throws Exception {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1983-12-02");
 
@@ -818,177 +489,5 @@ public class CqlEngineWrapperTest extends BaseFhirTest {
 		assertEquals(1, resultCount.get());
 	}
 
-	@Test
-	public void testResolveIntegerParameter() {
-		Map<String, Object> params = CqlEngineWrapper.parseParameters(Arrays.asList("test:integer:40"));
-		assertEquals(1, params.size());
-		Integer p = (Integer) params.get("test");
-		assertNotNull("Parameter with expected name not found", p);
-		assertEquals("Unexpected value", 40, p.intValue());
-	}
-
-	@Test
-	public void testResolveDecimalParameter() {
-		Map<String, Object> params = CqlEngineWrapper.parseParameters(Arrays.asList("test:decimal:40.0"));
-		assertEquals(1, params.size());
-		BigDecimal p = (BigDecimal) params.get("test");
-		assertNotNull("Parameter with expected name not found", p);
-		assertEquals("Unexpected value", 40, p.intValue());
-	}
-
-	@Test
-	public void testResolveBooleanParameter() {
-		Map<String, Object> params = CqlEngineWrapper.parseParameters(Arrays.asList("test:boolean:true"));
-		assertEquals(1, params.size());
-		Boolean p = (Boolean) params.get("test");
-		assertNotNull("Parameter with expected name not found", p);
-		assertEquals("Unexpected value", true, p.booleanValue());
-	}
-
-	@Test
-	public void testResolveStringParameter() {
-		Map<String, Object> params = CqlEngineWrapper
-				.parseParameters(Arrays.asList("test:string:I have the:delimiter"));
-		assertEquals(1, params.size());
-		String p = (String) params.get("test");
-		assertNotNull("Parameter with expected name not found", p);
-		assertEquals("Unexpected value", "I have the:delimiter", p);
-	}
-
-	@Test
-	public void testResolveDateTimeParameter() {
-		Map<String, Object> params = CqlEngineWrapper
-				.parseParameters(Arrays.asList("test:datetime:@2020-09-27T12:13:14"));
-		assertEquals(1, params.size());
-		DateTime p = (DateTime) params.get("test");
-		assertNotNull("Parameter with expected name not found", p);
-		assertEquals("Unexpected value", 2020, p.getDateTime().getYear());
-		assertEquals("Unexpected value", 9, p.getDateTime().getMonthValue());
-		assertEquals("Unexpected value", 27, p.getDateTime().getDayOfMonth());
-		assertEquals("Unexpected value", 12, p.getDateTime().getHour());
-		assertEquals("Unexpected value", 13, p.getDateTime().getMinute());
-		assertEquals("Unexpected value", 14, p.getDateTime().getSecond());
-	}
-
-	@Test
-	public void testResolveTimeParameter() {
-		Map<String, Object> params = CqlEngineWrapper.parseParameters(Arrays.asList("test:time:T12:13:14"));
-		assertEquals(1, params.size());
-		Time p = (Time) params.get("test");
-		assertNotNull("Parameter with expected name not found", p);
-		assertEquals("Unexpected value", 12, p.getTime().getHour());
-		assertEquals("Unexpected value", 13, p.getTime().getMinute());
-		assertEquals("Unexpected value", 14, p.getTime().getSecond());
-	}
-
-	@Test
-	public void testResolveQuantityParameter() {
-		Map<String, Object> params = CqlEngineWrapper.parseParameters(Arrays.asList("test:quantity:100:mg/mL"));
-		assertEquals(1, params.size());
-		Quantity p = (Quantity) params.get("test");
-		assertNotNull("Parameter with expected name not found", p);
-		assertEquals("Unexpected value", "100", p.getValue().toString());
-		assertEquals("Unexpected value", "mg/mL", p.getUnit().toString());
-	}
-
-	@Test
-	public void testResolveCodeParameter() {
-		Map<String, Object> params = CqlEngineWrapper.parseParameters(Arrays.asList("test:code:1.2.3:SNOMEDCT:Hernia"));
-		assertEquals(1, params.size());
-		Code p = (Code) params.get("test");
-		assertNotNull("Parameter with expected name not found", p);
-		assertEquals("Unexpected value", "1.2.3", p.getCode());
-		assertEquals("Unexpected value", "SNOMEDCT", p.getSystem());
-		assertEquals("Unexpected value", "Hernia", p.getDisplay());
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testResolveConceptParameter() {
-		CqlEngineWrapper.parseParameters(Arrays.asList("test:concept:not right now"));
-	}
-
-	@Test
-	public void testResolveIntervalIntegerParameter() {
-		Map<String, Object> params = CqlEngineWrapper.parseParameters(Arrays.asList("test:interval:integer,10,20"));
-		assertEquals(1, params.size());
-		Interval p = (Interval) params.get("test");
-		assertEquals(10, p.getStart());
-		assertEquals(20, p.getEnd());
-	}
-
-	@Test
-	public void testResolveIntervalDecimalParameter() {
-		Map<String, Object> params = CqlEngineWrapper.parseParameters(Arrays.asList("test:interval:decimal,10,20"));
-		assertEquals(1, params.size());
-		Interval p = (Interval) params.get("test");
-		assertEquals(10, ((BigDecimal) p.getStart()).intValue());
-		assertEquals(20, ((BigDecimal) p.getEnd()).intValue());
-	}
-
-	@Test
-	public void testResolveIntervalQuantityParameter() {
-		Map<String, Object> params = CqlEngineWrapper
-				.parseParameters(Arrays.asList("test:interval:quantity,10:mg/mL,20:mg/mL"));
-		assertEquals(1, params.size());
-		Interval p = (Interval) params.get("test");
-		assertEquals(10, ((Quantity) p.getStart()).getValue().intValue());
-		assertEquals("mg/mL", ((Quantity) p.getStart()).getUnit());
-		assertEquals(20, ((Quantity) p.getEnd()).getValue().intValue());
-		assertEquals("mg/mL", ((Quantity) p.getEnd()).getUnit());
-	}
-
-	@Test
-	public void testResolveIntervalDatetimeParameter() {
-		Map<String, Object> params = CqlEngineWrapper
-				.parseParameters(Arrays.asList("test:interval:datetime,@2020-01-02T12:13:14,@2021-02-03T22:33:44"));
-		assertEquals(1, params.size());
-		Interval p = (Interval) params.get("test");
-		DateTime start = (DateTime) p.getStart();
-		assertEquals(2020, start.getDateTime().getYear());
-		assertEquals(1, start.getDateTime().getMonthValue());
-		assertEquals(2, start.getDateTime().getDayOfMonth());
-		assertEquals(12, start.getDateTime().getHour());
-		assertEquals(13, start.getDateTime().getMinute());
-		assertEquals(14, start.getDateTime().getSecond());
-
-		DateTime end = (DateTime) p.getEnd();
-		assertEquals(2021, end.getDateTime().getYear());
-		assertEquals(2, end.getDateTime().getMonthValue());
-		assertEquals(3, end.getDateTime().getDayOfMonth());
-		assertEquals(22, end.getDateTime().getHour());
-		assertEquals(33, end.getDateTime().getMinute());
-		assertEquals(44, end.getDateTime().getSecond());
-	}
-
-	@Test
-	public void testResolveIntervalTimeParameter() {
-		Map<String, Object> params = CqlEngineWrapper
-				.parseParameters(Arrays.asList("test:interval:time,T12:13:14,T22:33:44"));
-		assertEquals(1, params.size());
-		Interval p = (Interval) params.get("test");
-		Time start = (Time) p.getStart();
-		assertEquals(12, start.getTime().getHour());
-		assertEquals(13, start.getTime().getMinute());
-		assertEquals(14, start.getTime().getSecond());
-
-		Time end = (Time) p.getEnd();
-		assertEquals(22, end.getTime().getHour());
-		assertEquals(33, end.getTime().getMinute());
-		assertEquals(44, end.getTime().getSecond());
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testResolveIntervalUnsupportedSubtypeParameter() {
-		CqlEngineWrapper.parseParameters(Arrays.asList("test:interval:unsupported,a,b"));
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testResolveUnsupportedTypeParameter() {
-		CqlEngineWrapper.parseParameters(Arrays.asList("test:unsupported:a,b"));
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testResolveUnsupportedFormatParameter() {
-		CqlEngineWrapper.parseParameters(Arrays.asList("gibberish"));
-	}
+	
 }

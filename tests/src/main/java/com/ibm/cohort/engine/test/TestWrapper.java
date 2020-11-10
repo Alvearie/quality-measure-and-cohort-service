@@ -1,18 +1,26 @@
+/*
+ * (C) Copyright IBM Corp. 2020, 2020
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package com.ibm.cohort.engine.test;
-import com.ibm.cohort.engine.CqlEngineWrapper;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.ibm.cohort.cli.CohortCLI;
+import com.ibm.cohort.engine.CqlEngineWrapper;
+
 public class TestWrapper {
+	private CohortCLI cli;
 	private CqlEngineWrapper engine;
 	private ByteArrayOutputStream byteStream;
 	private PrintStream ps;
 	public TestWrapper()
     {   
-        engine = new CqlEngineWrapper();
+        cli = new CohortCLI();
     }
 	/**
 	 * @param d 'config/remote-hapi-fhir.json'
@@ -28,7 +36,7 @@ public class TestWrapper {
         String[] args = new String[] {"-d", d, "-t", t, "-f", f, "-l", l, "-c", c};
         byteStream = new ByteArrayOutputStream();
         ps = new PrintStream(byteStream, true, StandardCharsets.UTF_8.name());
-        engine.runWithArgs(args, ps);
+        engine = cli.runWithArgs(args, ps);
         String out =  byteStream.toString(StandardCharsets.UTF_8.name());
         byteStream.reset(); // Wipe the stream so the next run will have clean output.
         return out;

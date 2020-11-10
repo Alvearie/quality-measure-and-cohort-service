@@ -6,25 +6,14 @@
 
 package com.ibm.cohort.engine;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.math.BigDecimal;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.OffsetDateTime;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 import java.util.stream.Collectors;
-import java.util.zip.ZipInputStream;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.cqframework.cql.elm.execution.ExpressionDef;
@@ -43,20 +32,7 @@ import org.opencds.cqf.cql.engine.fhir.searchparam.SearchParameterResolver;
 import org.opencds.cqf.cql.engine.fhir.terminology.R4FhirTerminologyProvider;
 import org.opencds.cqf.cql.engine.model.ModelResolver;
 import org.opencds.cqf.cql.engine.retrieve.RetrieveProvider;
-import org.opencds.cqf.cql.engine.runtime.Code;
-import org.opencds.cqf.cql.engine.runtime.DateTime;
-import org.opencds.cqf.cql.engine.runtime.Interval;
-import org.opencds.cqf.cql.engine.runtime.Quantity;
-import org.opencds.cqf.cql.engine.runtime.Time;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
-
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.internal.Console;
-import com.beust.jcommander.internal.DefaultConsole;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.translation.CqlTranslationProvider;
-import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
@@ -70,8 +46,6 @@ public class CqlEngineWrapper {
 
 	public static final List<String> SUPPORTED_MODELS = Arrays.asList("http://hl7.org/fhir",
 			"http://hl7.org/fhir/us/core", "http://hl7.org/fhir/us/qicore", "http://ibm.com/fhir/cdm");
-
-	private static final LibraryFormat DEFAULT_SOURCE_FORMAT = LibraryFormat.XML;
 
 	private LibraryLoader libraryLoader = null;
 
@@ -437,276 +411,5 @@ public class CqlEngineWrapper {
 			Set<String> expressions, List<String> contextIds, ExpressionResultCallback callback) throws Exception {
 		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters, expressions, contextIds,
 				new ProxyingEvaluationResultCallback(callback));
-	}
-
-	/**
-	 * Command line argument definitions
-	 */
-	private static final class Arguments {
-		@Parameter(names = { "-f",
-				"--files" }, description = "Resource that contains the CQL library sources. Valid options are the path to a zip file or folder containing the cohort definitions or the resource ID of a FHIR Library resource contained in the measure server.", required = true)
-		private String libraryPath;
-
-		@Parameter(names = { "-d",
-				"--data-server" }, description = "Path to JSON configuration data for the FHIR server connection that will be used to retrieve data.", required = true)
-		private File dataServerConfigFile;
-
-		@Parameter(names = { "-t",
-				"--terminology-server" }, description = "Path to JSON configuration data for the FHIR server connection that will be used to retrieve terminology.", required = false)
-		private File terminologyServerConfigFile;
-
-		@Parameter(names = { "-m",
-				"--measure-server" }, description = "Path to JSON configuration data for the FHIR server connection that will be used to retrieve measure and library resources.", required = false)
-		private File measureServerConfigFile;
-
-		@Parameter(names = { "-l",
-				"--libraryName" }, description = "Library Name (from CQL Library statement)", required = true)
-		private String libraryName;
-
-		@Parameter(names = { "-v",
-				"--libraryVersion" }, description = "Library Version (from CQL Library statement)", required = false)
-		private String libraryVersion;
-
-		@Parameter(names = { "-e", "--expression" }, description = "ELM Expression(s) to Execute", required = false)
-		private Set<String> expressions;
-
-		@Parameter(names = { "-c",
-				"--context-id" }, description = "Unique ID for one or more context objects (e.g. Patient IDs)", required = true)
-		private List<String> contextIds;
-
-		@Parameter(names = { "-p",
-				"--parameters" }, description = "Parameter value(s) in format name:type:value where value can contain additional parameterized elements separated by comma", required = false)
-		private List<String> parameters;
-
-		@Parameter(names = { "-s",
-				"--source-format" }, description = "Indicates which files in the file source should be processed", required = false)
-		private LibraryFormat sourceFormat = DEFAULT_SOURCE_FORMAT;
-
-		@Parameter(names = { "-i",
-				"--model-info" }, description = "Model info file used when translating CQL", required = false)
-		private File modelInfoFile;
-
-		@Parameter(names = { "-h", "--help" }, description = "Display this help", required = false, help = true)
-		private boolean isDisplayHelp;
-	}
-
-	/**
-	 * Conversion routine for CQL parameter values encoded for command line
-	 * interaction.
-	 * 
-	 * @param arguments list of CQL parameter values encoded as strings
-	 * @return decoded parameter values formatted for consumption by the CQL engine
-	 */
-	protected static Map<String, Object> parseParameters(List<String> arguments) {
-		Map<String, Object> result = new HashMap<>();
-
-		Pattern p = Pattern.compile("(?<name>[^:]+):(?<type>[^:]+):(?<value>.*)");
-		for (String arg : arguments) {
-			Matcher m = p.matcher(arg);
-			if (m.matches()) {
-				String name = m.group("name");
-				String type = m.group("type");
-				String value = m.group("value");
-
-				Object typedValue = null;
-				String[] parts = null;
-				switch (type) {
-				case "integer":
-					typedValue = Integer.parseInt(value);
-					break;
-				case "decimal":
-					typedValue = new BigDecimal(value);
-					break;
-				case "boolean":
-					typedValue = Boolean.parseBoolean(value);
-					break;
-				case "string":
-					typedValue = value;
-					break;
-				case "datetime":
-					typedValue = resolveDateTimeParameter(value);
-					break;
-				case "time":
-					typedValue = new Time(value);
-					break;
-				case "quantity":
-					typedValue = resolveQuantityParameter(value);
-					break;
-				case "code":
-					typedValue = resolveCodeParameter(value);
-					break;
-				case "concept":
-					throw new UnsupportedOperationException("No support for concept type parameters");
-				case "interval":
-					parts = value.split(",");
-					String subType = parts[0];
-					String start = parts[1];
-					String end = parts[2];
-
-					switch (subType) {
-					case "integer":
-						typedValue = new Interval(Integer.parseInt(start), true, Integer.parseInt(end), true);
-						break;
-					case "decimal":
-						typedValue = new Interval(new BigDecimal(start), true, new BigDecimal(end), true);
-						break;
-					case "quantity":
-						typedValue = new Interval(resolveQuantityParameter(start), true, resolveQuantityParameter(end),
-								true);
-						break;
-					case "datetime":
-						typedValue = new Interval(resolveDateTimeParameter(start), true, resolveDateTimeParameter(end),
-								true);
-						break;
-					case "time":
-						typedValue = new Interval(new Time(start), true, new Time(end), true);
-						break;
-					default:
-						throw new IllegalArgumentException(String.format("Unsupported interval type %s", subType));
-					}
-					break;
-				default:
-					throw new IllegalArgumentException(String.format("Parameter type %s not supported", type));
-				}
-
-				result.put(name, typedValue);
-			} else {
-				throw new IllegalArgumentException(String.format("Invalid parameter string %s", arg));
-			}
-		}
-
-		return result;
-	}
-
-	/**
-	 * Decode command-line encoded parameter
-	 * 
-	 * @param value encoded parameter value
-	 * @return decoded parameter value
-	 */
-	protected static Object resolveCodeParameter(String value) {
-		Object typedValue;
-		String[] parts;
-		parts = value.trim().split(":");
-		typedValue = new Code().withCode(parts[0]).withSystem(parts[1]).withDisplay(parts[2]);
-		return typedValue;
-	}
-
-	/**
-	 * Decode command-line encoded parameter
-	 * 
-	 * @param value encoded parameter value
-	 * @return decoded parameter value
-	 */
-	protected static Object resolveDateTimeParameter(String value) {
-		Object typedValue;
-		typedValue = new DateTime(value.replace("@", ""), OffsetDateTime.now().getOffset());
-		return typedValue;
-	}
-
-	/**
-	 * Decode command-line encoded parameter
-	 * 
-	 * @param value encoded parameter value
-	 * @return decoded parameter value
-	 */
-	protected static Object resolveQuantityParameter(String value) {
-		Object typedValue;
-		String[] parts;
-		parts = value.trim().split(":");
-		typedValue = new Quantity().withValue(new BigDecimal(parts[0])).withUnit(parts[1]);
-		return typedValue;
-	}
-
-	/**
-	 * Simulate main method behavior in a non-static context for use in testing
-	 * tools. This method is intended to be called only once. Multiple calls for the
-	 * same library path will attempt duplicate library loading.
-	 * 
-	 * @param args parameter values
-	 * @param out  location where contents that would normally go to stdout should
-	 *             be written
-	 * @throws Exception
-	 */
-	public void runWithArgs(String[] args, PrintStream out) throws Exception {
-		Arguments arguments = new Arguments();
-		Console console = new DefaultConsole(out);
-		JCommander jc = JCommander.newBuilder().programName("cql-engine").console(console).addObject(arguments).build();
-		jc.parse(args);
-
-		if (arguments.isDisplayHelp) {
-			jc.usage();
-		} else {
-
-			ObjectMapper om = new ObjectMapper();
-
-			FhirServerConfig dataConfig = om.readValue(arguments.dataServerConfigFile, FhirServerConfig.class);
-			setDataServerConnectionProperties(dataConfig);
-
-			FhirServerConfig terminologyConfig = dataConfig;
-			if (arguments.terminologyServerConfigFile != null) {
-				terminologyConfig = om.readValue(arguments.terminologyServerConfigFile, FhirServerConfig.class);
-			}
-			setTerminologyServerConnectionProperties(terminologyConfig);
-
-			FhirServerConfig measureConfig = dataConfig;
-			if (arguments.measureServerConfigFile != null) {
-				measureConfig = om.readValue(arguments.measureServerConfigFile, FhirServerConfig.class);
-			}
-			setMeasureServerConnectionProperties(measureConfig);
-
-			Path libraryFolder = Paths.get(arguments.libraryPath);
-			MultiFormatLibrarySourceProvider sourceProvider = null;
-			if (libraryFolder.toFile().isDirectory()) {
-				out.println(String.format("Loading libraries from folder '%s'", libraryFolder.toString()));
-				sourceProvider = new DirectoryLibrarySourceProvider(libraryFolder);
-			} else if (libraryFolder.toFile().isFile() && libraryFolder.toString().endsWith(".zip")) {
-				out.println(String.format("Loading libraries from ZIP '%s'", libraryFolder.toString()));
-				try (InputStream is = new FileInputStream(libraryFolder.toFile())) {
-					sourceProvider = new ZipStreamLibrarySourceProvider(new ZipInputStream(is));
-				}
-			} else {
-				out.println(String.format("Loading libraries from FHIR Library '%s'", libraryFolder.toString()));
-				sourceProvider = new FhirLibraryLibrarySourceProvider(getMeasureServerClient(), arguments.libraryPath);
-			}
-
-			boolean isForceTranslation = arguments.sourceFormat == LibraryFormat.CQL;
-			CqlTranslationProvider translationProvider = new InJVMCqlTranslationProvider(sourceProvider);
-			if (arguments.modelInfoFile != null && arguments.modelInfoFile.exists()) {
-				translationProvider.convertAndRegisterModelInfo(arguments.modelInfoFile);
-			}
-			
-			setLibraryLoader(new TranslatingLibraryLoader(sourceProvider, translationProvider, isForceTranslation));
-
-			Map<String, Object> parameters = null;
-			if (arguments.parameters != null) {
-				parameters = parseParameters(arguments.parameters);
-			}
-
-			evaluate(arguments.libraryName, arguments.libraryVersion, parameters, arguments.expressions,
-					arguments.contextIds, new EvaluationResultCallback() {
-
-						@Override
-						public void onContextBegin(String contextId) {
-							out.println("Context: " + contextId);
-						}
-
-						@Override
-						public void onEvaluationComplete(String contextId, String expression, Object result) {
-							out.println(String.format("Expression: %s, Result: %s", expression,
-									(result != null) ? String.format("%s", result.toString()) : "null"));
-						}
-
-						@Override
-						public void onContextComplete(String contextId) {
-							out.println("---");
-						}
-					});
-		}
-	}
-
-	public static void main(String[] args) throws Exception {
-		CqlEngineWrapper wrapper = new CqlEngineWrapper();
-		wrapper.runWithArgs(args, System.out);
 	}
 }
