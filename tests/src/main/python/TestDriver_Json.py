@@ -13,9 +13,10 @@ import re
 num=int(os.environ['PERF_EXECUTION_COUNT']) # number of times to execute a query to generate an average.
 engineWrapper='' # Used to hold reference to the engine once it has been fired up.
 currentDir=os.getcwd()
-baseDir = currentDir+'/../../'
+#baseDir = currentDir+'/../../'
+baseDir = currentDir + '/'
 libraries=os.environ['LIBRARY_PATH']
-testFile=os.environ['TESTS_CSV']
+testFile=baseDir + os.environ['TESTS_JSON']
 
 def setup():
     os.chdir(baseDir)
@@ -25,35 +26,37 @@ def setup():
         data = json.load(f)
         testValues = data['tests']
         for testValue in testValues.values():
-            tests.append((testValue['library'], testValue['response'], float(testValue['avg'])))
+            tests.append((testValue['library'], testValue['target'], testValue['response'], float(testValue['avg'])))
     return tests
  
 class Test(object):
 
-    @pytest.mark.parametrize("library,output,avg",setup())
-    def test1(self,library,output,avg):
-        self.runner(library,output,avg)
+    @pytest.mark.parametrize("library,target,output,avg",setup())
+    def test1(self,library,target,output,avg):
+        self.runner(library,target,output,avg)
 
     # Runner will call execute in a loop to perform benchmark validation.
-    def runner(self, library, output, avg):
+    def runner(self, library, target, output, avg):
         
-        t = timeit.Timer(functools.partial(self.execute, library, output))
+        t = timeit.Timer(functools.partial(self.execute, library, target, output))
         val = t.timeit(num) # This is the total execute time to run execute num times.
         avgRec = val/float(num) # Since num can change want to compare against expected avg execution.
         assert avgRec < avg, 'Value was: %f' % avgRec
 
     # Execute submits a query and validates the return.
-    def execute(self, library, output):
+    def execute(self, library, target, output):
         output = re.sub('Patient@\w+', 'Patient@',output)
-        o = output.splitlines()
-        out = engineWrapper.execute(library, "1235008")
+        o = output.split('\n')
+        out = engineWrapper.execute(library, target)
         out = re.sub('Patient@\w+', 'Patient@',out)
         respOut = out.splitlines()
-        error = " "
+        error = "\n"
         for line in o:
-            assert line in respOut, 'Did not contain ' + line + '\nContained: ' + error.join(respOut)
+            assert line in respOut, 'Did not contain: ' + line + '\nContained: ' + error.join(respOut)
+        
+        print("In respOut:")
         for line in respOut:
-            assert line in o, 'Did not contain ' + line + '\nContained: ' + error.join(o)
+            assert line in o, 'Did not contain: ' + line + '\nContained: ' + error.join(o)
 
     def setup_class(self):
         global engineWrapper

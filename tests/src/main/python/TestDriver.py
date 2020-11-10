@@ -11,7 +11,8 @@ import csv
 num=int(os.environ['PERF_EXECUTION_COUNT']) # number of times to execute a query to generate an average.
 engineWrapper='' # Used to hold reference to the engine once it has been fired up.
 currentDir=os.getcwd()
-baseDir = currentDir+'/../../'
+#baseDir = currentDir+'/../../'
+baseDir = currentDir+'/'
 libraries=os.environ['LIBRARY_PATH']
 testFile=os.environ['TESTS_CSV']
 
