@@ -6,11 +6,15 @@
 
 package com.ibm.cohort.engine.translation;
 
+import java.io.File;
 import java.io.InputStream;
+import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import javax.xml.bind.JAXB;
 
 import org.cqframework.cql.cql2elm.CqlTranslator;
 import org.cqframework.cql.cql2elm.CqlTranslator.Options;
@@ -19,9 +23,12 @@ import org.cqframework.cql.cql2elm.FhirLibrarySourceProvider;
 import org.cqframework.cql.cql2elm.LibraryBuilder;
 import org.cqframework.cql.cql2elm.LibraryManager;
 import org.cqframework.cql.cql2elm.LibrarySourceProvider;
+import org.cqframework.cql.cql2elm.ModelInfoLoader;
+import org.cqframework.cql.cql2elm.ModelInfoProvider;
 import org.cqframework.cql.cql2elm.ModelManager;
 import org.cqframework.cql.elm.execution.Library;
 import org.fhir.ucum.UcumService;
+import org.hl7.elm_modelinfo.r1.ModelInfo;
 import org.opencds.cqf.cql.engine.execution.CqlLibraryReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,5 +102,30 @@ public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
 
 		return result;
 	}
+	
+	@Override
+	public void registerModelInfo(ModelInfo modelInfo) {
+		// Force mapping  to FHIR 4.0.1. Consider supporting different versions in the future.
+		// Possibly add support for auto-loading model info files.
+		modelInfo.setTargetVersion("4.0.1");
+		modelInfo.setTargetUrl("http://hl7.org/fhir");
+		org.hl7.elm.r1.VersionedIdentifier modelId = (new org.hl7.elm.r1.VersionedIdentifier()).withId(modelInfo.getName()).withVersion(modelInfo.getVersion());
+		ModelInfoProvider modelProvider = () -> modelInfo;
+		ModelInfoLoader.registerModelInfoProvider(modelId, modelProvider);
+	}
 
+	@Override
+	public ModelInfo convertToModelInfo(InputStream modelInfoInputStream) {
+		return JAXB.unmarshal(modelInfoInputStream, ModelInfo.class);
+	}
+
+	@Override
+	public ModelInfo convertToModelInfo(Reader modelInfoReader) {
+		return JAXB.unmarshal(modelInfoReader, ModelInfo.class);
+	}
+
+	@Override
+	public ModelInfo convertToModelInfo(File modelInfoFile) {
+		return JAXB.unmarshal(modelInfoFile, ModelInfo.class);
+	}
 }

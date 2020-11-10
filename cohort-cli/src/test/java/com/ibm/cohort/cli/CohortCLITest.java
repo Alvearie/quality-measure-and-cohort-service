@@ -21,11 +21,13 @@ import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Condition;
 import org.hl7.fhir.r4.model.Enumerations;
+import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.RelatedArtifact;
 import org.hl7.fhir.r4.model.RelatedArtifact.RelatedArtifactType;
+import org.hl7.fhir.r4.model.StringType;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -382,5 +384,55 @@ public class CohortCLITest extends BaseFhirTest {
 		} finally {
 			tmpFile.delete();
 		}
-	}	
+	}
+	
+	@Test
+	public void testCQLTranslationCustomIGWithTargetUrl()  throws Exception{
+		FhirServerConfig fhirConfig = getFhirServerConfig();
+
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
+		patient.addExtension(new Extension("http://fakeIg.com/fake-extension", new StringType("fakeValue")));
+		mockFhirResourceRetrieval(patient);
+
+		Library root = getLibrary("test", "cql/ig-test/test.cql");
+		Library helpers = getLibrary("FHIRHelpers", "cql/includes/FHIRHelpers.cql", "text/cql",
+									 "cql/includes/FHIRHelpers.xml", "application/elm+json");
+
+		RelatedArtifact related = new RelatedArtifact();
+		related.setType(RelatedArtifactType.DEPENDSON);
+		related.setResource("/Library/" + helpers.getId());
+		root.addRelatedArtifact(related);
+
+		mockFhirResourceRetrieval(root);
+		mockFhirResourceRetrieval(helpers);
+
+		File tmpFile = new File("target/fhir-stub.json");
+		ObjectMapper om = new ObjectMapper();
+		try (Writer w = new FileWriter(tmpFile)) {
+			w.write(om.writeValueAsString(fhirConfig));
+		}
+
+		try {
+			PrintStream originalOut = System.out;
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			try (PrintStream captureOut = new PrintStream(baos)) {
+				System.setOut(captureOut);
+				CohortCLI.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-f", root.getId(), "-l",
+						root.getId(), "-v", "1.0.0", "-c", patient.getId(), "-s", "CQL", "-i", "src/test/resources/modelinfo/ig-with-target-modelinfo-0.0.1.xml" });
+			} finally {
+				System.setOut(originalOut);
+			}
+
+			String output = new String(baos.toByteArray());
+			System.out.println(output);
+
+			verify(2, getRequestedFor(urlEqualTo("/Patient/" + patient.getId())));
+			verify(1, getRequestedFor(urlEqualTo("/Library/" + root.getId())));
+			verify(1, getRequestedFor(urlEqualTo("/Library/" + helpers.getId())));
+		} finally {
+			tmpFile.delete();
+		}
+	}
 }
