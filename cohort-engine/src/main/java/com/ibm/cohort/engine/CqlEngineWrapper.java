@@ -482,6 +482,10 @@ public class CqlEngineWrapper {
 				"--source-format" }, description = "Indicates which files in the file source should be processed", required = false)
 		private LibraryFormat sourceFormat = DEFAULT_SOURCE_FORMAT;
 
+		@Parameter(names = { "-i",
+				"--model-info" }, description = "Model info file used when translating CQL", required = false)
+		private File modelInfoFile;
+
 		@Parameter(names = { "-h", "--help" }, description = "Display this help", required = false, help = true)
 		private boolean isDisplayHelp;
 	}
@@ -668,6 +672,10 @@ public class CqlEngineWrapper {
 
 			boolean isForceTranslation = arguments.sourceFormat == LibraryFormat.CQL;
 			CqlTranslationProvider translationProvider = new InJVMCqlTranslationProvider(sourceProvider);
+			if (arguments.modelInfoFile != null && arguments.modelInfoFile.exists()) {
+				translationProvider.convertAndRegisterModelInfo(arguments.modelInfoFile);
+			}
+			
 			setLibraryLoader(new TranslatingLibraryLoader(sourceProvider, translationProvider, isForceTranslation));
 
 			Map<String, Object> parameters = null;
