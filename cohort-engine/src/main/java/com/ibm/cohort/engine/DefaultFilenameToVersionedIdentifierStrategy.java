@@ -6,6 +6,7 @@
 
 package com.ibm.cohort.engine;
 
+import org.apache.commons.io.FilenameUtils;
 import org.hl7.elm.r1.VersionedIdentifier;
 
 /**
@@ -16,13 +17,8 @@ import org.hl7.elm.r1.VersionedIdentifier;
 public class DefaultFilenameToVersionedIdentifierStrategy implements FilenameToVersionedIdentifierStrategy {
 	public VersionedIdentifier filenameToVersionedIdentifier(String filename) {
 		VersionedIdentifier id = null;
-
-		String libraryId = filename;
-
-		int extensionLoc = filename.lastIndexOf('.');
-		if (extensionLoc > -1) {
-			libraryId = filename.substring(0, extensionLoc);
-		}
+		
+		String libraryId = FilenameUtils.getBaseName(filename);
 
 		String version = null;
 

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<library xmlns="urn:hl7-org:elm:r1" xmlns:t="urn:hl7-org:elm-types:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:fhir="http://hl7.org/fhir" xmlns:qdm43="urn:healthit-gov:qdm:v4_3" xmlns:qdm53="urn:healthit-gov:qdm:v5_3" xmlns:a="urn:hl7-org:cql-annotations:r1">
+   <annotation translatorOptions="" xsi:type="a:CqlToElmInfo"/>
+   <identifier id="Test" version="1.0.0"/>
+   <schemaIdentifier id="urn:hl7-org:elm" version="r1"/>
+   <usings>
+      <def localIdentifier="System" uri="urn:hl7-org:elm-types:r1"/>
+      <def localIdentifier="FHIR" uri="http://hl7.org/fhir" version="4.0.0"/>
+   </usings>
+   <includes>
+      <def localIdentifier="FHIRHelpers" path="FHIRHelpers" version="4.0.0"/>
+   </includes>
+   <codeSystems>
+      <def name="CONDCLINSTATUS" id="http://terminology.hl7.org/CodeSystem/condition-clinical" accessLevel="Public"/>
+   </codeSystems>
+   <codes>
+      <def name="Condition Relapse code" id="relapse" display="Relapse" accessLevel="Public">
+         <codeSystem name="CONDCLINSTATUS"/>
+      </def>
+      <def name="Condition Recurrence code" id="recurrence" display="Recurrence" accessLevel="Public">
+         <codeSystem name="CONDCLINSTATUS"/>
+      </def>
+      <def name="Condition Active code" id="active" display="Active" accessLevel="Public">
+         <codeSystem name="CONDCLINSTATUS"/>
+      </def>
+   </codes>
+   <concepts>
+      <def name="Condition Relapse" display="Relapse" accessLevel="Public">
+         <code name="Condition Relapse code"/>
+      </def>
+      <def name="Condition Recurrence" display="Recurrence" accessLevel="Public">
+         <code name="Condition Recurrence code"/>
+      </def>
+      <def name="Condition Active" display="Active" accessLevel="Public">
+         <code name="Condition Active code"/>
+      </def>
+   </concepts>
+   <contexts>
+      <def name="Patient"/>
+   </contexts>
+   <statements>
+      <def name="Patient" context="Patient">
+         <expression xsi:type="SingletonFrom">
+            <operand dataType="fhir:Patient" xsi:type="Retrieve"/>
+         </expression>
+      </def>
+      <def name="ActiveOrRecurring" context="Patient" accessLevel="Public" xsi:type="FunctionDef">
+         <expression xsi:type="Query">
+            <source alias="C">
+               <expression name="CondList" xsi:type="OperandRef"/>
+            </source>
+            <where xsi:type="Or">
+               <operand xsi:type="Or">
+                  <operand xsi:type="Equivalent">
+                     <operand name="ToConcept" libraryName="FHIRHelpers" xsi:type="FunctionRef">
+                        <operand path="clinicalStatus" scope="C" xsi:type="Property"/>
+                     </operand>
+                     <operand name="Condition Active" xsi:type="ConceptRef"/>
+                  </operand>
+                  <operand xsi:type="Equivalent">
+                     <operand name="ToConcept" libraryName="FHIRHelpers" xsi:type="FunctionRef">
+                        <operand path="clinicalStatus" scope="C" xsi:type="Property"/>
+                     </operand>
+                     <operand name="Condition Recurrence" xsi:type="ConceptRef"/>
+                  </operand>
+               </operand>
+               <operand xsi:type="Equivalent">
+                  <operand name="ToConcept" libraryName="FHIRHelpers" xsi:type="FunctionRef">
+                     <operand path="clinicalStatus" scope="C" xsi:type="Property"/>
+                  </operand>
+                  <operand name="Condition Relapse" xsi:type="ConceptRef"/>
+               </operand>
+            </where>
+         </expression>
+         <operand name="CondList">
+            <operandTypeSpecifier xsi:type="ListTypeSpecifier">
+               <elementType name="fhir:Condition" xsi:type="NamedTypeSpecifier"/>
+            </operandTypeSpecifier>
+         </operand>
+      </def>
+      <def name="HasActiveCondition" context="Patient" accessLevel="Public">
+         <expression xsi:type="Exists">
+            <operand name="ActiveOrRecurring" xsi:type="FunctionRef">
+               <operand dataType="fhir:Condition" xsi:type="Retrieve"/>
+            </operand>
+         </expression>
+      </def>
+   </statements>
+</library>
+
+

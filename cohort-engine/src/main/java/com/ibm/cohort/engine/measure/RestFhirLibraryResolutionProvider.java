@@ -1,4 +1,12 @@
+/*
+ * (C) Copyright IBM Corp. 2020, 2020
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package com.ibm.cohort.engine.measure;
+
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Library;
@@ -10,15 +18,18 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
  * Provide a very basic mechanism for retrieving FHIR Library resources from a
  * FHIR server using FHIR REST APIs.
  * 
- * @todo - Add Library caching
  * @todo - Consider loading Library and all related dependencies
  *       (relatedArtifacts[type="depends-on"]) in a single call and caching the
  *       results. A FHIR search call would look something like
- *       "/Library?identifier=SampleLibrary&_include=Library:depends-on". The FHIR server
- *       does not support _include:iterate tree walking today, so that needs to be considered
- *       if we go down this route.
+ *       "/Library?identifier=SampleLibrary&_include=Library:depends-on". The
+ *       FHIR server does not support _include:iterate tree walking today, so
+ *       that needs to be considered if we go down this route.
  */
 public class RestFhirLibraryResolutionProvider implements LibraryResolutionProvider<Library> {
+
+	private Map<String, Library> cacheByNameVersion = new WeakHashMap<>();
+	private Map<String, Library> cacheById = new WeakHashMap<>();
+	private Map<String, Library> cacheByUrl = new WeakHashMap<>();
 
 	private IGenericClient libraryClient;
 
@@ -28,16 +39,26 @@ public class RestFhirLibraryResolutionProvider implements LibraryResolutionProvi
 
 	@Override
 	public Library resolveLibraryById(String libraryId) {
-		return libraryClient.read().resource(Library.class).withId(libraryId).execute();
+		Library library = cacheById.computeIfAbsent(libraryId, k -> {
+			return libraryClient.read().resource(Library.class).withId(libraryId).execute();
+		});
+		cacheByNameVersion.computeIfAbsent(getCacheKey(library), k -> library);
+		return library;
 	}
 
 	@Override
 	public Library resolveLibraryByName(String libraryName, String libraryVersion) {
-		try {
-			Bundle bundle = libraryClient.search().forResource(Library.class)
-					.where(Library.NAME.matches().value(libraryName))
-					.and(Library.VERSION.exactly().code(libraryVersion)).returnBundle(Bundle.class).sort()
-					.descending(Library.DATE).execute();
+		String cacheKey = getCacheKey(libraryName, libraryVersion);
+		Library library = cacheByNameVersion.computeIfAbsent(cacheKey, k -> {
+			Bundle bundle = null;
+			try {
+				bundle = libraryClient.search().forResource(Library.class)
+						.where(Library.NAME.matches().value(libraryName))
+						.and(Library.VERSION.exactly().code(libraryVersion)).returnBundle(Bundle.class).sort()
+						.descending(Library.DATE).execute();
+			} catch (Exception ex) {
+				throw new RuntimeException(ex);
+			}
 
 			if (bundle.getTotal() == 0) {
 				throw new IllegalArgumentException(
@@ -45,22 +66,24 @@ public class RestFhirLibraryResolutionProvider implements LibraryResolutionProvi
 			}
 
 			return (Library) bundle.getEntry().get(0).getResource();
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			throw ex;
-		}
+
+		});
+		return library;
 	}
 
 	@Override
 	public Library resolveLibraryByCanonicalUrl(String libraryUrl) {
-		Bundle bundle = libraryClient.search().forResource(Library.class).where(Library.URL.matches().value(libraryUrl))
-				.returnBundle(Bundle.class).sort().descending(Library.DATE).execute();
+		return cacheByUrl.computeIfAbsent(libraryUrl, cacheKey -> {
+			Bundle bundle = libraryClient.search().forResource(Library.class)
+					.where(Library.URL.matches().value(libraryUrl)).returnBundle(Bundle.class).execute();
 
-		if (bundle.getTotal() == 0) {
-			throw new IllegalArgumentException(String.format("No library found matching url %s ", libraryUrl));
-		}
+			if (bundle.getTotal() != 1) {
+				throw new IllegalArgumentException(String.format("Unexpected number of libraries %d matching url %s ",
+						bundle.getTotal(), libraryUrl));
+			}
 
-		return (Library) bundle.getEntry().get(0).getResource();
+			return (Library) bundle.getEntry().get(0).getResource();
+		});
 	}
 
 	@Override
@@ -68,4 +91,15 @@ public class RestFhirLibraryResolutionProvider implements LibraryResolutionProvi
 		throw new UnsupportedOperationException("No support for Library updates");
 	}
 
+	protected String getCacheKey(Library library) {
+		return getCacheKey(library.getName(), library.getVersion());
+	}
+
+	protected String getCacheKey(String name, String version) {
+		String key = name;
+		if (version != null) {
+			key = key + "-" + version;
+		}
+		return key;
+	}
 }

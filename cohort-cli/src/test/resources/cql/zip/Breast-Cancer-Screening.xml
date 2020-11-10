@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<library xmlns="urn:hl7-org:elm:r1" xmlns:t="urn:hl7-org:elm-types:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:fhir="http://hl7.org/fhir" xmlns:qdm43="urn:healthit-gov:qdm:v4_3" xmlns:qdm53="urn:healthit-gov:qdm:v5_3" xmlns:a="urn:hl7-org:cql-annotations:r1">
+   <annotation translatorOptions="" xsi:type="a:CqlToElmInfo"/>
+   <identifier id="Breast-Cancer-Screening" version="1.0.0"/>
+   <schemaIdentifier id="urn:hl7-org:elm" version="r1"/>
+   <usings>
+      <def localIdentifier="System" uri="urn:hl7-org:elm-types:r1"/>
+      <def localIdentifier="FHIR" uri="http://hl7.org/fhir" version="4.0.0"/>
+   </usings>
+   <includes>
+      <def localIdentifier="FHIRHelpers" path="FHIRHelpers" version="4.0.0"/>
+   </includes>
+   <codeSystems>
+      <def name="CONDCLINSTATUS" id="http://terminology.hl7.org/CodeSystem/condition-clinical" accessLevel="Public"/>
+   </codeSystems>
+   <valueSets>
+      <def name="Breast Cancer VS" id="https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.1434.1000.1095" accessLevel="Public"/>
+      <def name="Bilateral Mastectomy VS" id="https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.198.12.1005" accessLevel="Public"/>
+      <def name="Unilateral Mastectomy Left VS" id="https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.198.12.1133" accessLevel="Public"/>
+      <def name="Unilateral Mastectomy Right VS" id="https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.198.12.1134" accessLevel="Public"/>
+      <def name="Mammogram VS" id="https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1182.380" accessLevel="Public"/>
+   </valueSets>
+   <codes>
+      <def name="Condition Relapse code" id="relapse" display="Relapse" accessLevel="Public">
+         <codeSystem name="CONDCLINSTATUS"/>
+      </def>
+      <def name="Condition Recurrence code" id="recurrence" display="Recurrence" accessLevel="Public">
+         <codeSystem name="CONDCLINSTATUS"/>
+      </def>
+      <def name="Condition Active code" id="active" display="Active" accessLevel="Public">
+         <codeSystem name="CONDCLINSTATUS"/>
+      </def>
+   </codes>
+   <concepts>
+      <def name="Condition Relapse" display="Relapse" accessLevel="Public">
+         <code name="Condition Relapse code"/>
+      </def>
+      <def name="Condition Recurrence" display="Recurrence" accessLevel="Public">
+         <code name="Condition Recurrence code"/>
+      </def>
+      <def name="Condition Active" display="Active" accessLevel="Public">
+         <code name="Condition Active code"/>
+      </def>
+   </concepts>
+   <contexts>
+      <def name="Patient"/>
+   </contexts>
+   <statements>
+      <def name="Patient" context="Patient">
+         <expression xsi:type="SingletonFrom">
+            <operand dataType="fhir:Patient" xsi:type="Retrieve"/>
+         </expression>
+      </def>
+      <def name="Female" context="Patient" accessLevel="Public">
+         <expression xsi:type="Equal">
+            <operand path="value" xsi:type="Property">
+               <source path="gender" xsi:type="Property">
+                  <source name="Patient" xsi:type="ExpressionRef"/>
+               </source>
+            </operand>
+            <operand valueType="t:String" value="female" xsi:type="Literal"/>
+         </expression>
+      </def>
+      <def name="40-65 years of age" context="Patient" accessLevel="Public">
+         <expression xsi:type="And">
+            <operand xsi:type="GreaterOrEqual">
+               <operand precision="Year" xsi:type="CalculateAge">
+                  <operand path="birthDate.value" xsi:type="Property">
+                     <source name="Patient" xsi:type="ExpressionRef"/>
+                  </operand>
+               </operand>
+               <operand valueType="t:Integer" value="40" xsi:type="Literal"/>
+            </operand>
+            <operand xsi:type="LessOrEqual">
+               <operand precision="Year" xsi:type="CalculateAge">
+                  <operand path="birthDate.value" xsi:type="Property">
+                     <source name="Patient" xsi:type="ExpressionRef"/>
+                  </operand>
+               </operand>
+               <operand valueType="t:Integer" value="65" xsi:type="Literal"/>
+            </operand>
+         </expression>
+      </def>
+      <def name="ActiveOrRecurring" context="Patient" accessLevel="Public" xsi:type="FunctionDef">
+         <expression xsi:type="Query">
+            <source alias="C">
+               <expression name="CondList" xsi:type="OperandRef"/>
+            </source>
+            <where xsi:type="Or">
+               <operand xsi:type="Or">
+                  <operand xsi:type="Equivalent">
+                     <operand name="ToConcept" libraryName="FHIRHelpers" xsi:type="FunctionRef">
+                        <operand path="clinicalStatus" scope="C" xsi:type="Property"/>
+                     </operand>
+                     <operand name="Condition Active" xsi:type="ConceptRef"/>
+                  </operand>
+                  <operand xsi:type="Equivalent">
+                     <operand name="ToConcept" libraryName="FHIRHelpers" xsi:type="FunctionRef">
+                        <operand path="clinicalStatus" scope="C" xsi:type="Property"/>
+                     </operand>
+                     <operand name="Condition Recurrence" xsi:type="ConceptRef"/>
+                  </operand>
+               </operand>
+               <operand xsi:type="Equivalent">
+                  <operand name="ToConcept" libraryName="FHIRHelpers" xsi:type="FunctionRef">
+                     <operand path="clinicalStatus" scope="C" xsi:type="Property"/>
+                  </operand>
+                  <operand name="Condition Relapse" xsi:type="ConceptRef"/>
+               </operand>
+            </where>
+         </expression>
+         <operand name="CondList">
+            <operandTypeSpecifier xsi:type="ListTypeSpecifier">
+               <elementType name="fhir:Condition" xsi:type="NamedTypeSpecifier"/>
+            </operandTypeSpecifier>
+         </operand>
+      </def>
+      <def name="Breast Cancer" context="Patient" accessLevel="Public">
+         <expression xsi:type="Exists">
+            <operand name="ActiveOrRecurring" xsi:type="FunctionRef">
+               <operand dataType="fhir:Condition" codeProperty="code" codeComparator="in" xsi:type="Retrieve">
+                  <codes name="Breast Cancer VS" xsi:type="ValueSetRef"/>
+               </operand>
+            </operand>
+         </expression>
+      </def>
+      <def name="Bilateral Mastectomy" context="Patient" accessLevel="Public">
+         <expression xsi:type="Exists">
+            <operand dataType="fhir:Procedure" codeProperty="code" codeComparator="in" xsi:type="Retrieve">
+               <codes name="Bilateral Mastectomy VS" xsi:type="ValueSetRef"/>
+            </operand>
+         </expression>
+      </def>
+      <def name="Unilateral Mastectomy Left" context="Patient" accessLevel="Public">
+         <expression xsi:type="Exists">
+            <operand dataType="fhir:Procedure" codeProperty="code" codeComparator="in" xsi:type="Retrieve">
+               <codes name="Unilateral Mastectomy Left VS" xsi:type="ValueSetRef"/>
+            </operand>
+         </expression>
+      </def>
+      <def name="Unilateral Mastectomy Right" context="Patient" accessLevel="Public">
+         <expression xsi:type="Exists">
+            <operand dataType="fhir:Procedure" codeProperty="code" codeComparator="in" xsi:type="Retrieve">
+               <codes name="Unilateral Mastectomy Right VS" xsi:type="ValueSetRef"/>
+            </operand>
+         </expression>
+      </def>
+      <def name="PeriodToInterval" context="Patient" accessLevel="Public" xsi:type="FunctionDef">
+         <expression xsi:type="If">
+            <condition asType="t:Boolean" xsi:type="As">
+               <operand xsi:type="IsNull">
+                  <operand name="period" xsi:type="OperandRef"/>
+               </operand>
+            </condition>
+            <then xsi:type="As">
+               <operand xsi:type="Null"/>
+               <asTypeSpecifier xsi:type="IntervalTypeSpecifier">
+                  <pointType name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+               </asTypeSpecifier>
+            </then>
+            <else lowClosed="true" highClosed="true" xsi:type="Interval">
+               <low path="value" xsi:type="Property">
+                  <source path="start" xsi:type="Property">
+                     <source name="period" xsi:type="OperandRef"/>
+                  </source>
+               </low>
+               <high path="value" xsi:type="Property">
+                  <source path="end" xsi:type="Property">
+                     <source name="period" xsi:type="OperandRef"/>
+                  </source>
+               </high>
+            </else>
+         </expression>
+         <operand name="period">
+            <operandTypeSpecifier name="fhir:Period" xsi:type="NamedTypeSpecifier"/>
+         </operand>
+      </def>
+      <def name="ObservationLookBack" context="Patient" accessLevel="Public" xsi:type="FunctionDef">
+         <expression xsi:type="Query">
+            <source alias="O">
+               <expression name="ObsList" xsi:type="OperandRef"/>
+            </source>
+            <let identifier="LookBackInterval">
+               <expression lowClosed="true" highClosed="true" xsi:type="Interval">
+                  <low xsi:type="Subtract">
+                     <operand xsi:type="Now"/>
+                     <operand name="LookBack" xsi:type="OperandRef"/>
+                  </low>
+                  <high xsi:type="Now"/>
+               </expression>
+            </let>
+            <where xsi:type="Or">
+               <operand xsi:type="Or">
+                  <operand xsi:type="Or">
+                     <operand xsi:type="In">
+                        <operand path="value" xsi:type="Property">
+                           <source strict="false" xsi:type="As">
+                              <operand path="effective" scope="O" xsi:type="Property"/>
+                              <asTypeSpecifier name="fhir:dateTime" xsi:type="NamedTypeSpecifier"/>
+                           </source>
+                        </operand>
+                        <operand name="LookBackInterval" xsi:type="QueryLetRef"/>
+                     </operand>
+                     <operand xsi:type="In">
+                        <operand path="value" xsi:type="Property">
+                           <source strict="false" xsi:type="As">
+                              <operand path="effective" scope="O" xsi:type="Property"/>
+                              <asTypeSpecifier name="fhir:instant" xsi:type="NamedTypeSpecifier"/>
+                           </source>
+                        </operand>
+                        <operand name="LookBackInterval" xsi:type="QueryLetRef"/>
+                     </operand>
+                  </operand>
+                  <operand xsi:type="Overlaps">
+                     <operand name="PeriodToInterval" xsi:type="FunctionRef">
+                        <operand strict="false" xsi:type="As">
+                           <operand path="effective" scope="O" xsi:type="Property"/>
+                           <asTypeSpecifier name="fhir:Period" xsi:type="NamedTypeSpecifier"/>
+                        </operand>
+                     </operand>
+                     <operand name="LookBackInterval" xsi:type="QueryLetRef"/>
+                  </operand>
+               </operand>
+               <operand xsi:type="In">
+                  <operand path="value" xsi:type="Property">
+                     <source path="issued" scope="O" xsi:type="Property"/>
+                  </operand>
+                  <operand name="LookBackInterval" xsi:type="QueryLetRef"/>
+               </operand>
+            </where>
+         </expression>
+         <operand name="ObsList">
+            <operandTypeSpecifier xsi:type="ListTypeSpecifier">
+               <elementType name="fhir:Observation" xsi:type="NamedTypeSpecifier"/>
+            </operandTypeSpecifier>
+         </operand>
+         <operand name="LookBack">
+            <operandTypeSpecifier name="t:Quantity" xsi:type="NamedTypeSpecifier"/>
+         </operand>
+      </def>
+      <def name="Mammogram" context="Patient" accessLevel="Public">
+         <expression xsi:type="Exists">
+            <operand name="ObservationLookBack" xsi:type="FunctionRef">
+               <operand dataType="fhir:Observation" codeProperty="code" codeComparator="in" xsi:type="Retrieve">
+                  <codes name="Mammogram VS" xsi:type="ValueSetRef"/>
+               </operand>
+               <operand value="12" unit="months" xsi:type="Quantity"/>
+            </operand>
+         </expression>
+      </def>
+      <def name="MeetsInclusionCriteria" context="Patient" accessLevel="Public">
+         <expression xsi:type="And">
+            <operand name="Female" xsi:type="ExpressionRef"/>
+            <operand name="40-65 years of age" xsi:type="ExpressionRef"/>
+         </expression>
+      </def>
+      <def name="Left and Right Mastectomy" context="Patient" accessLevel="Public">
+         <expression xsi:type="And">
+            <operand name="Unilateral Mastectomy Left" xsi:type="ExpressionRef"/>
+            <operand name="Unilateral Mastectomy Right" xsi:type="ExpressionRef"/>
+         </expression>
+      </def>
+      <def name="Bilateral or two unilateral mastectomies." context="Patient" accessLevel="Public">
+         <expression xsi:type="Or">
+            <operand name="Bilateral Mastectomy" xsi:type="ExpressionRef"/>
+            <operand name="Left and Right Mastectomy" xsi:type="ExpressionRef"/>
+         </expression>
+      </def>
+      <def name="MeetsExclusionCriteria" context="Patient" accessLevel="Public">
+         <expression xsi:type="Or">
+            <operand xsi:type="Or">
+               <operand name="Breast Cancer" xsi:type="ExpressionRef"/>
+               <operand name="Bilateral or two unilateral mastectomies." xsi:type="ExpressionRef"/>
+            </operand>
+            <operand name="Mammogram" xsi:type="ExpressionRef"/>
+         </expression>
+      </def>
+      <def name="InPopulation" context="Patient" accessLevel="Public">
+         <expression xsi:type="And">
+            <operand name="MeetsInclusionCriteria" xsi:type="ExpressionRef"/>
+            <operand xsi:type="Not">
+               <operand name="MeetsExclusionCriteria" xsi:type="ExpressionRef"/>
+            </operand>
+         </expression>
+      </def>
+      <def name="Recommendation" context="Patient" accessLevel="Public">
+         <expression xsi:type="Null"/>
+      </def>
+      <def name="Rationale" context="Patient" accessLevel="Public">
+         <expression xsi:type="Null"/>
+      </def>
+      <def name="Errors" context="Patient" accessLevel="Public">
+         <expression xsi:type="Null"/>
+      </def>
+   </statements>
+</library>
+
+
