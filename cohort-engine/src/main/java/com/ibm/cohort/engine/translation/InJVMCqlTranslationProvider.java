@@ -22,6 +22,8 @@ import org.cqframework.cql.cql2elm.FhirLibrarySourceProvider;
 import org.cqframework.cql.cql2elm.LibraryBuilder;
 import org.cqframework.cql.cql2elm.LibraryManager;
 import org.cqframework.cql.cql2elm.LibrarySourceProvider;
+import org.cqframework.cql.cql2elm.ModelInfoLoader;
+import org.cqframework.cql.cql2elm.ModelInfoProvider;
 import org.cqframework.cql.cql2elm.ModelManager;
 import org.cqframework.cql.elm.execution.Library;
 import org.fhir.ucum.UcumService;
@@ -98,6 +100,17 @@ public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider<File
 		}
 
 		return result;
+	}
+	
+	@Override
+	public void registerModelInfo(ModelInfo modelInfo) {
+		// Force mapping  to FHIR 4.0.1. Consider supporting different versions in the future.
+		// Possibly add support for auto-loading model info files.
+		modelInfo.setTargetVersion("4.0.1");
+		modelInfo.setTargetUrl("http://hl7.org/fhir");
+		org.hl7.elm.r1.VersionedIdentifier modelId = (new org.hl7.elm.r1.VersionedIdentifier()).withId(modelInfo.getName()).withVersion(modelInfo.getVersion());
+		ModelInfoProvider modelProvider = () -> modelInfo;
+		ModelInfoLoader.registerModelInfoProvider(modelId, modelProvider);
 	}
 
 	@Override

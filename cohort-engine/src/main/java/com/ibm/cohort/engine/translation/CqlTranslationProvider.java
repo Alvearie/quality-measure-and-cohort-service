@@ -29,15 +29,7 @@ public interface CqlTranslationProvider<T> {
 
 	public Library translate(InputStream cql, List<Options> options, LibraryFormat targetFormat) throws Exception;
 	
-	public default void registerModelInfo(ModelInfo modelInfo) {
-		// Force mapping  to FHIR 4.0.1. Consider supporting different versions in the future.
-		// Possibly add support for auto-loading model info files.
-		modelInfo.setTargetVersion("4.0.1");
-		modelInfo.setTargetUrl("http://hl7.org/fhir");
-		org.hl7.elm.r1.VersionedIdentifier modelId = (new org.hl7.elm.r1.VersionedIdentifier()).withId(modelInfo.getName()).withVersion(modelInfo.getVersion());
-		ModelInfoProvider modelProvider = () -> modelInfo;
-		ModelInfoLoader.registerModelInfoProvider(modelId, modelProvider);
-	}
+	public void registerModelInfo(ModelInfo modelInfo);
 	
 	public default void convertAndRegisterModelInfo(T modelInfoObject) {
 		registerModelInfo(convertToModelInfo(modelInfoObject));
