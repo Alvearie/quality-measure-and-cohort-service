@@ -55,7 +55,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.translation.BaseCqlTranslationProvider;
 import com.ibm.cohort.engine.translation.CqlTranslationProvider;
 import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
 
@@ -672,7 +671,10 @@ public class CqlEngineWrapper {
 			}
 
 			boolean isForceTranslation = arguments.sourceFormat == LibraryFormat.CQL;
-			CqlTranslationProvider translationProvider = new InJVMCqlTranslationProvider(sourceProvider, arguments.modelInfoFile);
+			CqlTranslationProvider<File> translationProvider = new InJVMCqlTranslationProvider(sourceProvider);
+			if (arguments.modelInfoFile != null && arguments.modelInfoFile.exists()) {
+				translationProvider.convertAndRegisterModelInfo(arguments.modelInfoFile);
+			}
 			
 			setLibraryLoader(new TranslatingLibraryLoader(sourceProvider, translationProvider, isForceTranslation));
 
