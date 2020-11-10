@@ -12,10 +12,13 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipInputStream;
+
+import org.hl7.fhir.instance.model.api.IAnyResource;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -31,7 +34,6 @@ import com.ibm.cohort.engine.TranslatingLibraryLoader;
 import com.ibm.cohort.engine.ZipStreamLibrarySourceProvider;
 import com.ibm.cohort.engine.translation.CqlTranslationProvider;
 import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
-
 
 public class CohortCLI extends BaseCLI {
 
@@ -134,8 +136,23 @@ public class CohortCLI extends BaseCLI {
 
 						@Override
 						public void onEvaluationComplete(String contextId, String expression, Object result) {
-							out.println(String.format("Expression: %s, Result: %s", expression,
-									(result != null) ? String.format("%s", result.toString()) : "null"));
+						
+							String value;
+							if( result != null ) {
+								if( result instanceof IAnyResource ) {
+									IAnyResource resource = (IAnyResource) result;
+									value = resource.getId();
+								} else if( result instanceof Collection ) {
+									Collection<?> collection = (Collection<?>) result;
+									value = "Collection: " + collection.size();
+								} else {
+									value = result.toString();
+								}
+							} else {
+								value = "null";
+							}
+							
+							out.println(String.format("Expression: \"%s\", Result: %s", expression, value));
 						}
 
 						@Override

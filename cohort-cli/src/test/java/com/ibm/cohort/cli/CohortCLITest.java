@@ -9,6 +9,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -16,9 +17,13 @@ import java.io.FileWriter;
 import java.io.PrintStream;
 import java.io.Writer;
 
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.Condition;
 import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.RelatedArtifact;
 import org.hl7.fhir.r4.model.RelatedArtifact.RelatedArtifactType;
 import org.junit.Test;
@@ -330,4 +335,52 @@ public class CohortCLITest extends BaseFhirTest {
 			tmpFile.delete();
 		}
 	}
+	
+	@Test
+	public void testMainMultipleResultTypes() throws Exception {
+
+		FhirServerConfig fhirConfig = getFhirServerConfig();
+
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
+		patient.setMaritalStatus(new CodeableConcept(new Coding("http://hl7.org/fhir/ValueSet/marital-status", "M", "Married")));
+		mockFhirResourceRetrieval(patient);
+
+		Condition condition = new Condition();
+		condition.setSubject(new Reference(patient.getId()));
+		condition.setCode(new CodeableConcept(new Coding("http://snomed.com/snomed/2020", "1234", "Dummy")));
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F" + patient.getId(), condition);
+		
+		File tmpFile = new File("target/fhir-stub.json");
+		ObjectMapper om = new ObjectMapper();
+		try (Writer w = new FileWriter(tmpFile)) {
+			w.write(om.writeValueAsString(fhirConfig));
+		}
+
+		try {
+			PrintStream originalOut = System.out;
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			try (PrintStream captureOut = new PrintStream(baos)) {
+				System.setOut(captureOut);
+				CohortCLI.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-f", "src/test/resources/cql/result-types", "-l",
+						"test_result_types", "-c", patient.getId() });
+			} finally {
+				System.setOut(originalOut);
+			}
+
+			String output = new String(baos.toByteArray());
+			assertTrue( output.contains( "Collection: 1") );
+			assertTrue( output.contains( "Patient/123") );
+			assertTrue( output.contains( "false") );
+			assertTrue( output.contains( "DateType[1978-05-06]") );
+			assertTrue( output.contains( "Enumeration[female]") );
+			
+			String[] lines = output.split("\r?\n");
+			assertEquals(output, 9, lines.length);
+			System.out.println(output);
+		} finally {
+			tmpFile.delete();
+		}
+	}	
 }
