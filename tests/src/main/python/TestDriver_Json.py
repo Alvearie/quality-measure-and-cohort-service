@@ -16,6 +16,7 @@ currentDir=os.getcwd()
 #baseDir = currentDir+'/../../'
 baseDir = currentDir + '/'
 libraries=os.environ['LIBRARY_PATH']
+testLibrary = os.environ['TEST_LIBRARY']
 testFile=baseDir + os.environ['TESTS_JSON']
 
 def setup():
@@ -64,7 +65,7 @@ class Test(object):
         cohortEngine = baseDir+os.environ['COHORT_ENGINE']
         javabridge.start_vm(run_headless=True, class_path=javabridge.JARS + [cohortEngine, testWrapper]) # Start the JVM with modified classpath.
         engineWrapper = javabridge.JClassWrapper("com.ibm.cohort.engine.test.TestWrapper")() # Get an instance of the test wrapper.
-        engineWrapper.warm(baseDir+os.environ['DATA_FHIR_SERVER_DETAILS'],baseDir+os.environ['TERM_FHIR_SERVER_DETAILS'],libraries, "Test", "1235008") # Warm up the JV and submit a noise query.
+        engineWrapper.warm(baseDir+os.environ['DATA_FHIR_SERVER_DETAILS'],baseDir+os.environ['TERM_FHIR_SERVER_DETAILS'],libraries, testLibrary, "1235008") # Warm up the JV and submit a noise query.
 
     def teardown_class(self):
         javabridge.kill_vm() # The JVM must die.
