@@ -671,7 +671,7 @@ public class CqlEngineWrapper {
 			}
 
 			boolean isForceTranslation = arguments.sourceFormat == LibraryFormat.CQL;
-			CqlTranslationProvider<File> translationProvider = new InJVMCqlTranslationProvider(sourceProvider);
+			CqlTranslationProvider translationProvider = new InJVMCqlTranslationProvider(sourceProvider);
 			if (arguments.modelInfoFile != null && arguments.modelInfoFile.exists()) {
 				translationProvider.convertAndRegisterModelInfo(arguments.modelInfoFile);
 			}

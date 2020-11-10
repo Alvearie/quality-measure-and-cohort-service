@@ -21,7 +21,7 @@ import com.ibm.cohort.engine.LibraryFormat;
  * Common functionality for use when implementing CQL translator
  * wrapper implementations.
  */
-public abstract class BaseCqlTranslationProvider<T> implements CqlTranslationProvider<T> {
+public abstract class BaseCqlTranslationProvider implements CqlTranslationProvider {
 
 	public static final LibraryFormat DEFAULT_TARGET_FORMAT = LibraryFormat.XML;
 	

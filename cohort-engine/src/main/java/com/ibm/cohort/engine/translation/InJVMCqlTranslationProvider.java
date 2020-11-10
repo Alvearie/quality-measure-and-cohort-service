@@ -8,6 +8,7 @@ package com.ibm.cohort.engine.translation;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +38,7 @@ import com.ibm.cohort.engine.LibraryFormat;
 /**
  * Uses the CqlTranslator inprocess to convert CQL to ELM. 
  */
-public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider<File> {
+public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
 
 	private static final Logger LOG = LoggerFactory.getLogger(InJVMCqlTranslationProvider.class);
 	private ModelManager modelManager;
@@ -114,8 +115,17 @@ public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider<File
 	}
 
 	@Override
-	public ModelInfo convertToModelInfo(File modelInfoObject) {
-		return JAXB.unmarshal(modelInfoObject, ModelInfo.class);
+	public ModelInfo convertToModelInfo(InputStream modelInfoInputStream) {
+		return JAXB.unmarshal(modelInfoInputStream, ModelInfo.class);
 	}
 
+	@Override
+	public ModelInfo convertToModelInfo(Reader modelInfoReader) {
+		return JAXB.unmarshal(modelInfoReader, ModelInfo.class);
+	}
+
+	@Override
+	public ModelInfo convertToModelInfo(File modelInfoFile) {
+		return JAXB.unmarshal(modelInfoFile, ModelInfo.class);
+	}
 }
