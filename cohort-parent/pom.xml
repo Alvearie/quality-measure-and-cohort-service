@@ -15,6 +15,7 @@
 		<module>../cohort-cli</module>
 		<module>../cdm-modelinfo-tooling</module>
 		<module>../tests</module>
+		<module>../reports</module>
 	</modules>
 
 	<licenses>
