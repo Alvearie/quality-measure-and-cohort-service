@@ -13,6 +13,7 @@ import org.hl7.fhir.r4.model.Library;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
+import ca.uhn.fhir.rest.gclient.IQuery;
 
 /**
  * Provide a very basic mechanism for retrieving FHIR Library resources from a
@@ -73,13 +74,21 @@ public class RestFhirLibraryResolutionProvider implements LibraryResolutionProvi
 
 	@Override
 	public Library resolveLibraryByCanonicalUrl(String libraryUrl) {
+				
 		return cacheByUrl.computeIfAbsent(libraryUrl, cacheKey -> {
-			Bundle bundle = libraryClient.search().forResource(Library.class)
-					.where(Library.URL.matches().value(libraryUrl)).returnBundle(Bundle.class).execute();
+			// The IBM FHIR Server does not honor the vertical bar convention yet.
+			String [] parts = libraryUrl.split("\\|");
 
+			IQuery<Bundle> query = libraryClient.search().forResource(Library.class)
+					.where(Library.URL.matches().value(parts[0])).returnBundle(Bundle.class);
+			if( parts.length > 1 ) {
+				query = query.and(Library.VERSION.exactly().identifier(parts[1]));
+			}
+			
+			Bundle bundle = query.returnBundle(Bundle.class).execute();
 			if (bundle.getTotal() != 1) {
 				throw new IllegalArgumentException(String.format("Unexpected number of libraries %d matching url %s ",
-						bundle.getTotal(), libraryUrl));
+						bundle.getTotal(), query.toString()));
 			}
 
 			return (Library) bundle.getEntry().get(0).getResource();

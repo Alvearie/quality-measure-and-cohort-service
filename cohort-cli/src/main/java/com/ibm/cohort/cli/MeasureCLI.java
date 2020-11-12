@@ -21,10 +21,13 @@ import com.ibm.cohort.engine.FhirClientFactory;
 import com.ibm.cohort.engine.measure.MeasureEvaluator;
 
 import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 public class MeasureCLI extends BaseCLI {
 
+	private static enum ReportFormat { TEXT, JSON }
+	
 	/**
 	 * Command line argument definitions
 	 */
@@ -44,6 +47,9 @@ public class MeasureCLI extends BaseCLI {
 		
 		@Parameter(names = { "-h", "--help" }, description = "Display this help", required = false, help = true)
 		private boolean isDisplayHelp;
+		
+		@Parameter(names = { "-f", "--format" }, description = "Output format of the report (JSON|TEXT*)" ) 
+		private ReportFormat reportFormat = ReportFormat.TEXT;
 	}
 	
 	public MeasureEvaluator runWithArgs(String[] args, PrintStream out) throws Exception {
@@ -59,7 +65,9 @@ public class MeasureCLI extends BaseCLI {
 		} else {
 			readConnectionConfiguration(arguments);
 			
-			FhirClientFactory factory = FhirClientFactory.newInstance(FhirContext.forR4());
+			FhirContext fhirContext = FhirContext.forR4();
+			
+			FhirClientFactory factory = FhirClientFactory.newInstance(fhirContext);
 			IGenericClient dataServerClient = factory.createFhirClient(dataServerConfig);
 			IGenericClient terminologyServerClient = factory.createFhirClient(terminologyServerConfig);
 			IGenericClient measureServerClient = factory.createFhirClient(measureServerConfig);
@@ -73,14 +81,21 @@ public class MeasureCLI extends BaseCLI {
 			for( String contextId : arguments.contextIds ) {
 				out.println("Evaluating: " + contextId);
 				MeasureReport report = evaluator.evaluatePatientMeasure(arguments.resourceId, contextId, parameters);
-				for( MeasureReport.MeasureReportGroupComponent group : report.getGroup() ) {
-					for( MeasureReport.MeasureReportGroupPopulationComponent pop : group.getPopulation() ) {
-						String popCode = pop.getCode().getCodingFirstRep().getCode();
-						if( pop.getId() != null ) {
-							popCode += "(" + pop.getId() + ")";
+				
+				if( arguments.reportFormat == ReportFormat.TEXT ) {
+				
+					for( MeasureReport.MeasureReportGroupComponent group : report.getGroup() ) {
+						for( MeasureReport.MeasureReportGroupPopulationComponent pop : group.getPopulation() ) {
+							String popCode = pop.getCode().getCodingFirstRep().getCode();
+							if( pop.getId() != null ) {
+								popCode += "(" + pop.getId() + ")";
+							}
+							out.println( String.format("Population: %s = %d", popCode, pop.getCount() ) );
 						}
-						out.println( String.format("Population: %s = %d", popCode, pop.getCount() ) );
 					}
+				} else {
+					IParser parser = fhirContext.newJsonParser().setPrettyPrint(true);
+					out.println( parser.encodeResourceToString(report) );
 				}
 				out.println("---");
 			}
