@@ -2,25 +2,25 @@
     "tests": {
         "scenario1" : {
             "avg": 1,
-            "library": "Test",
+            "library": "test",
             "target": "1235008",
             "response": "Expression is wrong: Patient, Context: 1235008, Result: org.hl7.fhir.r4.model.Patient@46819a75\nExpression: Female, Context: 1235008, Result: false\nExpression: Male, Context: 1235008, Result: true\nExpression: Over the hill, Context: 1235008, Result: true"
         },
         "scenario2" : {
             "avg": 0.2,
-            "library": "Test",
+            "library": "test",
             "target": "1235008",
             "response": "Expression: Patient, Context: 1235008, Result: org.hl7.fhir.r4.model.Patient@46819a75\nExpression: Female, Context: 1235008, Result: false\nExpression: Male, Context: 1235008, Result: true\nExpression: Over the hill, Context: 1235008, Result: true"
         },
         "scenario3" : {
             "avg": 1.2,
-            "library": "Test",
+            "library": "test",
             "target": "1235008",
             "response": "Expression: Patient, Context: 1235008, Result: org.hl7.fhir.r4.model.Patient@46819a75\nExpression: Female, Context: 1235008, Result: false\nExpression: Male, Context: 1235008, Result: true\nExpression: Over the hill, Context: 1235008, Result: true"
         },
         "scenario4" : {
             "avg": 6,
-            "library": "Test",
+            "library": "test",
             "target": "1235008",
             "response": ""
         }
