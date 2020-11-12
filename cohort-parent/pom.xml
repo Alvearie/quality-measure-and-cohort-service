@@ -41,6 +41,15 @@
 
 		<jackson.version>2.10.1</jackson.version>
 		<jacoco.version>0.8.6</jacoco.version>
+
+		<!-- Default values for the jacoco-maven-plugin reports -->
+		<cohort.jacoco.classRatio>0.80</cohort.jacoco.classRatio>
+		<cohort.jacoco.instructionRatio>0.70</cohort.jacoco.instructionRatio>
+		<cohort.jacoco.methodRatio>0.70</cohort.jacoco.methodRatio>
+		<cohort.jacoco.branchRatio>0.60</cohort.jacoco.branchRatio>
+		<cohort.jacoco.complexityRatio>0.60</cohort.jacoco.complexityRatio>
+		<cohort.jacoco.lineRatio>0.70</cohort.jacoco.lineRatio>
+		<cohort.jacoco.haltOnFailure>true</cohort.jacoco.haltOnFailure>
 	</properties>
 
 	<scm>
@@ -90,7 +99,7 @@
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-lang3</artifactId>
 				<version>3.11</version>
-			</dependency>			
+			</dependency>
 			<dependency>
 				<groupId>info.cqframework</groupId>
 				<artifactId>cql</artifactId>
@@ -166,13 +175,13 @@
 				<artifactId>jetty-servlets</artifactId>
 				<version>9.4.30.v20200611</version>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
 				<version>4.13</version>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>com.github.tomakehurst</groupId>
 				<artifactId>wiremock-jre8</artifactId>
@@ -326,6 +335,51 @@
 								</goals>
 							</execution>
 							<execution>
+								<id>jacoco-check</id>
+								<goals>
+									<goal>check</goal>
+								</goals>
+								<configuration>
+									<rules>
+										<rule>
+											<element>BUNDLE</element>
+											<limits>
+												<limit>
+													<counter>CLASS</counter>
+													<value>COVEREDRATIO</value>
+													<minimum>${cohort.jacoco.classRatio}</minimum>
+												</limit>
+												<limit>
+													<counter>INSTRUCTION</counter>
+													<value>COVEREDRATIO</value>
+													<minimum>${cohort.jacoco.instructionRatio}</minimum>
+												</limit>
+												<limit>
+													<counter>METHOD</counter>
+													<value>COVEREDRATIO</value>
+													<minimum>${cohort.jacoco.methodRatio}</minimum>
+												</limit>
+												<limit>
+													<counter>BRANCH</counter>
+													<value>COVEREDRATIO</value>
+													<minimum>${cohort.jacoco.branchRatio}</minimum>
+												</limit>
+												<limit>
+													<counter>LINE</counter>
+													<value>COVEREDRATIO</value>
+													<minimum>${cohort.jacoco.lineRatio}</minimum>
+												</limit>
+												<limit>
+													<counter>COMPLEXITY</counter>
+													<value>COVEREDRATIO</value>
+													<minimum>${cohort.jacoco.complexityRatio}</minimum>
+												</limit>
+											</limits>
+										</rule>
+									</rules>
+								</configuration>
+							</execution>
+							<execution>
 								<id>jacoco-report</id>
 								<phase>verify</phase>
 								<goals>
@@ -377,6 +431,6 @@
 			</reporting>
 		</profile>
 	</profiles>
-	
+
 </project>
 
