@@ -268,7 +268,7 @@
 					<dependency>
 						<groupId>com.ibm.cohort</groupId>
 						<artifactId>build</artifactId>
-						<version>0.0.1-SNAPSHOT</version>
+						<version>${revision}</version>
 					</dependency>
 				</dependencies>
 			</plugin>
