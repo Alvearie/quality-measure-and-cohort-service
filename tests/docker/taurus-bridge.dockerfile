@@ -5,6 +5,7 @@ RUN pip3 install numpy
 RUN pip3 install python-javabridge
 
 ARG KUBE_VERSION=1.16.1
+ENV API_KEY=“set-me”
 
 RUN  curl -fsSL https://clis.cloud.ibm.com/install/linux | bash && \
     ibmcloud plugin install container-service -f && \
@@ -16,4 +17,4 @@ COPY cloudInit.sh /
 
 #RUN /cloudInit.sh pziZ4lJxZY_pQCgByMPWISjxy5AN_9_L875S-mtGjqX6 CDT_CommOps_Quick_Cluster_01 CDT_CommOps_Quick_Cluster_01_RG cdt-commops-quickteam01-ns-01
 
-ENTRYPOINT ["sh", "-c", "/cloudInit.sh <CLOUD_API_KEY> CDT_CommOps_Quick_Cluster_01 CDT_CommOps_Quick_Cluster_01_RG cdt-commops-quickteam01-ns-01; bzt -l /tmp/artifacts/bzt.log \"$@\"", "ignored"]
+ENTRYPOINT ["sh", "-c", "/cloudInit.sh ${API_KEY} CDT_CommOps_Quick_Cluster_01 CDT_CommOps_Quick_Cluster_01_RG cdt-commops-quickteam01-ns-01; bzt -l /tmp/artifacts/bzt.log \"$@\"", "ignored"]
