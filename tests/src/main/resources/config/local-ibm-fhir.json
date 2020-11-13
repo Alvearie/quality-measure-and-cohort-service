@@ -1,0 +1,8 @@
+{
+    "@class": "com.ibm.cohort.engine.IBMFhirServerConfig",
+    "endpoint": "https://localhost:9443/fhir-server/api/v4",
+    "password": "change-password",
+    "tenantId": "test-fvt",
+    "tenantIdHeader": "X-FHIR-TENANT-ID",
+    "user": "fhiruser"
+}
