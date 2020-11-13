@@ -5,11 +5,11 @@
     xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
  
     <description>
-	    This ruleset defines the PMD rules for the entire cohort and
-	    quality measure project.
+        This ruleset defines the PMD rules for the entire cohort and
+        quality measure project.
     </description>
  
- 	<rule ref="category/java/bestpractices.xml/AvoidPrintStackTrace" />
+    <rule ref="category/java/bestpractices.xml/AvoidPrintStackTrace" />
     <rule ref="category/java/bestpractices.xml/AvoidUsingHardCodedIP" />
     <rule ref="category/java/bestpractices.xml/CheckResultSet" />
     <rule ref="category/java/bestpractices.xml/LooseCoupling" />

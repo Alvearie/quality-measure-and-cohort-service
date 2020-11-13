@@ -24,11 +24,11 @@ To download the repository or a fork, you should have Git Tools installed. Downl
 
 Optional: If you want or do use Eclipse.
 
-Download [Eclipse IDE for Enterprise Java Developers](https://www.eclipse.org/downloads/packages/release/2020-06/r/eclipse-ide-enterprise-java-developers) and install the following plugins:
+Download [Eclipse IDE for Enterprise Java Developers](https://www.eclipse.org/downloads/packages/release/2020-06/r/eclipse-ide-enterprise-java-developers). This includes Git integration and the M2E plugin which is all that should be needed to work with the project.
 
 ## Build the code
 
-Git fork and clone the quality measure and cohort engine repository using GitHub Standard Fork & Pull Request Workflow. For instance, ``git clone git@github.com:<myuser>/FHIR.git`` where ``myuser`` is your GitHub user or GitHub organization.
+Git fork and clone the quality measure and cohort engine repository using GitHub Standard Fork & Pull Request Workflow. For instance, ``git clone git@github.com:<myuser>/Alvearie/quality-measure-and-cohort-service.git`` where ``myuser`` is your GitHub user or GitHub organization.
 
 Once cloned locally, execute the following from the root of the repository:
 
