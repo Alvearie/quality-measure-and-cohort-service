@@ -1,0 +1,10 @@
+{
+    "tests": {
+        "scenario1" : {
+            "avg": 10,
+            "library": "LungCancerScreeningwithSNOMEDcodes",
+            "target": "d6587935-b9e4-188d-7e9f-a8dc909f4216",
+            "response": "Expression: Patient, Context: d6587935-b9e4-188d-7e9f-a8dc909f4216, Result: org.hl7.fhir.r4.model.Patient@\nExpression: generic_condition_concepts, Context: d6587935-b9e4-188d-7e9f-a8dc909f4216, Result: [org.hl7.fhir.r4.model.Condition@5149e63e, org.hl7.fhir.r4.model.Condition@16984169, org.hl7.fhir.r4.model.Condition@28535925]\nExpression: generic_condition_concepts_1, Context: d6587935-b9e4-188d-7e9f-a8dc909f4216, Result: [org.hl7.fhir.r4.model.Condition@3efac47b, org.hl7.fhir.r4.model.Condition@201cad8c, org.hl7.fhir.r4.model.Condition@745b23ef]\nExpression: 18 years or older Lung cancer patients, Context: d6587935-b9e4-188d-7e9f-a8dc909f4216, Result: true\nExpression: Patient diagnosed with lung cancer, Context: d6587935-b9e4-188d-7e9f-a8dc909f4216, Result: true\nExpression: Patient Encounters with Doctor due to lung cancer within last 6 months, Context: d6587935-b9e4-188d-7e9f-a8dc909f4216, Result: false\nExpression: MeetsInclusionCriteria, Context: d6587935-b9e4-188d-7e9f-a8dc909f4216, Result: true\nExpression: MeetsExclusionCriteria, Context: d6587935-b9e4-188d-7e9f-a8dc909f4216, Result: false\nExpression: InPopulation, Context: d6587935-b9e4-188d-7e9f-a8dc909f4216, Result: true\nExpression: Recommendation, Context: d6587935-b9e4-188d-7e9f-a8dc909f4216, Result: null\nExpression: Rationale, Context: d6587935-b9e4-188d-7e9f-a8dc909f4216, Result: null\nExpression: Errors, Context: d6587935-b9e4-188d-7e9f-a8dc909f4216, Result: null"
+        }     
+    }
+}
