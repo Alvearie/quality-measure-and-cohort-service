@@ -1,10 +1,4 @@
-#
-#
-# note ...
-# must run as " . ./script.sh"
-# that is, if you don't start with a dot then the
-# environment export does not work.
-#
+#!/bin/sh
 export MY_CLUSTER=$2
 export MY_GROUP=$3
 export MY_NAMESPACE=$4
