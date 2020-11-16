@@ -63,12 +63,7 @@ class Test(object):
         global engineWrapper
         testWrapper = baseDir+os.environ['TEST_WRAPPER']
         cohortEngine = baseDir+os.environ['COHORT_ENGINE']
-        #  -Xms512M -Xmx1G -Djavax.net.ssl.trustStore=config/trustStore.pkcs12 -Djavax.net.ssl.trustStorePassword=change-password -Djavax.net.ssl.trustStoreType=pkcs12 
-        print("testwrapper: "+ testWrapper)
-        print("cohortEngine: "+ cohortEngine)
-        print("fhirServer: "+ os.environ['DATA_FHIR_SERVER_DETAILS'])
         javabridge.start_vm(args=["-Xms512M", "-Xmx1G", "-Djavax.net.ssl.trustStore=cohort-cli/config/trustStore.pkcs12", "-Djavax.net.ssl.trustStorePassword=change-password", "-Djavax.net.ssl.trustStoreType=pkcs12"], run_headless=True, class_path=javabridge.JARS + [cohortEngine, testWrapper]) # Start the JVM with modified classpath.
-        #javabridge.start_vm(run_headless=True, class_path=javabridge.JARS + [cohortEngine, testWrapper]) # Start the JVM with modified classpath.
         engineWrapper = javabridge.JClassWrapper("com.ibm.cohort.engine.test.TestWrapper")() # Get an instance of the test wrapper.
         engineWrapper.warm(baseDir+os.environ['DATA_FHIR_SERVER_DETAILS'],baseDir+os.environ['TERM_FHIR_SERVER_DETAILS'],libraries, testLibrary, "d6587935-b9e4-188d-7e9f-a8dc909f4216") # Warm up the JV and submit a noise query.
 
