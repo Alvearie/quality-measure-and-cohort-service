@@ -1,12 +1,12 @@
 #!/bin/sh
-export MY_CLUSTER=$2
-export MY_GROUP=$3
-export MY_NAMESPACE=$4
-MY_API_KEY=$1
-API_URL=https://cloud.ibm.com
+CLOUD_API_KEY=$1
+REGION=$2
+CLUSTER_RESOURCE_GROUP=$3
+CLUSTER_NAME=$4
+CLUSTER_NAMESPACE=$5
 
-if [ -z $MY_CLUSTER ] || [ -z $MY_GROUP ] || [ -z $MY_NAMESPACE ] || [ -z $MY_API_KEY ]; then
-  echo "Usage: source $0 apiKey clusterName clusterGroupName namespaceToUse"
+if [ -z $CLOUD_API_KEY ] || [ -z $REGION ] || [ -z $CLUSTER_RESOURCE_GROUP ] || [ -z $CLUSTER_NAME ] || [ -z $CLUSTER_NAMESPACE ]; then
+  echo "Usage: source $0 apiKey region clusterResourceGroup clusterName namespaceToUse"
   exit 1
 fi
 
@@ -15,20 +15,17 @@ echo "*********************************************"
 echo "* ibmcloud login step *"
 echo "*********************************************"
 export IBMCLOUD_VERSION_CHECK=false
-ibmcloud api ${API_URL}
-
-ibmcloud login --apikey ${MY_API_KEY} -r us-south -g $MY_GROUP
+ibmcloud login --apikey ${CLOUD_API_KEY} -r ${REGION} -g ${CLUSTER_RESOURCE_GROUP}
 
 echo ""
 echo "*********************************************"
 echo "* step to export the environment *"
 echo "*********************************************"
-ibmcloud ks cluster config --cluster ${MY_CLUSTER}
+ibmcloud ks cluster config --cluster ${CLUSTER_NAME}
 
-kubectl config set-context ${MY_CLUSTER} --namespace=$MY_NAMESPACE
-kubectl config set-context --current --namespace=$MY_NAMESPACE
+kubectl config set-context ${CLUSTER_NAME} --namespace=$CLUSTER_NAMESPACE
 
 echo ""
 echo "exiting"
-kubectl get pod -n $MY_NAMESPACE | grep Running
-kubectl -n cdt-commops-quickteam01-ns-01 port-forward service/fhir-internal 9443:9443 &
+
+kubectl -n $CLUSTER_NAMESPACE port-forward service/fhir-internal 9443:9443 &
