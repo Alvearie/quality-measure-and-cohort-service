@@ -50,6 +50,12 @@
 		<cohort.jacoco.complexityRatio>0.60</cohort.jacoco.complexityRatio>
 		<cohort.jacoco.lineRatio>0.70</cohort.jacoco.lineRatio>
 		<cohort.jacoco.haltOnFailure>true</cohort.jacoco.haltOnFailure>
+
+		<sonar.scanner.force-deprecated-java-version>true</sonar.scanner.force-deprecated-java-version>
+		<sonar.projectKey>Alvearie_quality-measure-and-cohort-service</sonar.projectKey>
+		<sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>
+		<sonar.organization>alvearie</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 
 	<scm>
