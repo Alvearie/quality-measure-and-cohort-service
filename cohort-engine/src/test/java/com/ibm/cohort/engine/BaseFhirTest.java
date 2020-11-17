@@ -20,6 +20,7 @@ import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -38,6 +39,7 @@ import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
@@ -125,6 +127,13 @@ public class BaseFhirTest {
 		return fhirConfig;
 	}
 
+	protected Patient mockPatientRetrieval(String id, Enumerations.AdministrativeGender gender, String birthDateStr) 
+			throws ParseException {
+		Patient patient = getPatient(id, gender, birthDateStr);
+		mockFhirResourceRetrieval(patient);
+		return patient;
+	}
+	
 	protected Patient getPatient(String id, Enumerations.AdministrativeGender administrativeGender, String birthDateStr)
 			throws ParseException {
 		Patient patient = new Patient();
@@ -138,6 +147,23 @@ public class BaseFhirTest {
 		}
 		return patient;
 	}
+	
+	protected Patient mockPatientRetrieval(String id, AdministrativeGender gender, int ageInYears) {
+		Patient patient = getPatient(id, gender, ageInYears);
+		mockFhirResourceRetrieval(patient);
+		return patient;
+	}
+
+	protected Patient getPatient(String id, AdministrativeGender gender, int ageInYears) {
+		OffsetDateTime birthDate;
+		Patient patient = new Patient();
+		patient.setId(id);
+		patient.setGender(gender);
+		
+		birthDate = OffsetDateTime.now().minusYears(ageInYears);
+		patient.setBirthDate(Date.from(birthDate.toInstant()));
+		return patient;
+	}	
 
 	protected Library getLibrary(String id, String... attachmentData) throws Exception {
 		if (attachmentData == null || attachmentData.length == 0

@@ -118,7 +118,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		
 		String[] lines = output.split(System.getProperty("line.separator"));
 		assertEquals( output, 5, lines.length );
-		assertPopulationExpectations(lines);
+		assertTextPopulationExpectations(lines);
 	}
 	
 	@Test
@@ -218,21 +218,45 @@ public class MeasureCLITest extends BaseMeasureTest {
 		String[] lines = output.split(System.getProperty("line.separator"));
 		assertEquals( output, 6, lines.length );
 	}
-
-	protected Patient mockPatientRetrieval(String id, AdministrativeGender gender, int ageInYears) {
-		OffsetDateTime birthDate;
-		Patient patient = new Patient();
-		patient.setId(id);
-		patient.setGender(gender);
+	
+	@Test
+	public void testJsonFormattedOutput() throws Exception {
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 		
-		birthDate = OffsetDateTime.now().minusYears(ageInYears);
-		patient.setBirthDate(Date.from(birthDate.toInstant()));
-		
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1592-14-03");
 		mockFhirResourceRetrieval(patient);
-		return patient;
+		
+		Library library = mockLibraryRetrieval("Test", "cql/basic/test.cql");
+		
+		Measure measure = getCohortMeasure("Test", library, "Female");
+		mockFhirResourceRetrieval(measure);
+		
+		File tmpFile = new File("target/fhir-stub.json");
+		ObjectMapper om = new ObjectMapper();
+		try (Writer w = new FileWriter(tmpFile)) {
+			w.write(om.writeValueAsString(getFhirServerConfig()));
+		}
+		
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream out = new PrintStream(baos);
+		try {
+			MeasureCLI cli = new MeasureCLI();
+			cli.runWithArgs(new String[] {
+					"-d", tmpFile.getAbsolutePath(),
+					"-r", measure.getId(),
+					"-c", patient.getId(),
+					"-f", "JSON"
+			}, out);	
+		} finally {
+			tmpFile.delete();
+		}
+		
+		String output = new String(baos.toByteArray());
+		System.out.println(output);
+		assertTrue( output.contains("\"resourceType\": \"MeasureReport\"") );
 	}	
 	
-	protected void assertPopulationExpectations(String[] lines) {
+	protected void assertTextPopulationExpectations(String[] lines) {
 		Pattern p = Pattern.compile("Population: (?<code>[^ ]+) = (?<count>[0-9]+)");
 		for( String line : lines ) {
 			Matcher m = p.matcher(line);
