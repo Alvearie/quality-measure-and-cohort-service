@@ -14,7 +14,6 @@
 		<module>../build</module>
 		<module>../cohort-engine</module>
 		<module>../cohort-cli</module>
-		<module>../cdm-modelinfo-tooling</module>
 		<module>../tests</module>
 		<module>../reports</module>
 	</modules>
