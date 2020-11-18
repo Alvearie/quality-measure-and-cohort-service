@@ -393,7 +393,7 @@ public class CohortCLITest extends BaseFhirTest {
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
-		patient.addExtension(new Extension("http://fakeIg.com/fake-extension", new StringType("fakeValue")));
+//		patient.addExtension(new Extension("http://fakeIg.com/fake-extension", new StringType("fakeValue")));
 		mockFhirResourceRetrieval(patient);
 
 		Library root = getLibrary("test", "cql/ig-test/test.cql");

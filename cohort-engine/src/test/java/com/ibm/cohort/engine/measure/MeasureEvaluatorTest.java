@@ -9,11 +9,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -196,6 +198,37 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		expectationsByCareGap.put("CareGap2", 1);
 
 		runCareGapTest(parameters, expectationsByCareGap);
+	}
+	
+	@Test
+	public void in_one_initial_population_for_two_measures___single_measure_report_returned() throws Exception {
+		CapabilityStatement metadata = getCapabilityStatement();
+		mockFhirResourceRetrieval("/metadata", metadata);
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = mockLibraryRetrieval("TestDummyPopulations", "cql/fhir-measure/test-dummy-populations.cql");
+
+		Measure measure1 = getCareGapMeasure("ProportionMeasureName1", library, expressionsByPopulationType, "CareGap1",
+											"CareGap2");
+		mockFhirResourceRetrieval(measure1);
+
+		Measure measure2 = getCareGapMeasure("ProportionMeasureName2", library, expressionsByPopulationType, "CareGap1",
+											"CareGap2");
+		mockFhirResourceRetrieval(measure2);
+
+		Map<String, Object> passingParameters = new HashMap<>();
+		passingParameters.put("InInitialPopulation", Boolean.TRUE);
+
+		Map<String, Object> failingParameters = new HashMap<>();
+		passingParameters.put("InInitialPopulation", Boolean.FALSE);
+
+		List<MeasureContext> measureContexts = new ArrayList<>();
+		measureContexts.add(new MeasureContext(measure1.getId(), passingParameters));
+		measureContexts.add(new MeasureContext(measure2.getId(), failingParameters));
+
+		assertEquals(1, evaluator.evaluatePatientMeasures(patient.getId(), measureContexts).size());
 	}
 
 	private void runCareGapTest(Map<String, Object> parameters, Map<String, Integer> careGapExpectations)

@@ -11,6 +11,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Writer;
 import java.time.OffsetDateTime;
@@ -29,6 +30,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.measure.BaseMeasureTest;
 
 public class MeasureCLITest extends BaseMeasureTest {
+	private static final String TMP_PARAM_FILE_LOCATION = "target/measure-params.json";
+	
 	@Test
 	public void testCohortMeasureSinglePatient() throws Exception {
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
@@ -46,6 +49,8 @@ public class MeasureCLITest extends BaseMeasureTest {
 		try (Writer w = new FileWriter(tmpFile)) {
 			w.write(om.writeValueAsString(getFhirServerConfig()));
 		}
+
+		File tmpResourceParametersFile = createTmpParametersFileForSingleMeasure(measure.getId());
 		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream out = new PrintStream(baos);
@@ -53,17 +58,17 @@ public class MeasureCLITest extends BaseMeasureTest {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-r", measure.getId(),
+					"-r", tmpResourceParametersFile.getAbsolutePath(),
 					"-c", patient.getId() 
 			}, out);	
 		} finally {
 			tmpFile.delete();
+			tmpResourceParametersFile.delete();
 		}
 		
 		String output = new String(baos.toByteArray());
 		String[] lines = output.split(System.getProperty("line.separator"));
-		assertEquals( output, 3, lines.length );
-		assertTrue( lines[1].endsWith("= 0") );
+		assertEquals( output, 2, lines.length );
 	}
 	
 	@Test
@@ -99,6 +104,8 @@ public class MeasureCLITest extends BaseMeasureTest {
 		try (Writer w = new FileWriter(tmpFile)) {
 			w.write(om.writeValueAsString(getFhirServerConfig()));
 		}
+
+		File tmpResourceParametersFile = createTmpParametersFileForSingleMeasure(measure.getId());
 		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream out = new PrintStream(baos);
@@ -106,18 +113,19 @@ public class MeasureCLITest extends BaseMeasureTest {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-r", measure.getId(),
+					"-r", tmpResourceParametersFile.getAbsolutePath(),
 					"-c", patient.getId() 
 			}, out);	
 		} finally {
 			tmpFile.delete();
+			tmpResourceParametersFile.delete();
 		}
 		
 		String output = new String(baos.toByteArray());
 		System.out.println(output);
 		
 		String[] lines = output.split(System.getProperty("line.separator"));
-		assertEquals( output, 5, lines.length );
+		assertEquals( output, 6, lines.length );
 		assertTextPopulationExpectations(lines);
 	}
 	
@@ -149,27 +157,30 @@ public class MeasureCLITest extends BaseMeasureTest {
 		try (Writer w = new FileWriter(tmpFile)) {
 			w.write(om.writeValueAsString(getFhirServerConfig()));
 		}
-		
+
+		File tmpResourceParametersFile = createTmpParametersFileForSingleMeasure(measure.getId());
+
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream out = new PrintStream(baos);
 		try {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-r", measure.getId(),
+					"-r", tmpResourceParametersFile.getAbsolutePath(),
 					"-c", patient1.getId(),
 					"-c", patient2.getId(),
 					"-c", patient3.getId()
 			}, out);	
 		} finally {
 			tmpFile.delete();
+			tmpResourceParametersFile.delete();
 		}
 		
 		String output = new String(baos.toByteArray());
 		System.out.println(output);
 		
 		String[] lines = output.split(System.getProperty("line.separator"));
-		assertEquals( output, 15, lines.length );
+		assertEquals( output, 14, lines.length );
 	}
 	
 	@Test
@@ -198,25 +209,28 @@ public class MeasureCLITest extends BaseMeasureTest {
 		try (Writer w = new FileWriter(tmpFile)) {
 			w.write(om.writeValueAsString(getFhirServerConfig()));
 		}
-		
+
+		File tmpResourceParametersFile = createTmpParametersFileForSingleMeasure(measure.getId());
+
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream out = new PrintStream(baos);
 		try {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-r", measure.getId(),
+					"-r", tmpResourceParametersFile.getAbsolutePath(),
 					"-c", patient1.getId()
 			}, out);	
 		} finally {
 			tmpFile.delete();
+			tmpResourceParametersFile.delete();
 		}
 		
 		String output = new String(baos.toByteArray());
 		System.out.println(output);
 		
 		String[] lines = output.split(System.getProperty("line.separator"));
-		assertEquals( output, 6, lines.length );
+		assertEquals( output, 7, lines.length );
 	}
 	
 	@Test
@@ -228,7 +242,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		
 		Library library = mockLibraryRetrieval("Test", "cql/basic/test.cql");
 		
-		Measure measure = getCohortMeasure("Test", library, "Female");
+		Measure measure = getCohortMeasure("Test", library, "Male");
 		mockFhirResourceRetrieval(measure);
 		
 		File tmpFile = new File("target/fhir-stub.json");
@@ -236,19 +250,22 @@ public class MeasureCLITest extends BaseMeasureTest {
 		try (Writer w = new FileWriter(tmpFile)) {
 			w.write(om.writeValueAsString(getFhirServerConfig()));
 		}
-		
+
+		File tmpResourceParametersFile = createTmpParametersFileForSingleMeasure(measure.getId());
+
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream out = new PrintStream(baos);
 		try {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-r", measure.getId(),
+					"-r", tmpResourceParametersFile.getAbsolutePath(),
 					"-c", patient.getId(),
 					"-f", "JSON"
 			}, out);	
 		} finally {
 			tmpFile.delete();
+			tmpResourceParametersFile.delete();
 		}
 		
 		String output = new String(baos.toByteArray());
@@ -266,5 +283,17 @@ public class MeasureCLITest extends BaseMeasureTest {
 				assertEquals( type.toCode(), expectationsByPopulationType.get(type), actualCount );
 			}
 		}
+	}
+	
+	private File createTmpParametersFileForSingleMeasure(String measureId) throws IOException {
+		return createTmpParametersFileFromContents("{\"measureParameters\":[{\"measureId\":\"" + measureId + "\"}]}");
+	}
+	
+	private File createTmpParametersFileFromContents(String contents) throws IOException {
+		File tmpResourceParametersFile = new File(TMP_PARAM_FILE_LOCATION);
+		try (Writer w = new FileWriter(tmpResourceParametersFile)) {
+			w.write(contents);
+		}
+		return tmpResourceParametersFile;
 	}
 }

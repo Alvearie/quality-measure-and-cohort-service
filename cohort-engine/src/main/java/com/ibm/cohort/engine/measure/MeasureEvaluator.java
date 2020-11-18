@@ -5,6 +5,8 @@
  */
 package com.ibm.cohort.engine.measure;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -58,6 +60,27 @@ public class MeasureEvaluator {
 			this.measurementPeriodStrategy = new DefaultMeasurementPeriodStrategy();
 		}
 		return this.measurementPeriodStrategy;
+	}
+	
+	public List<MeasureReport> evaluatePatientMeasures(String patientId, List<MeasureContext> measureContexts) {
+		List<MeasureReport> measureReports = new ArrayList<>();
+		MeasureReport measureReport = null;
+		boolean inInitialPopulation;
+		for (MeasureContext measureContext: measureContexts) {
+			inInitialPopulation = false;
+			measureReport = evaluatePatientMeasure(measureContext.getMeasureId(), patientId, measureContext.getParameters());
+			if (measureReport != null) {
+				for (MeasureReport.MeasureReportGroupComponent group : measureReport.getGroup()) {
+					if (CDMMeasureEvaluation.StandardReportResults.fromMeasureReportGroup(group).inInitialPopulation()) {
+						inInitialPopulation = true;
+					}
+				}
+			}
+			if (inInitialPopulation) {
+				measureReports.add(measureReport);
+			}
+		}
+		return measureReports;
 	}
 
 	public MeasureReport evaluatePatientMeasure(String measureId, String patientId, Map<String, Object> parameters) {

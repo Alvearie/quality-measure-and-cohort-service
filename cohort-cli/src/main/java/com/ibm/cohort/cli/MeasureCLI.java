@@ -5,11 +5,9 @@
  */
 package com.ibm.cohort.cli;
 
-import static com.ibm.cohort.cli.ParameterHelper.parseParameters;
-
+import java.io.File;
 import java.io.PrintStream;
 import java.util.List;
-import java.util.Map;
 
 import org.hl7.fhir.r4.model.MeasureReport;
 
@@ -17,8 +15,10 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
+import com.ibm.cohort.cli.input.MeasureContextProvider;
 import com.ibm.cohort.engine.FhirClientBuilder;
 import com.ibm.cohort.engine.FhirClientBuilderFactory;
+import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.MeasureEvaluator;
 
 import ca.uhn.fhir.context.FhirContext;
@@ -37,20 +37,16 @@ public class MeasureCLI extends BaseCLI {
 		@Parameter(names = { "-c",
 				"--context-id" }, description = "FHIR resource ID for one or more patients to evaluate.", required = true)
 		private List<String> contextIds;
-
-		@Parameter(names = { "-p",
-				"--parameters" }, description = "Parameter value(s) in format name:type:value where value can contain additional parameterized elements separated by comma", required = false)
-		private List<String> parameters;
-
-		@Parameter(names = { "-r",
-				"--resource" }, description = "FHIR Resource ID for the measure resource to be evaluated", required = true )
-		private String resourceId;
 		
 		@Parameter(names = { "-h", "--help" }, description = "Display this help", required = false, help = true)
 		private boolean isDisplayHelp;
 		
 		@Parameter(names = { "-f", "--format" }, description = "Output format of the report (JSON|TEXT*)" ) 
 		private ReportFormat reportFormat = ReportFormat.TEXT;
+
+		@Parameter(names = { "-r",
+				"--resource-parameters" }, description = "JSON File containing measure resource ids and optional parameters", required = true )
+		private File resourceParameterFile;
 	}
 	
 	public MeasureEvaluator runWithArgs(String[] args, PrintStream out) throws Exception {
@@ -75,32 +71,38 @@ public class MeasureCLI extends BaseCLI {
 			IGenericClient terminologyServerClient = builder.createFhirClient(terminologyServerConfig);
 			IGenericClient measureServerClient = builder.createFhirClient(measureServerConfig);
 			
-			Map<String, Object> parameters = null;
-			if (arguments.parameters != null) {
-				parameters = parseParameters(arguments.parameters);
+			if (!arguments.resourceParameterFile.exists()) {
+				throw new IllegalArgumentException("Resource parameter file does not exist: " + arguments.resourceParameterFile.getPath());
 			}
 			
+			List<MeasureContext> measureContexts = MeasureContextProvider.getMeasureContexts(arguments.resourceParameterFile);
+
 			evaluator = new MeasureEvaluator(dataServerClient, terminologyServerClient, measureServerClient);
 			for( String contextId : arguments.contextIds ) {
 				out.println("Evaluating: " + contextId);
-				MeasureReport report = evaluator.evaluatePatientMeasure(arguments.resourceId, contextId, parameters);
-				
-				if( arguments.reportFormat == ReportFormat.TEXT ) {
-				
-					for( MeasureReport.MeasureReportGroupComponent group : report.getGroup() ) {
-						for( MeasureReport.MeasureReportGroupPopulationComponent pop : group.getPopulation() ) {
-							String popCode = pop.getCode().getCodingFirstRep().getCode();
-							if( pop.getId() != null ) {
-								popCode += "(" + pop.getId() + ")";
+				List<MeasureReport> reports = evaluator.evaluatePatientMeasures(contextId, measureContexts);
+
+				for (MeasureReport report : reports) {
+					if (arguments.reportFormat == ReportFormat.TEXT) {
+						out.println("Result for measure: " + report.getId());
+						for (MeasureReport.MeasureReportGroupComponent group : report.getGroup()) {
+							for (MeasureReport.MeasureReportGroupPopulationComponent pop : group.getPopulation()) {
+								String popCode = pop.getCode().getCodingFirstRep().getCode();
+								if (pop.getId() != null) {
+									popCode += "(" + pop.getId() + ")";
+								}
+								out.println(String.format("Population: %s = %d", popCode, pop.getCount()));
 							}
-							out.println( String.format("Population: %s = %d", popCode, pop.getCount() ) );
 						}
+					} else {
+						IParser parser = fhirContext.newJsonParser().setPrettyPrint(true);
+						out.println(parser.encodeResourceToString(report));
 					}
-				} else {
-					IParser parser = fhirContext.newJsonParser().setPrettyPrint(true);
-					out.println( parser.encodeResourceToString(report) );
+					out.println("---");
 				}
-				out.println("---");
+				if (reports.isEmpty()) {
+					out.println("---");
+				}
 			}
 		}
 		return evaluator;
