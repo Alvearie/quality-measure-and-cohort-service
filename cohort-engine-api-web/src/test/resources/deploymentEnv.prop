@@ -1,0 +1,9 @@
+## setup the properties for the host under test
+## properties from this file will be picked up
+## if none are passed to the framework through
+## jvm arguments
+
+watson.service.hostname=localhost
+watson.service.port=9101
+watson.service.protocol=http
+watson.service.version=v1
