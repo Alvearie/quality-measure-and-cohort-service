@@ -21,6 +21,19 @@
 		<connection>scm:git:git@github.com:Alvearie/quality-measure-and-cohort-service.git</connection>
 		<developerConnection>scm:git:git@github.com:Alvearie/quality-measure-and-cohort-service.git</developerConnection>
 	</scm>
+
+	<build>
+                <plugins>
+                        <plugin>
+                                <groupId>org.apache.maven.plugins</groupId>
+                                <artifactId>maven-deploy-plugin</artifactId>
+                                <version>2.7</version>
+                                <configuration>
+                                        <skip>true</skip>
+                                </configuration>
+                        </plugin>
+                </plugins>
+        </build>
 	
 </project>
 
