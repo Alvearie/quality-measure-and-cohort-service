@@ -28,6 +28,8 @@ import com.beust.jcommander.internal.DefaultConsole;
 import com.ibm.cohort.engine.CqlEngineWrapper;
 import com.ibm.cohort.engine.DirectoryLibrarySourceProvider;
 import com.ibm.cohort.engine.EvaluationResultCallback;
+import com.ibm.cohort.engine.FhirClientBuilder;
+import com.ibm.cohort.engine.FhirClientBuilderFactory;
 import com.ibm.cohort.engine.FhirLibraryLibrarySourceProvider;
 import com.ibm.cohort.engine.LibraryFormat;
 import com.ibm.cohort.engine.MultiFormatLibrarySourceProvider;
@@ -49,11 +51,11 @@ public class CohortCLI extends BaseCLI {
 		private String libraryPath;
 
 		@Parameter(names = { "-l",
-				"--libraryName" }, description = "Library Name (from CQL Library statement)", required = true)
+				"--libraryName" }, description = "Library Name", required = true)
 		private String libraryName;
 
 		@Parameter(names = { "-v",
-				"--libraryVersion" }, description = "Library Version (from CQL Library statement)", required = false)
+				"--libraryVersion" }, description = "Library Version", required = false)
 		private String libraryVersion;
 
 		@Parameter(names = { "-e", "--expression" }, description = "ELM Expression(s) to Execute", required = false)
@@ -103,7 +105,10 @@ public class CohortCLI extends BaseCLI {
 			jc.usage();
 		} else {
 			
-			wrapper = new CqlEngineWrapper();
+			FhirClientBuilderFactory factory = FhirClientBuilderFactory.newInstance();
+			FhirClientBuilder builder = factory.newFhirClientBuilder();
+			
+			wrapper = new CqlEngineWrapper(builder);
 
 			configureConnections(wrapper, arguments);
 
