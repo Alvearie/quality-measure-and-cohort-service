@@ -14,7 +14,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
-import com.ibm.cohort.engine.FhirClientFactory;
+import com.ibm.cohort.engine.FhirClientBuilder;
+import com.ibm.cohort.engine.FhirClientBuilderFactory;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
@@ -24,7 +25,9 @@ public class MeasureHelperTest extends BaseMeasureTest {
 
 	@Before
 	public void setUp() {
-		IGenericClient client = FhirClientFactory.newInstance(fhirContext).createFhirClient(getFhirServerConfig());
+		FhirClientBuilderFactory factory = FhirClientBuilderFactory.newInstance();
+		FhirClientBuilder builder = factory.newFhirClientBuilder(fhirContext);
+		IGenericClient client = builder.createFhirClient(getFhirServerConfig());
 		provider = new RestFhirMeasureResolutionProvider(client);
 		
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());

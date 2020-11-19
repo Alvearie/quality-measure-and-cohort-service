@@ -1,0 +1,18 @@
+{
+	"@class": "com.ibm.cohort.engine.FhirServerConfig",
+	"endpoint": "http://hapi.fhir.org/baseR4",
+	"user": "user",
+	"password": "password",
+	"token": "token",
+	"headers": {
+		"CUSTOM": "HEADER"
+	},
+	"cookies": ["ocookie=mycookie"],
+	"logInfo": ["ALL",
+		"REQUEST_BODY",
+		"REQUEST_HEADERS",
+		"REQUEST_SUMMARY",
+		"RESPONSE_BODY",
+		"RESPONSE_HEADERS",
+		"RESPONSE_SUMMARY"]
+}
