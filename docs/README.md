@@ -1,6 +1,6 @@
 # Overview
 
-This repo hosts documentation using GitHub Pages (available [here](https://pages.github.ibm.com/watson-health-cohorting/cohort-engine/#/)).
+This repo hosts documentation using GitHub Pages (available [here](https://alvearie.github.io/quality-measure-and-cohort-service/)).
 Documentation is rendered on the fly using [docsify](https://docsify.js.org/#/). Markdown files on the `master` branch in the
 `docs/` folder will be available in GitHub Pages.
 
