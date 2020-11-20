@@ -12,7 +12,7 @@ import java.util.Map;
 
 /**
  * Enumeration of supported library formats and methods to convert from
- * common source identifiers to enum values/
+ * common source identifiers to enum values.
  */
 public 	enum LibraryFormat {
 	CQL, XML;

@@ -35,23 +35,38 @@ public abstract class FhirClientBuilderFactory {
 	 * <li>Default FhirClientBuilderFactory instance.
 	 * </ul>
 	 * 
-	 * @return New instance of a DocumentBuilderFactory
+	 * @return New instance of a FhirClientBuilderFactory
 	 */
 	public static FhirClientBuilderFactory newInstance() {
 		String implName = System.getProperty(IMPL_CLASS_NAME);
 		if (StringUtils.isEmpty(implName)) {
 			implName = DEFAULT_IMPL_CLASS_NAME;
 		}
-		
-		try { 
-			Class<? extends FhirClientBuilderFactory> clazz = Class.forName(implName).asSubclass(FhirClientBuilderFactory.class);
+
+		try {
+			Class<? extends FhirClientBuilderFactory> clazz = Class.forName(implName)
+					.asSubclass(FhirClientBuilderFactory.class);
 			Constructor<? extends FhirClientBuilderFactory> constructor = clazz.getConstructor();
 			return constructor.newInstance();
-		} catch( Exception ex ) {
-			throw new FactoryConfigurationError( ex );
+		} catch (Exception ex) {
+			throw new FactoryConfigurationError(ex);
 		}
 	}
-	
-	public abstract DefaultFhirClientBuilder newFhirClientBuilder();
-	public abstract DefaultFhirClientBuilder newFhirClientBuilder(FhirContext fhirContext);
+
+	/**
+	 * Return a new FHIR Client Builder that uses the platform default FHIR Context.
+	 * 
+	 * @return New FhirClientBuilder instance.
+	 */
+	public abstract FhirClientBuilder newFhirClientBuilder();
+
+	/**
+	 * Return a new FHIR Client Builder that uses the provided FHIR Context.
+	 * 
+	 * @param fhirContext HAPI FhirContext object configured for the target FHIR
+	 *                    server/version.
+	 * 
+	 * @return New FhirClientBuilder instance.
+	 */
+	public abstract FhirClientBuilder newFhirClientBuilder(FhirContext fhirContext);
 }

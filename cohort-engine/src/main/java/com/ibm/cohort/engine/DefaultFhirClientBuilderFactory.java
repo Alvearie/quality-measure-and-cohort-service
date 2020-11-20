@@ -7,18 +7,22 @@ package com.ibm.cohort.engine;
 
 import ca.uhn.fhir.context.FhirContext;
 
+/**
+ * Platform default FhirClientBuilderFactory. This produces DefaultFhirClientBuilder
+ * instances and uses R4 as the default FhirContext.
+ */
 public class DefaultFhirClientBuilderFactory extends FhirClientBuilderFactory {
 	public DefaultFhirClientBuilderFactory() {
 		
 	}
 	
 	@Override
-	public DefaultFhirClientBuilder newFhirClientBuilder() {
+	public FhirClientBuilder newFhirClientBuilder() {
 		return new DefaultFhirClientBuilder(FhirContext.forR4());
 	}
 	
 	@Override
-	public DefaultFhirClientBuilder newFhirClientBuilder(FhirContext fhirContext) {
+	public FhirClientBuilder newFhirClientBuilder(FhirContext fhirContext) {
 		return new DefaultFhirClientBuilder(fhirContext);
 	}
 }

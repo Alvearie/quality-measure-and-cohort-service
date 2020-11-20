@@ -16,6 +16,17 @@ import ca.uhn.fhir.rest.client.interceptor.BearerTokenAuthInterceptor;
 import ca.uhn.fhir.rest.client.interceptor.CookieInterceptor;
 import ca.uhn.fhir.rest.client.interceptor.LoggingInterceptor;
 
+/**
+ * Default implementation of a FhirClientBuilder that configures the HAPI client
+ * with most of the out-of-the-box client interceptors detailed in <a href=
+ * "https://hapifhir.io/hapi-fhir/docs/interceptors/built_in_client_interceptors.html">the
+ * HAPI documentation</a>.
+ * 
+ * The builder does not attempt to validate the FhirServerConfig object. For
+ * instance, if the client provides both user/password authentication parameters
+ * and a bearer authorization token, both interceptors are created and attached
+ * to the client object.
+ */
 public class DefaultFhirClientBuilder implements FhirClientBuilder {
 
 	private FhirContext fhirContext;
@@ -39,7 +50,7 @@ public class DefaultFhirClientBuilder implements FhirClientBuilder {
 
 		if (config.getLogInfo() != null) {
 			/**
-			 * @see https://hapifhir.io/hapi-fhir/docs/interceptors/built_in_client_interceptors.html#section1
+			 * https://hapifhir.io/hapi-fhir/docs/interceptors/built_in_client_interceptors.html#section1
 			 */
 			LoggingInterceptor loggingInterceptor = new LoggingInterceptor();
 			for (FhirServerConfig.LogInfo logInfo : config.getLogInfo()) {
@@ -73,11 +84,11 @@ public class DefaultFhirClientBuilder implements FhirClientBuilder {
 				}
 			}
 			client.registerInterceptor(loggingInterceptor);
-		}		
-		
+		}
+
 		if (config.getUser() != null && config.getPassword() != null) {
 			/**
-			 * @see https://hapifhir.io/hapi-fhir/docs/interceptors/built_in_client_interceptors.html#section2
+			 * https://hapifhir.io/hapi-fhir/docs/interceptors/built_in_client_interceptors.html#section2
 			 */
 			IClientInterceptor authInterceptor = new BasicAuthInterceptor(config.getUser(), config.getPassword());
 			client.registerInterceptor(authInterceptor);
@@ -85,16 +96,16 @@ public class DefaultFhirClientBuilder implements FhirClientBuilder {
 
 		if (config.getToken() != null) {
 			/**
-			 * @see https://hapifhir.io/hapi-fhir/docs/interceptors/built_in_client_interceptors.html#section3
+			 * https://hapifhir.io/hapi-fhir/docs/interceptors/built_in_client_interceptors.html#section3
 			 */
 			IClientInterceptor authInterceptor = new BearerTokenAuthInterceptor(config.getToken());
 			client.registerInterceptor(authInterceptor);
 		}
-		
+
 		/**
-		 * @see https://hapifhir.io/hapi-fhir/docs/interceptors/built_in_client_interceptors.html#section4
+		 * https://hapifhir.io/hapi-fhir/docs/interceptors/built_in_client_interceptors.html#section4
 		 */
-		if( config.getHeaders() != null ) {
+		if (config.getHeaders() != null) {
 			AdditionalRequestHeadersInterceptor tenantInterceptor = new AdditionalRequestHeadersInterceptor();
 			for (Map.Entry<String, String> entry : config.getHeaders().entrySet()) {
 				tenantInterceptor.addHeaderValue(entry.getKey(), entry.getValue());
@@ -105,7 +116,7 @@ public class DefaultFhirClientBuilder implements FhirClientBuilder {
 		Map<String, String> additionalHeaders = config.getAdditionalHeaders();
 		if (additionalHeaders != null && additionalHeaders.size() > 0) {
 			/**
-			 * @see https://hapifhir.io/hapi-fhir/docs/interceptors/built_in_client_interceptors.html#section4
+			 * https://hapifhir.io/hapi-fhir/docs/interceptors/built_in_client_interceptors.html#section4
 			 */
 			AdditionalRequestHeadersInterceptor tenantInterceptor = new AdditionalRequestHeadersInterceptor();
 			for (Map.Entry<String, String> entry : additionalHeaders.entrySet()) {
@@ -116,7 +127,7 @@ public class DefaultFhirClientBuilder implements FhirClientBuilder {
 
 		if (config.getCookies() != null) {
 			/**
-			 * @see https://hapifhir.io/hapi-fhir/docs/interceptors/built_in_client_interceptors.html#section5
+			 * https://hapifhir.io/hapi-fhir/docs/interceptors/built_in_client_interceptors.html#section5
 			 */
 			for (String cookie : config.getCookies()) {
 				IClientInterceptor cookieInterceptor = new CookieInterceptor(cookie);
