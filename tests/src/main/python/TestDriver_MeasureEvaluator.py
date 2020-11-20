@@ -15,7 +15,6 @@ engineWrapper='' # Used to hold reference to the engine once it has been fired u
 currentDir=os.getcwd()
 #baseDir = currentDir+'/../../'
 baseDir = currentDir + '/'
-libraries=os.environ['LIBRARY_PATH']
 testLibrary = os.environ['TEST_LIBRARY']
 testFile=baseDir + os.environ['TESTS_JSON']
 
