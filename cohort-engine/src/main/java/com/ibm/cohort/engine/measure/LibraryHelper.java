@@ -5,8 +5,6 @@
  */
 package com.ibm.cohort.engine.measure;
 
-import java.util.Base64;
-
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.common.providers.LibrarySourceProvider;
 
@@ -18,8 +16,7 @@ import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
 public class LibraryHelper {
 
 	/**
-	 * Create a LibraryLoader using the provided LibraryResolutionProvider, but
-	 * overriding the default behavior such that CQL text is base64 decoded.
+	 * Create a LibraryLoader using the provided LibraryResolutionProvider.
 	 * 
 	 * @param provider Library resolution provider
 	 * @return LibraryLoader that will base64 decode CQL text
@@ -27,7 +24,7 @@ public class LibraryHelper {
 	public static LibraryLoader createLibraryLoader(LibraryResolutionProvider<org.hl7.fhir.r4.model.Library> provider) {
 		InJVMCqlTranslationProvider translator = new InJVMCqlTranslationProvider();
 		translator.addLibrarySourceProvider(new LibrarySourceProvider<org.hl7.fhir.r4.model.Library, org.hl7.fhir.r4.model.Attachment>(provider,
-				x -> x.getContent(), x -> x.getContentType(), x -> Base64.getDecoder().decode(x.getData())));
+				x -> x.getContent(), x -> x.getContentType(), x -> x.getData()));
 
 		return new LibraryLoader(provider, translator);
 	}
