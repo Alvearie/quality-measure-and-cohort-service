@@ -4,9 +4,9 @@ The [IBM Quality Measure and Cohort Engine](https://github.com/Alvearie/quality-
 
 Since moving the project into Alvearie organization, publication of release builds has been temporarily put on hold until a suitable location for the builds has been determined. In the meantime, you will want to use "git clone" to pull down [the repository](https://github.com/Alvearie/quality-measure-and-cohort-service) and ``mvn install -f cohort-parent`` to build it. If you don't already have Maven installed on your workstation, [download](https://maven.apache.org/download.cgi) version 3.6.3 or newer and follow the [installation instructions](https://maven.apache.org/install.html). You should be using a Java SDK version 8.0 or higher. If you don't already have a Java SDK on your workstation, you can download one [here](https://adoptopenjdk.net/).
 
-Once the prerequisites are installed and you have successfully executed the ``mvn install -f cohort-parent`` command, there will be two JARs produced under cohort-engine/target. One jar is the project without dependencies (cohort-engine-VERSION.jar) and the other is an "uber jar" (aka shaded jar) that contains all the project code and dependencies in a single executable artifact (cohort-engine-VERSION-shaded.jar). Choose the artifact that makes the most sense for your execution environment. Simple command-line testing is easiest with the shaded JAR.
+Once the prerequisites are installed and you have successfully executed the ``mvn install -f cohort-parent`` command, there will be a library JAR produced under cohort-engine/target and two JARs under cohort-cli/target. Under cohort-cli/target, one jar is the project without dependencies (cohort-cli-VERSION.jar) and the other is an "uber jar" (aka shaded jar) that contains all the project code and dependencies in a single executable artifact (cohort-cli-VERSION-shaded.jar). Choose the artifact that makes the most sense for your execution environment. Simple command-line testing is easiest with the shaded JAR.
 
-The CQL engine utilizes data and terminology stored in a FHIR server adhering to the FHIR R4 standard. Our testing is focused on use of the [IBM Open Source FHIR Server](https://github.com/IBM/FHIR) server, but any FHIR server, such as the [open source HAPI FHIR server](https://github.com/jamesagnew/hapi-fhir), should be usable. The configuration and management of the FHIR server is left to the user. Configuration details for connecting to the server are provided to the API and can be managed in JSON files as needed.
+The CQL engine utilizes data and terminology stored in a FHIR server adhering to the FHIR R4 standard. Our testing is focused on use of the [IBM Open Source FHIR Server](https://github.com/IBM/FHIR) server, but any FHIR server, such as the [open source HAPI FHIR server](https://github.com/jamesagnew/hapi-fhir), should be usable. The configuration and management of the FHIR server is left to the user. Configuration details for connecting to the server are provided to the API and can be managed in JSON files as needed (see below).
 
 A common pattern is to have the FHIR server deployed in the IBM Cloud. For instance, you might grab the [latest Docker image](https://hub.docker.com/r/ibmcom/ibm-fhir-server) of the IBM FHIR Server and deploy it to a Kubernetes cluster in your IBM cloud account.  If your FHIR server is in IBM cloud and you don't have direct network line of sight to the server, you can use Kubernetes port-forward to point the engine the instance in the cloud using a command similar to the one below (substituting the <xxx> variables as appropriate for your environment).
 
@@ -102,9 +102,38 @@ Usage: cql-engine [options]
       be used to retrieve terminology.
 ```
 
+### FHIR Server Configuration
+
+The Cohort Engine uses FHIR REST APIs to retrieve the information needed to process CQL queries. All FHIR servers are assumed to be R4. The ``-d`` argument to the CohortCLI is a file path pointing to a configuration file in JSON format that provides the details for connecting to the FHIR server that contains the resources that will be queried. There are two sample configuration files provided in the ``config`` folder. The ``config/remote-hapi-fhir.json`` example shows the most basic configuration which is simply the base URL of the target FHIR server. The ``config/local-ibm-fhir.json`` configuration shows a more advanced setup that uses basic authentication to connect to the FHIR server and provides a value for the IBM FHIR server tenant ID header which is used to specify which tenant in a multi-tenant environment will be used at runtime. These use the com.ibm.cohort.engine.FhirServerConfig and com.ibm.cohort.engine.IBMFhirServerConfig classes, respectively, and the @class property is required to indicate what type of configuration is being specified. Additional configuration is possible for developers that extend FhirServerConfig class and implement their own FhirClientBuilderFactory. A client builder factory can be configured using the com.ibm.cohort.FhirClientBuilderFactory.
+
+In a configuration file using the IBMFhirServerConfig class, custom headers will be added to the FHIR REST API calls for the tenantId and datasource name as needed. The header names for these headers are set to the defaults used by the IBM FHIR server if not specified. Users can use the tenantIdHeader and dataSourceIdHeader properties to override the defaults if they've been changed in the target FHIR server's ``fhir-server-config.json`` file. Use ``dataSourceId`` as a property in the file to override the FHIR server datasource name (not shown in the example file). See the [IBM FHIR Server User's Guide](https://ibm.github.io/FHIR/guides/FHIRServerUsersGuide#33-tenant-specific-configuration-properties) for complete details on configuration, headers, and persistence setup.
+
+Only one tenant's data can be queried per execution. There are, however, additional configuration options for the terminology server ``-t`` and measure server ``-m`` connections. Using these optional parameters, you can specify additional FHIR server connections for where terminology and clinical quality measure resources are stored.  If either of ``-m`` or ``-t`` is not provided, the data server connection details are used for the respective connection.
+
+#### Example Configuration with All Options
+```json
+{
+    "@class": "com.ibm.cohort.engine.FhirServerConfig",
+    "endpoint": "https://localhost:9443/fhir-server/api/v4",
+    "user": "fhiruser",
+    "password": "change-password",
+	"token": "token",
+	"cookies": [ "ocookie=mycookie" ],
+	"headers": {
+		"X-FHIR-TENANT-ID": "default",
+		"X-FHIR-DS-ID": "default"
+	},
+	"logInfo": [
+		"ALL"
+	]
+}
+```
+
+Users should choose zero or one authentication scheme. If both user/password credentials and bearer authorization token are provided the behavior is non-prescriptive. Valid values for the logInfo configuration are ALL, REQUEST_SUMMARY, REQUEST_BODY, REQUEST_HEADERS, RESPONSE_SUMMARY, RESPONSE_HEADERS, RESPONSE_BODY. See the [HAPI FHIR Client Configuration guide](https://hapifhir.io/hapi-fhir/docs/interceptors/built_in_client_interceptors.html#section1) for full details. You must have your logger configured at INFO level or above to see the log messages generated by the logInfo settings. See the [Logging](#logging) section for additional details.
+
 ### Input Parameters
 
-Parameters on the command-line are represented as colon-delimited triplet data in the format ``name:type:value``. Names should exact case match the definitions in the CQL library being used. The type is a lowercase value that matches the CQL datatype of the parmaeter. Value literals for date types should be prefixed with the @ sign per the CQL specification (e.g. MyParam:date:@1970-01-01) and time types should be prefixed with the letter T (e.g. MyParam:time:T12:00:00). For data types that have structured data associated with them, such as an interval or quantity parameter, the value field contains additional formatting. For quantity parameters, the amount and unit of measure are colon-delimited (e.g. MyParam:quantity:10,mg/mL). For interval parameters, the value parameter is comma-delimited (to avoid collisions with date-time strings) and is triplet of ``datatype,start,end`` where the start and end parameters follow the standard rules for those types as above. 
+Parameters on the command-line are represented as colon-delimited triplet data in the format ``name:type:value``. Names should exact case match the definitions in the CQL library being used. The type is a lowercase value that matches the CQL datatype of the parameter. Value literals for date types should be prefixed with the @ sign per the CQL specification (e.g. ``MyParam:date:@1970-01-01``) and time types should be prefixed with the letter T (e.g. MyParam:time:T12:00:00). For data types that have structured data associated with them, such as an interval or quantity parameter, the value field contains additional formatting. For quantity parameters, the amount and unit of measure are colon-delimited (e.g. MyParam:quantity:10,mg/mL). For interval parameters, the value parameter is comma-delimited (to avoid collisions with date-time strings) and is triplet of ``datatype,start,end`` where the start and end parameters follow the standard rules for those types as above. 
 
 ### Library loaders
 
@@ -115,7 +144,7 @@ For the folder and ZIP library loading mechanisms, filenames are assumed to be i
 For the FHIR Library resource loader, CQL is embedded in the ``content`` field as FHIR Attachment resources. Per recommendations in the Data Exchange for Quality Measures (DEQM) FHIR Implementation guide, FHIR Attachment resources are assumed to be Base64 encoded and ``contentType`` field should be set to text/cql for CQL attachments and application/elm+xml for ELM attachments. The Library resource ID that is provided is considered to be the "main" artifact and should contain the expressions that the user would like to evaluate. Additional libraries can be included through the use of the ``relatedArtifacts`` field in the library resource. And relatedArtifacts entries that are Library resources will also be loaded and loading is done recursively.
 
 ## Logging
-Logging in Java can be a complicated topic because there are a variety of logging frameworks available and combining open source projects together often ends up with multiple different strategies in use at the same time. SLF4J is the preferred logging framework for cohort engine use. Users should refer to the [SLF4j manual](http://www.slf4j.org/manual.html) for instructions on how to configure SLF4J for their purposes. When executing from the command-line, the slf4j-simple binding is used.
+Logging in Java can be a complicated topic because there are a variety of logging frameworks available and combining open source projects together often ends up with multiple different strategies in use at the same time. SLF4J is the preferred logging framework for cohort engine use. Users should refer to the [SLF4j manual](http://www.slf4j.org/manual.html) for instructions on how to configure SLF4J for their purposes. When executing from the command-line, the slf4j-simple binding is used. Configuration can be provided via Java system properties. See [the SimpleLogger documentation](http://www.slf4j.org/api/org/slf4j/impl/SimpleLogger.html) for complete details.
 
 # Error states
 The Engine detects and throws IllegalArgumentException for the following error states:
