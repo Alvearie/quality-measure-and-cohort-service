@@ -12,7 +12,7 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.annotations.ApiModelProperty;
-
+@Generated
 public class PatientMeasureEvaluationGroupStratifier {
 
 	private String code = null;

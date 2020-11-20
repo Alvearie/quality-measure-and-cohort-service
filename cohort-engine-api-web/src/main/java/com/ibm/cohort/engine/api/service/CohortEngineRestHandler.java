@@ -86,7 +86,6 @@ public class CohortEngineRestHandler {
 			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
 			@ApiParam(value = "patients and the measures to run", required = true) MeasuresEvaluation body) {
 		// return delegate.evaluateMeasures(body, securityContext);
-		request.getRequestURL();
 		ResponseBuilder responseBuilder = Response.status(Response.Status.ACCEPTED).entity("12345")
 				.header("Content-Location", request.getRequestURL() + "/status/12345?version=" + version);
 

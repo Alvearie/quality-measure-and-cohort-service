@@ -889,8 +889,8 @@
 												<!-- this project contains generated placeholder pojos for the REST service 
 												and it is not worth it to write tests for these since they are all just 
 												getter/setter type methods. If more complex classes are added, the decision
-												to exclude this project should be revisited -->
-												<exclude>*cohort-engine-api*</exclude>
+												to exclude this project should be revisited 
+												<exclude>*cohort-engine-api*</exclude>-->
 											</excludes>
 											<limits>
 												<limit>

@@ -11,7 +11,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.annotations.ApiModelProperty;
 
+//This annotation tells jacoco to skip code coverage on these generated placeholder classes
+//so the build won't fail
+@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
+@interface Generated{}
+
 /*@XmlRootElement uncomment if you want to allow returning xml*/
+@Generated
 public class EvaluateMeasuresStatus {
 
 	private String jobId = null;
