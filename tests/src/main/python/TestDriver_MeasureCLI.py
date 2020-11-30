@@ -32,7 +32,7 @@ class Test(object):
     def execute(self, params, targets, output, resource, measureServer):
         output = re.sub('@\w+', '@',output)
         o = output.split('\n')
-        callDetails = ["java", "Xms1G", "-Djavax.net.ssl.trustStore=config/trustStore.pkcs12", "-Djavax.net.ssl.trustStorePassword=change-password", "-Djavax.net.ssl.trustStoreType=pkcs12", "-jar", jar]
+        callDetails = ["java", "-Xms1G", "-Xmx1G", "-Djavax.net.ssl.trustStore="+os.environ["TRUSTSTORE"], "-Djavax.net.ssl.trustStorePassword="+os.environ["TRUSTSTORE_PASSWORD"], "-Djavax.net.ssl.trustStoreType="+os.environ["TRUSTSTORE_TYPE"], "-jar", jar]
         if os.environ['DATA_FHIR_SERVER_DETAILS']:
             callDetails.append("-d")
             callDetails.append(os.environ['DATA_FHIR_SERVER_DETAILS'])

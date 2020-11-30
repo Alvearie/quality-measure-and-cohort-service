@@ -16,7 +16,6 @@ jar = os.environ['JAR']
 
 def setup():
     os.chdir(baseDir)
-    # This will eventually need to read these in from a file.
     tests = list()
     with open(testFile) as f:
         data = json.load(f)
@@ -35,7 +34,7 @@ class Test(object):
     def execute(self, params, library, version,  targets, output, source, expressions, measureServer):
         output = re.sub('@\w+', '@',output)
         o = output.split('\n')
-        callDetails = ["java", "-Xms1G", "-Xmx1G", "-Djavax.net.ssl.trustStore=cohort-cli/config/trustStore.pkcs12", "-Djavax.net.ssl.trustStorePassword=change-password", "-Djavax.net.ssl.trustStoreType=pkcs12", "-jar", jar, "-f", libraries, "-l", library]
+        callDetails = ["java", "-Xms1G", "-Xmx1G", "-Djavax.net.ssl.trustStore="+os.environ["TRUSTSTORE"], "-Djavax.net.ssl.trustStorePassword="+os.environ["TRUSTSTORE_PASSWORD"], "-Djavax.net.ssl.trustStoreType="+os.environ["TRUSTSTORE_TYPE"], "-jar", jar, "-f", libraries, "-l", library]
         if os.environ['DATA_FHIR_SERVER_DETAILS']:
             callDetails.append("-d")
             callDetails.append(os.environ['DATA_FHIR_SERVER_DETAILS'])
