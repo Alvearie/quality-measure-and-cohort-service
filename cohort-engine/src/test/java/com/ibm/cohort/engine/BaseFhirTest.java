@@ -23,7 +23,6 @@ import java.text.SimpleDateFormat;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -35,11 +34,11 @@ import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CapabilityStatement;
 import org.hl7.fhir.r4.model.Enumerations;
+import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
-import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
@@ -187,7 +186,7 @@ public class BaseFhirTest {
 
 				Attachment attachment = new Attachment();
 				attachment.setContentType(contentType);
-				attachment.setData(Base64.getEncoder().encode(text.getBytes()));
+				attachment.setData(text.getBytes());
 				attachments.add(attachment);
 			}
 		}

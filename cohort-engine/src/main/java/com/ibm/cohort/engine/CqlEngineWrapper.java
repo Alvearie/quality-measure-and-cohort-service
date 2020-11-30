@@ -49,18 +49,18 @@ public class CqlEngineWrapper {
 
 	private LibraryLoader libraryLoader = null;
 
-	private FhirClientFactory clientFactory;
+	private FhirClientBuilder clientBuilder;
 
 	private IGenericClient dataServerClient;
 	private IGenericClient measureServerClient;
 	private IGenericClient terminologyServerClient;
 
 	public CqlEngineWrapper() {
-		this(FhirClientFactory.newInstance(FhirContext.forR4()));
+		this(FhirClientBuilderFactory.newInstance().newFhirClientBuilder(FhirContext.forR4()));
 	}
 
-	public CqlEngineWrapper(FhirClientFactory clientFactory) {
-		this.clientFactory = clientFactory;
+	public CqlEngineWrapper(FhirClientBuilder clientBuilder) {
+		this.clientBuilder = clientBuilder;
 	}
 
 	/**
@@ -78,7 +78,7 @@ public class CqlEngineWrapper {
 	 * @param config
 	 */
 	public void setDataServerConnectionProperties(FhirServerConfig config) {
-		setDataServerClient(clientFactory.createFhirClient(config));
+		setDataServerClient(clientBuilder.createFhirClient(config));
 	}
 
 	/**
@@ -105,7 +105,7 @@ public class CqlEngineWrapper {
 	 * @param config
 	 */
 	public void setMeasureServerConnectionProperties(FhirServerConfig config) {
-		setMeasureServerClient(clientFactory.createFhirClient(config));
+		setMeasureServerClient(clientBuilder.createFhirClient(config));
 	}
 
 	/**
@@ -132,7 +132,7 @@ public class CqlEngineWrapper {
 	 * @param config
 	 */
 	public void setTerminologyServerConnectionProperties(FhirServerConfig config) {
-		this.terminologyServerClient = clientFactory.createFhirClient(config);
+		this.terminologyServerClient = clientBuilder.createFhirClient(config);
 	}
 
 	/**

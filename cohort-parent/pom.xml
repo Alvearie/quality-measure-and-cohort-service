@@ -14,7 +14,6 @@
 		<module>../build</module>
 		<module>../cohort-engine</module>
 		<module>../cohort-cli</module>
-		<module>../cdm-modelinfo-tooling</module>
 		<module>../tests</module>
 		<module>../reports</module>
 	</modules>
@@ -50,6 +49,12 @@
 		<cohort.jacoco.complexityRatio>0.60</cohort.jacoco.complexityRatio>
 		<cohort.jacoco.lineRatio>0.70</cohort.jacoco.lineRatio>
 		<cohort.jacoco.haltOnFailure>true</cohort.jacoco.haltOnFailure>
+
+		<sonar.scanner.force-deprecated-java-version>true</sonar.scanner.force-deprecated-java-version>
+		<sonar.projectKey>Alvearie_quality-measure-and-cohort-service</sonar.projectKey>
+		<sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>
+		<sonar.organization>alvearie</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 
 	<scm>
@@ -57,6 +62,14 @@
 		<connection>scm:git:git@github.com:Alvearie/quality-measure-and-cohort-service.git</connection>
 		<developerConnection>scm:git:git@github.com:Alvearie/quality-measure-and-cohort-service.git</developerConnection>
 	</scm>
+
+	<distributionManagement>
+		<repository>
+			<id>github</id>
+			<name>GitHub Packages</name>
+			<url>https://maven.pkg.github.com/Alvearie/quality-measure-and-cohort-service</url>
+		</repository>
+	</distributionManagement>
 
 	<repositories>
 		<repository>
@@ -288,6 +301,11 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jxr-plugin</artifactId>
+				<version>2.3</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
 				<version>3.13.0</version>
 				<configuration>
@@ -377,6 +395,7 @@
 											</limits>
 										</rule>
 									</rules>
+									<haltOnFailure>${cohort.jacoco.haltOnFailure}</haltOnFailure>
 								</configuration>
 							</execution>
 							<execution>

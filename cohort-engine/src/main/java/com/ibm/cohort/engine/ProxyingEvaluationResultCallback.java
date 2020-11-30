@@ -6,6 +6,11 @@
 
 package com.ibm.cohort.engine;
 
+/**
+ * Provide a bridge between the functional ExpressionResultCallback and the
+ * new EvaluationResultCallback method so that clients don't have to change
+ * a lot of their code that uses the ExpressionResultCallback.
+ */
 public class ProxyingEvaluationResultCallback implements EvaluationResultCallback {
 
 	private ExpressionResultCallback proxy;

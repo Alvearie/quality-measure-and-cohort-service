@@ -23,7 +23,8 @@ import org.junit.Test;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.ibm.cohort.engine.BaseFhirTest;
-import com.ibm.cohort.engine.FhirClientFactory;
+import com.ibm.cohort.engine.FhirClientBuilder;
+import com.ibm.cohort.engine.FhirClientBuilderFactory;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
@@ -35,7 +36,9 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 
 	@Before
 	public void setUp() {
-		IGenericClient client = FhirClientFactory.newInstance(fhirContext).createFhirClient(getFhirServerConfig());
+		FhirClientBuilderFactory factory = FhirClientBuilderFactory.newInstance();
+		FhirClientBuilder builder = factory.newFhirClientBuilder(fhirContext);
+		IGenericClient client = builder.createFhirClient(getFhirServerConfig());
 		provider = new RestFhirLibraryResolutionProvider(client);
 	}
 	

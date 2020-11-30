@@ -38,7 +38,7 @@ During development, you may want to check code coverage. Code coverage via Jacoc
 
 ## Import to the IDE / editor of your choice
 
-The quality measure and cohort engine team is using Eclipse; feel free to use anything you want.
+The quality measure and cohort engine team is using Eclipse and IntelliJ; feel free to use anything you want.
 
 ### Importing to Eclipse
 
