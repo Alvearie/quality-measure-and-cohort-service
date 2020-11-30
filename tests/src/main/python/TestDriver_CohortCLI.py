@@ -9,7 +9,6 @@ import subprocess
 import pytest
 
 currentDir=os.getcwd()
-#baseDir = currentDir+'/../../'
 baseDir = currentDir + '/'
 libraries=os.environ['LIBRARY_PATH']
 testFile=baseDir + os.environ['TESTS_JSON']
