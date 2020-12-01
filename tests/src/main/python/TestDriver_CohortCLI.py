@@ -48,7 +48,7 @@ class Test(object):
         if version:
             callDetails.append("-v")
             callDetails.append(version)
-        if source:  
+        if source:
             callDetails.append("-s")
             callDetails.append(source)
         if expressions:
