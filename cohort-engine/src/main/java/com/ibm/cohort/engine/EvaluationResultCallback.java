@@ -5,6 +5,10 @@
  */
 package com.ibm.cohort.engine;
 
+/**
+ * Callback function that provides callout points at the beginning and
+ * end of each context evaluation.
+ */
 public interface EvaluationResultCallback extends ExpressionResultCallback {
 	void onContextBegin(String contextId);
 	void onContextComplete(String contextId);

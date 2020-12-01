@@ -1,0 +1,14 @@
+{
+    "tests": {
+        "scenario1" : {
+            "params" : ["a=something","age=70"],
+            "library": "",
+            "version" : "1.0.0",
+            "targets": ["d6587935-b9e4-188d-7e9f-a8dc909f4216"],
+            "response": "",
+            "source": null,
+            "expressions" : null,
+            "measureServer": null
+        }     
+    }
+}

@@ -8,7 +8,6 @@ package com.ibm.cohort.engine.measure;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -107,7 +106,7 @@ public class LibraryLoader implements org.opencds.cqf.cql.engine.execution.Libra
 	}
 
 	protected InputStream getAttachmentData(Attachment attachment) throws IOException {
-		return new ByteArrayInputStream(Base64.getDecoder().decode(attachment.getData()));
+		return new ByteArrayInputStream(attachment.getData());
 	}
 
 	@Override

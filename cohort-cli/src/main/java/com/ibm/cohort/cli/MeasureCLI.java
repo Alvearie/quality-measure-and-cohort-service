@@ -17,7 +17,8 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
-import com.ibm.cohort.engine.FhirClientFactory;
+import com.ibm.cohort.engine.FhirClientBuilder;
+import com.ibm.cohort.engine.FhirClientBuilderFactory;
 import com.ibm.cohort.engine.measure.MeasureEvaluator;
 
 import ca.uhn.fhir.context.FhirContext;
@@ -67,10 +68,12 @@ public class MeasureCLI extends BaseCLI {
 			
 			FhirContext fhirContext = FhirContext.forR4();
 			
-			FhirClientFactory factory = FhirClientFactory.newInstance(fhirContext);
-			IGenericClient dataServerClient = factory.createFhirClient(dataServerConfig);
-			IGenericClient terminologyServerClient = factory.createFhirClient(terminologyServerConfig);
-			IGenericClient measureServerClient = factory.createFhirClient(measureServerConfig);
+			FhirClientBuilderFactory factory = FhirClientBuilderFactory.newInstance();
+			FhirClientBuilder builder = factory.newFhirClientBuilder(fhirContext);
+			
+			IGenericClient dataServerClient = builder.createFhirClient(dataServerConfig);
+			IGenericClient terminologyServerClient = builder.createFhirClient(terminologyServerConfig);
+			IGenericClient measureServerClient = builder.createFhirClient(measureServerConfig);
 			
 			Map<String, Object> parameters = null;
 			if (arguments.parameters != null) {

@@ -28,6 +28,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 
+import com.ibm.cohort.engine.LibraryFormat;
+
 public class MeasureEvaluatorTest extends BaseMeasureTest {
 
 	private MeasureEvaluator evaluator;
@@ -47,7 +49,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		mockFhirResourceRetrieval(patient);
 
 		Library library = mockLibraryRetrieval("TestDummyPopulations", "cql/fhir-measure/test-dummy-populations.xml",
-				"application/elm+xml");
+				LibraryFormat.MIME_TYPE_APPLICATION_ELM_XML);
 
 		Measure measure = getCohortMeasure("CohortMeasureName", library, INITIAL_POPULATION);
 		mockFhirResourceRetrieval(measure);

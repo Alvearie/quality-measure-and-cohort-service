@@ -30,7 +30,8 @@ import org.junit.Before;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 
 import com.ibm.cohort.engine.BaseFhirTest;
-import com.ibm.cohort.engine.FhirClientFactory;
+import com.ibm.cohort.engine.FhirClientBuilder;
+import com.ibm.cohort.engine.FhirClientBuilderFactory;
 import com.ibm.cohort.engine.FhirServerConfig;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
@@ -57,7 +58,9 @@ public class BaseMeasureTest extends BaseFhirTest {
 	@Before
 	public void setUp() {
 		FhirServerConfig config = getFhirServerConfig();
-		client = FhirClientFactory.newInstance(fhirContext).createFhirClient(config);
+		FhirClientBuilderFactory factory = FhirClientBuilderFactory.newInstance();
+		FhirClientBuilder builder = factory.newFhirClientBuilder(fhirContext);
+		client = builder.createFhirClient(config);
 
 		expressionsByPopulationType = new HashMap<>();
 		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);

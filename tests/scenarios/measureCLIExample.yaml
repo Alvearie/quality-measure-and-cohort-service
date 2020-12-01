@@ -1,0 +1,19 @@
+settings:
+  env:
+    JAR: measure-cli/target/measure-cli-0.0.1-SNAPSHOT-shaded.jar
+    TESTS_JSON: tests/src/main/resources/performanceScenarios.json
+    DATA_FHIR_SERVER_DETAILS: cohort-cli/config/remote-hapi-fhir.json
+    TERM_FHIR_SERVER_DETAILS: cohort-cli/config/remote-hapi-fhir.json
+
+execution:
+- executor: pytest
+  scenario: pytest-test
+
+scenarios:
+
+  pytest-test:
+    script: ../src/main/python/TestDriver_MeasureCLI.py
+
+reporting:
+- module: junit-xml
+  filename: ../results/sampleTest.xml

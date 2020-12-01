@@ -8,7 +8,6 @@ package com.ibm.cohort.engine;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -63,8 +62,7 @@ public class FhirLibraryLibrarySourceProvider extends MultiFormatLibrarySourcePr
 					Map<LibraryFormat, InputStream> formats = sources.computeIfAbsent(id,
 							vid -> new HashMap<LibraryFormat, InputStream>());
 
-					byte[] decoded = Base64.getDecoder().decode(attachment.getData());
-					formats.put(sourceFormat, new ByteArrayInputStream(decoded));
+					formats.put(sourceFormat, new ByteArrayInputStream(attachment.getData()));
 					numLoaded++;
 				}
 			}

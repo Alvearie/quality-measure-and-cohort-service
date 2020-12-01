@@ -12,16 +12,20 @@ import java.util.Map;
 
 /**
  * Enumeration of supported library formats and methods to convert from
- * common source identifiers to enum values/
+ * common source identifiers to enum values.
  */
 public 	enum LibraryFormat {
 	CQL, XML;
 
+	public static final String MIME_TYPE_TEXT_CQL = "text/cql";
+	public static final String MIME_TYPE_APPLICATION_CQL = "application/cql";
+	public static final String MIME_TYPE_APPLICATION_ELM_XML = "application/elm+xml";
+	
 	private static final Map<String,LibraryFormat> MIME_TYPE_TO_FORMAT = new HashMap<>();
 	static {
-		MIME_TYPE_TO_FORMAT.put("text/cql", CQL);
-		MIME_TYPE_TO_FORMAT.put("application/cql", CQL);
-		MIME_TYPE_TO_FORMAT.put("application/elm+xml", XML);		
+		MIME_TYPE_TO_FORMAT.put(MIME_TYPE_TEXT_CQL, CQL);
+		MIME_TYPE_TO_FORMAT.put(MIME_TYPE_APPLICATION_CQL, CQL);
+		MIME_TYPE_TO_FORMAT.put(MIME_TYPE_APPLICATION_ELM_XML, XML);		
 	}
 	
 	private static final Map<String,LibraryFormat> EXTENSION_TO_FORMAT = new HashMap<>();
