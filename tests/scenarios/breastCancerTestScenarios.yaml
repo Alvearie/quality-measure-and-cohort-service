@@ -1,0 +1,20 @@
+settings:
+  env:
+    LIBRARY_PATH: tests/src/main/resources/libraries/breast_cancer_screeningwith_snome_dcodes_v1_0_0_cql.zip
+    JAR: cohort-cli/target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar
+    TESTS_JSON: tests/src/main/resources/breastCancerTestScenarios.json
+    DATA_FHIR_SERVER_DETAILS: tests/src/main/resources/config/local-ibm-fhir.json
+    TERM_FHIR_SERVER_DETAILS: tests/src/main/resources/config/local-ibm-fhir.json
+
+execution:
+- executor: pytest
+  scenario: pytest-test
+
+scenarios:
+
+  pytest-test:
+    script: ../src/main/python/TestDriver_CohortCLI.py
+
+reporting:
+- module: junit-xml
+  filename: ../results/sampleTest.xml
