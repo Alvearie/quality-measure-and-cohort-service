@@ -11,4 +11,4 @@ Install python-javabridge (openblas may not be necessary on non-mac systems)
 
 docker build -t taurus-javabridge -f {Your path}/CohortEngine/quality-measure-and-cohort-service/tests/docker/taurus-bridge.dockerfile .
 
-docker run -it --rm -v {Your path}/CohortEngine/quality-measure-and-cohort-service:/bzt-configs -v {Your path}/CohortEngine/quality-measure-and-cohort-service/tests/results:/tmp/artifacts taurus-javabridge ./tests/scenarios/sampleJson.yaml
+docker run -it --rm --env-file {Your path}/quality-measure-and-cohort-service/tests/docker/Env.txt -v {Your path}/CohortEngine/quality-measure-and-cohort-service:/bzt-configs -v {Your path}/CohortEngine/quality-measure-and-cohort-service/tests/results:/tmp/artifacts taurus-javabridge ./tests/scenarios/sampleJson.yaml
