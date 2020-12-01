@@ -44,27 +44,27 @@ public class CohortEngineRestApplication extends ServiceApplication {
 		// Expensive initialization code should be done in the handler's static block or
 		// as a lazy initialize once during the handler's construction and stored in a
 		// static member variable.
-	    classes.add( CohortEngineRestStatusHandler.class );
-	    classes.add( CohortEngineRestHandler.class );
+		classes.add( CohortEngineRestStatusHandler.class );
+		classes.add( CohortEngineRestHandler.class );
 
-        // Uncomment the following lines for chainable services that will use the ContainerGroup model.
-        // You will also need to add either service-container-model-utils-v1.9 or service-container-model-utils-v2.4 to your pom file
-        // Add Jackson and our own custom serializer / deserializers
-	    //classes.add( JacksonJsonProvider.class);
-	    //classes.add( ObjectMapperProvider.class );
+		// Uncomment the following lines for chainable services that will use the ContainerGroup model.
+		// You will also need to add either service-container-model-utils-v1.9 or service-container-model-utils-v2.4 to your pom file
+		// Add Jackson and our own custom serializer / deserializers
+		//classes.add( JacksonJsonProvider.class);
+		//classes.add( ObjectMapperProvider.class );
 
-	    // Add swagger providers
+		// Add swagger providers
 		List<Class<?>> swaggerClasses = SwaggerSetup.getApplicationClassesForSwagger();
 		classes.addAll(swaggerClasses);
 
-	    // Log handlers
+		// Log handlers
 		StringBuffer handlerList = new StringBuffer();
 		for(Class<?> handler : classes) {
 			handlerList.append(handler.getSimpleName()+" ");
 		}
 		logger.info("Handler classes: "+handlerList.toString());
 
-	    return classes;
+		return classes;
 	}
 
 }

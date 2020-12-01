@@ -17,7 +17,4 @@ public class CohortEngineRestConstants {
 	// Dynamic assignment using base package name from this class
 	private static String className = CohortEngineRestConstants.class.getCanonicalName();
 	public static final String SERVICE_SWAGGER_PACKAGES = className.substring(0, className.lastIndexOf('.'));
-
-	public static final String DARK_LAUNCHED_NEW_DATE_API_FEATURE = "new_date_api_feature";
-	public static final String DARK_LAUNCHED_NEW_DATE_PARAMETER_FEATURE = "new_date_parameter_feature";
 }
