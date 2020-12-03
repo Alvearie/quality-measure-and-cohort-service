@@ -1,0 +1,34 @@
+<!--  ************************************** -->
+<!--  (C) Copyright IBM Corp. 2020, 2020     -->
+<!--  SPDX-License-Identifier: Apache-2.0    -->
+<!--  ************************************** -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.ibm.cohort</groupId>
+		<artifactId>cohort-parent</artifactId>
+		<version>${revision}</version>
+		<relativePath>../cohort-parent</relativePath>
+	</parent>
+
+	<artifactId>cohort-engine-api</artifactId>
+	<packaging>jar</packaging>
+	<name>cohort-engine-api</name>
+
+	<properties>
+	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+  <dependencies>
+  	<dependency>
+		<groupId>com.ibm.watson.health.services</groupId>
+		<artifactId>service-base-os</artifactId>
+	</dependency>
+    <dependency>
+		<groupId>junit</groupId>
+		<artifactId>junit</artifactId>
+		<scope>test</scope>
+	</dependency>
+  </dependencies>
+</project>

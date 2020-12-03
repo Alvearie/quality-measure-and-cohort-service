@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  ************************************** -->
+<!--  (C) Copyright IBM Corp. 2001, 2020     -->
+<!--  SPDX-License-Identifier: Apache-2.0    -->
+<!--  ************************************** -->
+<configuration>
+	<appender name="CUSTOM"
+		class="com.ibm.watson.common.service.base.CustomAppender">
+		<encoder>
+			<pattern>%m%n</pattern>
+		</encoder>
+	</appender>
+
+	<root level="info">
+		<appender-ref ref="CUSTOM" />
+	</root>
+</configuration>
