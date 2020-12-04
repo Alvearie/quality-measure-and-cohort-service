@@ -9,7 +9,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class MeasureParameterInput {
+public class MeasureParameters {
 	@JsonProperty("measureParameters")
 	private List<MeasureIdWithParameters> measureParameterInputs;
 

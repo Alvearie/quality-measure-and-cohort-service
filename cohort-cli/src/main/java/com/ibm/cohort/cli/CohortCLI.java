@@ -136,7 +136,7 @@ public class CohortCLI extends BaseCLI {
 
 			Map<String, Object> parameters = null;
 			if (arguments.parameters != null) {
-				parameters = ParameterHelper.parseParameterArguments(arguments.parameters);
+				parameters = parseParameterArguments(arguments.parameters);
 			}
 			
 			wrapper.evaluate(arguments.libraryName, arguments.libraryVersion, parameters, arguments.expressions,

@@ -16,7 +16,7 @@ import com.ibm.cohort.engine.measure.MeasureContext;
 public class MeasureContextProvider {
 	public static List<MeasureContext> getMeasureContexts(File input) throws IOException {
 		ObjectMapper objectMapper = new ObjectMapper();
-		MeasureParameterInput parsedInput = objectMapper.readValue(input, MeasureParameterInput.class);
+		MeasureParameters parsedInput = objectMapper.readValue(input, MeasureParameters.class);
 
 		// Throws an exception if invalid input is encountered
 		parsedInput.validate();

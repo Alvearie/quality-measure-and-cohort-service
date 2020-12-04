@@ -44,9 +44,9 @@ public class MeasureCLI extends BaseCLI {
 		@Parameter(names = { "-f", "--format" }, description = "Output format of the report (JSON|TEXT*)" ) 
 		private ReportFormat reportFormat = ReportFormat.TEXT;
 
-		@Parameter(names = { "-r",
-				"--resource-parameters" }, description = "JSON File containing measure resource ids and optional parameters", required = true )
-		private File resourceParameterFile;
+		@Parameter(names = { "-p",
+				"--measure-parameters" }, description = "JSON File containing measure resource ids and optional parameters", required = true )
+		private File measureParameterFile;
 	}
 	
 	public MeasureEvaluator runWithArgs(String[] args, PrintStream out) throws Exception {
@@ -71,11 +71,11 @@ public class MeasureCLI extends BaseCLI {
 			IGenericClient terminologyServerClient = builder.createFhirClient(terminologyServerConfig);
 			IGenericClient measureServerClient = builder.createFhirClient(measureServerConfig);
 			
-			if (!arguments.resourceParameterFile.exists()) {
-				throw new IllegalArgumentException("Resource parameter file does not exist: " + arguments.resourceParameterFile.getPath());
+			if (!arguments.measureParameterFile.exists()) {
+				throw new IllegalArgumentException("Measure parameter file does not exist: " + arguments.measureParameterFile.getPath());
 			}
 			
-			List<MeasureContext> measureContexts = MeasureContextProvider.getMeasureContexts(arguments.resourceParameterFile);
+			List<MeasureContext> measureContexts = MeasureContextProvider.getMeasureContexts(arguments.measureParameterFile);
 
 			evaluator = new MeasureEvaluator(dataServerClient, terminologyServerClient, measureServerClient);
 			for( String contextId : arguments.contextIds ) {
