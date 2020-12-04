@@ -5,7 +5,7 @@
  */
 package com.ibm.cohort.cli;
 
-import static com.ibm.cohort.cli.ParameterHelper.parseParameters;
+import static com.ibm.cohort.cli.ParameterHelper.parseParameterArguments;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -136,7 +136,7 @@ public class CohortCLI extends BaseCLI {
 
 			Map<String, Object> parameters = null;
 			if (arguments.parameters != null) {
-				parameters = parseParameters(arguments.parameters);
+				parameters = ParameterHelper.parseParameterArguments(arguments.parameters);
 			}
 			
 			wrapper.evaluate(arguments.libraryName, arguments.libraryVersion, parameters, arguments.expressions,

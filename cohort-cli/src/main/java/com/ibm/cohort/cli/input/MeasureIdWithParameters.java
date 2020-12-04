@@ -33,7 +33,7 @@ public class MeasureIdWithParameters {
 			
 			stringParameters.add(p.getName() + ":" + p.getType() + ":" + valueToParse);
 		}
-		return ParameterHelper.parseParameters(stringParameters);
+		return ParameterHelper.parseParameterArguments(stringParameters);
 	}
 	
 	public void validate() throws IllegalArgumentException {

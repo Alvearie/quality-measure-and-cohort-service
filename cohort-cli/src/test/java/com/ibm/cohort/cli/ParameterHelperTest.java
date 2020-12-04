@@ -22,7 +22,7 @@ import org.opencds.cqf.cql.engine.runtime.Time;
 public class ParameterHelperTest {
 	@Test
 	public void testResolveIntegerParameter() {
-		Map<String, Object> params = ParameterHelper.parseParameters(Arrays.asList("test:integer:40"));
+		Map<String, Object> params = ParameterHelper.parseParameterArguments(Arrays.asList("test:integer:40"));
 		assertEquals(1, params.size());
 		Integer p = (Integer) params.get("test");
 		assertNotNull("Parameter with expected name not found", p);
@@ -31,7 +31,7 @@ public class ParameterHelperTest {
 
 	@Test
 	public void testResolveDecimalParameter() {
-		Map<String, Object> params = ParameterHelper.parseParameters(Arrays.asList("test:decimal:40.0"));
+		Map<String, Object> params = ParameterHelper.parseParameterArguments(Arrays.asList("test:decimal:40.0"));
 		assertEquals(1, params.size());
 		BigDecimal p = (BigDecimal) params.get("test");
 		assertNotNull("Parameter with expected name not found", p);
@@ -40,7 +40,7 @@ public class ParameterHelperTest {
 
 	@Test
 	public void testResolveBooleanParameter() {
-		Map<String, Object> params = ParameterHelper.parseParameters(Arrays.asList("test:boolean:true"));
+		Map<String, Object> params = ParameterHelper.parseParameterArguments(Arrays.asList("test:boolean:true"));
 		assertEquals(1, params.size());
 		Boolean p = (Boolean) params.get("test");
 		assertNotNull("Parameter with expected name not found", p);
@@ -50,7 +50,7 @@ public class ParameterHelperTest {
 	@Test
 	public void testResolveStringParameter() {
 		Map<String, Object> params = ParameterHelper
-				.parseParameters(Arrays.asList("test:string:I have the:delimiter"));
+				.parseParameterArguments(Arrays.asList("test:string:I have the:delimiter"));
 		assertEquals(1, params.size());
 		String p = (String) params.get("test");
 		assertNotNull("Parameter with expected name not found", p);
@@ -60,7 +60,7 @@ public class ParameterHelperTest {
 	@Test
 	public void testResolveDateTimeParameter() {
 		Map<String, Object> params = ParameterHelper
-				.parseParameters(Arrays.asList("test:datetime:@2020-09-27T12:13:14"));
+				.parseParameterArguments(Arrays.asList("test:datetime:@2020-09-27T12:13:14"));
 		assertEquals(1, params.size());
 		DateTime p = (DateTime) params.get("test");
 		assertNotNull("Parameter with expected name not found", p);
@@ -74,7 +74,7 @@ public class ParameterHelperTest {
 
 	@Test
 	public void testResolveTimeParameter() {
-		Map<String, Object> params = ParameterHelper.parseParameters(Arrays.asList("test:time:T12:13:14"));
+		Map<String, Object> params = ParameterHelper.parseParameterArguments(Arrays.asList("test:time:T12:13:14"));
 		assertEquals(1, params.size());
 		Time p = (Time) params.get("test");
 		assertNotNull("Parameter with expected name not found", p);
@@ -85,7 +85,7 @@ public class ParameterHelperTest {
 
 	@Test
 	public void testResolveQuantityParameter() {
-		Map<String, Object> params = ParameterHelper.parseParameters(Arrays.asList("test:quantity:100:mg/mL"));
+		Map<String, Object> params = ParameterHelper.parseParameterArguments(Arrays.asList("test:quantity:100:mg/mL"));
 		assertEquals(1, params.size());
 		Quantity p = (Quantity) params.get("test");
 		assertNotNull("Parameter with expected name not found", p);
@@ -95,7 +95,7 @@ public class ParameterHelperTest {
 
 	@Test
 	public void testResolveCodeParameter() {
-		Map<String, Object> params = ParameterHelper.parseParameters(Arrays.asList("test:code:1.2.3:SNOMEDCT:Hernia"));
+		Map<String, Object> params = ParameterHelper.parseParameterArguments(Arrays.asList("test:code:1.2.3:SNOMEDCT:Hernia"));
 		assertEquals(1, params.size());
 		Code p = (Code) params.get("test");
 		assertNotNull("Parameter with expected name not found", p);
@@ -106,12 +106,12 @@ public class ParameterHelperTest {
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void testResolveConceptParameter() {
-		ParameterHelper.parseParameters(Arrays.asList("test:concept:not right now"));
+		ParameterHelper.parseParameterArguments(Arrays.asList("test:concept:not right now"));
 	}
 
 	@Test
 	public void testResolveIntervalIntegerParameter() {
-		Map<String, Object> params = ParameterHelper.parseParameters(Arrays.asList("test:interval:integer,10,20"));
+		Map<String, Object> params = ParameterHelper.parseParameterArguments(Arrays.asList("test:interval:integer,10,20"));
 		assertEquals(1, params.size());
 		Interval p = (Interval) params.get("test");
 		assertEquals(10, p.getStart());
@@ -120,7 +120,7 @@ public class ParameterHelperTest {
 
 	@Test
 	public void testResolveIntervalDecimalParameter() {
-		Map<String, Object> params = ParameterHelper.parseParameters(Arrays.asList("test:interval:decimal,10,20"));
+		Map<String, Object> params = ParameterHelper.parseParameterArguments(Arrays.asList("test:interval:decimal,10,20"));
 		assertEquals(1, params.size());
 		Interval p = (Interval) params.get("test");
 		assertEquals(10, ((BigDecimal) p.getStart()).intValue());
@@ -130,7 +130,7 @@ public class ParameterHelperTest {
 	@Test
 	public void testResolveIntervalQuantityParameter() {
 		Map<String, Object> params = ParameterHelper
-				.parseParameters(Arrays.asList("test:interval:quantity,10:mg/mL,20:mg/mL"));
+				.parseParameterArguments(Arrays.asList("test:interval:quantity,10:mg/mL,20:mg/mL"));
 		assertEquals(1, params.size());
 		Interval p = (Interval) params.get("test");
 		assertEquals(10, ((Quantity) p.getStart()).getValue().intValue());
@@ -142,7 +142,7 @@ public class ParameterHelperTest {
 	@Test
 	public void testResolveIntervalDatetimeParameter() {
 		Map<String, Object> params = ParameterHelper
-				.parseParameters(Arrays.asList("test:interval:datetime,@2020-01-02T12:13:14,@2021-02-03T22:33:44"));
+				.parseParameterArguments(Arrays.asList("test:interval:datetime,@2020-01-02T12:13:14,@2021-02-03T22:33:44"));
 		assertEquals(1, params.size());
 		Interval p = (Interval) params.get("test");
 		DateTime start = (DateTime) p.getStart();
@@ -165,7 +165,7 @@ public class ParameterHelperTest {
 	@Test
 	public void testResolveIntervalTimeParameter() {
 		Map<String, Object> params = ParameterHelper
-				.parseParameters(Arrays.asList("test:interval:time,T12:13:14,T22:33:44"));
+				.parseParameterArguments(Arrays.asList("test:interval:time,T12:13:14,T22:33:44"));
 		assertEquals(1, params.size());
 		Interval p = (Interval) params.get("test");
 		Time start = (Time) p.getStart();
@@ -181,16 +181,16 @@ public class ParameterHelperTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testResolveIntervalUnsupportedSubtypeParameter() {
-		ParameterHelper.parseParameters(Arrays.asList("test:interval:unsupported,a,b"));
+		ParameterHelper.parseParameterArguments(Arrays.asList("test:interval:unsupported,a,b"));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testResolveUnsupportedTypeParameter() {
-		ParameterHelper.parseParameters(Arrays.asList("test:unsupported:a,b"));
+		ParameterHelper.parseParameterArguments(Arrays.asList("test:unsupported:a,b"));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testResolveUnsupportedFormatParameter() {
-		ParameterHelper.parseParameters(Arrays.asList("gibberish"));
+		ParameterHelper.parseParameterArguments(Arrays.asList("gibberish"));
 	}
 }
