@@ -2,8 +2,6 @@ package com.ibm.cohort.cli.input;
 
 import static com.ibm.cohort.cli.input.InputUtil.isNullOrEmpty;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,19 +19,8 @@ public class MeasureIdWithParameters {
 		return measureId;
 	}
 	
-	// TODO: Actually implement this for real. Don't use the crazy strings
 	public Map<String, Object> getParameters() {
-		if (parameters == null) {
-			return new HashMap<>();
-		}
-		
-		List<String> stringParameters = new ArrayList<>();
-		for (Parameter p: parameters) {
-			String valueToParse = p.getValue() != null && !p.getValue().isEmpty() ? p.getValue() : p.getSubtype() + "," + p.getStart() + "," + p.getEnd();
-			
-			stringParameters.add(p.getName() + ":" + p.getType() + ":" + valueToParse);
-		}
-		return ParameterHelper.parseParameterArguments(stringParameters);
+		return ParameterHelper.parseParameters(parameters);
 	}
 	
 	public void validate() throws IllegalArgumentException {

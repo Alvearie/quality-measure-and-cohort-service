@@ -59,6 +59,12 @@ public class ParameterHelper {
 		return result;
 	}
 	
+	/**
+	 * Conversion routine for CQL parameter values stored as Parameter objects.
+	 *
+	 * @param parameters list of CQL parameter values as Parameter objects
+	 * @return decoded parameter values formatted for consumption by the CQL engine
+	 */
 	public static Map<String, Object> parseParameters(List<Parameter> parameters) {
 		Map<String, Object> result = new HashMap<>();
 
@@ -73,8 +79,8 @@ public class ParameterHelper {
 	}
 	
 
-	public static Map.Entry<String, Object> convertParameter(String name, String type, String value, 
-															 String subType, String start, String end) {
+	private static Map.Entry<String, Object> convertParameter(String name, String type, String value,
+															  String subType, String start, String end) {
 		Object typedValue = null;
 		String[] parts = null;
 		switch (type) {
@@ -132,7 +138,7 @@ public class ParameterHelper {
 			default:
 				throw new IllegalArgumentException(String.format("Parameter type %s not supported", type));
 		}
-		return new AbstractMap.SimpleEntry(name, typedValue);
+		return new AbstractMap.SimpleEntry<>(name, typedValue);
 	}
 
 	/**
