@@ -70,6 +70,8 @@ class Test(object):
                 tmpout=tmpout+temp
         print("Output: \n" + tmpout)
         out = re.sub('@\w+', '@',tmpout)
+        out = re.sub('_history/\w+', '_history', out)
+        print("Output: \n" + out)
         respOut = out.splitlines()
         error = "\n"
         for line in o:

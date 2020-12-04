@@ -6,6 +6,7 @@ import csv
 import json
 import re
 import subprocess
+import pytest
 
 currentDir=os.getcwd()
 baseDir = currentDir + '/'
@@ -30,9 +31,8 @@ class Test(object):
 
     # Execute submits a query and validates the return.
     def execute(self, params, targets, output, resource, measureServer):
-        output = re.sub('@\w+', '@',output)
         o = output.split('\n')
-        callDetails = ["java", "-Xms1G", "-Xmx1G", "-Djavax.net.ssl.trustStore="+os.environ["TRUSTSTORE"], "-Djavax.net.ssl.trustStorePassword="+os.environ["TRUSTSTORE_PASSWORD"], "-Djavax.net.ssl.trustStoreType="+os.environ["TRUSTSTORE_TYPE"], "-jar", jar]
+        callDetails = ["java", "-Xms1G", "-Xmx1G", "-Djavax.net.ssl.trustStore="+os.environ["TRUSTSTORE"], "-Djavax.net.ssl.trustStorePassword="+os.environ["TRUSTSTORE_PASSWORD"], "-Djavax.net.ssl.trustStoreType="+os.environ["TRUSTSTORE_TYPE"], "-classpath", jar, "com.ibm.cohort.cli.MeasureCLI"]
         if os.environ['DATA_FHIR_SERVER_DETAILS']:
             callDetails.append("-d")
             callDetails.append(os.environ['DATA_FHIR_SERVER_DETAILS'])
@@ -52,8 +52,13 @@ class Test(object):
         if resource:
             callDetails.append("-r")
             callDetails.append(resource)
-        out = subprocess.run(callDetails, stdout=subprocess.PIPE)
-        out = re.sub('@\w+', '@',out)
+        out = subprocess.Popen(callDetails, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        tmpout=""
+        for line in out.stdout:
+            temp=line.decode('utf-8')
+            if not "[main]" in temp:
+                tmpout=tmpout+temp
+        out=tmpout
         respOut = out.splitlines()
         error = "\n"
         for line in o:
