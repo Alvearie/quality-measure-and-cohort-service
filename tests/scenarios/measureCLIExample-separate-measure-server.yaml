@@ -1,9 +1,9 @@
 settings:
   env:
     JAR: cohort-cli/target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar
-    TESTS_JSON: tests/src/main/resources/performanceScenarios.json
-    DATA_FHIR_SERVER_DETAILS: cohort-cli/config/remote-hapi-fhir.json
-    TERM_FHIR_SERVER_DETAILS: cohort-cli/config/remote-hapi-fhir.json
+    TESTS_JSON: tests/src/main/resources/measureCLIExample-separate-measure-server.json
+    DATA_FHIR_SERVER_DETAILS: tests/src/main/resources/config/local-ibm-fhir.json
+    TERM_FHIR_SERVER_DETAILS: tests/src/main/resources/config/local-ibm-fhir.json
 
 execution:
 - executor: pytest
