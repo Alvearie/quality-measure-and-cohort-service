@@ -1,0 +1,6 @@
+{
+  "jobFinishTime": "${json-unit.ignore}",
+  "jobId": "12345",
+  "jobStartTime": "${json-unit.ignore}",
+  "jobStatus": "RUNNING"
+}

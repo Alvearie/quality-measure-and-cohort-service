@@ -1,0 +1,33 @@
+{
+  "patientsTenantId": "string",
+  "patientsServerUrl": "string",
+  "patientServerConnectionProperties": [
+    "string"
+  ],
+  "measureTenantId": "string",
+  "measureServerUrl": "string",
+  "measureServerConnectionProperties": [
+    "string"
+  ],
+  "resultsValidTil": 0,
+  "MeasureEvaluations": [
+    {
+      "patientIds": [
+        "string"
+      ],
+      "versionedMeasures": [
+        {
+          "measureId": "string",
+          "measureVersion": "string",
+          "measureParameters": [
+            "string"
+          ],
+          "measureProperties": [
+            "string"
+          ],
+          "persistResults": true
+        }
+      ]
+    }
+  ]
+}
