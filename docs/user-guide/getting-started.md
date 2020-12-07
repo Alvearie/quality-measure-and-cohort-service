@@ -374,7 +374,7 @@ Population: denominator = 1
 ---
 ```
 
-Contents of `path/to/json/parameter/file`:
+Example contents of `path/to/json/parameter/file`:
 
 ```json
 {
