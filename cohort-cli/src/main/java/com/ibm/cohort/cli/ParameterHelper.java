@@ -82,7 +82,6 @@ public class ParameterHelper {
 	private static Map.Entry<String, Object> convertParameter(String name, String type, String value,
 															  String subType, String start, String end) {
 		Object typedValue = null;
-		String[] parts = null;
 		switch (type) {
 			case "integer":
 				typedValue = Integer.parseInt(value);
