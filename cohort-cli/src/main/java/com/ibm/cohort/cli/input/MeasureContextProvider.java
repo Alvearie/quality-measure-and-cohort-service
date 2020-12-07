@@ -21,7 +21,7 @@ public class MeasureContextProvider {
 		// Throws an exception if invalid input is encountered
 		parsedInput.validate();
 
-		return parsedInput.getMeasureParameterInputs()
+		return parsedInput.getMeasureParameters()
 				.stream().map(x -> new MeasureContext(x.getMeasureId(), x.getParameters())).collect(Collectors.toList());
 	}
 }
