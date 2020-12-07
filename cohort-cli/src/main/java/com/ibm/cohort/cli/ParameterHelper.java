@@ -120,13 +120,11 @@ public class ParameterHelper {
 						break;
 					case "quantity":
 						typedValue = new Interval(resolveQuantityParameter(start), true, resolveQuantityParameter(end),
-												  true
-						);
+												  true);
 						break;
 					case "datetime":
 						typedValue = new Interval(resolveDateTimeParameter(start), true, resolveDateTimeParameter(end),
-												  true
-						);
+												  true);
 						break;
 					case "time":
 						typedValue = new Interval(new Time(start), true, new Time(end), true);
