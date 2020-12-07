@@ -84,7 +84,7 @@ public class MeasureCLI extends BaseCLI {
 
 				for (MeasureReport report : reports) {
 					if (arguments.reportFormat == ReportFormat.TEXT) {
-						out.println("Result for measure: " + report.getId());
+						out.println("Result for " + report.getMeasure());
 						for (MeasureReport.MeasureReportGroupComponent group : report.getGroup()) {
 							for (MeasureReport.MeasureReportGroupPopulationComponent pop : group.getPopulation()) {
 								String popCode = pop.getCode().getCodingFirstRep().getCode();
