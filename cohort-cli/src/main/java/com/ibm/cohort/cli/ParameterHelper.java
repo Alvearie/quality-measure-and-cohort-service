@@ -124,7 +124,7 @@ public class ParameterHelper {
 						break;
 					case "datetime":
 						typedValue = new Interval(resolveDateTimeParameter(start), true, resolveDateTimeParameter(end),
-			  					true);
+								true);
 						break;
 					case "time":
 						typedValue = new Interval(new Time(start), true, new Time(end), true);
