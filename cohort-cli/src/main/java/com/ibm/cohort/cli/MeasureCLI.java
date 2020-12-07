@@ -80,6 +80,7 @@ public class MeasureCLI extends BaseCLI {
 			evaluator = new MeasureEvaluator(dataServerClient, terminologyServerClient, measureServerClient);
 			for( String contextId : arguments.contextIds ) {
 				out.println("Evaluating: " + contextId);
+				// Reports only returned for measures where patient is in initial population
 				List<MeasureReport> reports = evaluator.evaluatePatientMeasures(contextId, measureContexts);
 
 				for (MeasureReport report : reports) {
