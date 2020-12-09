@@ -11,11 +11,13 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.ibm.cohort.engine.measure.RestFhirLibraryResolutionProvider;
 import org.hl7.elm.r1.VersionedIdentifier;
 import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.RelatedArtifact;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
+import org.hl7.fhir.r4.model.RelatedArtifact.RelatedArtifactType;
 
 /**
  * Implementation of the MultiFormatLibrarySourceProvider that uses FHIR R4
@@ -25,10 +27,10 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
  */
 public class FhirLibraryLibrarySourceProvider extends MultiFormatLibrarySourceProvider {
 
-	private IGenericClient fhirClient;
+	private RestFhirLibraryResolutionProvider libraryResolutionProvider;
 
 	public FhirLibraryLibrarySourceProvider(IGenericClient fhirClient) {
-		this.fhirClient = fhirClient;
+		this.libraryResolutionProvider = new RestFhirLibraryResolutionProvider(fhirClient);
 	}
 
 	public FhirLibraryLibrarySourceProvider(IGenericClient fhirClient, String rootLibraryId) {
@@ -70,11 +72,8 @@ public class FhirLibraryLibrarySourceProvider extends MultiFormatLibrarySourcePr
 		// TODO - Add cycle and duplicate detection
 		if (library.hasRelatedArtifact()) {
 			for (RelatedArtifact related : library.getRelatedArtifact()) {
-				// TODO: Beef this logic up to handle situations where this logic uses a full
-				// canonical URL
-				if (related.getResource().matches("(^|/)Library.*")) {
-					org.hl7.fhir.r4.model.Library relatedLibrary = fhirClient.read()
-							.resource(org.hl7.fhir.r4.model.Library.class).withUrl(related.getResource()).execute();
+				if (related.getType() == RelatedArtifactType.DEPENDSON && related.getResource().contains("Library/")) {
+					org.hl7.fhir.r4.model.Library relatedLibrary = libraryResolutionProvider.resolveLibraryByCanonicalUrl(related.getResource());
 					numLoaded += loadRecursively(relatedLibrary);
 				}
 			}
