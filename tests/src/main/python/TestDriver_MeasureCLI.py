@@ -20,17 +20,17 @@ def setup():
         data = json.load(f)
         testValues = data['tests']
         for testValue in testValues.values():
-            tests.append((testValue['params'], testValue['targets'], testValue['response'], testValue['resource'], testValue['measureServer']))
+            tests.append((testValue['measureParameterFile'], testValue['targets'], testValue['response'], testValue['measureServer']))
     return tests
  
 class Test(object):
 
-    @pytest.mark.parametrize("params, targets, output, resource, measureServer",setup())
-    def test1(self, params, targets, output, resource, measureServer):
-        self.execute(params, targets, output, resource, measureServer)
+    @pytest.mark.parametrize("measureParameterFile, targets, output, measureServer",setup())
+    def test1(self, measureParameterFile, targets, output, measureServer):
+        self.execute(measureParameterFile, targets, output, measureServer)
 
     # Execute submits a query and validates the return.
-    def execute(self, params, targets, output, resource, measureServer):
+    def execute(self, measureParameterFile, targets, output, measureServer):
         o = output.split('\n')
         callDetails = ["java", "-Xms1G", "-Xmx1G", "-Djavax.net.ssl.trustStore="+os.environ["TRUSTSTORE"], "-Djavax.net.ssl.trustStorePassword="+os.environ["TRUSTSTORE_PASSWORD"], "-Djavax.net.ssl.trustStoreType="+os.environ["TRUSTSTORE_TYPE"], "-classpath", jar, "com.ibm.cohort.cli.MeasureCLI"]
         if os.environ['DATA_FHIR_SERVER_DETAILS']:
@@ -39,19 +39,16 @@ class Test(object):
         if os.environ['TERM_FHIR_SERVER_DETAILS']:
             callDetails.append("-t")
             callDetails.append(os.environ['TERM_FHIR_SERVER_DETAILS'])
-        if params:
-            for val in params:
-                callDetails.append("-p")
-                callDetails.append(val)
+        if measureParameterFile:
+            callDetails.append("-p")
+            callDetails.append(measureParameterFile)
         if measureServer:
             callDetails.append("-m")
             callDetails.append(measureServer)
         for val in targets:
             callDetails.append("-c")
             callDetails.append(val)
-        if resource:
-            callDetails.append("-r")
-            callDetails.append(resource)
+        print("callDetails: " + " ".join(callDetails))
         out = subprocess.Popen(callDetails, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         tmpout=""
         for line in out.stdout:
