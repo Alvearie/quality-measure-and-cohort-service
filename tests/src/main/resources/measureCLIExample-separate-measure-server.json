@@ -17,6 +17,12 @@
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71", "01268c61-8f89-6d50-4414-9e50d367804d"],
             "response": "Evaluating: a1637d9d-8de4-b8b8-be2e-94118c7f4d71\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0\nPopulation: initial-population = 1\n---\nResult for Measure/wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0\nPopulation: initial-population = 1\n---\nEvaluating: 01268c61-8f89-6d50-4414-9e50d367804d\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0\nPopulation: initial-population = 1\n---",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json"
+        },
+        "Over the Hill parameters test" : {
+            "measureParameterFile": "tests/src/main/resources/measure-parameters/over-the-hill-with-parameters.json",
+            "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
+            "response": "Evaluating: a1637d9d-8de4-b8b8-be2e-94118c7f4d71\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0\nPopulation: initial-population = 1\n---\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0\nPopulation: initial-population = 1\n---",
+            "measureServer": "cohort-cli/config/local-ibm-fhir.json"
         }
     }
 }

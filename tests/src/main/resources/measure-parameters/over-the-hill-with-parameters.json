@@ -1,0 +1,40 @@
+{
+  "measureParameters": [
+    {
+      "measureId": "wh-cohort-Over-the-Hill-1.0.0",
+      "parameters": [
+        {
+          "name": "Measurement Period",
+          "type": "interval",
+          "subtype": "datetime",
+          "start": "@2020-01-01T00:00:00.0",
+          "end": "@2021-01-01T00:00:00.0"
+        }
+      ]
+    },
+    {
+      "measureId": "wh-cohort-Over-the-Hill-1.0.0",
+      "parameters": [
+        {
+          "name": "Measurement Period",
+          "type": "interval",
+          "subtype": "datetime",
+          "start": "@2019-01-01T00:00:00.0",
+          "end": "@2020-01-01T00:00:00.0"
+        }
+      ]
+    },
+    {
+      "measureId": "wh-cohort-Over-the-Hill-1.0.0",
+      "parameters": [
+        {
+          "name": "Measurement Period",
+          "type": "interval",
+          "subtype": "datetime",
+          "start": "@1900-01-01T00:00:00.0",
+          "end": "@1901-01-01T00:00:00.0"
+        }
+      ]
+    }
+  ]
+}
