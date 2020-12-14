@@ -15,6 +15,7 @@ the `_sidebar.md` files available in the repo. Alternatively, pages can be linke
 ## Search
 Plaintext search is enabled when viewing the page on GitHub Pages. Default settings are in place, but there are some minor
 configuration options described [here](https://docsify.js.org/#/plugins?id=full-text-search).
+This text is on the branch and is the best.
 
 ## Hosting Locally
 If you would like to preview changes to the documentation locally, you can install docsify and use it to serve the current
