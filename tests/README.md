@@ -1,12 +1,14 @@
 # Mac OS setup steps.
 
 ## Install Taurus
+
 ```bash
 brew install bzt
 brew update bzt
 ```
 
 ## Install python-javabridge (openblas may not be necessary on non-mac systems)
+
 ```bash
 brew install openblas
 OPENBLAS="$(brew --prefix openblas)" /usr/local/opt/python@3.7/bin/pip3 install numpy
@@ -38,6 +40,7 @@ docker run -it --rm --env-file {Your path to}/quality-measure-and-cohort-service
 Where {docker-image-name} is `taurus-javabridge` or `taurus-javabridge-portForwarding` in the examples above.
 
 ### Environemnt file for docker runs
+
 Running Docker involves passing in a file containing environment variables to use during the run with the
 `--env-file` argument. `quality-measure-and-cohort-service/tests/docker/Env.txt` contains the expected environment
 variables along with a comment of what each variable is for. As at least one of the variables is for an API key, it is
