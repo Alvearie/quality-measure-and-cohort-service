@@ -16,6 +16,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
 import com.ibm.cohort.cli.input.MeasureContextProvider;
+import com.ibm.cohort.cli.input.NoSplittingSplitter;
 import com.ibm.cohort.engine.FhirClientBuilder;
 import com.ibm.cohort.engine.FhirClientBuilderFactory;
 import com.ibm.cohort.engine.measure.MeasureContext;
@@ -44,9 +45,30 @@ public class MeasureCLI extends BaseCLI {
 		@Parameter(names = { "-f", "--format" }, description = "Output format of the report (JSON|TEXT*)" ) 
 		private ReportFormat reportFormat = ReportFormat.TEXT;
 
+		@Parameter(names = { "-e",
+				"--measure-configurations" }, description = "JSON File containing measure resource ids and optional parameters. Cannot be specified if -r option is used")
+		private File measureConfigurationFile;
+
 		@Parameter(names = { "-p",
-				"--measure-parameters" }, description = "JSON File containing measure resource ids and optional parameters", required = true )
-		private File measureParameterFile;
+				"--parameters" }, description = "Parameter value(s) in format name:type:value where value can contain additional parameterized elements separated by comma. Multiple parameters must be specified as multiple -p options", splitter = NoSplittingSplitter.class, required = false)
+		private List<String> parameters;
+
+		@Parameter(names = { "-r",
+				"--resource" }, description = "FHIR Resource ID for the measure resource to be evaluated. Cannot be specified if -e option is used")
+		private String resourceId;
+
+		public void validate() {
+			boolean resourceSpecified = resourceId != null;
+			boolean measureConfigurationSpecified = measureConfigurationFile != null;
+
+			if (resourceSpecified ==  measureConfigurationSpecified) {
+				throw new IllegalArgumentException("Must specify exactly one of -r or -e options");
+			}
+
+			if (measureConfigurationSpecified && !measureConfigurationFile.exists()) {
+				throw new IllegalArgumentException("Measure configuration file does not exist: " + measureConfigurationFile.getPath());
+			}
+		}
 	}
 	
 	public MeasureEvaluator runWithArgs(String[] args, PrintStream out) throws Exception {
@@ -56,6 +78,8 @@ public class MeasureCLI extends BaseCLI {
 		Console console = new DefaultConsole(out);
 		JCommander jc = JCommander.newBuilder().programName("measure-engine").console(console).addObject(arguments).build();
 		jc.parse(args);
+
+		arguments.validate();
 
 		if( arguments.isDisplayHelp ) {
 			jc.usage();
@@ -71,12 +95,14 @@ public class MeasureCLI extends BaseCLI {
 			IGenericClient terminologyServerClient = builder.createFhirClient(terminologyServerConfig);
 			IGenericClient measureServerClient = builder.createFhirClient(measureServerConfig);
 			
-			if (!arguments.measureParameterFile.exists()) {
-				throw new IllegalArgumentException("Measure parameter file does not exist: " + arguments.measureParameterFile.getPath());
+			List<MeasureContext> measureContexts;
+
+			if (arguments.measureConfigurationFile != null) {
+				measureContexts = MeasureContextProvider.getMeasureContexts(arguments.measureConfigurationFile);
+			} else {
+				measureContexts = MeasureContextProvider.getMeasureContexts(arguments.resourceId,  arguments.parameters);
 			}
 			
-			List<MeasureContext> measureContexts = MeasureContextProvider.getMeasureContexts(arguments.measureParameterFile);
-
 			evaluator = new MeasureEvaluator(dataServerClient, terminologyServerClient, measureServerClient);
 			for( String contextId : arguments.contextIds ) {
 				out.println("Evaluating: " + contextId);

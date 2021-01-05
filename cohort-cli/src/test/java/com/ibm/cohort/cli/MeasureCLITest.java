@@ -30,7 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.measure.BaseMeasureTest;
 
 public class MeasureCLITest extends BaseMeasureTest {
-	private static final String TMP_PARAM_FILE_LOCATION = "target/measure-params.json";
+	private static final String TMP_MEASURE_CONFIG_FILE_LOCATION = "target/measure-configurations.json";
 	
 	@Test
 	public void testCohortMeasureSinglePatient() throws Exception {
@@ -50,7 +50,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 			w.write(om.writeValueAsString(getFhirServerConfig()));
 		}
 
-		File tmpResourceParametersFile = createTmpParametersFileForSingleMeasure(measure.getId());
+		File tmpMeasureConfigurationsFile = createTmpConfigurationsFileForSingleMeasure(measure.getId());
 		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream out = new PrintStream(baos);
@@ -58,12 +58,12 @@ public class MeasureCLITest extends BaseMeasureTest {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-p", tmpResourceParametersFile.getAbsolutePath(),
+					"-e", tmpMeasureConfigurationsFile.getAbsolutePath(),
 					"-c", patient.getId() 
 			}, out);	
 		} finally {
 			tmpFile.delete();
-			tmpResourceParametersFile.delete();
+			tmpMeasureConfigurationsFile.delete();
 		}
 		
 		String output = new String(baos.toByteArray());
@@ -95,8 +95,8 @@ public class MeasureCLITest extends BaseMeasureTest {
 			w.write(om.writeValueAsString(getFhirServerConfig()));
 		}
 
-		File tmpResourceParametersFile = createTmpParametersFileFromContents(
-				"{\"measureParameters\":[{\"measureId\":\"" + measure.getId() + "\"}," + 
+		File tmpMeasureConfigurationsFile = createTmpConfigurationsFileFromContents(
+				"{\"measureConfigurations\":[{\"measureId\":\"" + measure.getId() + "\"}," + 
 						"{\"measureId\":\"" + measure.getId() + "\",\"parameters\":[" + createParameterString("p1", "integer", "10")+ "]}]}");
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -105,14 +105,14 @@ public class MeasureCLITest extends BaseMeasureTest {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-p", tmpResourceParametersFile.getAbsolutePath(),
+					"-e", tmpMeasureConfigurationsFile.getAbsolutePath(),
 					"-c", patient1.getId(),
 					"-c", patient2.getId(),
 					"-c", patient3.getId()
 			}, out);
 		} finally {
 			tmpFile.delete();
-			tmpResourceParametersFile.delete();
+			tmpMeasureConfigurationsFile.delete();
 		}
 
 		String output = new String(baos.toByteArray());
@@ -136,7 +136,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-p", "target/garbageFilepciwebocwe8293ivsohvb",
+					"-e", "target/garbageFilepciwebocwe8293ivsohvb",
 					"-c", "p1"
 			}, out);
 		} finally {
@@ -178,7 +178,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 			w.write(om.writeValueAsString(getFhirServerConfig()));
 		}
 
-		File tmpResourceParametersFile = createTmpParametersFileForSingleMeasure(measure.getId());
+		File tmpMeasureConfigurationsFile = createTmpConfigurationsFileForSingleMeasure(measure.getId());
 		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream out = new PrintStream(baos);
@@ -186,12 +186,12 @@ public class MeasureCLITest extends BaseMeasureTest {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-p", tmpResourceParametersFile.getAbsolutePath(),
+					"-e", tmpMeasureConfigurationsFile.getAbsolutePath(),
 					"-c", patient.getId() 
 			}, out);	
 		} finally {
 			tmpFile.delete();
-			tmpResourceParametersFile.delete();
+			tmpMeasureConfigurationsFile.delete();
 		}
 		
 		String output = new String(baos.toByteArray());
@@ -231,7 +231,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 			w.write(om.writeValueAsString(getFhirServerConfig()));
 		}
 
-		File tmpResourceParametersFile = createTmpParametersFileForSingleMeasure(measure.getId());
+		File tmpMeasureConfigurationsFile = createTmpConfigurationsFileForSingleMeasure(measure.getId());
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream out = new PrintStream(baos);
@@ -239,14 +239,14 @@ public class MeasureCLITest extends BaseMeasureTest {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-p", tmpResourceParametersFile.getAbsolutePath(),
+					"-e", tmpMeasureConfigurationsFile.getAbsolutePath(),
 					"-c", patient1.getId(),
 					"-c", patient2.getId(),
 					"-c", patient3.getId()
 			}, out);	
 		} finally {
 			tmpFile.delete();
-			tmpResourceParametersFile.delete();
+			tmpMeasureConfigurationsFile.delete();
 		}
 		
 		String output = new String(baos.toByteArray());
@@ -283,7 +283,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 			w.write(om.writeValueAsString(getFhirServerConfig()));
 		}
 
-		File tmpResourceParametersFile = createTmpParametersFileForSingleMeasure(measure.getId());
+		File tmpMeasureConfigurationsFile = createTmpConfigurationsFileForSingleMeasure(measure.getId());
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream out = new PrintStream(baos);
@@ -291,12 +291,12 @@ public class MeasureCLITest extends BaseMeasureTest {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-p", tmpResourceParametersFile.getAbsolutePath(),
+					"-e", tmpMeasureConfigurationsFile.getAbsolutePath(),
 					"-c", patient1.getId()
 			}, out);	
 		} finally {
 			tmpFile.delete();
-			tmpResourceParametersFile.delete();
+			tmpMeasureConfigurationsFile.delete();
 		}
 		
 		String output = new String(baos.toByteArray());
@@ -324,7 +324,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 			w.write(om.writeValueAsString(getFhirServerConfig()));
 		}
 
-		File tmpResourceParametersFile = createTmpParametersFileForSingleMeasure(measure.getId());
+		File tmpMeasureConfigurationsFile = createTmpConfigurationsFileForSingleMeasure(measure.getId());
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream out = new PrintStream(baos);
@@ -332,20 +332,52 @@ public class MeasureCLITest extends BaseMeasureTest {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-p", tmpResourceParametersFile.getAbsolutePath(),
+					"-e", tmpMeasureConfigurationsFile.getAbsolutePath(),
 					"-c", patient.getId(),
 					"-f", "JSON"
 			}, out);	
 		} finally {
 			tmpFile.delete();
-			tmpResourceParametersFile.delete();
+			tmpMeasureConfigurationsFile.delete();
 		}
 		
 		String output = new String(baos.toByteArray());
 		System.out.println(output);
 		assertTrue( output.contains("\"resourceType\": \"MeasureReport\"") );
-	}	
+	}
 	
+	@Test(expected = IllegalArgumentException.class)
+	public void testMissingRequiredArguments() throws Exception {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream out = new PrintStream(baos);
+		MeasureCLI cli = new MeasureCLI();
+		cli.runWithArgs(new String[]{
+				"-d", "",
+				"-c", "1234",
+				"-f", "JSON"
+		}, out);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testExclusiveArgumentsBothSpecified() throws Exception {
+		File tmpMeasureConfigurationsFile = createTmpConfigurationsFileForSingleMeasure("12345");
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream out = new PrintStream(baos);
+		MeasureCLI cli = new MeasureCLI();
+		try {
+			cli.runWithArgs(new String[]{
+					"-d", "",
+					"-e", tmpMeasureConfigurationsFile.getAbsolutePath(),
+					"-r", "12345",
+					"-c", "1234",
+					"-f", "JSON"
+			}, out);
+		} finally {
+			tmpMeasureConfigurationsFile.delete();
+		}
+	}
+
 	protected void assertTextPopulationExpectations(String[] lines) {
 		Pattern p = Pattern.compile("Population: (?<code>[^ ]+) = (?<count>[0-9]+)");
 		for( String line : lines ) {
@@ -358,19 +390,19 @@ public class MeasureCLITest extends BaseMeasureTest {
 		}
 	}
 	
-	private File createTmpParametersFileForSingleMeasure(String measureId) throws IOException {
-		return createTmpParametersFileFromContents("{\"measureParameters\":[{\"measureId\":\"" + measureId + "\"}]}");
+	private File createTmpConfigurationsFileForSingleMeasure(String measureId) throws IOException {
+		return createTmpConfigurationsFileFromContents("{\"measureConfigurations\":[{\"measureId\":\"" + measureId + "\"}]}");
 	}
 	
 	private String createParameterString(String name, String type, String value) {
 		return "{\"name\":\"" + name + "\",\"type\":\"" + type + "\",\"value\":\"" + value +"\"}";
 	}
 	
-	private File createTmpParametersFileFromContents(String contents) throws IOException {
-		File tmpResourceParametersFile = new File(TMP_PARAM_FILE_LOCATION);
-		try (Writer w = new FileWriter(tmpResourceParametersFile)) {
+	private File createTmpConfigurationsFileFromContents(String contents) throws IOException {
+		File tmpMeasureConfigurationsFile = new File(TMP_MEASURE_CONFIG_FILE_LOCATION);
+		try (Writer w = new FileWriter(tmpMeasureConfigurationsFile)) {
 			w.write(contents);
 		}
-		return tmpResourceParametersFile;
+		return tmpMeasureConfigurationsFile;
 	}
 }
