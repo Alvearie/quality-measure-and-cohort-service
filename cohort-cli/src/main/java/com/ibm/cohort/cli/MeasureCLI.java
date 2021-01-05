@@ -45,8 +45,8 @@ public class MeasureCLI extends BaseCLI {
 		@Parameter(names = { "-f", "--format" }, description = "Output format of the report (JSON|TEXT*)" ) 
 		private ReportFormat reportFormat = ReportFormat.TEXT;
 
-		@Parameter(names = { "-e",
-				"--measure-configurations" }, description = "JSON File containing measure resource ids and optional parameters. Cannot be specified if -r option is used")
+		@Parameter(names = { "-j",
+				"--json-measure-configurations" }, description = "JSON File containing measure resource ids and optional parameters. Cannot be specified if -r option is used")
 		private File measureConfigurationFile;
 
 		@Parameter(names = { "-p",
@@ -54,7 +54,7 @@ public class MeasureCLI extends BaseCLI {
 		private List<String> parameters;
 
 		@Parameter(names = { "-r",
-				"--resource" }, description = "FHIR Resource ID for the measure resource to be evaluated. Cannot be specified if -e option is used")
+				"--resource" }, description = "FHIR Resource ID for the measure resource to be evaluated. Cannot be specified if -j option is used")
 		private String resourceId;
 
 		public void validate() {

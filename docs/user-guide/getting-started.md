@@ -166,7 +166,7 @@ A similar command-line interface is provided for evaluation of a quality measure
 Measure resource. The input parameters are very similar with the main difference being that instead of
 "-f", "-l", and "-v", and "-e" options to identify the library resource(s) and expression(s) that should be evaluated,
 a FHIR Measure resource is used and the "-r" command-line parameter provides the resource ID of that resource.
-Alternatively, the "-e" paramter can be used to provide a JSON file containing measure resource configurations to use
+Alternatively, the "-j" paramter can be used to provide a JSON file containing measure resource configurations to use
 during measure evaluation.
 
 ```
@@ -184,7 +184,7 @@ $ java -classpath cohort-cli/target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar com.ibm
         Possible Values: [TEXT, JSON]
       -h, --help
         Display this help
-      -e, --measure-configurations
+      -j, --json-measure-configurations
         JSON File containing measure resource ids and optional parameters. 
         Cannot be specified if -r option is used
       -m, --measure-server
@@ -196,7 +196,7 @@ $ java -classpath cohort-cli/target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar com.ibm
         parameters must be specified as multiple -p options
       -r, --resource
         FHIR Resource ID for the measure resource to be evaluated. Cannot be 
-        specified if -e option is used
+        specified if -j option is used
       -t, --terminology-server
         Path to JSON configuration data for the FHIR server connection that will 
         be used to retrieve terminology.
@@ -228,9 +228,9 @@ must follow the format `name:type:value`. If `type` is an interval, then `value`
 -p "param3:decimal:50.9" -p "param55:interval:integer,30,40"
 ```
 
-## JSON File for -e Argument
+## JSON File for -j Argument
 
-The `-e` argument should be the path to a file containing a JSON object containing a list of measure configurations.
+The `-j` argument should be the path to a file containing a JSON object containing a list of measure configurations.
 Configurations currently support measure ids and any parameters that should be used when executing a particular measure.
 
 If this argument is specified, then the `-r` option cannot be specified as well. Likewise, if `-p` is specified alongside
@@ -299,7 +299,7 @@ Parameter Structure:
 
 
 ### Examples of JSON Files
-Here are some example JSON objects that could appear in a file for the `-e` argument.
+Here are some example JSON objects that could appear in a file for the `-j` argument.
 
 #### Example 1: Single measure without parameters
 ```json
@@ -363,15 +363,15 @@ and `param2`.
 The measure with resource id `measure-with-id-3` will be executed for each patient context with the parameter `param1`.
 The measure with resource id `measure-with-id-4` will be executed for each patient context without parameters.
 
-### Error Checking for the -e Argument
-These are the known error cases for the `-e` argument:
+### Error Checking for the -j Argument
+These are the known error cases for the `-j` argument:
 
 #### Missing argument
-If the `-e` argument is not provided to the `MeasureCLI` and the `-r` argument is also missing then an
+If the `-j` argument is not provided to the `MeasureCLI` and the `-r` argument is also missing then an
 `IllegalArgumentException` will be thrown.
 
 #### File does not exist
-If the `-e` argument is provided, but the file does not exist, then a `IllegalArgumentException` will be thrown.
+If the `-j` argument is provided, but the file does not exist, then a `IllegalArgumentException` will be thrown.
 
 #### Unrecognized JSON fields
 If the JSON object contains unexpected fields a `com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException` will

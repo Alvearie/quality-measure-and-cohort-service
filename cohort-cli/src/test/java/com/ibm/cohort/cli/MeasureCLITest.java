@@ -58,7 +58,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-e", tmpMeasureConfigurationsFile.getAbsolutePath(),
+					"-j", tmpMeasureConfigurationsFile.getAbsolutePath(),
 					"-c", patient.getId() 
 			}, out);	
 		} finally {
@@ -166,7 +166,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-e", tmpMeasureConfigurationsFile.getAbsolutePath(),
+					"-j", tmpMeasureConfigurationsFile.getAbsolutePath(),
 					"-c", patient1.getId(),
 					"-c", patient2.getId(),
 					"-c", patient3.getId()
@@ -197,7 +197,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-e", "target/garbageFilepciwebocwe8293ivsohvb",
+					"-j", "target/garbageFilepciwebocwe8293ivsohvb",
 					"-c", "p1"
 			}, out);
 		} finally {
@@ -247,7 +247,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-e", tmpMeasureConfigurationsFile.getAbsolutePath(),
+					"-j", tmpMeasureConfigurationsFile.getAbsolutePath(),
 					"-c", patient.getId() 
 			}, out);	
 		} finally {
@@ -300,7 +300,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-e", tmpMeasureConfigurationsFile.getAbsolutePath(),
+					"-j", tmpMeasureConfigurationsFile.getAbsolutePath(),
 					"-c", patient1.getId(),
 					"-c", patient2.getId(),
 					"-c", patient3.getId()
@@ -352,7 +352,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-e", tmpMeasureConfigurationsFile.getAbsolutePath(),
+					"-j", tmpMeasureConfigurationsFile.getAbsolutePath(),
 					"-c", patient1.getId()
 			}, out);	
 		} finally {
@@ -393,7 +393,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-e", tmpMeasureConfigurationsFile.getAbsolutePath(),
+					"-j", tmpMeasureConfigurationsFile.getAbsolutePath(),
 					"-c", patient.getId(),
 					"-f", "JSON"
 			}, out);	
@@ -429,7 +429,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		try {
 			cli.runWithArgs(new String[]{
 					"-d", "",
-					"-e", tmpMeasureConfigurationsFile.getAbsolutePath(),
+					"-j", tmpMeasureConfigurationsFile.getAbsolutePath(),
 					"-r", "12345",
 					"-c", "1234",
 					"-f", "JSON"
