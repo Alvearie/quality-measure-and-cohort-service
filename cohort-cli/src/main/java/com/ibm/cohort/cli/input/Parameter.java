@@ -5,7 +5,7 @@
  */
 package com.ibm.cohort.cli.input;
 
-import static com.ibm.cohort.cli.input.InputUtil.isNullOrEmpty;
+import static org.apache.commons.lang.StringUtils.isEmpty;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -54,16 +54,16 @@ public class Parameter {
 	
 	public void validate() throws IllegalArgumentException {
 		// Require name and type
-		if (isNullOrEmpty(name) || isNullOrEmpty(type)) {
+		if (isEmpty(name) || isEmpty(type)) {
 			throw new IllegalArgumentException("Invalid measure parameter file: Must provide \"name\" and \"type\" for each measure parameter.");
 		}
 		// When dealing with an interval, require subtype, start and end. Otherwise require a value
 		if (type.equals("interval")) {
-			if (isNullOrEmpty(subtype) || isNullOrEmpty(start) || isNullOrEmpty(end)) {
+			if (isEmpty(subtype) || isEmpty(start) || isEmpty(end)) {
 				throw new IllegalArgumentException("Invalid measure parameter file: Must provide \"subtype\", \"start\",  and \"end\" for each measure parameter with type \"interval\".");
 			}
 		}
-		else if (isNullOrEmpty(value)) {
+		else if (isEmpty(value)) {
 			throw new IllegalArgumentException("Invalid measure parameter file: Must provide \"value\" for each non-interval parameter.");
 		}
 	}

@@ -5,7 +5,7 @@
  */
 package com.ibm.cohort.cli.input;
 
-import static com.ibm.cohort.cli.input.InputUtil.isNullOrEmpty;
+import static org.apache.commons.lang.StringUtils.isEmpty;
 
 import java.util.List;
 import java.util.Map;
@@ -29,7 +29,7 @@ public class MeasureIdWithParameters {
 	}
 	
 	public void validate() throws IllegalArgumentException {
-		if (isNullOrEmpty(measureId)) {
+		if (isEmpty(measureId)) {
 			throw new IllegalArgumentException("Invalid measure parameter file: A resource id must be provided for each measure.");
 		}
 		if (parameters != null) {
