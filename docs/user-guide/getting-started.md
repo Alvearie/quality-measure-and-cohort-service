@@ -227,7 +227,7 @@ Parameter Structure:
   "name": "STRING_NAME",
   "type": "STRING_TYPE",
   "value": "STRING_VALUE",
-  "subtype": "STRING_SUBTYE",
+  "subtype": "STRING_SUBTYPE",
   "start": "STRING_START",
   "end": "STRING_END"
 }
