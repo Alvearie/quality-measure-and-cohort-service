@@ -79,11 +79,11 @@ public class MeasureCLI extends BaseCLI {
 		JCommander jc = JCommander.newBuilder().programName("measure-engine").console(console).addObject(arguments).build();
 		jc.parse(args);
 
-		arguments.validate();
-
 		if( arguments.isDisplayHelp ) {
 			jc.usage();
 		} else {
+			arguments.validate();
+
 			readConnectionConfiguration(arguments);
 			
 			FhirContext fhirContext = FhirContext.forR4();
