@@ -10,18 +10,18 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class MeasureParameters {
-	@JsonProperty("measureParameters")
-	private List<MeasureIdWithParameters> measureParameters;
+	@JsonProperty("measureConfigurations")
+	private List<MeasureConfiguration> measureConfigurations;
 
-	public List<MeasureIdWithParameters> getMeasureParameters() {
-		return measureParameters;
+	public List<MeasureConfiguration> getMeasureConfigurations() {
+		return measureConfigurations;
 	}
 	
 	public void validate() {
-		if (measureParameters == null || measureParameters.isEmpty()) {
+		if (measureConfigurations == null || measureConfigurations.isEmpty()) {
 			throw new IllegalArgumentException("Invalid measure parameter file: JSON object must contain information for one or more measures");
 		}
-		measureParameters.forEach(MeasureIdWithParameters::validate);
+		measureConfigurations.forEach(MeasureConfiguration::validate);
 	}
 }
 

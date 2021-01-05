@@ -13,7 +13,7 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ibm.cohort.cli.ParameterHelper;
 
-public class MeasureIdWithParameters {
+public class MeasureConfiguration {
 	@JsonProperty("measureId")
 	private String measureId;
 
