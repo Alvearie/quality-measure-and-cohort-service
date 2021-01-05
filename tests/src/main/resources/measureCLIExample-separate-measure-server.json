@@ -1,7 +1,7 @@
 {
     "tests": {
         "Colorectal cancer screening measure" : {
-            "measureConfigurationFile": null,
+            "jsonMeasureConfigurationFile": null,
             "resource": "wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0",
             "params": null,
             "targets": ["eb068c3f-3954-50c6-0c67-2b82d29865f0", "01268c61-8f89-6d50-4414-9e50d367804d", "6b6120d0-36b9-d2d5-639d-b77033cf5cee", "768202e4-b073-98e7-f3ab-2b7f467fea0b"],
@@ -9,7 +9,7 @@
             "measureServer": "cohort-cli/config/local-ibm-fhir.json"
         }, 
         "Over the Hill measure" : {
-            "measureConfigurationFile": null,
+            "jsonMeasureConfigurationFile": null,
             "resource": "wh-cohort-Over-the-Hill-1.0.0",
             "params": null,
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
@@ -17,7 +17,7 @@
             "measureServer": "cohort-cli/config/local-ibm-fhir.json"
         },
         "Colorectal and over the hill measures" : {
-            "measureConfigurationFile": "tests/src/main/resources/measure-parameters/colorectal-screening-and-over-the-hill.json",
+            "jsonMeasureConfigurationFile": "tests/src/main/resources/measure-parameters/colorectal-screening-and-over-the-hill.json",
             "resource": null,
             "params": null,
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71", "01268c61-8f89-6d50-4414-9e50d367804d"],
@@ -25,7 +25,7 @@
             "measureServer": "cohort-cli/config/local-ibm-fhir.json"
         },
         "Over the Hill parameters test" : {
-            "measureConfigurationFile": "tests/src/main/resources/measure-parameters/over-the-hill-with-parameters.json",
+            "jsonMeasureConfigurationFile": "tests/src/main/resources/measure-parameters/over-the-hill-with-parameters.json",
             "resource": null,
             "params": null,
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
