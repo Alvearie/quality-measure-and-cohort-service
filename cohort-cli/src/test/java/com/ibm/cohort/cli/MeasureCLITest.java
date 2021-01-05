@@ -33,7 +33,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 	private static final String TMP_MEASURE_CONFIG_FILE_LOCATION = "target/measure-configurations.json";
 	
 	@Test
-	public void testCohortMeasureSinglePatient() throws Exception {
+	public void testCohortMeasureSinglePatientJsonInput() throws Exception {
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 		
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1592-14-03");
@@ -72,7 +72,44 @@ public class MeasureCLITest extends BaseMeasureTest {
 	}
 
 	@Test
-	public void testCohortMeasuresMultiplePatients() throws Exception {
+	public void testCohortMeasureSinglePatientCommandLineInput() throws Exception {
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1592-14-03");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = mockLibraryRetrieval("Test", "cql/basic/test.cql");
+
+		Measure measure = getCohortMeasure("Test", library, "Female");
+		mockFhirResourceRetrieval(measure);
+
+		File tmpFile = new File("target/fhir-stub.json");
+		ObjectMapper om = new ObjectMapper();
+		try (Writer w = new FileWriter(tmpFile)) {
+			w.write(om.writeValueAsString(getFhirServerConfig()));
+		}
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream out = new PrintStream(baos);
+		try {
+			MeasureCLI cli = new MeasureCLI();
+			cli.runWithArgs(new String[] {
+					"-d", tmpFile.getAbsolutePath(),
+					"-p", "p1:interval:integer,1,10",
+					"-r", measure.getId(),
+					"-c", patient.getId()
+			}, out);
+		} finally {
+			tmpFile.delete();
+		}
+
+		String output = new String(baos.toByteArray());
+		String[] lines = output.split(System.getProperty("line.separator"));
+		assertEquals( output, 2, lines.length );
+	}
+
+	@Test
+	public void testCohortMeasuresMultiplePatientsJsonInput() throws Exception {
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 
 		Patient patient1 = getPatient("123", AdministrativeGender.MALE, "1592-14-03");
