@@ -45,6 +45,11 @@ public class ParameterHelper {
 				String end = null;
 				if (type.equals("interval")) {
 					String[] parts = value.split(",");
+
+					if (parts.length != 3) {
+						throw new IllegalArgumentException("Invalid interval format. Must contain exactly 3 fields separated by commas");
+					}
+
 					subType = parts[0];
 					start = parts[1];
 					end = parts[2];

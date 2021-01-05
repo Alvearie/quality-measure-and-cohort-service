@@ -95,7 +95,8 @@ public class MeasureCLITest extends BaseMeasureTest {
 			MeasureCLI cli = new MeasureCLI();
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
-					"-p", "p1:interval:integer,1,10",
+					"-p", "p1:interval:decimal,1.0,100.5",
+					"-p", "p2:integer:1",
 					"-r", measure.getId(),
 					"-c", patient.getId()
 			}, out);
@@ -106,6 +107,29 @@ public class MeasureCLITest extends BaseMeasureTest {
 		String output = new String(baos.toByteArray());
 		String[] lines = output.split(System.getProperty("line.separator"));
 		assertEquals( output, 2, lines.length );
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testMultipleParametersInOneString() throws Exception{
+		File tmpFile = new File("target/fhir-stub.json");
+		ObjectMapper om = new ObjectMapper();
+		try (Writer w = new FileWriter(tmpFile)) {
+			w.write(om.writeValueAsString(getFhirServerConfig()));
+		}
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream out = new PrintStream(baos);
+		try {
+			MeasureCLI cli = new MeasureCLI();
+			cli.runWithArgs(new String[] {
+					"-d", tmpFile.getAbsolutePath(),
+					"-p", "p1:interval:decimal,1.0,100.5,p2:integer:1",
+					"-r", "1234",
+					"-c", "54321"
+			}, out);
+		} finally {
+			tmpFile.delete();
+		}
 	}
 
 	@Test
