@@ -20,17 +20,17 @@ def setup():
         data = json.load(f)
         testValues = data['tests']
         for testValue in testValues.values():
-            tests.append((testValue['measureParameterFile'], testValue['targets'], testValue['response'], testValue['measureServer']))
+            tests.append((testValue['measureConfigurationFile'], testValue['resource'], testValue['params'], testValue['targets'], testValue['response'], testValue['measureServer']))
     return tests
  
 class Test(object):
 
-    @pytest.mark.parametrize("measureParameterFile, targets, output, measureServer",setup())
-    def test1(self, measureParameterFile, targets, output, measureServer):
-        self.execute(measureParameterFile, targets, output, measureServer)
+    @pytest.mark.parametrize("measureConfigurationFile, resource, params, targets, output, measureServer",setup())
+    def test1(self, measureConfigurationFile, resource, params, targets, output, measureServer):
+        self.execute(measureConfigurationFile, resource, params, targets, output, measureServer)
 
     # Execute submits a query and validates the return.
-    def execute(self, measureParameterFile, targets, output, measureServer):
+    def execute(self, measureConfigurationFile, resource, params, targets, output, measureServer):
         o = output.split('\n')
         callDetails = ["java", "-Xms1G", "-Xmx1G", "-Djavax.net.ssl.trustStore="+os.environ["TRUSTSTORE"], "-Djavax.net.ssl.trustStorePassword="+os.environ["TRUSTSTORE_PASSWORD"], "-Djavax.net.ssl.trustStoreType="+os.environ["TRUSTSTORE_TYPE"], "-classpath", jar, "com.ibm.cohort.cli.MeasureCLI"]
         if os.environ['DATA_FHIR_SERVER_DETAILS']:
@@ -39,9 +39,16 @@ class Test(object):
         if os.environ['TERM_FHIR_SERVER_DETAILS']:
             callDetails.append("-t")
             callDetails.append(os.environ['TERM_FHIR_SERVER_DETAILS'])
-        if measureParameterFile:
-            callDetails.append("-p")
-            callDetails.append(measureParameterFile)
+        if measureConfigurationFile:
+            callDetails.append("-e")
+            callDetails.append(measureConfigurationFile)
+        if resource:
+            callDetails.append("-r")
+            callDetails.append(resource)
+        if params:
+            for val in params:
+                callDetails.append("-p")
+                callDetails.append(val)
         if measureServer:
             callDetails.append("-m")
             callDetails.append(measureServer)

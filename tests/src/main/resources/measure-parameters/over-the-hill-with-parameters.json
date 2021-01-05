@@ -1,5 +1,5 @@
 {
-  "measureParameters": [
+  "measureConfigurations": [
     {
       "measureId": "wh-cohort-Over-the-Hill-1.0.0",
       "parameters": [
