@@ -1,0 +1,10 @@
+{
+  "measureConfigurations": [
+    {
+      "measureId": "wh-cohort-Over-the-Hill-1.0.0"
+    },
+    {
+      "measureId": "wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0"
+    }
+  ]
+}
