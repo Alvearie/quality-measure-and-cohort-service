@@ -62,7 +62,7 @@ public class MeasureCLI extends BaseCLI {
 			boolean measureConfigurationSpecified = measureConfigurationFile != null;
 
 			if (resourceSpecified ==  measureConfigurationSpecified) {
-				throw new IllegalArgumentException("Must specify exactly one of -r or -e options");
+				throw new IllegalArgumentException("Must specify exactly one of -r or -j options");
 			}
 
 			if (measureConfigurationSpecified && !measureConfigurationFile.exists()) {
