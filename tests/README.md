@@ -34,10 +34,11 @@ docker build -t taurus-javabridge-portForwarding -f {Your path to}/quality-measu
 After building the docker image, you can run tests with:
 
 ```bash
-docker run -it --rm --env-file {Your path to}/quality-measure-and-cohort-service/tests/docker/Env.txt -v {Your path to}/quality-measure-and-cohort-service:/bzt-configs -v {Your path to}/quality-measure-and-cohort-service/tests/results:/tmp/artifacts {docker-image-name} ./tests/scenarios/sampleJson.yaml
+docker run -it --rm --env-file {Your path to}/quality-measure-and-cohort-service/tests/docker/Env.txt -v {Your path to}/quality-measure-and-cohort-service:/bzt-configs -v {Your path to}/quality-measure-and-cohort-service/tests/results:/tmp/artifacts {docker-image-name} ./tests/scenarios/{test-scenarios}
 ```
 
-Where {docker-image-name} is `taurus-javabridge` or `taurus-javabridge-portForwarding` in the examples above.
+Where {docker-image-name} is `taurus-javabridge` or `taurus-javabridge-portForwarding` in the examples above and {test-scenarios} is a yaml file
+containing the tests to run.
 
 ### Environemnt file for docker runs
 
