@@ -20,18 +20,37 @@ public class MeasureConfiguration {
 	@JsonProperty("parameters")
 	private List<Parameter> parameters;
 
+	@JsonProperty("identifier")
+	private MeasureIdentifier identifier;
+
+	@JsonProperty("version")
+	private String version;
+
 	public String getMeasureId() {
 		return measureId;
 	}
-	
+
 	public Map<String, Object> getParameters() {
 		return ParameterHelper.parseParameters(parameters);
 	}
-	
-	public void validate() throws IllegalArgumentException {
-		if (isEmpty(measureId)) {
-			throw new IllegalArgumentException("Invalid measure parameter file: A resource id must be provided for each measure.");
+
+	public MeasureIdentifier getIdentifier() {
+		return identifier;
+	}
+
+	public String getVersion() {
+		return version;
+	}
+
+	public void validate() {
+		if (isEmpty(measureId) && (identifier == null || isEmpty(identifier.getValue()))) {
+			throw new IllegalArgumentException("Invalid measure parameter file: A resource id or identifier with a value must be provided for each measure.");
 		}
+
+		if (identifier !=  null) {
+			identifier.validate();
+		}
+
 		if (parameters != null) {
 			parameters.forEach(Parameter::validate);
 		}

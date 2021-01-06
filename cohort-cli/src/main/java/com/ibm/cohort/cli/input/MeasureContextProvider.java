@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.hl7.fhir.r4.model.Identifier;
+import org.opencds.cqf.r4.builders.IdentifierBuilder;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.cli.ParameterHelper;
 import com.ibm.cohort.engine.measure.MeasureContext;
@@ -25,7 +28,16 @@ public class MeasureContextProvider {
 		parsedInput.validate();
 
 		return parsedInput.getMeasureConfigurations()
-				.stream().map(x -> new MeasureContext(x.getMeasureId(), x.getParameters())).collect(Collectors.toList());
+				.stream().map(x -> {
+					MeasureIdentifier measureIdentifier = x.getIdentifier();
+					Identifier identifier = null;
+					if (measureIdentifier != null) {
+						identifier = new IdentifierBuilder().buildSystem(measureIdentifier.getSystem())
+								.buildValue(measureIdentifier.getValue())
+								.build();
+					}
+					return new MeasureContext(x.getMeasureId(), x.getParameters(), identifier);
+				}).collect(Collectors.toList());
 	}
 
 	public static List<MeasureContext> getMeasureContexts(String resourceId, List<String> parameters) {
@@ -34,6 +46,6 @@ public class MeasureContextProvider {
 			parsedParameters = ParameterHelper.parseParameterArguments(parameters);
 		}
 
-		return Collections.singletonList(new MeasureContext(resourceId, parsedParameters));
+		return Collections.singletonList(new MeasureContext(resourceId, parsedParameters, null));
 	}
 }

@@ -5,6 +5,7 @@
  */
 package com.ibm.cohort.engine.measure;
 
+import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Measure;
 
 public class MeasureHelper {
@@ -18,7 +19,7 @@ public class MeasureHelper {
 	 * @param provider Resolution implementation for the various lookup strategies
 	 * @return Resolved FHIR Measure resource
 	 */
-	public static Measure loadMeasure(String resourceID, MeasureResolutionProvider<Measure> provider ) {
+	public static Measure loadMeasure(String resourceID, String version, MeasureResolutionProvider<Measure> provider ) {
 		Measure result = null;
 		if( resourceID.startsWith("Measure/") || ! resourceID.contains("/") ) {
 			result = provider.resolveMeasureById(resourceID.replace("Measure/", ""));
@@ -30,6 +31,18 @@ public class MeasureHelper {
 			throw new IllegalArgumentException(String.format("Failed to determine resolution path for provided resourceID '%s'", resourceID));
 		}
 		
+		return result;
+	}
+
+	public static Measure loadMeasure(Identifier identifier, String version, MeasureResolutionProvider<Measure> provider) {
+		Measure result;
+
+		result = provider.resolveMeasureByIdentifier(identifier);
+
+		if ( result == null ) {
+			throw new IllegalArgumentException(String.format("Failed to determine resolution path for identifier:'%s', version:'%s'", identifier, version));
+		}
+
 		return result;
 	}
 }

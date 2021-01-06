@@ -6,6 +6,7 @@
 package com.ibm.cohort.engine.measure;
 
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Measure;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
@@ -45,5 +46,18 @@ public class RestFhirMeasureResolutionProvider implements MeasureResolutionProvi
 					String.format("Measure lookup for name %s|%s returned unexpected number of elements %d", name, version,
 							b.getEntry().size()));
 		}
+	}
+
+	@Override
+	public Measure resolveMeasureByIdentifier(Identifier identifier) {
+		Bundle b = measureClient.search().forResource(Measure.class)
+				.where(Measure.IDENTIFIER.exactly().identifier(identifier.getValue()))
+//				.where(Measure.IDENTIFIER.hasSystemWithAnyCode(identifier.getSystem()))
+				.returnBundle(Bundle.class).execute();
+		if (b.getEntry().size() == 1) {
+			return (Measure) b.getEntryFirstRep().getResource();
+		} else {
+			throw new IllegalArgumentException("Oh no, I didn't get a single measure back");
+		}	
 	}
 }

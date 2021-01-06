@@ -7,13 +7,17 @@ package com.ibm.cohort.engine.measure;
 
 import java.util.Map;
 
+import org.hl7.fhir.r4.model.Identifier;
+
 public class MeasureContext {
 	private final String measureId;
 	private final Map<String, Object> parameters;
+	private final Identifier identifier;
 
-	public MeasureContext(String measureId, Map<String, Object> parameters) {
+	public MeasureContext(String measureId, Map<String, Object> parameters, Identifier  identifier) {
 		this.measureId = measureId;
 		this.parameters = parameters;
+		this.identifier = identifier;
 	}
 
 	public String getMeasureId() {
@@ -22,5 +26,9 @@ public class MeasureContext {
 
 	public Map<String, Object> getParameters() {
 		return parameters;
+	}
+
+	public Identifier getIdentifier() {
+		return identifier;
 	}
 }

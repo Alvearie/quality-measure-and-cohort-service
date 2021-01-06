@@ -38,7 +38,7 @@ public class MeasureHelperTest extends BaseMeasureTest {
 		Measure measure = getCohortMeasure("Test", getLibrary("123", "cql/basic/test.xml"), "Female");
 		mockFhirResourceRetrieval(measure);
 		
-		Measure actual = MeasureHelper.loadMeasure(measure.getId(), provider);
+		Measure actual = MeasureHelper.loadMeasure(measure.getId(), null, provider);
 		assertNotNull(actual);
 	}
 	
@@ -50,7 +50,7 @@ public class MeasureHelperTest extends BaseMeasureTest {
 		MappingBuilder builder = get(urlMatching("/Measure\\?url=.*"));
 		mockFhirResourceRetrieval(builder,getBundle(measure));
 		
-		Measure actual = MeasureHelper.loadMeasure(measure.getUrl(), provider);
+		Measure actual = MeasureHelper.loadMeasure(measure.getUrl(), null, provider);
 		assertNotNull(actual);
 	}
 }
