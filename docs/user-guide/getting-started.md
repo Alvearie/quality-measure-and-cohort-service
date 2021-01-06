@@ -162,37 +162,245 @@ When a context (aka Patient ID) is provided that does not match a valid Patient 
 
 # Measure Evaluation
 
-A similar command-line interface is provided for evaluation of a quality measure definition that is stored in a FHIR Measure resource. The input parameters are very similar with the main difference being that instead of "-f", "-l", and "-v", and "-e" options to identify the library resource(s) and expression(s) that should be evaluated, a FHIR Measure resource is used and the "-r" command-line parameter provides the resource ID of that resource.
+A similar command-line interface is provided for evaluation of a quality measure definition that is stored in a FHIR
+Measure resource. The input parameters are very similar with the main difference being that instead of
+"-f", "-l", and "-v", and "-e" options to identify the library resource(s) and expression(s) that should be evaluated,
+a FHIR Measure resource is used and the "-r" command-line parameter provides the resource ID of that resource.
+Alternatively, the "-j" paramter can be used to provide a JSON file containing measure resource configurations to use
+during measure evaluation.
 
 ```
-$ java -classpath target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar com.ibm.cohort.cli.MeasureCLI --help
-Usage: measure-engine [options]
-  Options:
-  * -c, --context-id
-      FHIR resource ID for one or more patients to evaluate.
-  * -d, --data-server
-      Path to JSON configuration data for the FHIR server connection that will
-      be used to retrieve data.
-    -h, --help
-      Display this help
-    -m, --measure-server
-      Path to JSON configuration data for the FHIR server connection that will
-      be used to retrieve measure and library resources.
-    -p, --parameters
-      Parameter value(s) in format name:type:value where value can contain
-      additional parameterized elements separated by comma
-  * -r, --resource
-      FHIR Resource ID for the measure resource to be evaluated
-    -t, --terminology-server
-      Path to JSON configuration data for the FHIR server connection that will
-      be used to retrieve terminology.
-
+$ java -classpath cohort-cli/target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar com.ibm.cohort.cli.MeasureCLI --help
+  Usage: measure-engine [options]
+    Options:
+    * -c, --context-id
+        FHIR resource ID for one or more patients to evaluate.
+    * -d, --data-server
+        Path to JSON configuration data for the FHIR server connection that will 
+        be used to retrieve data.
+      -f, --format
+        Output format of the report (JSON|TEXT*)
+        Default: TEXT
+        Possible Values: [TEXT, JSON]
+      -h, --help
+        Display this help
+      -j, --json-measure-configurations
+        JSON File containing measure resource ids and optional parameters. 
+        Cannot be specified if -r option is used
+      -m, --measure-server
+        Path to JSON configuration data for the FHIR server connection that will 
+        be used to retrieve measure and library resources.
+      -p, --parameters
+        Parameter value(s) in format name:type:value where value can contain 
+        additional parameterized elements separated by comma. Multiple 
+        parameters must be specified as multiple -p options
+      -r, --resource
+        FHIR Resource ID for the measure resource to be evaluated. Cannot be 
+        specified if -j option is used
+      -t, --terminology-server
+        Path to JSON configuration data for the FHIR server connection that will 
+        be used to retrieve terminology.
 ```
+
+## Passing parameters on the command line (-p option)
+
+The `-p` argument can be used to pass parameters only if the `-r` option is used to specify a single resource id
+to evaluate. Multiple parameters must be provided by including the `-p` argument once per parameter. Each parameter
+must follow the format `name:type:value`. If `type` is an interval, then `value` must be of the format `subtype,start,end`.
+
+### Parameter Examples
+
+#### Single Simple Parameter
+
+```text
+-p "param1:integer:10"
+```
+
+#### Single Interval Parameter
+
+```text
+-p "param2:interval:decimal,4.3,100.7"
+```
+
+#### Multiple Parameters
+
+```text
+-p "param3:decimal:50.9" -p "param55:interval:integer,30,40"
+```
+
+## JSON File for -j Argument
+
+The `-j` argument should be the path to a file containing a JSON object containing a list of measure configurations.
+Configurations currently support measure ids and any parameters that should be used when executing a particular measure.
+
+If this argument is specified, then the `-r` option cannot be specified as well. Likewise, if `-p` is specified alongside
+this argument its contents will be ignored.
+
+Outer Structure:
+```text
+{
+   "measureConfigurations" : [
+      {
+         "parameters" : [
+            {PARAMETER_1}, {PARAMETER_2}, ... {PARAMETER_N}
+         ],
+         "measureId" : "STRING_IDENTIFIER"
+      }
+   ]
+}
+```
+
+* `measureConfigurations` (Required):
+    * Description:  List containing pairs of `measureId` and an optional list of `parameters`.
+* `measureConfigurations.measureId` (Required):
+    * Description: Measure id (resource id) of a measure to evaluate.
+    * Type: String
+* `measureConfigurations.parameters` (Optional): 
+    * Description: An optional list of one or more `Parameter` objects to use during evaluation for the corresponding measure.
+    * Type: `Parameter` (see structure below)
+
+Parameter Structure:
+```text
+{
+  "name": "STRING_NAME",
+  "type": "STRING_TYPE",
+  "value": "STRING_VALUE",
+  "subtype": "STRING_SUBTYPE",
+  "start": "STRING_START",
+  "end": "STRING_END"
+}
+```
+
+**NOTE: All Parameter fields have type string.**
+
+* `name` (Required):
+    * Description: Name of the parameter to use during measure evaluation.
+* `type` (Required):
+    * Description: CQL parameter type.
+    * Currently supported values: `integer`, `decimal`, `boolean`, `string`, `datetime`, `time`, `quantity`, `code`,
+    `concept`, and `interval`.
+* `value` (Required for non-interval parameters, see below): 
+    * Description: String representation of the value that will be converted to the appropriate type as specified in the
+    `type` field.
+    * Usage: For `interval` parameters, this field will be ignored (or it can be omitted). Otherwise, the value should
+    be a string representation of the value of the corresponding type.
+* `subtype` (Required for interval type parameters, see below):
+    * Description: CQL parameter type of the interval start and end. Currently supported values: `integer`, `decimal`,
+    `quantity`, `datetime`, and `time`.
+    * Usage: Required for parameters of type `interval`. Otherwise `subtype` will be  ignored or can be omitted.
+* `start` (Required for interval parameters, see below):
+    * Description: Value representing the start of the interval. Value should be able to convert to the type specified
+    by the `subtype` of the parameter.
+    * Usage: Required for parameters of type `interval`. Otherwise `start` will be  ignored or can be omitted.
+* `end` (Required for interval parameters, see below):
+    * Description: Value representing the end of the interval. Value should be able to convert to the type specified
+    by the `subtype` of the parameter.
+    * Usage: Required for parameters of type `interval`. Otherwise `end` will be  ignored or can be omitted.
+
+
+### Examples of JSON Files
+Here are some example JSON objects that could appear in a file for the `-j` argument.
+
+#### Example 1: Single measure without parameters
+```json
+{
+   "measureConfigurations" : [
+      {
+         "measureId" : "measure-with-id-1"
+      }
+   ]
+}
+```
+The measure with resource id `measure-with-id-1` will be executed for each patient context without any parameters.
+
+#### Example 2: Single measure with parameters
+```json
+{
+   "measureConfigurations" : [
+      {
+         "measureId" : "measure-with-id-2",
+         "parameters" : [
+            {
+               "name" : "param1",
+               "type" : "integer",
+               "value" : "20"
+            },
+            {
+               "name" : "param2",
+               "type" : "interval",
+               "subtype" : "decimal",
+               "start" : "4.0",
+               "end" : "7.5"
+            }
+         ]
+      }
+   ]
+}
+```
+The measure with resource id `measure-with-id-2` will be executed for each patient context with parameters `param1`
+and `param2`.
+
+#### Example 3: Multiple measures with and without parameters
+```json
+{
+   "measureConfigurations" : [
+      {
+         "measureId" : "measure-with-id-3",
+         "parameters" : [
+            {
+               "name" : "param1",
+               "type" : "integer",
+               "value" : "20"
+            }
+         ]
+      },
+      {
+         "measureId" : "measure-with-id-4"
+      }
+   ]
+}
+```
+The measure with resource id `measure-with-id-3` will be executed for each patient context with the parameter `param1`.
+The measure with resource id `measure-with-id-4` will be executed for each patient context without parameters.
+
+### Error Checking for the -j Argument
+These are the known error cases for the `-j` argument:
+
+#### Missing argument
+If the `-j` argument is not provided to the `MeasureCLI` and the `-r` argument is also missing then an
+`IllegalArgumentException` will be thrown.
+
+#### File does not exist
+If the `-j` argument is provided, but the file does not exist, then a `IllegalArgumentException` will be thrown.
+
+#### Unrecognized JSON fields
+If the JSON object contains unexpected fields a `com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException` will
+be thrown. 
+
+#### Missing fields in the JSON object
+If the JSON object does not contain required fields, an `IllegalArgumentException` exception will be thrown. Cases that
+can cause this:
+* `measureConfigurations` is missing or is an empty list.
+* `measureId` is missing or empty for one or more entry in the `measureConfigurations` list.
+* One or more parameters is missing a required field:
+    * Either `name` or `type` is missing or empty.
+    * The `type` for a parameter is set to `interval`, but `subtype`, `start`, or `end` are missing or empty.
+    * The `type` for a parameter is a non-interval type, but `value` is missing or empty.
+    
+#### Unsupported type and subtype values
+If an unsupported `type` or `subtype` is specified for a `Parameter`, then an `IllegalArgumentException` will be thrown.
+
+#### Incompatible values for a type
+Various exceptions can be thrown when a `value` cannot be converted to the corresponding `type` or when
+`start` or `end` values cannot be converted to the corresponding `subtype`.
+
+
+## Running measure evaluation
 
 With a local IBM FHIR test instance pre-loaded with a sample measure and patient...
 
 ```
-$ java -Djavax.net.ssl.trustStore=config/trustStore.pkcs12 -Djavax.net.ssl.trustStorePassword=change-password -Djavax.net.ssl.trustStoreType=pkcs12 -classpath target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar com.ibm.cohort.cli.MeasureCLI -d config/local-ibm-fhir.json -r wh-cohort-Over-the-Hill-Female-1.0.0 -c '1747edf2ef3-cd7133f1-3131-4ba8-a71a-da98c594cbab'
+$ java -Djavax.net.ssl.trustStore=config/trustStore.pkcs12 -Djavax.net.ssl.trustStorePassword=change-password -Djavax.net.ssl.trustStoreType=pkcs12 -classpath target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar com.ibm.cohort.cli.MeasureCLI -d config/local-ibm-fhir.json -p path/to/json/parameter/file -c '1747edf2ef3-cd7133f1-3131-4ba8-a71a-da98c594cbab'
 [main] INFO ca.uhn.fhir.util.VersionUtil - HAPI FHIR version 5.0.2 - Rev ecf175a352
 [main] INFO ca.uhn.fhir.context.FhirContext - Creating new FHIR context for FHIR version [R4]
 [main] INFO ca.uhn.fhir.util.XmlUtil - Unable to determine StAX implementation: java.xml/META-INF/MANIFEST.MF not found
@@ -203,5 +411,17 @@ Population: initial-population = 1
 Population: numerator = 0
 Population: denominator = 1
 ---
+```
+
+Example contents of `path/to/json/parameter/file`:
+
+```json
+{
+  "measureConfigurations": [
+    {
+      "measureId" : "wh-cohort-Over-the-Hill-Female-1.0.0"
+    }
+  ]
+}
 ```
 

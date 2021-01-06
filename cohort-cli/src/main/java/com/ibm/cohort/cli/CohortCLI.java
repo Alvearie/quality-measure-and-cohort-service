@@ -1,11 +1,11 @@
 /*
- * (C) Copyright IBM Corp. 2020, 2020
+ * (C) Copyright IBM Corp. 2020, 2021
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.cohort.cli;
 
-import static com.ibm.cohort.cli.ParameterHelper.parseParameters;
+import static com.ibm.cohort.cli.ParameterHelper.parseParameterArguments;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,6 +25,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
+import com.ibm.cohort.cli.input.NoSplittingSplitter;
 import com.ibm.cohort.engine.CqlEngineWrapper;
 import com.ibm.cohort.engine.DirectoryLibrarySourceProvider;
 import com.ibm.cohort.engine.EvaluationResultCallback;
@@ -66,7 +67,7 @@ public class CohortCLI extends BaseCLI {
 		private List<String> contextIds;
 
 		@Parameter(names = { "-p",
-				"--parameters" }, description = "Parameter value(s) in format name:type:value where value can contain additional parameterized elements separated by comma", required = false)
+				"--parameters" }, description = "Parameter value(s) in format name:type:value where value can contain additional parameterized elements separated by comma. Multiple parameters must be specified as multiple -p options", splitter = NoSplittingSplitter.class, required = false)
 		private List<String> parameters;
 
 		@Parameter(names = { "-s",
@@ -136,7 +137,7 @@ public class CohortCLI extends BaseCLI {
 
 			Map<String, Object> parameters = null;
 			if (arguments.parameters != null) {
-				parameters = parseParameters(arguments.parameters);
+				parameters = parseParameterArguments(arguments.parameters);
 			}
 			
 			wrapper.evaluate(arguments.libraryName, arguments.libraryVersion, parameters, arguments.expressions,
