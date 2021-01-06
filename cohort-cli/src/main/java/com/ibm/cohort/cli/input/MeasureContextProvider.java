@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2020, 2020
+ * (C) Copyright IBM Corp. 2020, 2021
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -19,7 +19,7 @@ import com.ibm.cohort.engine.measure.MeasureContext;
 public class MeasureContextProvider {
 	public static List<MeasureContext> getMeasureContexts(File input) throws IOException {
 		ObjectMapper objectMapper = new ObjectMapper();
-		MeasureParameters parsedInput = objectMapper.readValue(input, MeasureParameters.class);
+		ExecutionConfiguration parsedInput = objectMapper.readValue(input, ExecutionConfiguration.class);
 
 		// Throws an exception if invalid input is encountered
 		parsedInput.validate();

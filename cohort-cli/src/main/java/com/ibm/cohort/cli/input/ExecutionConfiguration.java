@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2020, 2020
+ * (C) Copyright IBM Corp. 2020, 2021
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -9,7 +9,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class MeasureParameters {
+public class ExecutionConfiguration {
 	@JsonProperty("measureConfigurations")
 	private List<MeasureConfiguration> measureConfigurations;
 
