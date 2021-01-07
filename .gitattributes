@@ -6,4 +6,4 @@
 
 *.jar binary
 
-*.sh text eol=cl
+*.sh text eol=lf
