@@ -32,7 +32,7 @@ FROM ibmjava:8-sdk AS builder
 
 WORKDIR /app
 
-#uncomment below when we start building with maven
+# uncomment below when we start building with maven
 COPY . /app
 #COPY --chown=1001:0 cohort-engine-distribution /app/cohort-engine-distribution
 #COPY --chown=1001:0 scripts /app/scripts
