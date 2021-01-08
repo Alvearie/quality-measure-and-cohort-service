@@ -90,7 +90,7 @@ public class MeasureEvaluator {
 		if (context.getMeasureId() != null) {
 			measureReport = evaluatePatientMeasure(context.getMeasureId(), patientId, context.getParameters());
 		} else if (context.getIdentifier() != null) {
-			measureReport = evaluatePatientMeasure(context.getIdentifier(), patientId, context.getParameters());
+			measureReport = evaluatePatientMeasure(context.getIdentifier(), context.getVersion(), patientId, context.getParameters());
 		}
 
 		if (measureReport == null) {
@@ -101,12 +101,12 @@ public class MeasureEvaluator {
 	}
 
 	public MeasureReport evaluatePatientMeasure(String measureId, String patientId, Map<String, Object> parameters) {
-		Measure measure = MeasureHelper.loadMeasure(measureId, patientId, getMeasureResolutionProvider());
+		Measure measure = MeasureHelper.loadMeasure(measureId, getMeasureResolutionProvider());
 		return evaluatePatientMeasure(measure, patientId, parameters);
 	}
 
-	public MeasureReport evaluatePatientMeasure(Identifier identifier, String patientId, Map<String, Object> parameters) {
-		Measure measure =  MeasureHelper.loadMeasure(identifier,  patientId, getMeasureResolutionProvider());
+	public MeasureReport evaluatePatientMeasure(Identifier identifier, String version, String patientId, Map<String, Object> parameters) {
+		Measure measure =  MeasureHelper.loadMeasure(identifier,  version, getMeasureResolutionProvider());
 		return evaluatePatientMeasure(measure, patientId, parameters);
 	}
 

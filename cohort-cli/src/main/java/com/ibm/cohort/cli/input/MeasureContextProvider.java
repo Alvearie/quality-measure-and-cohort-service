@@ -36,7 +36,7 @@ public class MeasureContextProvider {
 								.buildValue(measureIdentifier.getValue())
 								.build();
 					}
-					return new MeasureContext(x.getMeasureId(), x.getParameters(), identifier);
+					return new MeasureContext(x.getMeasureId(), x.getParameters(), identifier, x.getVersion());
 				}).collect(Collectors.toList());
 	}
 
@@ -46,6 +46,6 @@ public class MeasureContextProvider {
 			parsedParameters = ParameterHelper.parseParameterArguments(parameters);
 		}
 
-		return Collections.singletonList(new MeasureContext(resourceId, parsedParameters, null));
+		return Collections.singletonList(new MeasureContext(resourceId, parsedParameters, null, null));
 	}
 }

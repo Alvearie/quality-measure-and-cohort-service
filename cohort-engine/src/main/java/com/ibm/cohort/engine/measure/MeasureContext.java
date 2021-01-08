@@ -13,11 +13,13 @@ public class MeasureContext {
 	private final String measureId;
 	private final Map<String, Object> parameters;
 	private final Identifier identifier;
+	private final String version;
 
-	public MeasureContext(String measureId, Map<String, Object> parameters, Identifier  identifier) {
+	public MeasureContext(String measureId, Map<String, Object> parameters, Identifier  identifier, String version) {
 		this.measureId = measureId;
 		this.parameters = parameters;
 		this.identifier = identifier;
+		this.version = version;
 	}
 
 	public String getMeasureId() {
@@ -30,5 +32,9 @@ public class MeasureContext {
 
 	public Identifier getIdentifier() {
 		return identifier;
+	}
+	
+	public String getVersion() {
+		return version;
 	}
 }

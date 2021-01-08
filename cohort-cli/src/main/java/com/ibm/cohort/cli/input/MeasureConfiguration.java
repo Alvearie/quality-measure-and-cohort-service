@@ -43,8 +43,11 @@ public class MeasureConfiguration {
 	}
 
 	public void validate() {
-		if (isEmpty(measureId) && (identifier == null || isEmpty(identifier.getValue()))) {
-			throw new IllegalArgumentException("Invalid measure parameter file: A resource id or identifier with a value must be provided for each measure.");
+		boolean measureIdSpecified = !isEmpty(measureId);
+		boolean identifierSpecified = (identifier != null && !isEmpty(identifier.getValue()));
+		
+		if (measureIdSpecified == identifierSpecified) {
+			throw new IllegalArgumentException("Invalid measure parameter file: Exactly one of id or identifier with a value must be provided for each measure.");
 		}
 
 		if (identifier !=  null) {
