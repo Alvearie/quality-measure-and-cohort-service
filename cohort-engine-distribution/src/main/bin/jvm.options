@@ -1,0 +1,17 @@
+#<!--  ************************************** -->
+#<!--  (C) Copyright IBM Corp. 2021, 2021     -->
+#<!--  SPDX-License-Identifier: Apache-2.0    -->
+#<!--  ************************************** -->
+# WebSphere Application Server Liberty Profile
+# This file contains options that are passed directly to the JVM on startup
+# See the InfoCenter for full documentation
+
+# Uncomment the following line to enable verbose output for class loading
+#-verbose:class
+
+# Uncomment the following line to enable debug messages during VM bootstrapping
+#-Dws.ext.debug
+
+-Xmx16G
+
+-Denabled.dark.features=none

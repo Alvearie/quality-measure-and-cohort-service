@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  ************************************** -->
+<!--  (C) Copyright IBM Corp. 2001, 2020     -->
+<!--  SPDX-License-Identifier: Apache-2.0    -->
+<!--  ************************************** -->
+
+<!--
+to Run DVT tests:
+ant -f runVT.xml -Dservice.hostname=watsonwrkp350 -Dservice.port=10003 -Dtest.bucket=DVT ServiceVT
+to Run BVT tests:
+ant -f runVT.xml -Dservice.hostname=watsonwrkp350 -Dservice.port=10003 ServiceVT
+
+-->
+<project basedir="." name="service-bvt-automation">
+	<property name="runpath" value="${basedir}/.." />
+	<property name="service.hostname" value="" />
+	<property name="service.port" value="" />
+	<property name="service.ssl.port" value="" />
+	<property name="service.contextroot" value="" />
+	<property name="service.enabledDarkFeatures" value="" />
+	<property name="service.enabled.micro.services" value="" />
+	<property name="test.bucket" value="BVT" />
+	<property name="test.tenant" value="" />
+	<property name="test.tenant.header" value="" />
+	<property name="test.auth.apikey" value="" />
+	<property name="test.keystore.path" value="" />
+	<property name="test.keystore.password" value="" />
+	<property name="test.truststore.path" value="" />
+	<property name="test.truststore.password" value="" />
+
+	<path id="execution.classpath">
+		<pathelement location="." />
+		<fileset dir="${runpath}/tests">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="${runpath}/lib">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<!-- we use classpathsuite library to look up all junit tests to run depending on tagged categories
+     Unless we restrict it where to look for the tests as below, it will try to load from the java
+     class path
+-->
+	<path id="junittests.classpath">
+		<pathelement location="." />
+		<fileset dir="${runpath}/tests">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<target name="ServiceVT">
+		<mkdir dir="${runpath}\Report" />
+		<mkdir dir="${runpath}\Report\junit" />
+		<tstamp>
+			<format property="timestamp" pattern="MM-dd-yyyy-hh-mm" />
+		</tstamp>
+		<fileset dir="${runpath}/tests" id="testJar">
+			<include name="service-base*.jar" />
+		</fileset>
+		<property name="testJarName" refid="testJar" />
+		<property name="bvtClasspath" refid="junittests.classpath" />
+		<junit fork="true" maxmemory="2g" printsummary="true" dir="${basedir}" showoutput="true" haltonfailure="no" failureproperty="test.failed">
+			<formatter type="xml" />
+			<classpath refid="execution.classpath" />
+			<batchtest fork="yes" todir="${runpath}\Report\junit">
+				<resources>
+					<zipfileset src="${runpath}/tests/${testJarName}" includes="**/${test.bucket}Tests.class" />
+				</resources>
+			</batchtest>
+			<sysproperty key="test.host" value="${service.hostname}" />
+			<sysproperty key="test.httpPort" value="${service.port}" />
+			<sysproperty key="test.httpSslPort" value="${service.ssl.port}" />
+			<sysproperty key="test.contextRoot" value="${service.contextroot}" />
+			<sysproperty key="test.enabledDarkFeatures" value="${service.enabledDarkFeatures}" />
+			<sysproperty key="test.enabledMicroServices" value="${service.enabled.micro.services}" />
+			<!-- this will help restrict to look up tests in the necessary tests folder and keep it specific to service under test -->
+			<sysproperty key="test.bvtclasspath" value="${bvtClasspath}" />
+			<sysproperty key="test.tenant" value="${test.tenant}" />
+			<sysproperty key="test.tenantHeader" value="${test.tenant.header}" />
+			<sysproperty key="test.authApikey" value="${test.auth.apikey}" />
+			<sysproperty key="test.keystore.path" value="${test.keystore.path}" />
+			<sysproperty key="test.keystore.password" value="${test.keystore.password}" />
+			<sysproperty key="test.truststore.path" value="${test.truststore.path}" />
+			<sysproperty key="test.truststore.password" value="${test.truststore.password}" />
+		</junit>
+		<antcall target="junitReport" />
+		<fail message="Test failure detected, check test results." if="test.failed" />
+	</target>
+
+
+	<target name="junitReport">
+		<junitreport todir="${runpath}\Report\junit">
+			<fileset dir="${runpath}\Report\junit">
+				<include name="TEST-*.xml" />
+			</fileset>
+			<report format="frames" todir="${runpath}\Report\junit" />
+		</junitreport>
+	</target>
+
+</project>
