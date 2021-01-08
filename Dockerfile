@@ -52,7 +52,7 @@ COPY . /app
 #RUN apt-get update && apt-get install -y maven && \
 #    mvn -N io.takari:maven:wrapper -Dmaven=3.5.0 && \
 #    ./mvnw clean install -f cohort-parent -s .toolchain.maven.settings.xml
- 
+
 # Install unzip
 #RUN apt-get update && apt-get install -y unzip
 
