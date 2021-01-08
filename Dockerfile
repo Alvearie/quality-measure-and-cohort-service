@@ -40,7 +40,7 @@ COPY . /app
 
 #uncomment to do the maven build in the docker image build
 #you will need to pass in the IBM_USERNAME and IBM_GITHUB_PUBLIC_TOKEN
-#so maven can download the dependency packages from the 
+#so maven can download the dependency packages from the
 #http://github.com/Alvearie/rest-service-framework/ project
 #eg docker build --build-arg IBM_USERNAME=<replaceWithUserId> --build-arg IBM_GITHUB_PUBLIC_TOKEN=<replaceWithGithubToken> -t cohort-app-cloud:v1 .
 #ARG IBM_USERNAME=beSureToPassIntoDockerBuild
@@ -58,9 +58,9 @@ COPY . /app
 
 RUN mkdir -p /app/cohortSolutionDistribution && \
     mkdir -p /app/cohortTestDistribution
-#RUN ["/bin/bash", "-c", "unzip -d /app/cohort-engine-distribution/target/solution/*.tar.gz /app/cohortSolutionDistribution" ]
+#RUN ["/bin/bash", "-c", "unzip -d /app/cohort-engine-distribution/target/solution/*.tar.gz /app/cohortSolutionDistribution"]
 RUN tar -xzf /app/cohort-engine-distribution/target/solution/*.tar.gz -C /app/cohortSolutionDistribution
-#RUN ["/bin/bash", "-c", "unzip -d /app/cohort-engine-distribution/target/test/*.tar.gz /app/cohortTestDistribution" ]
+#RUN ["/bin/bash", "-c", "unzip -d /app/cohort-engine-distribution/target/test/*.tar.gz /app/cohortTestDistribution"]
 RUN tar -xzf /app/cohort-engine-distribution/target/test/*.tar.gz -C /app/cohortTestDistribution
 ####################
 # Multi-stage build. New build stage that uses the Liberty UBI as the base image.
