@@ -19,9 +19,11 @@ spec:
     metadata:
       labels:
         app: {{ .Values.nameOverride }}-{{ .Values.wora.tenantId | lower | replace "_" "-" }}
-        ts: "{{ date "20060102150405" $.Release.Time }}"
+        ts: "{{ date "20060102150405" now }}"
+#        ts: "{{ date "20060102150405" $.Release.Time }}"
       annotations:
-        timstamp: "{{ date "20060102150405" $.Release.Time }}"
+        timstamp: "{{ date "20060102150405" now }}"
+#        timstamp: "{{ date "20060102150405" $.Release.Time }}"
     spec:
       affinity:
        nodeAffinity:
