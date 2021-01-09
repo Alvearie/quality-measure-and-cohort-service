@@ -20,10 +20,8 @@ spec:
       labels:
         app: {{ .Values.nameOverride }}-{{ .Values.wora.tenantId | lower | replace "_" "-" }}
         ts: "{{ date "20060102150405" now }}"
-#        ts: "{{ date "20060102150405" $.Release.Time }}"
       annotations:
         timstamp: "{{ date "20060102150405" now }}"
-#        timstamp: "{{ date "20060102150405" $.Release.Time }}"
     spec:
       affinity:
        nodeAffinity:
@@ -42,7 +40,6 @@ spec:
                operator: In
                values:
                - "{{ date "20060102150405" now }}"
-#               - "{{ date "20060102150405" $.Release.Time }}"
            topologyKey: failure-domain.beta.kubernetes.io/zone
       securityContext:
         runAsUser: {{ .Values.wora.woraUser }}
