@@ -39,7 +39,8 @@ spec:
              - key: ts
                operator: In
                values:
-               - "{{ date "20060102150405" $.Release.Time }}"
+               - "{{ date "20060102150405" now }}"
+#               - "{{ date "20060102150405" $.Release.Time }}"
            topologyKey: failure-domain.beta.kubernetes.io/zone
       securityContext:
         runAsUser: {{ .Values.wora.woraUser }}
