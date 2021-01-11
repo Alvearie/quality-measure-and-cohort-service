@@ -5,10 +5,9 @@
  */
 package com.ibm.cohort.engine.measure;
 
-import java.util.List;
+import static org.apache.commons.lang.StringUtils.isEmpty;
+
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.stream.Collectors;
 
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Identifier;
@@ -55,7 +54,7 @@ public class RestFhirMeasureResolutionProvider implements MeasureResolutionProvi
 
 	@Override
 	public Measure resolveMeasureByIdentifier(Identifier identifier, String version) {
-		if (version == null) {
+		if (isEmpty(version)) {
 			return resolveMeasureByIdentifierOnly(identifier);
 		} else {
 			return resolveMeasureByIdentifierWithVersion(identifier, version);
@@ -108,7 +107,7 @@ public class RestFhirMeasureResolutionProvider implements MeasureResolutionProvi
 					retVal = measure;
 					currentMax = measureVersion;
 					numberOfMaxVersionSeen = 1;
-				} else if (measureVersion == currentMax) {
+				} else if (measureVersion.equals(currentMax)) {
 					numberOfMaxVersionSeen += 1;
 				}
 			}

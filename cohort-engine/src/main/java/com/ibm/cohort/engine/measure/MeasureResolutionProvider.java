@@ -5,8 +5,6 @@
  */
 package com.ibm.cohort.engine.measure;
 
-import java.util.List;
-
 import org.hl7.fhir.r4.model.Identifier;
 
 public interface MeasureResolutionProvider<MeasureType> {

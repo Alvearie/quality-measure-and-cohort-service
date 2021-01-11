@@ -93,10 +93,6 @@ public class MeasureEvaluator {
 			measureReport = evaluatePatientMeasure(context.getIdentifier(), context.getVersion(), patientId, context.getParameters());
 		}
 
-		if (measureReport == null) {
-			throw new IllegalArgumentException("A measure must specify either a resource id or identifier");
-		}
-
 		return measureReport;
 	}
 

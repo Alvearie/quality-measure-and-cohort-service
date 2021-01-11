@@ -9,14 +9,16 @@ public class MeasureVersion implements Comparable<MeasureVersion> {
 	private static final Pattern SEMANTIC_VERSION_PATTERN = Pattern.compile("^(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)");
 
 	public static Optional<MeasureVersion> create(String version) {
-		Matcher matcher = SEMANTIC_VERSION_PATTERN.matcher(version);
-		if (matcher.matches()) {
-			return Optional.of(new MeasureVersion(Integer.valueOf(matcher.group("major")),
-												  Integer.valueOf(matcher.group("minor")), Integer.valueOf(matcher.group("patch"))
-			));
-		} else {
-			return Optional.empty();
+		if (version != null) {
+			Matcher matcher = SEMANTIC_VERSION_PATTERN.matcher(version);
+			if (matcher.matches()) {
+				return Optional.of(
+						new MeasureVersion(Integer.valueOf(matcher.group("major")),
+										   Integer.valueOf(matcher.group("minor")), Integer.valueOf(matcher.group("patch"))
+						));
+			}
 		}
+		return Optional.empty();
 	}
 	
 	private final int major;
