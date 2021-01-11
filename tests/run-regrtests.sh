@@ -4,7 +4,8 @@ passing=0
 failing=0
 output=""
 
-podname=$(kubectl get pods --namespace "${CLUSTER_NAMESPACE}" | grep -i "${APP_NAME}-${GIT_BRANCH}-${CHART_NAME}" | grep Running | cut -d " " -f 1 | head -n1)
+#podname=$(kubectl get pods --namespace "${CLUSTER_NAMESPACE}" | grep -i "${APP_NAME}-${GIT_BRANCH}-${CHART_NAME}" | grep Running | cut -d " " -f 1 | head -n1)
+podname=$(kubectl get pods --namespace "${CLUSTER_NAMESPACE}" | grep -i "${APP_NAME}-tenant-id" | grep Running | cut -d " " -f 1 | head -n1)
 
 echo "### Ensure Toolchain Test Service is in Response Message ###"
 test1=$(kubectl exec --namespace="${CLUSTER_NAMESPACE}" $podname -- wget -qO- http://127.0.0.1:8088)
