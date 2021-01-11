@@ -16,4 +16,4 @@ scenarios:
 
 reporting:
 - module: junit-xml
-  filename: ../results/sampleTest.xml
+  filename: /bzt-configs/tests/results/sampleTest.xml
