@@ -8,13 +8,10 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
 	<!-- localRepository | The path to the local repository maven will use to 
-		store artifacts. | | Default: ${user.home}/.m2/repository <localRepository>/path/to/local/repo</localRepository> 
-		<localRepository>/bld/.m2/repository</localRepository> <interactiveMode>false</interactiveMode> -->
-
-
+		store artifacts. | | Default: ${user.home}/.m2/repository <localRepository>/path/to/local/repo</localRepository> --> 
+	<localRepository>${user.home}/.m2/repository</localRepository> <interactiveMode>false</interactiveMode>
 
 	<servers>
-
 		<server>
 			<id>github</id>
 			<username>${env.IBM_GITHUB_PUBLIC_USERNAME}</username>
