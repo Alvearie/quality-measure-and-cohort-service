@@ -45,8 +45,8 @@ public class MeasureVersionTest {
 		assertTrue(version3_1_1.compareTo(version3_1_0) > 0);
 
 		// Compare to self
-		assertEquals(0, version1_9_9.compareTo(version1_9_9));
-		assertEquals(0, version3_1_0.compareTo(version3_1_0));
+		assertEquals(0, version1_9_9.compareTo(new MeasureVersion(1, 9, 9)));
+		assertEquals(0, version3_1_0.compareTo(new MeasureVersion(3, 1, 0)));
 
 	}
 }
