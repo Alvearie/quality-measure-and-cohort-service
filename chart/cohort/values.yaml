@@ -11,10 +11,13 @@ annotations:
   APPLICATION_VERSION: null
 
 image:
+  repository: <helm-repo>
+  tag: <helm-tag>
+  pullSecret: regsecret
 #  repository: registry.ng.bluemix.net
-  repository: us.icr.io
+#  repository: us.icr.io
 #  tag: daily-100
-  tag: v1
+#  tag: v1
   pullPolicy: Always
 #  namespace: cdt-oncology-wocs-rns
   namespace: cdt-provider-cohort-rns
@@ -23,7 +26,7 @@ image:
 #  imageName: wora-solution-1.0.0
   imageName: cohort-app
   #pullSecret: default-us-icr-io
-  pullSecret: all-icr-io
+#  pullSecret: all-icr-io
 
 #nameOverride: "wora"
 nameOverride: "cohort"

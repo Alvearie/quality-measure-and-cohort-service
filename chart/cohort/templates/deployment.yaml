@@ -23,6 +23,8 @@ spec:
       annotations:
         timstamp: "{{ date "20060102150405" now }}"
     spec:
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecret }}
       affinity:
        nodeAffinity:
          requiredDuringSchedulingIgnoredDuringExecution:
