@@ -43,6 +43,8 @@ spec:
           {{- range .Values.service.ports }}
           - containerPort: {{ . }}
           {{- end }}
+      nodeSelector:
+        worker-type: application
 #      affinity:
 #      nodeAffinity:
 #        requiredDuringSchedulingIgnoredDuringExecution:
