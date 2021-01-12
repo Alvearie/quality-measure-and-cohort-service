@@ -1,8 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.nameOverride }}-{{ .Values.wora.tenantId | lower | replace "_" "-" }}
-  namespace: {{ .Values.image.namespaceForKube }}
+  name: {{ template "fullname" . }}
+#  name: {{ .Values.nameOverride }}-{{ .Values.wora.tenantId | lower | replace "_" "-" }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+#  namespace: {{ .Values.image.namespaceForKube }}
   annotations:
     TOOLCHAIN_ID: {{ .Values.annotations.TOOLCHAIN_ID }}
     GIT_URL: {{ .Values.annotations.GIT_URL }}
@@ -14,76 +20,88 @@ spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Values.nameOverride }}-{{ .Values.wora.tenantId | lower | replace "_" "-" }}
+#      app: {{ .Values.nameOverride }}-{{ .Values.wora.tenantId | lower | replace "_" "-" }}
+      app: {{ template "name" . }}
+      release: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ .Values.nameOverride }}-{{ .Values.wora.tenantId | lower | replace "_" "-" }}
-        ts: "{{ date "20060102150405" now }}"
-      annotations:
-        timstamp: "{{ date "20060102150405" now }}"
+        app: {{ template "name" . }}
+        release: {{ .Release.Name }}
+#        app: {{ .Values.nameOverride }}-{{ .Values.wora.tenantId | lower | replace "_" "-" }}
+#        ts: "{{ date "20060102150405" now }}"
+#      annotations:
+#        timstamp: "{{ date "20060102150405" now }}"
     spec:
       imagePullSecrets:
         - name: {{ .Values.image.pullSecret }}
-      affinity:
-       nodeAffinity:
-         requiredDuringSchedulingIgnoredDuringExecution:
-           nodeSelectorTerms:
-            - matchExpressions:
-              - key: worker-type
-                operator: In
-                values:
-                - application
-       podAntiAffinity:
-         requiredDuringSchedulingIgnoredDuringExecution:
-         - labelSelector:
-             matchExpressions:
-             - key: ts
-               operator: In
-               values:
-               - "{{ date "20060102150405" now }}"
-           topologyKey: failure-domain.beta.kubernetes.io/zone
-      securityContext:
-        runAsUser: {{ .Values.wora.woraUser }}
-        runAsGroup: 0
-        fsGroup: {{ .Values.wora.woraUser }}
-      imagePullSecrets:
-      - name:  {{ .Values.image.pullSecret }}
       containers:
-      - name: {{ .Values.nameOverride }}-{{ .Values.wora.tenantId | lower | replace "_" "-" }}
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+          {{- range .Values.service.ports }}
+          - containerPort: {{ . }}
+          {{- end }}
+#      affinity:
+#      nodeAffinity:
+#        requiredDuringSchedulingIgnoredDuringExecution:
+#           nodeSelectorTerms:
+#            - matchExpressions:
+#              - key: worker-type
+#                operator: In
+#                values:
+#                - application
+#       podAntiAffinity:
+#         requiredDuringSchedulingIgnoredDuringExecution:
+#         - labelSelector:
+#            matchExpressions:
+#             - key: ts
+#               operator: In
+#               values:
+#               - "{{ date "20060102150405" now }}"
+#           topologyKey: failure-domain.beta.kubernetes.io/zone
+#      securityContext:
+#        runAsUser: {{ .Values.wora.woraUser }}
+#        runAsGroup: 0
+#        fsGroup: {{ .Values.wora.woraUser }}
+#      imagePullSecrets:
+#      - name:  {{ .Values.image.pullSecret }}
+#      containers:
+#      - name: {{ .Values.nameOverride }}-{{ .Values.wora.tenantId | lower | replace "_" "-" }}
+#        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
 #        image: {{ .Values.image.repository }}/{{ .Values.image.namespace }}/{{ .Values.image.imageName }}:{{ .Values.image.tag }}
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
+#        imagePullPolicy: {{ .Values.image.pullPolicy }}
 #        lifecycle:
 #          preStop:
 #            exec:
 #              command: ["/bin/sh","-c","/opt/ibm/watsonhealth/liberty/wlp/bin/server stop wora-server"]
-        ports:
-        {{- range .Values.service.ports }}
-        - containerPort: {{ . }}
-        {{- end }}
-        resources:
-          requests:
-            memory: {{ .Values.wora.memory }}
-        env:
-        - name: DEBUG_FAILURE
-          value: "{{ .Values.DEBUG_FAILURE }}"
-        - name: HTTP_SSL_PORT_TOKEN
-          value: "{{ $.Values.service.apiservicePortSecure }}"
-        - name: REPORTS_SCHEMANAME_TOKEN
-          value: "RDA_{{ .Values.wora.tenantId | upper | replace "-" "_" }}_REPORTS"
-        - name: OPERATIONS_SCHEMANAME_TOKEN
-          value: "RDA_{{ .Values.wora.tenantId | upper | replace "-" "_" }}_OPERATIONS"
-        - name: PDM_USERID_TOKEN
-          value: "{{ .Values.wora.tenantId | lower | replace "-" "_" }}_wora"
-        - name: WORA_TENANTID_TOKEN
-          value: "{{ .Values.wora.tenantId }}"
-        - name: SOLUTION_TENANT_ID_TOKEN
-          value: "{{ .Values.wora.tenantId }}"
-        {{- range $key, $val := .Values.woraReplacementTokens }}
-        - name: {{ $key }}
-          value: {{ $val | quote }}
-        {{- end }}
+#        ports:
+#        {{- range .Values.service.ports }}
+#        - containerPort: {{ . }}
+#        {{- end }}
+#        resources:
+#          requests:
+#            memory: {{ .Values.wora.memory }}
+#        env:
+#        - name: DEBUG_FAILURE
+#          value: "{{ .Values.DEBUG_FAILURE }}"
+#        - name: HTTP_SSL_PORT_TOKEN
+#          value: "{{ $.Values.service.apiservicePortSecure }}"
+#        - name: REPORTS_SCHEMANAME_TOKEN
+#          value: "RDA_{{ .Values.wora.tenantId | upper | replace "-" "_" }}_REPORTS"
+#        - name: OPERATIONS_SCHEMANAME_TOKEN
+#          value: "RDA_{{ .Values.wora.tenantId | upper | replace "-" "_" }}_OPERATIONS"
+#        - name: PDM_USERID_TOKEN
+#          value: "{{ .Values.wora.tenantId | lower | replace "-" "_" }}_wora"
+#        - name: WORA_TENANTID_TOKEN
+#          value: "{{ .Values.wora.tenantId }}"
+#        - name: SOLUTION_TENANT_ID_TOKEN
+#          value: "{{ .Values.wora.tenantId }}"
+#        {{- range $key, $val := .Values.woraReplacementTokens }}
+#        - name: {{ $key }}
+#          value: {{ $val | quote }}
+#        {{- end }}
 #        volumeMounts:
 #        - name: cos
 #          mountPath: /opt/ibm/watsonhealth/cos
