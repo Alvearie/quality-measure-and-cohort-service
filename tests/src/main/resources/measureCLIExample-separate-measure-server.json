@@ -112,6 +112,15 @@
             "response": "Evaluating: 47c883bb-160a-7117-c5df-9344041ef048\nResult for Measure/identifier-test-measure-1\nPopulation: initial-population = 1\n---\nResult for Measure/identifier-test-measure-2\nPopulation: initial-population = 1\n---",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
             "regEx": false
+        },
+        "Identifier Test - Identifier and id for single message": {
+            "jsonMeasureConfigurationFile": "tests/src/main/resources/measure-parameters/measure-identifier-test-IdAndIdentifierException.json",
+            "resource": null,
+            "params": null,
+            "targets": ["47c883bb-160a-7117-c5df-9344041ef048"],
+            "response": "Exception in thread \"main\" java.lang.IllegalArgumentException: Invalid measure parameter file: Exactly one of id or identifier with a value must be provided for each measure.",
+            "measureServer": "cohort-cli/config/local-ibm-fhir.json",
+            "regEx": true
         }
     }
 }
