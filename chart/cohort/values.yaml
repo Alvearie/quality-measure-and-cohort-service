@@ -40,7 +40,8 @@ service:
     - 9443
 
 wora:
-  woraUser: 1025
+#  woraUser: 1025
+  woraUser: whuser
   tenantId: TENANT_ID
   # the correct unit abbreviation below is Gi
   #memory: "16Gi"
