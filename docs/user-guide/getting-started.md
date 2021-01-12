@@ -244,20 +244,37 @@ Outer Structure:
          "parameters" : [
             {PARAMETER_1}, {PARAMETER_2}, ... {PARAMETER_N}
          ],
-         "measureId" : "STRING_IDENTIFIER"
+         "measureId" : "STRING_IDENTIFIER",
+         "identifier": {
+            "value": "STRING_VALUE",
+            "system": "STRING_SYSTEM"
+         }
+         "version": "STRING_VERSION"
       }
    ]
 }
 ```
 
 * `measureConfigurations` (Required):
-    * Description:  List containing pairs of `measureId` and an optional list of `parameters`.
-* `measureConfigurations.measureId` (Required):
+    * Description:  List containing configurations for which measures to run.
+* `measureConfigurations.measureId` (Optional*):
     * Description: Measure id (resource id) of a measure to evaluate.
     * Type: String
+    * *Note*: *Is required when `identifier` is not specified.
 * `measureConfigurations.parameters` (Optional): 
     * Description: An optional list of one or more `Parameter` objects to use during evaluation for the corresponding measure.
     * Type: `Parameter` (see structure below)
+* `measureConfigurations.identifier.value` (Optional*):
+    * Description: Identifier value of the measure to evaluate.
+    * Type: String
+    * *Note*: *Is required when `measureId` is not specified.
+* `measureConfigurations.identifier.system` (Optional):
+    * Description: Identifier system value. Can only be defined if `identifier.value` is also specified
+    * Type: String
+* `measureConfigurations.version` (Optional - may be used when `identifier` is specified):
+    * Description: String value representing a measure version. Identifies a particular version of a measure to retrieve
+      when combined with `identifier`.
+    * Type: String
 
 Parameter Structure:
 ```text
@@ -297,6 +314,24 @@ Parameter Structure:
     by the `subtype` of the parameter.
     * Usage: Required for parameters of type `interval`. Otherwise `end` will be  ignored or can be omitted.
 
+### Measure Retrieval for Evaluation
+Each entry in `measureConfigurations` may identify a measure to evaluate using either `measureId` or a combination of `identifier`
+and `version`. A measure configuration entry may not include both a `measureId` and `identifier`.
+
+If `measureId` is provided, the measure resource with the corresponding id in the configured FHIR server will be
+retrieved and evaluated.
+
+If `identifier` is provided without a version, then these steps will be followed:
+  1. Retrieve any measures matching the provided `identifier.value` (and `identifier.system` if included).
+  1. Discard any measures without a semantic version (numeric values matching the pattern x.y.z).
+  1. Out of the remaining measures, return and evaluate the measure with the latest semantic version.
+
+If `identifier` is provided with a version, then a measure with the provided `identifier.value` and `version` (along with
+an optional `identifier.system` will be retrieved and evaluated).
+
+Regardless of the provided configuration used to identify a measure, following any of the processes above must resolve
+to a single measure in each case. If a measure cannot be retrieved using the provided criteria, or if two or more measures
+match the provided criteria, then an error will be thrown.
 
 ### Examples of JSON Files
 Here are some example JSON objects that could appear in a file for the `-j` argument.
@@ -363,6 +398,42 @@ and `param2`.
 The measure with resource id `measure-with-id-3` will be executed for each patient context with the parameter `param1`.
 The measure with resource id `measure-with-id-4` will be executed for each patient context without parameters.
 
+#### Example 4: Multiple measures with identifiers
+```json
+{
+   "measureConfigurations" : [
+      {
+         "identifier" : {
+            "value" : "measure-with-identifier",
+            "system" : "http://fakesystem.org"
+         }
+      },
+      {
+         "identifier" : {
+            "value" : "measure-with-identifier"
+         }
+      },
+      {
+        "identifier" : {
+          "value" : "measure-with-identifier",
+          "system" : "http://fakesystem.org"
+        },
+        "version" : "1.2.3"
+      }
+   ]
+}
+```
+
+The first entry will evaluate the measure with the latest semantic version where the measure's `identifier.value` is
+equal to `measure-with-identifier` and `identifier.system` is equal to `http://fakesystem.org`.
+
+The second entry will evaluate the measure with the latest semantic version where the measure's `identifier.value` is
+equal to `measure-with-identifier` (regardless of `identifier.system` on each measure).
+
+The third entry will evaluate the measure where `identifier.value` is equal to `measure-with-identifier`,
+`identifier.system` is equal to `http://fakesystem.org`, and the measure version is exactly `1.2.3` (even if a later
+version of a measure exists in the FHIR server with the same identifier fields).
+
 ### Error Checking for the -j Argument
 These are the known error cases for the `-j` argument:
 
@@ -381,7 +452,9 @@ be thrown.
 If the JSON object does not contain required fields, an `IllegalArgumentException` exception will be thrown. Cases that
 can cause this:
 * `measureConfigurations` is missing or is an empty list.
-* `measureId` is missing or empty for one or more entry in the `measureConfigurations` list.
+* Neither `measureId` nor `identifier.value` is specified for an entry in the `measureConfigurations` list.
+* Both `measureId` and `identifier.value` are specified for a single entry in the `measureConfigurations` list.
+* `identifier` is specified, but is missing `value` for an entry in the `measureConfigurations` list .
 * One or more parameters is missing a required field:
     * Either `name` or `type` is missing or empty.
     * The `type` for a parameter is set to `interval`, but `subtype`, `start`, or `end` are missing or empty.
