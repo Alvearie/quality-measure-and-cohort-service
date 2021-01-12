@@ -20,17 +20,22 @@ def setup():
         data = json.load(f)
         testValues = data['tests']
         for testValue in testValues.values():
-            tests.append((testValue['jsonMeasureConfigurationFile'], testValue['resource'], testValue['params'], testValue['targets'], testValue['response'], testValue['measureServer']))
+            regEx=False
+            try:
+                regEx=testValue['regEx']
+            except:
+                regEx=False
+            tests.append((testValue['jsonMeasureConfigurationFile'], testValue['resource'], testValue['params'], testValue['targets'], testValue['response'], testValue['measureServer'], regEx))
     return tests
  
 class Test(object):
 
-    @pytest.mark.parametrize("jsonMeasureConfigurationFile, resource, params, targets, output, measureServer",setup())
-    def test1(self, jsonMeasureConfigurationFile, resource, params, targets, output, measureServer):
-        self.execute(jsonMeasureConfigurationFile, resource, params, targets, output, measureServer)
+    @pytest.mark.parametrize("jsonMeasureConfigurationFile, resource, params, targets, output, measureServer, regEx", setup())
+    def test1(self, jsonMeasureConfigurationFile, resource, params, targets, output, measureServer, regEx):
+        self.execute(jsonMeasureConfigurationFile, resource, params, targets, output, measureServer, regEx)
 
     # Execute submits a query and validates the return.
-    def execute(self, jsonMeasureConfigurationFile, resource, params, targets, output, measureServer):
+    def execute(self, jsonMeasureConfigurationFile, resource, params, targets, output, measureServer, regEx):
         o = output.split('\n')
         callDetails = ["java", "-Xms1G", "-Xmx1G", "-Djavax.net.ssl.trustStore="+os.environ["TRUSTSTORE"], "-Djavax.net.ssl.trustStorePassword="+os.environ["TRUSTSTORE_PASSWORD"], "-Djavax.net.ssl.trustStoreType="+os.environ["TRUSTSTORE_TYPE"], "-classpath", jar, "com.ibm.cohort.cli.MeasureCLI"]
         if os.environ['DATA_FHIR_SERVER_DETAILS']:
@@ -63,11 +68,15 @@ class Test(object):
             if not "[main]" in temp:
                 tmpout=tmpout+temp
         out=tmpout
-        respOut = out.splitlines()
-        error = "\n"
-        for line in o:
-            assert line in respOut, 'Did not contain: ' + line + '\nContained: ' + error.join(respOut)
+        if regEx:
+            for line in o:
+                assert re.match(line, out), 'Did not contain: ' + line + '\nContained: ' + out
+        else:
+            respOut = out.splitlines()
+            error = "\n"
+            for line in o:
+                assert line in respOut, 'Did not contain: ' + line + '\nContained: ' + error.join(respOut)
         
-        print("In respOut:")
-        for line in respOut:
-            assert line in o, 'Did not contain: ' + line + '\nContained: ' + error.join(o)
+            print("In respOut:")
+            for line in respOut:
+                assert line in o, 'Did not contain: ' + line + '\nContained: ' + error.join(o)
