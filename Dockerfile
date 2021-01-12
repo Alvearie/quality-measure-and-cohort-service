@@ -94,9 +94,10 @@ RUN $WLP_HOME/bin/server create $SERVER_NAME && \
 
 USER root
 # Install more software
-RUN microdnf update -y && rm -rf /var/cache/yum && \
-    microdnf install -y --nodocs jq sudo zip unzip net-tools which openssh-clients curl openssl rsync gettext procps wget bind-utils iputils && \
-    microdnf clean all
+RUN microdnf update -y && microdnf clean all
+#RUN microdnf update -y && rm -rf /var/cache/yum && \
+#    microdnf install -y --nodocs jq sudo zip unzip net-tools which  openssh-clients curl openssl rsync gettext procps wget bind-utils iputils openssl-libs gnutls && \
+#    microdnf clean all
 
 # Update symlnk used by Liberty to new server.  Need root.
 RUN ln -sfn $WLP_HOME/usr/servers/$SERVER_NAME /config
