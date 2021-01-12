@@ -5,7 +5,7 @@ failing=0
 output=""
 
 #podname=$(kubectl get pods --namespace "${CLUSTER_NAMESPACE}" | grep -i "${APP_NAME}-${GIT_BRANCH}-${CHART_NAME}" | grep Running | cut -d " " -f 1 | head -n1)
-podname=$(kubectl get pods --namespace "${CLUSTER_NAMESPACE}" | grep -i "${APP_NAME}-tenant-id" | grep Running | cut -d " " -f 1 | head -n1)
+podname=$(kubectl get pods --namespace "${CLUSTER_NAMESPACE}" | grep -i "${APP_NAME}" | grep Running | cut -d " " -f 1 | head -n1)
 
 echo "### serviceState ###"
 test1=$(kubectl exec --namespace="${CLUSTER_NAMESPACE}" $podname -- curl http://localhost:9080/services/cohort/api/v1/status?liveness_check=false)

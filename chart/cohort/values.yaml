@@ -18,18 +18,18 @@ image:
 #  repository: us.icr.io
 #  tag: daily-100
 #  tag: v1
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
 #  namespace: cdt-oncology-wocs-rns
-  namespace: cdt-provider-cohort-rns
+#  namespace: cdt-provider-cohort-rns
 #  namespaceForKube: cdt-oncology-wora-ns-01
-  namespaceForKube: dev
+#  namespaceForKube: dev
 #  imageName: wora-solution-1.0.0
   imageName: cohort-app
   #pullSecret: default-us-icr-io
 #  pullSecret: all-icr-io
 
 #nameOverride: "wora"
-nameOverride: "cohort"
+#nameOverride: "cohort"
 DEBUG_FAILURE: false
 
 service:
