@@ -13,6 +13,8 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Measure;
 
+import com.ibm.cohort.version.SemanticVersion;
+
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 public class RestFhirMeasureResolutionProvider implements MeasureResolutionProvider<Measure> {
@@ -93,14 +95,14 @@ public class RestFhirMeasureResolutionProvider implements MeasureResolutionProvi
 	
 	private Optional<Measure> resolveMeasureFromList(Bundle bundle) {
 		int numberOfMaxVersionSeen = 0;
-		MeasureVersion currentMax = null;
+		SemanticVersion currentMax = null;
 		Measure retVal = null;
 
 		for (Bundle.BundleEntryComponent b : bundle.getEntry()) {
 			Measure measure = (Measure) b.getResource();
-			Optional<MeasureVersion> optional = MeasureVersion.create(measure.getVersion());
+			Optional<SemanticVersion> optional = SemanticVersion.create(measure.getVersion());
 			if (optional.isPresent()) {
-				MeasureVersion measureVersion = optional.get();
+				SemanticVersion measureVersion = optional.get();
 
 				// Max not initialized or new max found
 				if (currentMax == null || measureVersion.compareTo(currentMax) > 0) {

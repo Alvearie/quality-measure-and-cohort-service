@@ -3,23 +3,25 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.cohort.engine.measure;
+package com.ibm.cohort.version;
 
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.ibm.cohort.annotations.Generated;
 
-public class MeasureVersion implements Comparable<MeasureVersion> {
+
+public class SemanticVersion implements Comparable<SemanticVersion> {
 	private static final Pattern SEMANTIC_VERSION_PATTERN = Pattern.compile("^(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)");
 
-	public static Optional<MeasureVersion> create(String version) {
+	public static Optional<SemanticVersion> create(String version) {
 		if (version != null) {
 			Matcher matcher = SEMANTIC_VERSION_PATTERN.matcher(version);
 			if (matcher.matches()) {
 				return Optional.of(
-						new MeasureVersion(Integer.valueOf(matcher.group("major")),
-										   Integer.valueOf(matcher.group("minor")), Integer.valueOf(matcher.group("patch"))
+						new SemanticVersion(Integer.valueOf(matcher.group("major")),
+											Integer.valueOf(matcher.group("minor")), Integer.valueOf(matcher.group("patch"))
 						));
 			}
 		}
@@ -30,30 +32,34 @@ public class MeasureVersion implements Comparable<MeasureVersion> {
 	private final int minor;
 	private final int patch;
 
-	public MeasureVersion(int major, int minor, int patch) {
+	public SemanticVersion(int major, int minor, int patch) {
 		this.major = major;
 		this.minor = minor;
 		this.patch = patch;
 	}
 
+	@Generated
 	public int getMajor() {
 		return major;
 	}
 
+	@Generated
 	public int getMinor() {
 		return minor;
 	}
 
+	@Generated
 	public int getPatch() {
 		return patch;
 	}
 
+	@Generated
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 
-		MeasureVersion that = (MeasureVersion) o;
+		SemanticVersion that = (SemanticVersion) o;
 
 		if (major != that.major) return false;
 		if (minor != that.minor) return false;
@@ -61,6 +67,7 @@ public class MeasureVersion implements Comparable<MeasureVersion> {
 
 	}
 
+	@Generated
 	@Override
 	public int hashCode() {
 		int result = major;
@@ -70,7 +77,7 @@ public class MeasureVersion implements Comparable<MeasureVersion> {
 	}
 
 	@Override
-	public int compareTo(MeasureVersion o) {
+	public int compareTo(SemanticVersion o) {
 		if (this.major != o.major) {
 			return this.major - o.major;
 		} else if (this.minor != o.minor) {
