@@ -15,6 +15,18 @@ public class MeasureContext {
 	private final Identifier identifier;
 	private final String version;
 
+	public MeasureContext(String measureId) {
+		this(measureId, null, null, null);
+	}
+
+	public MeasureContext(String measureId, Map<String, Object> parameters) {
+		this(measureId, parameters, null, null);
+	}
+
+	public MeasureContext(String measureId, Map<String, Object> parameters, Identifier identifier) {
+		this(measureId, parameters, identifier, null);
+	}
+
 	public MeasureContext(String measureId, Map<String, Object> parameters, Identifier  identifier, String version) {
 		this.measureId = measureId;
 		this.parameters = parameters;

@@ -46,6 +46,6 @@ public class MeasureContextProvider {
 			parsedParameters = ParameterHelper.parseParameterArguments(parameters);
 		}
 
-		return Collections.singletonList(new MeasureContext(resourceId, parsedParameters, null, null));
+		return Collections.singletonList(new MeasureContext(resourceId, parsedParameters));
 	}
 }

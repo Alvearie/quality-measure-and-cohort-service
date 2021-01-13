@@ -224,8 +224,8 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		passingParameters.put("InInitialPopulation", Boolean.FALSE);
 
 		List<MeasureContext> measureContexts = new ArrayList<>();
-		measureContexts.add(new MeasureContext(measure1.getId(), passingParameters, null, null));
-		measureContexts.add(new MeasureContext(measure2.getId(), failingParameters, null, null));
+		measureContexts.add(new MeasureContext(measure1.getId(), passingParameters));
+		measureContexts.add(new MeasureContext(measure2.getId(), failingParameters));
 
 		assertEquals(1, evaluator.evaluatePatientMeasures(patient.getId(), measureContexts).size());
 	}
