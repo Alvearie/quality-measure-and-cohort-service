@@ -64,6 +64,7 @@
 
 		<whBldVer>${project.version}</whBldVer>
 		<watson.buildtools.version>1.27</watson.buildtools.version>
+		<hapi.fhir.version>5.2.0</hapi.fhir.version>
 
 		<srcjavaDir>src/main/java</srcjavaDir>
 		<srcjavaTestDir>src/test/java</srcjavaTestDir>
