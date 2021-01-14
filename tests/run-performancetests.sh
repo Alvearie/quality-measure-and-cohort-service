@@ -35,7 +35,7 @@ date=`date`
 header="<testsuite name=\"FVT tests\" tests=\"$total\" failures=\"$failing\" errors=\"$failing\" skipped=\"0\" timestamp=\"${date}\" time=\"0\">"
 footer="</testsuite>"
 
-filename="performancetest.xml"
+filename="performancetests.xml"
 cat << EOF > $filename
 $header
 $output
