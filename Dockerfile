@@ -74,7 +74,7 @@ USER whuser
 COPY --from=builder /app/cohortSolutionDistribution/solution/webapps/*.war /config/apps/
 COPY --from=builder /app/cohortSolutionDistribution/solution/bin/server.xml /config/
 COPY --from=builder /app/cohortSolutionDistribution/solution/bin/jvm.options /config/
-COPY --from=builder /app/cohortTestDistribution/* /opt/alvearie/cohortTestResources/
+COPY --from=builder /app/cohortTestDistribution/ /opt/alvearie/cohortTestResources/
 
 # Copy our startup script into the installed Liberty bin
 COPY --from=builder /app/cohortSolutionDistribution/solution/bin/runServer.sh $WLP_HOME/bin/
