@@ -22,9 +22,9 @@ COPY --chown=1001:0 cohort-engine-distribution/target/test /app/cohort-engine-di
 # final docker image to reduce image size. Unzip in the builder image and
 # then later copy the unzipped artifacts to the final image.
 RUN mkdir -p /app/cohortSolutionDistribution && \
-    mkdir -p /app/cohortTestDistribution
-RUN tar -xzf /app/cohort-engine-distribution/target/solution/*.tar.gz -C /app/cohortSolutionDistribution
-RUN tar -xzf /app/cohort-engine-distribution/target/test/*.tar.gz -C /app/cohortTestDistribution
+    mkdir -p /app/cohortTestDistribution && \
+    tar -xzf /app/cohort-engine-distribution/target/solution/*.tar.gz -C /app/cohortSolutionDistribution && \
+    tar -xzf /app/cohort-engine-distribution/target/test/*.tar.gz -C /app/cohortTestDistribution
 
 ####################
 # Multi-stage build. New build stage that uses the Liberty UBI as the base image.
@@ -46,6 +46,12 @@ FROM us.icr.io/cdt-common-rns/base-images/ubi8-liberty:latest
 #LABEL maintainer=${WH_COHORTING_APP_TOOLCHAIN_MAINTAINER}
 LABEL maintainer="IBM Quality Measure and Cohort Service Team"
 LABEL description="Quality Measure and Cohort Service"
+LABEL name="cohorting-app"
+LABEL vendor="Alvearie Open Source by IBM"
+LABEL version="1.0"
+LABEL release="1"
+LABEL summary="Quality Measure and Cohort Service"
+LABEL description="Quality Measure and Cohort Service available via REST API"
 
 ENV WLP_HOME /opt/ibm/wlp
 
@@ -57,17 +63,18 @@ RUN $WLP_HOME/bin/server create $SERVER_NAME && \
 
 USER root
 # Update image to pick up latest security updates
-RUN microdnf update -y && microdnf clean all
-
+# Make dir for test resources
 # Update symlnk used by Liberty to new server.  Need root.
-RUN ln -sfn $WLP_HOME/usr/servers/$SERVER_NAME /config
-
+RUN microdnf update -y && microdnf clean all && \
+    mkdir -p /opt/alvearie/cohortTestResources && \
+    ln -sfn $WLP_HOME/usr/servers/$SERVER_NAME /config
 
 #Copy in war files, config files, etc. to final image
 USER whuser
-COPY --from=builder /app/cohortSolutionDistribution/solution/webapps/*.war /config/apps
+COPY --from=builder /app/cohortSolutionDistribution/solution/webapps/*.war /config/apps/
 COPY --from=builder /app/cohortSolutionDistribution/solution/bin/server.xml /config/
 COPY --from=builder /app/cohortSolutionDistribution/solution/bin/jvm.options /config/
+COPY --from=builder /app/cohortTestDistribution/* /opt/alvearie/cohortTestResources/
 
 # Copy our startup script into the installed Liberty bin
 COPY --from=builder /app/cohortSolutionDistribution/solution/bin/runServer.sh $WLP_HOME/bin/
@@ -76,7 +83,8 @@ COPY --from=builder /app/cohortSolutionDistribution/solution/bin/runServer.sh $W
 USER root
 
 # Grant write access to apps folder and startup script
-RUN chmod -R u+rwx,g+rx,o+rx $WLP_HOME
+RUN chmod -R u+rwx,g+rx,o+rx $WLP_HOME && \
+    chmod -R u+rwx,g+rx,o+rx /opt/alvearie/cohortTestResources
 
 # install any missing features required by server config
 RUN $WLP_HOME/bin/installUtility install --acceptLicense $SERVER_NAME
