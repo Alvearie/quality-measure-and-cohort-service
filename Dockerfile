@@ -12,6 +12,9 @@
 FROM ibmjava:8-sdk AS builder
 
 WORKDIR /app
+ENV COHORT_DIST_SOLUTION=/app/cohortSolutionDistribution \
+    COHORT_TEST_SOLUTION=/app/cohortTestDistribution \
+    ANT_HOME=$ALVEARIE_HOME/ant
 
 # We assume that a maven build has been completed and the docker build is happening
 # from the base diretory of the maven project.
@@ -21,11 +24,20 @@ COPY --chown=1001:0 cohort-engine-distribution/target/test /app/cohort-engine-di
 # Using a builder image to avoid having to bundle the zip files into the
 # final docker image to reduce image size. Unzip in the builder image and
 # then later copy the unzipped artifacts to the final image.
-RUN mkdir -p /app/cohortSolutionDistribution && \
-    mkdir -p /app/cohortTestDistribution && \
-    tar -xzf /app/cohort-engine-distribution/target/solution/*.tar.gz -C /app/cohortSolutionDistribution && \
-    tar -xzf /app/cohort-engine-distribution/target/test/*.tar.gz -C /app/cohortTestDistribution
+RUN mkdir -p $COHORT_DIST_SOLUTION && \
+    mkdir -p $COHORT_TEST_SOLUTION && \
+    tar -xzf /app/cohort-engine-distribution/target/solution/*.tar.gz -C $COHORT_DIST_SOLUTION && \
+    tar -xzf /app/cohort-engine-distribution/target/test/*.tar.gz -C $COHORT_TEST_SOLUTION
 
+# Install packages (including ant for toolchain testcases)
+RUN set -x && \
+    wget -nv -O /tmp/ant.tar.gz http://mirror.cc.columbia.edu/pub/software/apache//ant/binaries/apache-ant-1.9.15-bin.tar.gz && \
+    mkdir -p $ANT_HOME && \
+    tar -xzf /tmp/ant.tar.gz --strip-components=1 -C $ANT_HOME && \
+    # remove unnecessary stuff to make the image smaller
+    rm -rf /opt/ibm/alvearie/ant/manual && \
+    rm /tmp/ant.tar.gz
+    
 ####################
 # Multi-stage build. New build stage that uses the Liberty UBI as the base image.
 # Liberty document reference : https://hub.docker.com/_/websphere-liberty/
@@ -44,19 +56,26 @@ FROM us.icr.io/cdt-common-rns/base-images/ubi8-liberty:latest
 # Labels - certain labels are required if you want to have
 #          a Red Hat certified image (this is not a full set per se)
 #LABEL maintainer=${WH_COHORTING_APP_TOOLCHAIN_MAINTAINER}
-LABEL maintainer="IBM Quality Measure and Cohort Service Team"
-LABEL description="Quality Measure and Cohort Service"
-LABEL name="cohorting-app"
-LABEL vendor="Alvearie Open Source by IBM"
-LABEL version="1.0"
-LABEL release="1"
-LABEL summary="Quality Measure and Cohort Service"
-LABEL description="Quality Measure and Cohort Service available via REST API"
+LABEL maintainer="IBM Quality Measure and Cohort Service Team" \
+      description="Quality Measure and Cohort Service" \
+      name="cohorting-app" \
+      vendor="Alvearie Open Source by IBM" \
+      version="1.0" \
+      release="1" \
+      summary="Quality Measure and Cohort Service" \
+      description="Quality Measure and Cohort Service available via REST API"
 
-ENV WLP_HOME /opt/ibm/wlp
+ENV WLP_HOME=/opt/ibm/wlp \
+    SERVER_NAME=myServer \
+    ALVEARIE_HOME=/opt/alvearie \
+    ALVEARIE_TEST_HOME=$ALVEARIE_HOME/cohortTestResources \
+    COHORT_DIST_SOLUTION=/app/cohortSolutionDistribution \
+    COHORT_TEST_SOLUTION=/app/cohortTestDistribution \
+    ANT_HOME=$ALVEARIE_HOME/ant \
+    JAVA_HOME=/opt/ibm/java
 
 # create server instance
-ENV SERVER_NAME myServer
+#ENV SERVER_NAME myServer
 RUN $WLP_HOME/bin/server create $SERVER_NAME && \
     mkdir -p $WLP_HOME/usr/servers/$SERVER_NAME/resources/security && \
     mkdir -p $WLP_HOME/usr/servers/$SERVER_NAME/properties
@@ -65,26 +84,33 @@ USER root
 # Update image to pick up latest security updates
 # Make dir for test resources
 # Update symlnk used by Liberty to new server.  Need root.
-RUN microdnf update -y && microdnf clean all && \
-    mkdir -p /opt/alvearie/cohortTestResources && \
+#RUN echo microdnf repoquery ant
+RUN microdnf update -y && rm -rf /var/cache/yum && \
+    microdnf install -y --nodocs sudo vim && \
+    microdnf clean all && \
+    mkdir -p $ALVEARIE_TEST_HOME && \
     ln -sfn $WLP_HOME/usr/servers/$SERVER_NAME /config
 
 #Copy in war files, config files, etc. to final image
 USER whuser
-COPY --from=builder /app/cohortSolutionDistribution/solution/webapps/*.war /config/apps/
-COPY --from=builder /app/cohortSolutionDistribution/solution/bin/server.xml /config/
-COPY --from=builder /app/cohortSolutionDistribution/solution/bin/jvm.options /config/
-COPY --from=builder /app/cohortTestDistribution/ /opt/alvearie/cohortTestResources/
+COPY --from=builder $COHORT_DIST_SOLUTION/solution/webapps/*.war /config/apps/
+COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/server.xml /config/
+COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/jvm.options /config/
+COPY --from=builder $COHORT_TEST_SOLUTION/ $ALVEARIE_TEST_HOME/
+
+COPY --from=builder $ANT_HOME $ANT_HOME
+
+ENV PATH="$JAVA_HOME/jre/bin:${PATH}:$ANT_HOME/bin"
 
 # Copy our startup script into the installed Liberty bin
-COPY --from=builder /app/cohortSolutionDistribution/solution/bin/runServer.sh $WLP_HOME/bin/
+COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/runServer.sh $WLP_HOME/bin/
 
 # Change to root so we can do chmods to our WH user
 USER root
 
 # Grant write access to apps folder and startup script
 RUN chmod -R u+rwx,g+rx,o+rx $WLP_HOME && \
-    chmod -R u+rwx,g+rx,o+rx /opt/alvearie/cohortTestResources
+    chmod -R u+rwx,g+rx,o+rx $ALVEARIE_TEST_HOME
 
 # install any missing features required by server config
 RUN $WLP_HOME/bin/installUtility install --acceptLicense $SERVER_NAME
