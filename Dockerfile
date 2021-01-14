@@ -14,6 +14,7 @@ FROM ibmjava:8-sdk AS builder
 WORKDIR /app
 ENV COHORT_DIST_SOLUTION=/app/cohortSolutionDistribution \
     COHORT_TEST_SOLUTION=/app/cohortTestDistribution \
+    ALVEARIE_HOME=/opt/alvearie \
     ANT_HOME=$ALVEARIE_HOME/ant
 
 # We assume that a maven build has been completed and the docker build is happening
@@ -34,8 +35,8 @@ RUN set -x && \
     wget -nv -O /tmp/ant.tar.gz http://mirror.cc.columbia.edu/pub/software/apache//ant/binaries/apache-ant-1.9.15-bin.tar.gz && \
     mkdir -p $ANT_HOME && \
     tar -xzf /tmp/ant.tar.gz --strip-components=1 -C $ANT_HOME && \
-    # remove unnecessary stuff to make the image smaller
-    rm -rf /opt/ibm/alvearie/ant/manual && \
+    # remove unnecessary stuff to make the image smaller \
+    rm -rf $ANT_HOME/manual && \
     rm /tmp/ant.tar.gz
     
 ####################
