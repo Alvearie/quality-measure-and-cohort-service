@@ -14,8 +14,8 @@ FROM ibmjava:8-sdk AS builder
 WORKDIR /app
 ENV COHORT_DIST_SOLUTION=/app/cohortSolutionDistribution \
     COHORT_TEST_SOLUTION=/app/cohortTestDistribution \
-    ALVEARIE_HOME=/opt/alvearie \
-    ANT_HOME=$ALVEARIE_HOME/ant
+    ALVEARIE_HOME=/opt/alvearie
+ENV ANT_HOME=$ALVEARIE_HOME/ant
 
 # We assume that a maven build has been completed and the docker build is happening
 # from the base diretory of the maven project.
@@ -69,11 +69,11 @@ LABEL maintainer="IBM Quality Measure and Cohort Service Team" \
 ENV WLP_HOME=/opt/ibm/wlp \
     SERVER_NAME=myServer \
     ALVEARIE_HOME=/opt/alvearie \
-    ALVEARIE_TEST_HOME=$ALVEARIE_HOME/cohortTestResources \
     COHORT_DIST_SOLUTION=/app/cohortSolutionDistribution \
     COHORT_TEST_SOLUTION=/app/cohortTestDistribution \
-    ANT_HOME=$ALVEARIE_HOME/ant \
     JAVA_HOME=/opt/ibm/java
+ENV ALVEARIE_TEST_HOME=$ALVEARIE_HOME/cohortTestResources \
+    ANT_HOME=$ALVEARIE_HOME/ant
 
 # create server instance
 #ENV SERVER_NAME myServer
