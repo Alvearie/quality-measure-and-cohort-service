@@ -17,8 +17,8 @@ ENV COHORT_DIST_SOLUTION=/app/cohortSolutionDistribution \
     ALVEARIE_HOME=/opt/alvearie
 ENV ANT_HOME=$ALVEARIE_HOME/ant
 
-# We assume that a maven build has been completed and the docker build is happening
-# from the base diretory of the maven project.
+# We assume that a maven build has been completed and the docker build
+# is happening from the base diretory of the maven project.
 COPY --chown=1001:0 cohort-engine-distribution/target/solution /app/cohort-engine-distribution/target/solution
 COPY --chown=1001:0 cohort-engine-distribution/target/test /app/cohort-engine-distribution/target/test
 
@@ -38,7 +38,7 @@ RUN set -x && \
     # remove unnecessary stuff to make the image smaller \
     rm -rf $ANT_HOME/manual && \
     rm /tmp/ant.tar.gz
-    
+
 ####################
 # Multi-stage build. New build stage that uses the Liberty UBI as the base image.
 # Liberty document reference : https://hub.docker.com/_/websphere-liberty/
@@ -56,7 +56,6 @@ FROM us.icr.io/cdt-common-rns/base-images/ubi8-liberty:latest
 
 # Labels - certain labels are required if you want to have
 #          a Red Hat certified image (this is not a full set per se)
-#LABEL maintainer=${WH_COHORTING_APP_TOOLCHAIN_MAINTAINER}
 LABEL maintainer="IBM Quality Measure and Cohort Service Team" \
       description="Quality Measure and Cohort Service" \
       name="cohorting-app" \
@@ -76,7 +75,6 @@ ENV ALVEARIE_TEST_HOME=$ALVEARIE_HOME/cohortTestResources \
     ANT_HOME=$ALVEARIE_HOME/ant
 
 # create server instance
-#ENV SERVER_NAME myServer
 RUN $WLP_HOME/bin/server create $SERVER_NAME && \
     mkdir -p $WLP_HOME/usr/servers/$SERVER_NAME/resources/security && \
     mkdir -p $WLP_HOME/usr/servers/$SERVER_NAME/properties
@@ -85,9 +83,8 @@ USER root
 # Update image to pick up latest security updates
 # Make dir for test resources
 # Update symlnk used by Liberty to new server.  Need root.
-#RUN echo microdnf repoquery ant
 RUN microdnf update -y && rm -rf /var/cache/yum && \
-    microdnf install -y --nodocs sudo vim && \
+    microdnf install -y --nodocs vim && \
     microdnf clean all && \
     mkdir -p $ALVEARIE_TEST_HOME && \
     ln -sfn $WLP_HOME/usr/servers/$SERVER_NAME /config
@@ -98,9 +95,10 @@ COPY --from=builder $COHORT_DIST_SOLUTION/solution/webapps/*.war /config/apps/
 COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/server.xml /config/
 COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/jvm.options /config/
 COPY --from=builder $COHORT_TEST_SOLUTION/ $ALVEARIE_TEST_HOME/
-
 COPY --from=builder $ANT_HOME $ANT_HOME
 
+# Add ant to the path so that our test executions
+# can find it
 ENV PATH="$JAVA_HOME/jre/bin:${PATH}:$ANT_HOME/bin"
 
 # Copy our startup script into the installed Liberty bin
