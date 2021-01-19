@@ -10,7 +10,7 @@ It being disabled by default should not significantly impact _memory_ and _cpu_ 
 per [@John Timm](https://ibm-watsonhealth.slack.com/archives/C14JTTR6C/p1610324841183900) <br/> <br/>
 As the [IBM Guide](https://ibm.github.io/FHIR/guides/FHIRServerUsersGuide#51-configuration-properties-reference) indicates
 that `serverRegistryResourceProviderEnabled` indicate that the property is not _dynamic_, <br/>
-as server restart is required to pick up any configuration changes for this property.
+a server restart is required to pick up any configuration changes for this property.
 
 
 ### Examples
@@ -107,4 +107,3 @@ curl --location --request POST 'https://localhost:9443/fhir-server/api/v4/ValueS
     }
 }'
 ```
-
