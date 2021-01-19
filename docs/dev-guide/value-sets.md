@@ -6,7 +6,7 @@
 the `serverRegistryResourceProviderEnabled` properties is `false` by _default_. <br/>
 As such, you need to enable this property in order to be able to perform `joins`
 with `Resource` type value sets. <br/>
-It being disabled by default should not significantly impact _memory_ and _cpu_ requirements <br/>
+It being enabled should not significantly impact _memory_ and _cpu_ requirements <br/>
 per [@John Timm](https://ibm-watsonhealth.slack.com/archives/C14JTTR6C/p1610324841183900) <br/> <br/>
 As the [IBM Guide](https://ibm.github.io/FHIR/guides/FHIRServerUsersGuide#51-configuration-properties-reference) indicates
 that `serverRegistryResourceProviderEnabled` indicate that the property is not _dynamic_, <br/>
