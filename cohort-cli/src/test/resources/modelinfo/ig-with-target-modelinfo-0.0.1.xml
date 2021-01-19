@@ -1,3 +1,8 @@
+<!--  ************************************** -->
+<!--  (C) Copyright IBM Corp. 2020, 2020     -->
+<!--  SPDX-License-Identifier: Apache-2.0    -->
+<!--  ************************************** -->
+
 <?xml version="1.0" encoding="UTF-8"?>
 <modelInfo xmlns="urn:hl7-org:elm-modelinfo:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="fakeIg" version="0.0.1" url="http://fakeIg.com" targetUrl="http://hl7.org/fhir" targetVersion="4.0.1" targetQualifier="fakeIg" patientClassName="FakePatient" patientBirthDatePropertyName="birthDate">
     <requiredModelInfo name="System" version="1.0.0"/>

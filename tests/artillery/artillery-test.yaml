@@ -1,4 +1,8 @@
-  
+#
+# (C) Copyright IBM Corp. 2021, 2021
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 config:
   target: "http://localhost:9000/api"
   plugins:
@@ -11,7 +15,7 @@ config:
       target: "http://localhost:9000/api"
       phases:
         - duration: 50
-          arrivalRate: 4    
+          arrivalRate: 4
     production: 
       target: "http://localhost:9000/api"
       phases:
@@ -49,7 +53,7 @@ scenarios:
     - get:
         url: "/users"
         headers:
-          Authorization: "bearer {{ token }}"     
+          Authorization: "bearer {{ token }}"
         weight: 1
         expect:
           - statusCode: 200

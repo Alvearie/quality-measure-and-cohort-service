@@ -1,3 +1,8 @@
+#
+# (C) Copyright IBM Corp. 2021, 2021
+#
+# SPDX-License-Identifier: Apache-2.0
+#
 #!/bin/sh
 # start server here, match name from DockerFile
 #SERVER_NAME=myServer
