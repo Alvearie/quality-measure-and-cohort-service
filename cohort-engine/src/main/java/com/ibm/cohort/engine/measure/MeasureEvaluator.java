@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
@@ -68,7 +69,7 @@ public class MeasureEvaluator {
 		boolean inInitialPopulation;
 		for (MeasureContext measureContext: measureContexts) {
 			inInitialPopulation = false;
-			measureReport = evaluatePatientMeasure(measureContext.getMeasureId(), patientId, measureContext.getParameters());
+			measureReport = evaluatePatientMeasure(measureContext, patientId);
 			if (measureReport != null) {
 				for (MeasureReport.MeasureReportGroupComponent group : measureReport.getGroup()) {
 					if (CDMMeasureEvaluation.StandardReportResults.fromMeasureReportGroup(group).inInitialPopulation()) {
@@ -83,8 +84,25 @@ public class MeasureEvaluator {
 		return measureReports;
 	}
 
+	public MeasureReport evaluatePatientMeasure(MeasureContext context, String patientId) {
+		MeasureReport measureReport = null;
+
+		if (context.getMeasureId() != null) {
+			measureReport = evaluatePatientMeasure(context.getMeasureId(), patientId, context.getParameters());
+		} else if (context.getIdentifier() != null) {
+			measureReport = evaluatePatientMeasure(context.getIdentifier(), context.getVersion(), patientId, context.getParameters());
+		}
+
+		return measureReport;
+	}
+
 	public MeasureReport evaluatePatientMeasure(String measureId, String patientId, Map<String, Object> parameters) {
 		Measure measure = MeasureHelper.loadMeasure(measureId, getMeasureResolutionProvider());
+		return evaluatePatientMeasure(measure, patientId, parameters);
+	}
+
+	public MeasureReport evaluatePatientMeasure(Identifier identifier, String version, String patientId, Map<String, Object> parameters) {
+		Measure measure =  MeasureHelper.loadMeasure(identifier,  version, getMeasureResolutionProvider());
 		return evaluatePatientMeasure(measure, patientId, parameters);
 	}
 

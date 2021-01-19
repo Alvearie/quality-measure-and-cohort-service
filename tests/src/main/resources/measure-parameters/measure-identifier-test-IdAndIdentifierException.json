@@ -1,0 +1,10 @@
+{
+  "measureConfigurations": [
+    {
+      "identifier": {
+        "value": "over-the-hill-identifier"
+      },
+      "measureId": "21345"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "measureConfigurations": [
+    {
+      "identifier": {
+        "value": "over-the-hill-identifier"
+      }
+    },
+    {
+      "identifier": {
+        "value": "over-the-hill-identifier"
+      },
+      "version": "1.0.0"
+    },
+    {
+      "identifier": {
+        "value": "over-the-hill-identifier"
+      },
+      "version": "2.0.0"
+    },
+    {
+      "identifier": {
+        "value": "over-the-hill-identifier"
+      },
+      "version": "2.0.0",
+      "parameters": [
+        {
+          "name": "Measurement Period",
+          "type": "interval",
+          "subtype": "datetime",
+          "start": "@2027-01-01T00:00:00.0",
+          "end": "@2028-01-01T00:00:00.0"
+        }
+      ]
+    }
+  ]
+}
