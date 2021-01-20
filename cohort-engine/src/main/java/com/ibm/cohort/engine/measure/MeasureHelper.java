@@ -1,10 +1,11 @@
 /*
- * (C) Copyright IBM Corp. 2020, 2020
+ * (C) Copyright IBM Corp. 2020, 2021
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.cohort.engine.measure;
 
+import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Measure;
 
 public class MeasureHelper {
@@ -30,6 +31,18 @@ public class MeasureHelper {
 			throw new IllegalArgumentException(String.format("Failed to determine resolution path for provided resourceID '%s'", resourceID));
 		}
 		
+		return result;
+	}
+
+	public static Measure loadMeasure(Identifier identifier, String version, MeasureResolutionProvider<Measure> provider) {
+		Measure result;
+
+		result = provider.resolveMeasureByIdentifier(identifier, version);
+
+		if ( result == null ) {
+			throw new IllegalArgumentException(String.format("Failed to determine resolution path for identifier:'%s', version:'%s'", identifier, version));
+		}
+
 		return result;
 	}
 }
