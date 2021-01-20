@@ -28,7 +28,7 @@ If you are building an image that will use port forwarding to access the FHIR se
 using the `taurus-bridge-portForwarding.dockerfile` dockerfile:
 
 ```bash
-docker build -t taurus-javabridge-portForwarding -f {Your path to}/quality-measure-and-cohort-service/tests/docker/taurus-bridge-portForwarding.dockerfile .
+docker build -t taurus-javabridge-portforwarding -f {Your path to}/quality-measure-and-cohort-service/tests/docker/taurus-bridge-portForwarding.dockerfile .
 ```
 
 After building the docker image, you can run tests with:
