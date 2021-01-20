@@ -8,6 +8,12 @@ echo "pre deploy code goes here"
 
 echo "IDS_PROJECT_NAME=${IDS_PROJECT_NAME}"
 
+# TODO - tabishop the commented out lines below originated in the whc-starter-app that
+# is the suggested template for new IBM toolchain projects. We still have work to set
+# up our helm chart overrides for our CSP environments, but it doesn't make sense to
+# do that until we know how we will be passing in the config for fhir servers and tenants.
+# Revisit this once we have more clarity on the config that needs to get passed in and are able
+# to set up our helm chart overrides
 #templateBranch="master"
 #if echo $Build_Prefix | egrep "^(\S*)-SCD$";then
 #  curl -sSL -u "watkins0@us.ibm.com:${gitApiKey}" "https://raw.github.ibm.com/whc-toolchain/njss-ops-overrides/${templateBranch}/${CLUSTER_NAME}/override.yaml" > chart/nodejs-starter/override.yaml
