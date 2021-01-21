@@ -115,7 +115,7 @@ public class LibraryUtils {
 
 		if (!missingParameters.isEmpty()) {
 			throw new IllegalArgumentException(
-					String.format("Missing parameter values for one or more non-default library parameters {}",
+					String.format("Missing parameter values for one or more non-default library parameters %s",
 							missingParameters.toString()));
 		}
 	}
