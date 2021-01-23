@@ -3,6 +3,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
+echo "Executing preDockerBuild.sh"
+
 set -xe
 
 # pass in git credentials in .toolchain.maven.settings.xml

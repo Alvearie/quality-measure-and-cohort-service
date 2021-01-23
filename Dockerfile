@@ -108,8 +108,10 @@ COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/runServer.sh $WLP_HOME/bi
 USER root
 
 # Grant write access to apps folder and startup script
-RUN chmod -R u+rwx,g+rwx,o+rwx $WLP_HOME && \
-    chmod -R u+rwx,g+rwx,o+rwx $ALVEARIE_TEST_HOME
+RUN chown -R --from=root whuser $WLP_HOME && \
+	chmod -R u+rwx $WLP_HOME && \
+	chown -R --from=root whuser $ALVEARIE_TEST_HOME && \
+    chmod -R u+rwx $ALVEARIE_TEST_HOME
 
 # install any missing features required by server config
 RUN $WLP_HOME/bin/installUtility install --acceptLicense $SERVER_NAME

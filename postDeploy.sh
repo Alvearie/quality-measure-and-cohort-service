@@ -3,4 +3,4 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-echo "post deploy code goes here"
+echo "Executing postDeploy.sh"

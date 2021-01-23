@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 set -xe
-echo "pre deploy code goes here"
+echo "Executing preDeploy.sh"
 
 echo "IDS_PROJECT_NAME=${IDS_PROJECT_NAME}"
 
