@@ -12,6 +12,6 @@
 # Uncomment the following line to enable debug messages during VM bootstrapping
 #-Dws.ext.debug
 
--Xmx16G
+-Xmx2G
 
 -Denabled.dark.features=none
