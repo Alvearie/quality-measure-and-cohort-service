@@ -82,6 +82,8 @@ public class MeasureEvaluationSeeder {
 
 
 		TerminologyProvider terminologyProvider = createTerminologyProvider(usingDefs);
+		// this should be a LinkedHashMap to preserve ordering forced in cql_engine code
+		@SuppressWarnings("PMD.LooseCoupling")
 		LinkedHashMap<Triple<String, String, String>, DataProvider> dataProviders = createDataProviders(usingDefs, terminologyProvider);
 		Interval measurementPeriod = createMeasurePeriod(periodStart, periodEnd);
 		Context context = createContext(library, dataProviders, terminologyProvider, measurementPeriod, productLine);
