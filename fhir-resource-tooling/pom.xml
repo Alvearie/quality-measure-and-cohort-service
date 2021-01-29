@@ -73,4 +73,48 @@
 			<version>1.7.30</version>
 		</dependency>
 	</dependencies>
+	
+	<build>
+		<plugins>
+			<!-- maven-shade-plugin used to compile into a single executable jar -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<!-- <minimizeJar>true</minimizeJar> -->
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>com.ibm.cohort.tooling.fhir.MeasureImporter</mainClass>
+								</transformer>
+								<!-- https://stackoverflow.com/a/16357984/161022 -->
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+									<resource>META-INF/cxf/bus-extensions.txt</resource>
+								</transformer>
+							</transformers>
+							<!-- filter out META-INF files to avoid issues with signed jar files -->
+							<!-- http://zhentao-li.blogspot.com/2012/06/maven-shade-plugin-invalid-signature.html -->
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>

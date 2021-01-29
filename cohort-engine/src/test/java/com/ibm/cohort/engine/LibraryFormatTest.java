@@ -9,7 +9,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.junit.Test;
 
@@ -41,22 +41,22 @@ public class LibraryFormatTest {
 	
 	@Test
 	public void testCqlExtensionIsValidPath() {
-		assertTrue( LibraryFormat.isSupportedPath( Path.of("/tmp", "dummy.cql" ) ) );
+		assertTrue( LibraryFormat.isSupportedPath( Paths.get("/tmp", "dummy.cql" ) ) );
 	}
 	
 	@Test
 	public void testJsonExtensionIsNotValidPath() {
-		assertFalse( LibraryFormat.isSupportedPath( Path.of("/tmp", "dummy.json" ) ) );
+		assertFalse( LibraryFormat.isSupportedPath( Paths.get("/tmp", "dummy.json" ) ) );
 	}
 	
 	@Test
 	public void testLibraryFormatForCQLPathSuccess() {
-		assertEquals( LibraryFormat.CQL, LibraryFormat.forPath( Path.of("/tmp", "dummy.cql" ) ) );
+		assertEquals( LibraryFormat.CQL, LibraryFormat.forPath( Paths.get("/tmp", "dummy.cql" ) ) );
 	}
 	
 	@Test
 	public void testLibraryFormatForXMLPathSuccess() {
-		assertEquals( LibraryFormat.XML, LibraryFormat.forPath( Path.of("/tmp", "dummy.xml" ) ) );
+		assertEquals( LibraryFormat.XML, LibraryFormat.forPath( Paths.get("/tmp", "dummy.xml" ) ) );
 	}
 	
 	@Test

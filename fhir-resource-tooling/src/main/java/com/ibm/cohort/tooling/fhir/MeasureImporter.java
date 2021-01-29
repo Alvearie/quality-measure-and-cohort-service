@@ -47,6 +47,9 @@ public class MeasureImporter {
 	private static final String DEPLOYPACKAGE = "deploypackage/";
 	private static final String JSON_EXT = ".json";
 
+	/**
+	 * General metadata about a deployable artifact.
+	 */
 	public abstract static class ArtifactMetadata {
 		public String resourceType;
 		public MetadataResource resource;
@@ -67,6 +70,9 @@ public class MeasureImporter {
 		public abstract int updateDependencies(List<LibraryArtifact> libraries);
 	}
 
+	/**
+	 * Metadata about a library artifact.
+	 */
 	public static class LibraryArtifact extends ArtifactMetadata {
 
 		@Override
@@ -93,6 +99,9 @@ public class MeasureImporter {
 		}
 	}
 
+	/**
+	 * Metadata about a measure artifact.
+	 */
 	public static class MeasureArtifact extends ArtifactMetadata {
 
 		@Override
@@ -113,6 +122,9 @@ public class MeasureImporter {
 		}
 	}
 
+	/**
+	 * Wrapper for command-line arguments.
+	 */
 	public static final class Arguments {
 		@Parameter(names = { "-m",
 				"--measure-server" }, description = "Path to JSON configuration data for the FHIR server connection that will be used to retrieve measure and library resources.", required = true)
@@ -121,7 +133,7 @@ public class MeasureImporter {
 		@Parameter(names = { "-h", "--help" }, description = "Show this help", help = true)
 		boolean isDisplayHelp;
 
-		@Parameter(description = "Artifact paths", required = true)
+		@Parameter(description = "<zip> [<zip> ...]", required = true)
 		List<String> artifactPaths;
 	}
 
@@ -133,6 +145,11 @@ public class MeasureImporter {
 		this.parser = client.getFhirContext().newJsonParser();
 	}
 
+	/**
+	 * Import measure artifacts from UI export bundle.
+	 * @param is InputStream containing artifacts to import
+	 * @throws Exception any error
+	 */
 	public void importArtifacts(InputStream is) throws Exception {
 		List<LibraryArtifact> libraries = new ArrayList<LibraryArtifact>();
 		MeasureArtifact measure = new MeasureArtifact();
@@ -198,6 +215,11 @@ public class MeasureImporter {
 		}
 	}
 
+	/**
+	 * Check whether ZipEntry represents a resource that should be deployed to the FHIR server
+	 * @param entry metadata about the zip file entry
+	 * @return true if entry is deployable or false otherwise
+	 */
 	public static boolean isDeployable(ZipEntry entry) {
 		return entry.getName().startsWith(DEPLOYPACKAGE) && entry.getName().endsWith(JSON_EXT);
 	}
@@ -226,6 +248,13 @@ public class MeasureImporter {
 		return artifact;
 	}
 
+	/**
+	 * Execute measure import process with given arguments. Console logging is redirected to the 
+	 * provided stream.
+	 * @param args Program arguments
+	 * @param out Sink for console output
+	 * @throws Exception on any error.
+	 */
 	public static void runWithArgs(String[] args, PrintStream out) throws Exception {
 		Arguments arguments = new Arguments();
 		Console console = new DefaultConsole(out);
