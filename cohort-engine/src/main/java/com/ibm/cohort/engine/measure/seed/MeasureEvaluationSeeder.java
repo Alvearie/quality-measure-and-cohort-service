@@ -115,7 +115,7 @@ public class MeasureEvaluationSeeder {
 		}
 
 		context.setParameter(
-		        null,
+		null,
                 "Measurement Period",
                 new Interval(DateTime.fromJavaDate((Date) measurementPeriod.getStart()), true,
                              DateTime.fromJavaDate((Date) measurementPeriod.getEnd()), true));
