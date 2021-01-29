@@ -15,16 +15,35 @@ import org.cqframework.cql.elm.execution.VersionedIdentifier;
 import org.opencds.cqf.cql.engine.execution.CqlLibraryReader;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 
+import com.ibm.cohort.engine.translation.CqlTranslationProvider;
+
 /**
- * Implementation of the CQL Engine LibraryLoader interface that
- * supports on-demand translation as necessary.
+ * Implementation of the CQL Engine LibraryLoader interface that supports
+ * on-demand translation as necessary.
  */
 public class TranslatingLibraryLoader implements LibraryLoader {
+
+	public static final boolean DEFAULT_FORCE_TRANSLATION = false;
 
 	private MultiFormatLibrarySourceProvider provider;
 	private Map<VersionedIdentifier, Library> libraryCache = new HashMap<>();
 	private CqlTranslationProvider translator;
-	private boolean isForceTranslation = false;
+	private boolean isForceTranslation = DEFAULT_FORCE_TRANSLATION;
+
+	public TranslatingLibraryLoader() {
+	}
+
+	public TranslatingLibraryLoader(MultiFormatLibrarySourceProvider provider,
+			CqlTranslationProvider translationProvider) {
+		this(provider, translationProvider, DEFAULT_FORCE_TRANSLATION);
+	}
+
+	public TranslatingLibraryLoader(MultiFormatLibrarySourceProvider provider,
+			CqlTranslationProvider translationProvider, boolean forceTranslation) {
+		setSourceProvider(provider);
+		setTranslationProvider(translationProvider);
+		setForceTranslation(forceTranslation);
+	}
 
 	public void setSourceProvider(MultiFormatLibrarySourceProvider provider) {
 		this.provider = provider;
@@ -33,8 +52,8 @@ public class TranslatingLibraryLoader implements LibraryLoader {
 	public void setTranslationProvider(CqlTranslationProvider translator) {
 		this.translator = translator;
 	}
-	
-	public void setForceTranslation( boolean forceTranslation ) {
+
+	public void setForceTranslation(boolean forceTranslation) {
 		this.isForceTranslation = forceTranslation;
 	}
 
@@ -46,19 +65,26 @@ public class TranslatingLibraryLoader implements LibraryLoader {
 					.withId(libraryIdentifier.getId()).withVersion(libraryIdentifier.getVersion());
 
 			try {
-				if( ! isForceTranslation ) {
+				if (!isForceTranslation) {
 					InputStream is = provider.getLibrarySource(translatorVersionedId, LibraryFormat.XML);
 					if (is != null) {
 						library = CqlLibraryReader.read(is);
-					} 
-				} 
-				
-				if( library == null ) {
-					InputStream is = provider.getLibrarySource(translatorVersionedId, LibraryFormat.CQL);
-					library = translator.translate(is);
+					}
 				}
-				
+
+				if (library == null) {
+					InputStream is = provider.getLibrarySource(translatorVersionedId, LibraryFormat.CQL);
+					if (is != null) {
+						library = translator.translate(is);
+					} else {
+						throw new IllegalArgumentException(String.format("No library source found for \"%s\" version '%s'",
+								translatorVersionedId.getId(), translatorVersionedId.getVersion()));
+					}
+				}
+
 				libraryCache.put(libraryIdentifier, library);
+			} catch( IllegalArgumentException agex ) { 
+				throw agex;
 			} catch (Exception ex) {
 				throw new RuntimeException("Failed to load library", ex);
 			}

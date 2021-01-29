@@ -10,7 +10,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 
-import org.apache.commons.codec.binary.Base64;
 import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.Library;
 import org.junit.Before;
@@ -38,8 +37,8 @@ public class FhirLibraryLibrarySourceProviderTest {
 				"define DoSomething: 'hello, world'";
 		
 		Attachment attachment = new Attachment();
-		attachment.setContentType("text/cql");
-		attachment.setData( Base64.encodeBase64( cql.getBytes() ) );
+		attachment.setContentType(LibraryFormat.MIME_TYPE_TEXT_CQL);
+		attachment.setData( cql.getBytes() );
 		
 		Library library = new Library();
 		library.setContent(Arrays.asList(attachment));

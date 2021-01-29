@@ -31,3 +31,7 @@ hs_err_pid*
 # Eclipse
 **/.classpath
 **/.project
+**/.settings
+
+# Maven
+.flattened-pom.xml

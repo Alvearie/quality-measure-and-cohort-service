@@ -1,51 +1,150 @@
 # User Guide - Getting Started
 
-The IBM CQL Engine code is stored under https://github.ibm.com/watson-health-cohorting/cohort-engine. A basic wrapper around the open source CQL engine is provided in the CqlEngineWrapper class. Builds are defined using Maven assuming version 3.6.3 (latest). You can download Maven here - https://maven.apache.org/download.cgi.
+The [IBM Quality Measure and Cohort Engine](https://github.com/Alvearie/quality-measure-and-cohort-service/) is an open source project under the [Alvearie](https://github.com/Alvearie/) organization in Github. The Cohort Engine provides APIs for evaluating cohorts via definitions written in Clinical Quality Language (CQL). Users can execute CQL scripts directly using the CqlEngineWrapper API or indirectly through the use of FHIR measure and library resources. 
 
-Kwas is working on getting the builds automated and JARs pushed to Artifactory. In the meantime, you will want to use "git clone" to pull down the repository and "mvn install" to build it. As part of the default build there is an "uber jar" (aka shaded jar) produced that can be used as a simple entry point to the main method (e.g. java -jar target/cohort-engine-0.0.1-SNAPSHOT-shaded.jar ...). 
+Since moving the project into Alvearie organization, publication of release builds has been temporarily put on hold until a suitable location for the builds has been determined. In the meantime, you will want to use "git clone" to pull down [the repository](https://github.com/Alvearie/quality-measure-and-cohort-service) and ``mvn install -f cohort-parent`` to build it. If you don't already have Maven installed on your workstation, [download](https://maven.apache.org/download.cgi) version 3.6.3 or newer and follow the [installation instructions](https://maven.apache.org/install.html). You should be using a Java SDK version 8.0 or higher. If you don't already have a Java SDK on your workstation, you can download one [here](https://adoptopenjdk.net/).
 
-You will need a FHIR server to interact with. If you have CDT access, you can use Kubernetes port-forward to point the engine at our instance in the cloud using a command similar to the one below.
+Once the prerequisites are installed and you have successfully executed the ``mvn install -f cohort-parent`` command, there will be a library JAR produced under cohort-engine/target and two JARs under cohort-cli/target. Under cohort-cli/target, one jar is the project without dependencies (cohort-cli-VERSION.jar) and the other is an "uber jar" (aka shaded jar) that contains all the project code and dependencies in a single executable artifact (cohort-cli-VERSION-shaded.jar). Choose the artifact that makes the most sense for your execution environment. Simple command-line testing is easiest with the shaded JAR.
 
-`kubectl -n cdt-commops-quickteam01-ns-01 port-forward service/fhir-internal 9443:9443`
+The CQL engine utilizes data and terminology stored in a FHIR server adhering to the FHIR R4 standard. Our testing is focused on use of the [IBM Open Source FHIR Server](https://github.com/IBM/FHIR) server, but any FHIR server, such as the [open source HAPI FHIR server](https://github.com/jamesagnew/hapi-fhir), should be usable. The configuration and management of the FHIR server is left to the user. Configuration details for connecting to the server are provided to the API and can be managed in JSON files as needed (see below).
 
-If you don't have CDT access or would prefer to use a server with more data, you can try http://hapi.fhir.org/baseR4. Either way FHIR configuration is provided as a JSON file. See config/local-ibm-fhir.json for an example that assumes you are using the IBM FHIR server in our CDT environment port-forwarded on your local box. If you go this route, make sure you pass `-Djavax.net.ssl.trustStore=config/trustStore.jks -Djavax.net.ssl.trustStorePassword=change-password` as JVM arguments or you will get SSL errors.
+A common pattern is to have the FHIR server deployed in the IBM Cloud. For instance, you might grab the [latest Docker image](https://hub.docker.com/r/ibmcom/ibm-fhir-server) of the IBM FHIR Server and deploy it to a Kubernetes cluster in your IBM cloud account.  If your FHIR server is in IBM cloud and you don't have direct network line of sight to the server, you can use Kubernetes port-forward to point the engine the instance in the cloud using a command similar to the one below (substituting the <xxx> variables as appropriate for your environment).
 
-There are sample CQL definitions under src/test/resources/cql if you don't have your own. 
+`kubectl -n <kubernetes-namespace> port-forward service/<fhir-service> 9443:9443`
 
-A sample execution would look something like this..
+If you don't have a FHIR server of your own to use, you can test with [http://hapi.fhir.org/baseR4](http://hapi.fhir.org/baseR4). Sample configuration files are provided in the config directory that will connect to either a local or port-forwarded IBM FHIR server (config/local-ibm-fhir.json) or the public HAPI FHIR server (config/remote-hapi-fhir.json).  Three possible servers can be configured - a data server, a terminology server, and a measure resource server. Only the data server configuration is required. If the terminology server or measure resource server configuration is not provided, it is assumed that the data server connection will be used. The separation allows for more complex configurations where terminology or library resources are spread across multiple FHIR tenants (for example, using a shared tenant for terminology and measure resources).
+
+If you choose to use an IBM FHIR option, you will need to consider how to handle SSL setup. Out of the box, IBM FHIR only enables an SSL endpoint and not a plain text HTTP endpoint. You could enable the FHIR server plain text HTTP endpoint in the FHIR server's server.xml, but more than likely you will want to keep SSL in place and [configure your Java Virtual Machine (JVM) for SSL](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html). There is a sample java keystore config/trustStore.pkcs12 that contains the IBM Cloud ingress service SSL certificate. You can use the provided trustStore.pkcs12 (or your own as needed) by passing standard arguments to your JVM on startup. An example that uses the provided trustStore file would include `-Djavax.net.ssl.trustStore=config/trustStore.pkcs12 -Djavax.net.ssl.trustStorePassword=change-password -Djavax.net.ssl.trustStoreType=pkcs12`.
+
+## CQL Definitions
+
+CQL is a public specification and there are a number of helpful resources on the web for learning about the language (see below) or you can use the sample CQL definitions under src/test/resources/cql if you don't have your own. 
+
+* Language Specification - [http://cql.hl7.org](http://cql.hl7.org)
+* eCQI Resource Center CQL Language Education - [https://ecqi.healthit.gov/cql?qt-tabs_cql=2](https://ecqi.healthit.gov/cql?qt-tabs_cql=2)
+* CQL Online Library Editor - [http://cql-online.esacinc.com/](http://cql-online.esacinc.com/)
+* Electronic Clinical Quality Measure (eCQM) Clinical Quality Language (CQL) Basics Webinar - 
+[https://www.youtube.com/watch?v=3M8qeQNzXX8](https://www.youtube.com/watch?v=3M8qeQNzXX8)
+
+## Command-line interface
+
+A command-line interface (CLI) is provided for use in testing the cohort engine. There is a simple CLI execution packaged with the Maven build that can be executed from the cohort-cli project using ``mvn exec:java``. This will demonstrate connectivity with the public HAPI FHIR server using a very simple CQL library. An execution where you run the command yourself would look like the following...
 
 ```bash
-$ java -jar target/cohort-engine-0.0.1-SNAPSHOT-shaded.jar -d config/remote-hapi-fhir.json -t config/remote-hapi-fhir.json -f src/test/resources/cql/basic -l Test -c 1235008
-Loading libraries from src\test\resources\cql\basic ...
-Loaded file src\test\resources\cql\basic\test.xml
-Loaded 1 libraries
-[main] INFO ca.uhn.fhir.util.VersionUtil - HAPI FHIR version 4.2.0 - Rev 8491707942
+$ java -jar target/cohort-engine-0.0.1-SNAPSHOT-shaded.jar -d config/remote-hapi-fhir.json -f src/test/resources/cql/basic -l test -c 1235008
+[main] INFO ca.uhn.fhir.util.VersionUtil - HAPI FHIR version 5.0.2 - Rev ecf175a352
 [main] INFO ca.uhn.fhir.context.FhirContext - Creating new FHIR context for FHIR version [R4]
 [main] INFO ca.uhn.fhir.util.XmlUtil - Unable to determine StAX implementation: java.xml/META-INF/MANIFEST.MF not found
+Loading libraries from folder 'src\test\resources\cql\basic'
 [main] INFO ca.uhn.fhir.context.FhirContext - Creating new FHIR context for FHIR version [R4]
-Expression: Patient, Context: 1235008, Result: Patient/org.hl7.fhir.r4.model.Patient@2b7e8044
-Expression: Female, Context: 1235008, Result: Boolean/false
-Expression: Male, Context: 1235008, Result: Boolean/true
-Expression: Over the hill, Context: 1235008, Result: Boolean/true
+Context: 1235008
+Expression: Patient, Result: org.hl7.fhir.r4.model.Patient@3e4e8fdf
+Expression: Female, Result: false
+Expression: Male, Result: true
+Expression: Over the hill, Result: true
+---
 ```
 
 Or if you need to pass parameters...
 
 ```bash
-$ java -jar target/cohort-engine-0.0.1-SNAPSHOT-shaded.jar -d config/remote-hapi-fhir.json -t config/remote-hapi-fhir.json -f src/test/resources/cql/parameters -l Test -c 1235008 -p MaxAge:integer:40
-Loading libraries from src\test\resources\cql\parameters ...
-Loaded file src\test\resources\cql\parameters\test-with-params.xml
-Loaded 1 libraries
-[main] INFO ca.uhn.fhir.util.VersionUtil - HAPI FHIR version 4.2.0 - Rev 8491707942
+$ java -jar target/cohort-engine-0.0.1-SNAPSHOT-shaded.jar -d config/remote-hapi-fhir.json -f src/test/resources/cql/parameters -l test-with -v params -c 1235008 -p MaxAge:integer:40
+[main] INFO ca.uhn.fhir.util.VersionUtil - HAPI FHIR version 5.0.2 - Rev ecf175a352
 [main] INFO ca.uhn.fhir.context.FhirContext - Creating new FHIR context for FHIR version [R4]
 [main] INFO ca.uhn.fhir.util.XmlUtil - Unable to determine StAX implementation: java.xml/META-INF/MANIFEST.MF not found
+Loading libraries from folder 'src\test\resources\cql\parameters'
 [main] INFO ca.uhn.fhir.context.FhirContext - Creating new FHIR context for FHIR version [R4]
-Expression: Patient, Context: 1235008, Result: Patient/org.hl7.fhir.r4.model.Patient@6bc24e72
-Expression: Female, Context: 1235008, Result: Boolean/false
-Expression: Male, Context: 1235008, Result: Boolean/true
+Context: 1235008
+Expression: Patient, Result: org.hl7.fhir.r4.model.Patient@72503b19
+Expression: Female, Result: false
+Expression: Male, Result: true
+Expression: ParamMaxAge, Result: 40
+---
 ```
 
-All CQL data types are supported as parameters types with lowercase type names. Intervals of integer, decimal, quantity, datetime, and time are supported. Date literals should start with an "@" sign (e.g. @2020-09-27). If no Timezone is provided in a datetime or time parameter value, the system default timezone is used.
+Complete usage is available using the --help flag...
+
+```
+$ java -jar target/cohort-engine-0.0.1-SNAPSHOT-shaded.jar --help
+[main] INFO ca.uhn.fhir.util.VersionUtil - HAPI FHIR version 5.0.2 - Rev ecf175a352
+[main] INFO ca.uhn.fhir.context.FhirContext - Creating new FHIR context for FHIR version [R4]
+Usage: cql-engine [options]
+  Options:
+  * -c, --context-id
+      Unique ID for one or more context objects (e.g. Patient IDs)
+  * -d, --data-server
+      Path to JSON configuration data for the FHIR server connection that will
+      be used to retrieve data.
+    -e, --expression
+      ELM Expression(s) to Execute
+  * -f, --files
+      Resource that contains the CQL library sources. Valid options are the
+      path to a zip file or folder containing the cohort definitions or the
+      resource ID of a FHIR Library resource contained in the measure server.
+    -h, --help
+      Display this help
+  * -l, --libraryName
+      Library Name (from CQL Library statement)
+    -v, --libraryVersion
+      Library Version (from CQL Library statement)
+    -m, --measure-server
+      Path to JSON configuration data for the FHIR server connection that will
+      be used to retrieve measure and library resources.
+    -p, --parameters
+      Parameter value(s) in format name:type:value where value can contain
+      additional parameterized elements separated by comma
+    -s, --source-format
+      Indicates which files in the file source should be processed
+      Default: XML
+      Possible Values: [CQL, XML]
+    -t, --terminology-server
+      Path to JSON configuration data for the FHIR server connection that will
+      be used to retrieve terminology.
+```
+
+### FHIR Server Configuration
+
+The Cohort Engine uses FHIR REST APIs to retrieve the information needed to process CQL queries. All FHIR servers are assumed to be R4. The ``-d`` argument to the CohortCLI is a file path pointing to a configuration file in JSON format that provides the details for connecting to the FHIR server that contains the resources that will be queried. There are two sample configuration files provided in the ``config`` folder. The ``config/remote-hapi-fhir.json`` example shows the most basic configuration which is simply the base URL of the target FHIR server. The ``config/local-ibm-fhir.json`` configuration shows a more advanced setup that uses basic authentication to connect to the FHIR server and provides a value for the IBM FHIR server tenant ID header which is used to specify which tenant in a multi-tenant environment will be used at runtime. These use the com.ibm.cohort.engine.FhirServerConfig and com.ibm.cohort.engine.IBMFhirServerConfig classes, respectively, and the @class property is required to indicate what type of configuration is being specified. Additional configuration is possible for developers that extend FhirServerConfig class and implement their own FhirClientBuilderFactory. A client builder factory can be configured using the com.ibm.cohort.FhirClientBuilderFactory.
+
+In a configuration file using the IBMFhirServerConfig class, custom headers will be added to the FHIR REST API calls for the tenantId and datasource name as needed. The header names for these headers are set to the defaults used by the IBM FHIR server if not specified. Users can use the tenantIdHeader and dataSourceIdHeader properties to override the defaults if they've been changed in the target FHIR server's ``fhir-server-config.json`` file. Use ``dataSourceId`` as a property in the file to override the FHIR server datasource name (not shown in the example file). See the [IBM FHIR Server User's Guide](https://ibm.github.io/FHIR/guides/FHIRServerUsersGuide#33-tenant-specific-configuration-properties) for complete details on configuration, headers, and persistence setup.
+
+Only one tenant's data can be queried per execution. There are, however, additional configuration options for the terminology server ``-t`` and measure server ``-m`` connections. Using these optional parameters, you can specify additional FHIR server connections for where terminology and clinical quality measure resources are stored.  If either of ``-m`` or ``-t`` is not provided, the data server connection details are used for the respective connection.
+
+#### Example Configuration with All Options
+```json
+{
+    "@class": "com.ibm.cohort.engine.FhirServerConfig",
+    "endpoint": "https://localhost:9443/fhir-server/api/v4",
+    "user": "fhiruser",
+    "password": "change-password",
+	"token": "token",
+	"cookies": [ "ocookie=mycookie" ],
+	"headers": {
+		"X-FHIR-TENANT-ID": "default",
+		"X-FHIR-DS-ID": "default"
+	},
+	"logInfo": [
+		"ALL"
+	]
+}
+```
+
+Users should choose zero or one authentication scheme. If both user/password credentials and bearer authorization token are provided the behavior is non-prescriptive. Valid values for the logInfo configuration are ALL, REQUEST_SUMMARY, REQUEST_BODY, REQUEST_HEADERS, RESPONSE_SUMMARY, RESPONSE_HEADERS, RESPONSE_BODY. See the [HAPI FHIR Client Configuration guide](https://hapifhir.io/hapi-fhir/docs/interceptors/built_in_client_interceptors.html#section1) for full details. You must have your logger configured at INFO level or above to see the log messages generated by the logInfo settings. See the [Logging](#logging) section for additional details.
+
+### Input Parameters
+
+Parameters on the command-line are represented as colon-delimited triplet data in the format ``name:type:value``. Names should exact case match the definitions in the CQL library being used. The type is a lowercase value that matches the CQL datatype of the parameter. Value literals for date types should be prefixed with the @ sign per the CQL specification (e.g. ``MyParam:date:@1970-01-01``) and time types should be prefixed with the letter T (e.g. MyParam:time:T12:00:00). For data types that have structured data associated with them, such as an interval or quantity parameter, the value field contains additional formatting. For quantity parameters, the amount and unit of measure are colon-delimited (e.g. MyParam:quantity:10,mg/mL). For interval parameters, the value parameter is comma-delimited (to avoid collisions with date-time strings) and is triplet of ``datatype,start,end`` where the start and end parameters follow the standard rules for those types as above. 
+
+### Library loaders
+
+Several library loading mechanisms are supplied with the engine. The location of the library code is provided using the ``-f <libraryResource>`` command-line parameter. The engine will check if the resource is a folder, ZIP file, or if the resource is neither a folder or ZIP file then it is assumed to be the resource ID of a FHIR Library resource that contains the CQL definitions. 
+
+For the folder and ZIP library loading mechanisms, filenames are assumed to be in the format ``name-version`` with either a .cql or .xml file extension. Other possible ELM formats, such as JSON, are not currently supported. Files that do not match supported criteria are ignored. Multi-level directory structure can be used if desired.
+
+For the FHIR Library resource loader, CQL is embedded in the ``content`` field as FHIR Attachment resources. Per recommendations in the Data Exchange for Quality Measures (DEQM) FHIR Implementation guide, FHIR Attachment resources are assumed to be Base64 encoded and ``contentType`` field should be set to text/cql for CQL attachments and application/elm+xml for ELM attachments. The Library resource ID that is provided is considered to be the "main" artifact and should contain the expressions that the user would like to evaluate. Additional libraries can be included through the use of the ``relatedArtifacts`` field in the library resource. And relatedArtifacts entries that are Library resources will also be loaded and loading is done recursively.
+
+## Logging
+Logging in Java can be a complicated topic because there are a variety of logging frameworks available and combining open source projects together often ends up with multiple different strategies in use at the same time. SLF4J is the preferred logging framework for cohort engine use. Users should refer to the [SLF4j manual](http://www.slf4j.org/manual.html) for instructions on how to configure SLF4J for their purposes. When executing from the command-line, the slf4j-simple binding is used. Configuration can be provided via Java system properties. See [the SimpleLogger documentation](http://www.slf4j.org/api/org/slf4j/impl/SimpleLogger.html) for complete details.
 
 # Error states
 The Engine detects and throws IllegalArgumentException for the following error states:
@@ -58,4 +157,344 @@ The Engine detects and throws IllegalArgumentException for the following error s
 Connectivity issues to the FHIR server are reported through the HAPI FHIR Client library. See HAPI documentation for complete details, but an example exception would be ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException.
 
 An UnsupportedOperationException is thrown if a parameter type of "concept" is attempted from the command line. Concept parameters are complex and unlikely to be necessary, so no effort was made to support them right now.
+
+When a context (aka Patient ID) is provided that does not match a valid Patient resource in the FHIR server, HAPI will bubble up and HTTP 404 exception. And HTTP 404 might also be thrown if FHIR Library resource loading is used and the provided Library ID does not exist. 
+
+# Measure Evaluation
+
+A similar command-line interface is provided for evaluation of a quality measure definition that is stored in a FHIR
+Measure resource. The input parameters are very similar with the main difference being that instead of
+"-f", "-l", and "-v", and "-e" options to identify the library resource(s) and expression(s) that should be evaluated,
+a FHIR Measure resource is used and the "-r" command-line parameter provides the resource ID of that resource.
+Alternatively, the "-j" paramter can be used to provide a JSON file containing measure resource configurations to use
+during measure evaluation.
+
+```
+$ java -classpath cohort-cli/target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar com.ibm.cohort.cli.MeasureCLI --help
+  Usage: measure-engine [options]
+    Options:
+    * -c, --context-id
+        FHIR resource ID for one or more patients to evaluate.
+    * -d, --data-server
+        Path to JSON configuration data for the FHIR server connection that will 
+        be used to retrieve data.
+      -f, --format
+        Output format of the report (JSON|TEXT*)
+        Default: TEXT
+        Possible Values: [TEXT, JSON]
+      -h, --help
+        Display this help
+      -j, --json-measure-configurations
+        JSON File containing measure resource ids and optional parameters. 
+        Cannot be specified if -r option is used
+      -m, --measure-server
+        Path to JSON configuration data for the FHIR server connection that will 
+        be used to retrieve measure and library resources.
+      -p, --parameters
+        Parameter value(s) in format name:type:value where value can contain 
+        additional parameterized elements separated by comma. Multiple 
+        parameters must be specified as multiple -p options
+      -r, --resource
+        FHIR Resource ID for the measure resource to be evaluated. Cannot be 
+        specified if -j option is used
+      -t, --terminology-server
+        Path to JSON configuration data for the FHIR server connection that will 
+        be used to retrieve terminology.
+```
+
+## Passing parameters on the command line (-p option)
+
+The `-p` argument can be used to pass parameters only if the `-r` option is used to specify a single resource id
+to evaluate. Multiple parameters must be provided by including the `-p` argument once per parameter. Each parameter
+must follow the format `name:type:value`. If `type` is an interval, then `value` must be of the format `subtype,start,end`.
+
+### Parameter Examples
+
+#### Single Simple Parameter
+
+```text
+-p "param1:integer:10"
+```
+
+#### Single Interval Parameter
+
+```text
+-p "param2:interval:decimal,4.3,100.7"
+```
+
+#### Multiple Parameters
+
+```text
+-p "param3:decimal:50.9" -p "param55:interval:integer,30,40"
+```
+
+## JSON File for -j Argument
+
+The `-j` argument should be the path to a file containing a JSON object containing a list of measure configurations.
+Configurations currently support measure ids and any parameters that should be used when executing a particular measure.
+
+If this argument is specified, then the `-r` option cannot be specified as well. Likewise, if `-p` is specified alongside
+this argument its contents will be ignored.
+
+Outer Structure:
+```text
+{
+   "measureConfigurations" : [
+      {
+         "parameters" : [
+            {PARAMETER_1}, {PARAMETER_2}, ... {PARAMETER_N}
+         ],
+         "measureId" : "STRING_IDENTIFIER",
+         "identifier": {
+            "value": "STRING_VALUE",
+            "system": "STRING_SYSTEM"
+         }
+         "version": "STRING_VERSION"
+      }
+   ]
+}
+```
+
+* `measureConfigurations` (Required):
+    * Description:  List containing configurations for which measures to run.
+* `measureConfigurations.measureId` (Optional*):
+    * Description: Measure id (resource id) of a measure to evaluate.
+    * Type: String
+    * *Note*: *Is required when `identifier` is not specified.
+* `measureConfigurations.parameters` (Optional): 
+    * Description: An optional list of one or more `Parameter` objects to use during evaluation for the corresponding measure.
+    * Type: `Parameter` (see structure below)
+* `measureConfigurations.identifier.value` (Optional*):
+    * Description: Identifier value of the measure to evaluate.
+    * Type: String
+    * *Note*: *Is required when `measureId` is not specified.
+* `measureConfigurations.identifier.system` (Optional):
+    * Description: Identifier system value. Can only be defined if `identifier.value` is also specified
+    * Type: String
+* `measureConfigurations.version` (Optional - may be used when `identifier` is specified):
+    * Description: String value representing a measure version. Identifies a particular version of a measure to retrieve
+      when combined with `identifier`.
+    * Type: String
+
+Parameter Structure:
+```text
+{
+  "name": "STRING_NAME",
+  "type": "STRING_TYPE",
+  "value": "STRING_VALUE",
+  "subtype": "STRING_SUBTYPE",
+  "start": "STRING_START",
+  "end": "STRING_END"
+}
+```
+
+**NOTE: All Parameter fields have type string.**
+
+* `name` (Required):
+    * Description: Name of the parameter to use during measure evaluation.
+* `type` (Required):
+    * Description: CQL parameter type.
+    * Currently supported values: `integer`, `decimal`, `boolean`, `string`, `datetime`, `time`, `quantity`, `code`,
+    `concept`, and `interval`.
+* `value` (Required for non-interval parameters, see below): 
+    * Description: String representation of the value that will be converted to the appropriate type as specified in the
+    `type` field.
+    * Usage: For `interval` parameters, this field will be ignored (or it can be omitted). Otherwise, the value should
+    be a string representation of the value of the corresponding type.
+* `subtype` (Required for interval type parameters, see below):
+    * Description: CQL parameter type of the interval start and end. Currently supported values: `integer`, `decimal`,
+    `quantity`, `datetime`, and `time`.
+    * Usage: Required for parameters of type `interval`. Otherwise `subtype` will be  ignored or can be omitted.
+* `start` (Required for interval parameters, see below):
+    * Description: Value representing the start of the interval. Value should be able to convert to the type specified
+    by the `subtype` of the parameter.
+    * Usage: Required for parameters of type `interval`. Otherwise `start` will be  ignored or can be omitted.
+* `end` (Required for interval parameters, see below):
+    * Description: Value representing the end of the interval. Value should be able to convert to the type specified
+    by the `subtype` of the parameter.
+    * Usage: Required for parameters of type `interval`. Otherwise `end` will be  ignored or can be omitted.
+
+### Measure Retrieval for Evaluation
+Each entry in `measureConfigurations` may identify a measure to evaluate using either `measureId` or a combination of `identifier`
+and `version`. A measure configuration entry may not include both a `measureId` and `identifier`.
+
+If `measureId` is provided, the measure resource with the corresponding id in the configured FHIR server will be
+retrieved and evaluated.
+
+If `identifier` is provided without a version, then these steps will be followed:
+  1. Retrieve any measures matching the provided `identifier.value` (and `identifier.system` if included).
+  1. Discard any measures without a semantic version (numeric values matching the pattern x.y.z).
+  1. Out of the remaining measures, return and evaluate the measure with the latest semantic version.
+
+If `identifier` is provided with a version, then a measure with the provided `identifier.value` and `version` (along with
+an optional `identifier.system` will be retrieved and evaluated).
+
+Regardless of the provided configuration used to identify a measure, following any of the processes above must resolve
+to a single measure in each case. If a measure cannot be retrieved using the provided criteria, or if two or more measures
+match the provided criteria, then an error will be thrown.
+
+### Examples of JSON Files
+Here are some example JSON objects that could appear in a file for the `-j` argument.
+
+#### Example 1: Single measure without parameters
+```json
+{
+   "measureConfigurations" : [
+      {
+         "measureId" : "measure-with-id-1"
+      }
+   ]
+}
+```
+The measure with resource id `measure-with-id-1` will be executed for each patient context without any parameters.
+
+#### Example 2: Single measure with parameters
+```json
+{
+   "measureConfigurations" : [
+      {
+         "measureId" : "measure-with-id-2",
+         "parameters" : [
+            {
+               "name" : "param1",
+               "type" : "integer",
+               "value" : "20"
+            },
+            {
+               "name" : "param2",
+               "type" : "interval",
+               "subtype" : "decimal",
+               "start" : "4.0",
+               "end" : "7.5"
+            }
+         ]
+      }
+   ]
+}
+```
+The measure with resource id `measure-with-id-2` will be executed for each patient context with parameters `param1`
+and `param2`.
+
+#### Example 3: Multiple measures with and without parameters
+```json
+{
+   "measureConfigurations" : [
+      {
+         "measureId" : "measure-with-id-3",
+         "parameters" : [
+            {
+               "name" : "param1",
+               "type" : "integer",
+               "value" : "20"
+            }
+         ]
+      },
+      {
+         "measureId" : "measure-with-id-4"
+      }
+   ]
+}
+```
+The measure with resource id `measure-with-id-3` will be executed for each patient context with the parameter `param1`.
+The measure with resource id `measure-with-id-4` will be executed for each patient context without parameters.
+
+#### Example 4: Multiple measures with identifiers
+```json
+{
+   "measureConfigurations" : [
+      {
+         "identifier" : {
+            "value" : "measure-with-identifier",
+            "system" : "http://fakesystem.org"
+         }
+      },
+      {
+         "identifier" : {
+            "value" : "measure-with-identifier"
+         }
+      },
+      {
+        "identifier" : {
+          "value" : "measure-with-identifier",
+          "system" : "http://fakesystem.org"
+        },
+        "version" : "1.2.3"
+      }
+   ]
+}
+```
+
+The first entry will evaluate the measure with the latest semantic version where the measure's `identifier.value` is
+equal to `measure-with-identifier` and `identifier.system` is equal to `http://fakesystem.org`.
+
+The second entry will evaluate the measure with the latest semantic version where the measure's `identifier.value` is
+equal to `measure-with-identifier` (regardless of `identifier.system` on each measure).
+
+The third entry will evaluate the measure where `identifier.value` is equal to `measure-with-identifier`,
+`identifier.system` is equal to `http://fakesystem.org`, and the measure version is exactly `1.2.3` (even if a later
+version of a measure exists in the FHIR server with the same identifier fields).
+
+### Error Checking for the -j Argument
+These are the known error cases for the `-j` argument:
+
+#### Missing argument
+If the `-j` argument is not provided to the `MeasureCLI` and the `-r` argument is also missing then an
+`IllegalArgumentException` will be thrown.
+
+#### File does not exist
+If the `-j` argument is provided, but the file does not exist, then a `IllegalArgumentException` will be thrown.
+
+#### Unrecognized JSON fields
+If the JSON object contains unexpected fields a `com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException` will
+be thrown. 
+
+#### Missing fields in the JSON object
+If the JSON object does not contain required fields, an `IllegalArgumentException` exception will be thrown. Cases that
+can cause this:
+* `measureConfigurations` is missing or is an empty list.
+* Neither `measureId` nor `identifier.value` is specified for an entry in the `measureConfigurations` list.
+* Both `measureId` and `identifier.value` are specified for a single entry in the `measureConfigurations` list.
+* `identifier` is specified, but is missing `value` for an entry in the `measureConfigurations` list .
+* One or more parameters is missing a required field:
+    * Either `name` or `type` is missing or empty.
+    * The `type` for a parameter is set to `interval`, but `subtype`, `start`, or `end` are missing or empty.
+    * The `type` for a parameter is a non-interval type, but `value` is missing or empty.
+    
+#### Unsupported type and subtype values
+If an unsupported `type` or `subtype` is specified for a `Parameter`, then an `IllegalArgumentException` will be thrown.
+
+#### Incompatible values for a type
+Various exceptions can be thrown when a `value` cannot be converted to the corresponding `type` or when
+`start` or `end` values cannot be converted to the corresponding `subtype`.
+
+
+## Running measure evaluation
+
+With a local IBM FHIR test instance pre-loaded with a sample measure and patient...
+
+```
+$ java -Djavax.net.ssl.trustStore=config/trustStore.pkcs12 -Djavax.net.ssl.trustStorePassword=change-password -Djavax.net.ssl.trustStoreType=pkcs12 -classpath target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar com.ibm.cohort.cli.MeasureCLI -d config/local-ibm-fhir.json -p path/to/json/parameter/file -c '1747edf2ef3-cd7133f1-3131-4ba8-a71a-da98c594cbab'
+[main] INFO ca.uhn.fhir.util.VersionUtil - HAPI FHIR version 5.0.2 - Rev ecf175a352
+[main] INFO ca.uhn.fhir.context.FhirContext - Creating new FHIR context for FHIR version [R4]
+[main] INFO ca.uhn.fhir.util.XmlUtil - Unable to determine StAX implementation: java.xml/META-INF/MANIFEST.MF not found
+Evaluating: 1747edf2ef3-cd7133f1-3131-4ba8-a71a-da98c594cbab
+[main] INFO ca.uhn.fhir.context.FhirContext - Creating new FHIR context for FHIR version [R4]
+[main] INFO org.opencds.cqf.r4.evaluation.MeasureEvaluation - Generating individual report
+Population: initial-population = 1
+Population: numerator = 0
+Population: denominator = 1
+---
+```
+
+Example contents of `path/to/json/parameter/file`:
+
+```json
+{
+  "measureConfigurations": [
+    {
+      "measureId" : "wh-cohort-Over-the-Hill-Female-1.0.0"
+    }
+  ]
+}
+```
 

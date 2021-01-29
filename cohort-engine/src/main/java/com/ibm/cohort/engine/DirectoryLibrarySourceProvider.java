@@ -7,11 +7,16 @@
 package com.ibm.cohort.engine;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.DirectoryStream;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,32 +38,28 @@ public class DirectoryLibrarySourceProvider extends MultiFormatLibrarySourceProv
 		if( ! folderPath.toFile().isDirectory() ) {
 			throw new IllegalArgumentException("Path is not a directory");
 		}
-		
-		final DirectoryStream.Filter<Path> filter = new DirectoryStream.Filter<Path>() {
-			@Override
-			public boolean accept(Path p) {
-				return LibraryFormat.isSupportedPath( p );
-			}
-		};
 
-		try (DirectoryStream<Path> stream = Files.newDirectoryStream(folderPath, filter)) {
-			for (Path entry : stream) {
-				try (InputStream is = Files.newInputStream(entry)) {
-					String filename = entry.getFileName().toString();
-					
-					VersionedIdentifier id = idStrategy.filenameToVersionedIdentifier(filename);
-					
-					LibraryFormat sourceFormat = LibraryFormat.forPath( entry );
-					Map<LibraryFormat, InputStream> formats = sources.get( id );
-					if( formats == null ) {
-						formats = new HashMap<>();
-						sources.put( id, formats);
+		Files.walkFileTree(folderPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
+			@Override
+			public FileVisitResult visitFile(Path entry, BasicFileAttributes attrs) {
+				if( ! attrs.isDirectory() && LibraryFormat.isSupportedPath( entry ) ) {
+					try (InputStream is = Files.newInputStream(entry)) {
+						LibraryFormat sourceFormat = LibraryFormat.forPath( entry );
+						if( sourceFormat != null ) {
+							String filename = entry.getFileName().toString();
+							VersionedIdentifier id = idStrategy.filenameToVersionedIdentifier(filename);
+							
+							Map<LibraryFormat, InputStream> formats = sources.computeIfAbsent( id, key -> new HashMap<>() );
+							
+							String text = FileUtils.readFileToString(entry.toFile(), StandardCharsets.UTF_8);
+							formats.put(sourceFormat, new ByteArrayInputStream( text.getBytes() ) );
+						}
+					} catch( IOException iex ) {
+						throw new RuntimeException(iex);
 					}
-					
-					String text = FileUtils.readFileToString(entry.toFile(), StandardCharsets.UTF_8);
-					formats.put(sourceFormat, new ByteArrayInputStream( text.getBytes() ) );
 				}
+				return FileVisitResult.CONTINUE;
 			}
-		}
+		});
 	}
 }

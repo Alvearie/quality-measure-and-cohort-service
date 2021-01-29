@@ -1,0 +1,35 @@
+{
+    "tests": {
+        "18years or older patient with lung cancer who has had a visit-related charge in the last 12 months" : {
+            "params" : null,
+            "library": "LungCancerScreeningWithSNOMEDcodes",
+            "version" : "1.0.1",
+            "targets": ["9da5f632-a80c-6614-2e62-bd695449654d"],
+            "response": "Context: 9da5f632-a80c-6614-2e62-bd695449654d\nExpression: \"Patient\", Result: Patient/9da5f632-a80c-6614-2e62-bd695449654d/_history\nExpression: \"generic_condition_concepts\", Result: Collection: 3\nExpression: \"generic_condition_concepts_1\", Result: Collection: 3\nExpression: \"18 years or older lung cancer patients\", Result: true\nExpression: \"Patients diagnosed with active or recurring Lung cancer\", Result: true\nExpression: \"Patient Encounters with Doctor due to Lung Cancer within last 12 months\", Result: true\nExpression: \"MeetsInclusionCriteria\", Result: true\nExpression: \"MeetsExclusionCriteria\", Result: true\nExpression: \"InPopulation\", Result: false\nExpression: \"Recommendation\", Result: null\nExpression: \"Rationale\", Result: null\nExpression: \"Errors\", Result: null",
+            "source": "CQL",
+            "expressions" : null,
+            "measureServer": null
+        },
+        "18years or older patient with lung cancer who has not had a visit-related charge in the last 12 months" : {
+            "params" : null,
+            "library": "LungCancerScreeningWithSNOMEDcodes",
+            "version" : "1.0.1",
+            "targets": ["d6587935-b9e4-188d-7e9f-a8dc909f4216"],
+            "response": "Context: d6587935-b9e4-188d-7e9f-a8dc909f4216\nExpression: \"Patient\", Result: Patient/d6587935-b9e4-188d-7e9f-a8dc909f4216/_history\nExpression: \"generic_condition_concepts\", Result: Collection: 3\nExpression: \"generic_condition_concepts_1\", Result: Collection: 3\nExpression: \"18 years or older lung cancer patients\", Result: true\nExpression: \"Patients diagnosed with active or recurring Lung cancer\", Result: true\nExpression: \"Patient Encounters with Doctor due to Lung Cancer within last 12 months\", Result: false\nExpression: \"MeetsInclusionCriteria\", Result: true\nExpression: \"MeetsExclusionCriteria\", Result: false\nExpression: \"InPopulation\", Result: true\nExpression: \"Recommendation\", Result: null\nExpression: \"Rationale\", Result: null\nExpression: \"Errors\", Result: null",
+            "source": "CQL",
+            "expressions" : null,
+            "measureServer": null
+        },
+        "18years or older patient with no lung cancer diagnosis" : {
+            "params" : null,
+            "library": "LungCancerScreeningWithSNOMEDcodes",
+            "version" : "1.0.1",
+            "targets": ["5d507fe1-e386-36a9-1d51-13a996ae66bf"],
+            "response": "Context: 5d507fe1-e386-36a9-1d51-13a996ae66bf\nExpression: \"Patient\", Result: Patient/5d507fe1-e386-36a9-1d51-13a996ae66bf/_history\nExpression: \"generic_condition_concepts\", Result: Collection: 0\nExpression: \"generic_condition_concepts_1\", Result: Collection: 0\nExpression: \"18 years or older lung cancer patients\", Result: true\nExpression: \"Patients diagnosed with active or recurring Lung cancer\", Result: false\nExpression: \"Patient Encounters with Doctor due to Lung Cancer within last 12 months\", Result: false\nExpression: \"MeetsInclusionCriteria\", Result: false\nExpression: \"MeetsExclusionCriteria\", Result: false\nExpression: \"InPopulation\", Result: false\nExpression: \"Recommendation\", Result: null\nExpression: \"Rationale\", Result: null\nExpression: \"Errors\", Result: null",
+            "source": "CQL",
+            "expressions" : null,
+            "measureServer": null
+        }   
+
+    }
+}

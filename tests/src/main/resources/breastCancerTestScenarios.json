@@ -1,0 +1,64 @@
+{
+    "tests": {
+        "Woman 40-74 years, no history of breast cancer, no Unilateral or Bilateral mastectomy, no mammogram in last 12 months" : {
+            "params" : null,
+            "library": "BreastCancerScreeningwithSNOMEDcodes",
+            "version" : "1.0.0",
+            "targets": ["a05ca01d-8f1c-fd00-7cae-eb47e04782d0"],
+            "response": "Context: a05ca01d-8f1c-fd00-7cae-eb47e04782d0\nExpression: \"Patient\", Result: Patient/a05ca01d-8f1c-fd00-7cae-eb47e04782d0/_history\nExpression: \"generic_procedure_concepts\", Result: Collection: 0\nExpression: \"Age 40 < 75 years\", Result: true\nExpression: \"Females\", Result: true\nExpression: \"Mammography (procedure)\", Result: false\nExpression: \"Bilateral mastectomy (procedure)\", Result: false\nExpression: \"Malignant neoplasm of breast (disorder)\", Result: false\nExpression: \"Prophylactic mastectomy of right breast (procedure)\", Result: false\nExpression: \"Prophylactic mastectomy of left breast (procedure)\", Result: false\nExpression: \"MeetsInclusionCriteria\", Result: true\nExpression: \"Unilateral mastectomies of right and left breasts \", Result: false\nExpression: \"MeetsExclusionCriteria\", Result: false\nExpression: \"InPopulation\", Result: true\nExpression: \"Recommendation\", Result: null\nExpression: \"Rationale\", Result: null\nExpression: \"Errors\", Result: null",
+            "source": "CQL",
+            "expressions" : null,
+            "measureServer": null
+        },
+        "Woman 40-74 years, history of breast cancer, no mammogram in last 12 months" : {
+            "params" : null,
+            "library": "BreastCancerScreeningwithSNOMEDcodes",
+            "version" : "1.0.0",
+            "targets": ["60e1ed23-1bcb-0ffa-409e-fdf44e0048e6"],
+            "response": "Context: 60e1ed23-1bcb-0ffa-409e-fdf44e0048e6\nExpression: \"Patient\", Result: Patient/60e1ed23-1bcb-0ffa-409e-fdf44e0048e6/_history\nExpression: \"generic_procedure_concepts\", Result: Collection: 2\nExpression: \"Age 40 < 75 years\", Result: true\nExpression: \"Females\", Result: true\nExpression: \"Mammography (procedure)\", Result: false\nExpression: \"Bilateral mastectomy (procedure)\", Result: false\nExpression: \"Malignant neoplasm of breast (disorder)\", Result: true\nExpression: \"Prophylactic mastectomy of right breast (procedure)\", Result: false\nExpression: \"Prophylactic mastectomy of left breast (procedure)\", Result: false\nExpression: \"MeetsInclusionCriteria\", Result: true\nExpression: \"Unilateral mastectomies of right and left breasts \", Result: false\nExpression: \"MeetsExclusionCriteria\", Result: true\nExpression: \"InPopulation\", Result: false\nExpression: \"Recommendation\", Result: null\nExpression: \"Rationale\", Result: null\nExpression: \"Errors\", Result: null",
+            "source": "CQL",
+            "expressions" : null,
+            "measureServer": null
+        },
+        "Woman 40-74 years, Mammogram performed in last 12 months, no history breast cancer, No Unilateral or Bilateral mastectomy performed" : {
+            "params" : null,
+            "library": "BreastCancerScreeningwithSNOMEDcodes",
+            "version" : "1.0.0",
+            "targets": ["92f9df5f-e19f-36d3-1f42-ed533e25e2f7"],
+            "response": "Context: 92f9df5f-e19f-36d3-1f42-ed533e25e2f7\nExpression: \"Patient\", Result: Patient/92f9df5f-e19f-36d3-1f42-ed533e25e2f7/_history\nExpression: \"generic_procedure_concepts\", Result: Collection: 0\nExpression: \"Age 40 < 75 years\", Result: true\nExpression: \"Females\", Result: true\nExpression: \"Mammography (procedure)\", Result: false\nExpression: \"Bilateral mastectomy (procedure)\", Result: false\nExpression: \"Malignant neoplasm of breast (disorder)\", Result: false\nExpression: \"Prophylactic mastectomy of right breast (procedure)\", Result: false\nExpression: \"Prophylactic mastectomy of left breast (procedure)\", Result: false\nExpression: \"MeetsInclusionCriteria\", Result: true\nExpression: \"Unilateral mastectomies of right and left breasts \", Result: false\nExpression: \"MeetsExclusionCriteria\", Result: false\nExpression: \"InPopulation\", Result: true\nExpression: \"Recommendation\", Result: null\nExpression: \"Rationale\", Result: null\nExpression: \"Errors\", Result: null",
+            "source": "CQL",
+            "expressions" : null,
+            "measureServer": null
+        },
+        "Woman 40-74 years, history of breast cancer and Bilateral mastectomy performed, Mammogram performed in last 12 months" : {
+            "params" : null,
+            "library": "BreastCancerScreeningwithSNOMEDcodes",
+            "version" : "1.0.0",
+            "targets": ["4b2046fa-c550-cb9b-badc-f0693bfadc33"],
+            "response": "Context: 4b2046fa-c550-cb9b-badc-f0693bfadc33\nExpression: \"Patient\", Result: Patient/4b2046fa-c550-cb9b-badc-f0693bfadc33/_history\nExpression: \"generic_procedure_concepts\", Result: Collection: 1\nExpression: \"Age 40 < 75 years\", Result: true\nExpression: \"Females\", Result: true\nExpression: \"Mammography (procedure)\", Result: true\nExpression: \"Bilateral mastectomy (procedure)\", Result: true\nExpression: \"Malignant neoplasm of breast (disorder)\", Result: true\nExpression: \"Prophylactic mastectomy of right breast (procedure)\", Result: false\nExpression: \"Prophylactic mastectomy of left breast (procedure)\", Result: false\nExpression: \"MeetsInclusionCriteria\", Result: true\nExpression: \"Unilateral mastectomies of right and left breasts \", Result: false\nExpression: \"MeetsExclusionCriteria\", Result: true\nExpression: \"InPopulation\", Result: false\nExpression: \"Recommendation\", Result: null\nExpression: \"Rationale\", Result: null\nExpression: \"Errors\", Result: null",
+            "source": "CQL",
+            "expressions" : null,
+            "measureServer": null
+        }, 
+        "Woman < 40 years, No history of breast cancer, No Unilateral or Bilateral mastectomy performed, No mammogram performed in last 12 months" : {
+            "params" : null,
+            "library": "BreastCancerScreeningwithSNOMEDcodes",
+            "version" : "1.0.0",
+            "targets": ["8a4bd4e4-014c-3aa7-ed12-5bbd9ee22396"],
+            "response": "Context: 8a4bd4e4-014c-3aa7-ed12-5bbd9ee22396\nExpression: \"Patient\", Result: Patient/8a4bd4e4-014c-3aa7-ed12-5bbd9ee22396/_history\nExpression: \"generic_procedure_concepts\", Result: Collection: 0\nExpression: \"Age 40 < 75 years\", Result: false\nExpression: \"Females\", Result: true\nExpression: \"Mammography (procedure)\", Result: false\nExpression: \"Bilateral mastectomy (procedure)\", Result: false\nExpression: \"Malignant neoplasm of breast (disorder)\", Result: false\nExpression: \"Prophylactic mastectomy of right breast (procedure)\", Result: false\nExpression: \"Prophylactic mastectomy of left breast (procedure)\", Result: false\nExpression: \"MeetsInclusionCriteria\", Result: false\nExpression: \"Unilateral mastectomies of right and left breasts \", Result: false\nExpression: \"MeetsExclusionCriteria\", Result: false\nExpression: \"InPopulation\", Result: false\nExpression: \"Recommendation\", Result: null\nExpression: \"Rationale\", Result: null\nExpression: \"Errors\", Result: null",
+            "source": "CQL",
+            "expressions" : null,
+            "measureServer": null
+        },
+        "Woman > 74 years, No history of breast cancer, No Unilateral or Bilateral mastectomy performed, No mammogram performed in last 12 months" : {
+            "params" : null,
+            "library": "BreastCancerScreeningwithSNOMEDcodes",
+            "version" : "1.0.0",
+            "targets": ["5b79f172-a542-2e38-bf72-048e8e01145c"],
+            "response": "Context: 5b79f172-a542-2e38-bf72-048e8e01145c\nExpression: \"Patient\", Result: Patient/5b79f172-a542-2e38-bf72-048e8e01145c/_history\nExpression: \"generic_procedure_concepts\", Result: Collection: 0\nExpression: \"Age 40 < 75 years\", Result: false\nExpression: \"Females\", Result: true\nExpression: \"Mammography (procedure)\", Result: false\nExpression: \"Bilateral mastectomy (procedure)\", Result: false\nExpression: \"Malignant neoplasm of breast (disorder)\", Result: false\nExpression: \"Prophylactic mastectomy of right breast (procedure)\", Result: false\nExpression: \"Prophylactic mastectomy of left breast (procedure)\", Result: false\nExpression: \"MeetsInclusionCriteria\", Result: false\nExpression: \"Unilateral mastectomies of right and left breasts \", Result: false\nExpression: \"MeetsExclusionCriteria\", Result: false\nExpression: \"InPopulation\", Result: false\nExpression: \"Recommendation\", Result: null\nExpression: \"Rationale\", Result: null\nExpression: \"Errors\", Result: null",
+            "source": "CQL",
+            "expressions" : null,
+            "measureServer": null
+        }     
+    }
+}

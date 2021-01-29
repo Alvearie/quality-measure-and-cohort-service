@@ -1,0 +1,39 @@
+<!-- 
+    This FILE is ONLY so the files may be IMPORTED into Eclipse. 
+ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<parent>
+		<groupId>com.ibm.cohort</groupId>
+		<artifactId>cohort-parent</artifactId>
+		<version>${revision}</version>
+		<relativePath>../cohort-parent</relativePath>
+	</parent>
+
+	<artifactId>docs</artifactId>
+	<packaging>jar</packaging>
+
+	<scm>
+		<url>https://github.com/Alvearie/quality-measure-and-cohort-service</url>
+		<connection>scm:git:git@github.com:Alvearie/quality-measure-and-cohort-service.git</connection>
+		<developerConnection>scm:git:git@github.com:Alvearie/quality-measure-and-cohort-service.git</developerConnection>
+	</scm>
+
+	<build>
+                <plugins>
+                        <plugin>
+                                <groupId>org.apache.maven.plugins</groupId>
+                                <artifactId>maven-deploy-plugin</artifactId>
+                                <version>2.7</version>
+                                <configuration>
+                                        <skip>true</skip>
+                                </configuration>
+                        </plugin>
+                </plugins>
+        </build>
+	
+</project>
+

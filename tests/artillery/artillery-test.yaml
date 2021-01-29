@@ -1,0 +1,59 @@
+#
+# (C) Copyright IBM Corp. 2021, 2021
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+config:
+  target: "http://localhost:9000/api"
+  plugins:
+    expect: {}
+  phases:
+    - duration: 10
+      arrivalRate: 2
+  environments:
+    dev: 
+      target: "http://localhost:9000/api"
+      phases:
+        - duration: 50
+          arrivalRate: 4
+    production: 
+      target: "http://localhost:9000/api"
+      phases:
+        - duration: 50
+          arrivalRate: 4
+    staging:
+      target: "http://localhost:9000/api"
+
+      phases:
+        - duration: 50
+          arrivalRate: 4
+scenarios:
+  - flow:
+    - post:
+        url: "/register"
+        json:
+          firstname: "J"
+          lastname: "L"
+          username: "biubiubiu"
+          password: "password" 
+        weight: 1
+        expect:
+          - statusCode: 200
+    - post:
+        url: "/login"
+        json:
+          username: "biubiubiu"
+          password: "password" 
+        capture:
+          json: "$.token"
+          as: "token"
+        weight: 1
+        expect:
+          - statusCode: 200
+    - get:
+        url: "/users"
+        headers:
+          Authorization: "bearer {{ token }}"
+        weight: 1
+        expect:
+          - statusCode: 200

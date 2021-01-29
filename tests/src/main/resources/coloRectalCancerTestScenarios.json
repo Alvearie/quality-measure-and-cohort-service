@@ -1,0 +1,74 @@
+{
+    "tests": {
+        "50-75 years, no evidence of colorectal cancer, no history of colectomy, no prior screening done for colorectal cancer" : {
+            "params" : null,
+            "library": "ColoRectalCancerScreeningWithSnomedCodes",
+            "version" : "1.0.1",
+            "targets": ["eb068c3f-3954-50c6-0c67-2b82d29865f0"],
+            "response": "Context: eb068c3f-3954-50c6-0c67-2b82d29865f0\nExpression: \"Patient\", Result: Patient/eb068c3f-3954-50c6-0c67-2b82d29865f0/_history\nExpression: \"generic_condition_concepts\", Result: Collection: 0\nExpression: \"generic_procedure_concepts\", Result: Collection: 0\nExpression: \"generic_procedure_concepts_1\", Result: Collection: 0\nExpression: \"generic_procedure_concepts_2\", Result: Collection: 0\nExpression: \"Ages 50-75 years\", Result: true\nExpression: \"Evidence of Colorectal Cancer \", Result: false\nExpression: \"Total Colectomy done in Lifetime\", Result: false\nExpression: \"Fecal Occult Blood Test (FOBT) during last 1 year\", Result: false\nExpression: \"Flexible fiberoptic sigmoidoscopy (procedure) in last 5 years\", Result: false\nExpression: \"Colonoscopy (procedure) done in last 10 years\", Result: false\nExpression: \"Computed tomography (CT) colonography done during last 5 years\", Result: false\nExpression: \"Fecal immunochemical DNA test (FIT-DNA) done during last 3 years\", Result: false\nExpression: \"Double contrast barium enema (procedure) done during last 5 years\", Result: false\nExpression: \"MeetsInclusionCriteria\", Result: true\nExpression: \"MeetsExclusionCriteria\", Result: false\nExpression: \"InPopulation\", Result: true\nExpression: \"Recommendation\", Result: null\nExpression: \"Rationale\", Result: null\nExpression: \"Errors\", Result: null",
+            "source": "CQL",
+            "expressions" : null,
+            "measureServer": null
+        },
+        "50-75 years, no evidence of colorectal cancer, no history of colectomy, some colorectal cancer screening done" : {
+            "params" : null,
+            "library": "ColoRectalCancerScreeningWithSnomedCodes",
+            "version" : "1.0.1",
+            "targets": ["01268c61-8f89-6d50-4414-9e50d367804d"],
+            "response": "Context: 01268c61-8f89-6d50-4414-9e50d367804d\nExpression: \"Patient\", Result: Patient/01268c61-8f89-6d50-4414-9e50d367804d/_history\nExpression: \"generic_condition_concepts\", Result: Collection: 0\nExpression: \"generic_procedure_concepts\", Result: Collection: 1\nExpression: \"generic_procedure_concepts_1\", Result: Collection: 0\nExpression: \"generic_procedure_concepts_2\", Result: Collection: 4\nExpression: \"Ages 50-75 years\", Result: true\nExpression: \"Evidence of Colorectal Cancer \", Result: false\nExpression: \"Total Colectomy done in Lifetime\", Result: false\nExpression: \"Fecal Occult Blood Test (FOBT) during last 1 year\", Result: true\nExpression: \"Flexible fiberoptic sigmoidoscopy (procedure) in last 5 years\", Result: false\nExpression: \"Colonoscopy (procedure) done in last 10 years\", Result: true\nExpression: \"Computed tomography (CT) colonography done during last 5 years\", Result: false\nExpression: \"Fecal immunochemical DNA test (FIT-DNA) done during last 3 years\", Result: false\nExpression: \"Double contrast barium enema (procedure) done during last 5 years\", Result: false\nExpression: \"MeetsInclusionCriteria\", Result: true\nExpression: \"MeetsExclusionCriteria\", Result: true\nExpression: \"InPopulation\", Result: false\nExpression: \"Recommendation\", Result: null\nExpression: \"Rationale\", Result: null\nExpression: \"Errors\", Result: null",
+            "source": "CQL",
+            "expressions" : null,
+            "measureServer": null
+        },
+        "50-75 years, evidence of colorectal cancer, no history of colectomy, no prior screening done for colorectal cancer" : {
+            "params" : null,
+            "library": "ColoRectalCancerScreeningWithSnomedCodes",
+            "version" : "1.0.1",
+            "targets": ["6b6120d0-36b9-d2d5-639d-b77033cf5cee"],
+            "response": "Context: 6b6120d0-36b9-d2d5-639d-b77033cf5cee\nExpression: \"Patient\", Result: Patient/6b6120d0-36b9-d2d5-639d-b77033cf5cee/_history\nExpression: \"generic_condition_concepts\", Result: Collection: 1\nExpression: \"generic_procedure_concepts\", Result: Collection: 0\nExpression: \"generic_procedure_concepts_1\", Result: Collection: 0\nExpression: \"generic_procedure_concepts_2\", Result: Collection: 0\nExpression: \"Ages 50-75 years\", Result: true\nExpression: \"Evidence of Colorectal Cancer \", Result: true\nExpression: \"Total Colectomy done in Lifetime\", Result: false\nExpression: \"Fecal Occult Blood Test (FOBT) during last 1 year\", Result: false\nExpression: \"Flexible fiberoptic sigmoidoscopy (procedure) in last 5 years\", Result: false\nExpression: \"Colonoscopy (procedure) done in last 10 years\", Result: false\nExpression: \"Computed tomography (CT) colonography done during last 5 years\", Result: false\nExpression: \"Fecal immunochemical DNA test (FIT-DNA) done during last 3 years\", Result: false\nExpression: \"Double contrast barium enema (procedure) done during last 5 years\", Result: false\nExpression: \"MeetsInclusionCriteria\", Result: true\nExpression: \"MeetsExclusionCriteria\", Result: true\nExpression: \"InPopulation\", Result: false\nExpression: \"Recommendation\", Result: null\nExpression: \"Rationale\", Result: null\nExpression: \"Errors\", Result: null",
+            "source": "CQL",
+            "expressions" : null,
+            "measureServer": null
+        },
+        "50-75 years, no evidence of colorectal cancer, no history of colectomy, colonoscopy done in last 10 years" : {
+            "params" : null,
+            "library": "ColoRectalCancerScreeningWithSnomedCodes",
+            "version" : "1.0.1",
+            "targets": ["768202e4-b073-98e7-f3ab-2b7f467fea0b"],
+            "response": "Context: 768202e4-b073-98e7-f3ab-2b7f467fea0b\nExpression: \"Patient\", Result: Patient/768202e4-b073-98e7-f3ab-2b7f467fea0b/_history\nExpression: \"generic_condition_concepts\", Result: Collection: 0\nExpression: \"generic_procedure_concepts\", Result: Collection: 0\nExpression: \"generic_procedure_concepts_1\", Result: Collection: 0\nExpression: \"generic_procedure_concepts_2\", Result: Collection: 2\nExpression: \"Ages 50-75 years\", Result: true\nExpression: \"Evidence of Colorectal Cancer \", Result: false\nExpression: \"Total Colectomy done in Lifetime\", Result: false\nExpression: \"Fecal Occult Blood Test (FOBT) during last 1 year\", Result: false\nExpression: \"Flexible fiberoptic sigmoidoscopy (procedure) in last 5 years\", Result: false\nExpression: \"Colonoscopy (procedure) done in last 10 years\", Result: true\nExpression: \"Computed tomography (CT) colonography done during last 5 years\", Result: false\nExpression: \"Fecal immunochemical DNA test (FIT-DNA) done during last 3 years\", Result: false\nExpression: \"Double contrast barium enema (procedure) done during last 5 years\", Result: false\nExpression: \"MeetsInclusionCriteria\", Result: true\nExpression: \"MeetsExclusionCriteria\", Result: true\nExpression: \"InPopulation\", Result: false\nExpression: \"Recommendation\", Result: null\nExpression: \"Rationale\", Result: null\nExpression: \"Errors\", Result: null",
+            "source": "CQL",
+            "expressions" : null,
+            "measureServer": null
+        },  
+        "50-75 years, no evidence of colorectal cancer, no history of colectomy, FOBT test done in the last 12 months" : {
+            "params" : null,
+            "library": "ColoRectalCancerScreeningWithSnomedCodes",
+            "version" : "1.0.1",
+            "targets": ["fa50075b-55c2-d9bf-5aee-984942fb7331"],
+            "response": "Context: fa50075b-55c2-d9bf-5aee-984942fb7331\nExpression: \"Patient\", Result: Patient/fa50075b-55c2-d9bf-5aee-984942fb7331/_history\nExpression: \"generic_condition_concepts\", Result: Collection: 0\nExpression: \"generic_procedure_concepts\", Result: Collection: 1\nExpression: \"generic_procedure_concepts_1\", Result: Collection: 0\nExpression: \"generic_procedure_concepts_2\", Result: Collection: 1\nExpression: \"Ages 50-75 years\", Result: true\nExpression: \"Evidence of Colorectal Cancer \", Result: false\nExpression: \"Total Colectomy done in Lifetime\", Result: false\nExpression: \"Fecal Occult Blood Test (FOBT) during last 1 year\", Result: true\nExpression: \"Flexible fiberoptic sigmoidoscopy (procedure) in last 5 years\", Result: false\nExpression: \"Colonoscopy (procedure) done in last 10 years\", Result: true\nExpression: \"Computed tomography (CT) colonography done during last 5 years\", Result: false\nExpression: \"Fecal immunochemical DNA test (FIT-DNA) done during last 3 years\", Result: false\nExpression: \"Double contrast barium enema (procedure) done during last 5 years\", Result: false\nExpression: \"MeetsInclusionCriteria\", Result: true\nExpression: \"MeetsExclusionCriteria\", Result: true\nExpression: \"InPopulation\", Result: false\nExpression: \"Recommendation\", Result: null\nExpression: \"Rationale\", Result: null\nExpression: \"Errors\", Result: null",
+            "source": "CQL",
+            "expressions" : null,
+            "measureServer": null
+        },
+        "Less than 50 years, no evidence of colorectal cancer, no history of colectomy, no prior screening done for colorectal cancer" : {
+            "params" : null,
+            "library": "ColoRectalCancerScreeningWithSnomedCodes",
+            "version" : "1.0.1",
+            "targets": ["c5272662-aa4f-d97f-ed66-fb53c4048500"],
+            "response": "Context: c5272662-aa4f-d97f-ed66-fb53c4048500\nExpression: \"Patient\", Result: Patient/c5272662-aa4f-d97f-ed66-fb53c4048500/_history\nExpression: \"generic_condition_concepts\", Result: Collection: 0\nExpression: \"generic_procedure_concepts\", Result: Collection: 0\nExpression: \"generic_procedure_concepts_1\", Result: Collection: 0\nExpression: \"generic_procedure_concepts_2\", Result: Collection: 0\nExpression: \"Ages 50-75 years\", Result: false\nExpression: \"Evidence of Colorectal Cancer \", Result: false\nExpression: \"Total Colectomy done in Lifetime\", Result: false\nExpression: \"Fecal Occult Blood Test (FOBT) during last 1 year\", Result: false\nExpression: \"Flexible fiberoptic sigmoidoscopy (procedure) in last 5 years\", Result: false\nExpression: \"Colonoscopy (procedure) done in last 10 years\", Result: false\nExpression: \"Computed tomography (CT) colonography done during last 5 years\", Result: false\nExpression: \"Fecal immunochemical DNA test (FIT-DNA) done during last 3 years\", Result: false\nExpression: \"Double contrast barium enema (procedure) done during last 5 years\", Result: false\nExpression: \"MeetsInclusionCriteria\", Result: false\nExpression: \"MeetsExclusionCriteria\", Result: false\nExpression: \"InPopulation\", Result: false\nExpression: \"Recommendation\", Result: null\nExpression: \"Rationale\", Result: null\nExpression: \"Errors\", Result: null",
+            "source": "CQL",
+            "expressions" : null,
+            "measureServer": null
+        },
+        "Greater than 75 years, no evidence of colorectal cancer, no history of colectomy, no prior screening done for colorectal cancer" : {
+            "params" : null,
+            "library": "ColoRectalCancerScreeningWithSnomedCodes",
+            "version" : "1.0.1",
+            "targets": ["bb1e9387-e580-7751-d956-5e0340d6c5fc"],
+            "response": "Context: bb1e9387-e580-7751-d956-5e0340d6c5fc\nExpression: \"Patient\", Result: Patient/bb1e9387-e580-7751-d956-5e0340d6c5fc/_history\nExpression: \"generic_condition_concepts\", Result: Collection: 0\nExpression: \"generic_procedure_concepts\", Result: Collection: 0\nExpression: \"generic_procedure_concepts_1\", Result: Collection: 0\nExpression: \"generic_procedure_concepts_2\", Result: Collection: 0\nExpression: \"Ages 50-75 years\", Result: false\nExpression: \"Evidence of Colorectal Cancer \", Result: false\nExpression: \"Total Colectomy done in Lifetime\", Result: false\nExpression: \"Fecal Occult Blood Test (FOBT) during last 1 year\", Result: false\nExpression: \"Flexible fiberoptic sigmoidoscopy (procedure) in last 5 years\", Result: false\nExpression: \"Colonoscopy (procedure) done in last 10 years\", Result: false\nExpression: \"Computed tomography (CT) colonography done during last 5 years\", Result: false\nExpression: \"Fecal immunochemical DNA test (FIT-DNA) done during last 3 years\", Result: false\nExpression: \"Double contrast barium enema (procedure) done during last 5 years\", Result: false\nExpression: \"MeetsInclusionCriteria\", Result: false\nExpression: \"MeetsExclusionCriteria\", Result: false\nExpression: \"InPopulation\", Result: false\nExpression: \"Recommendation\", Result: null\nExpression: \"Rationale\", Result: null\nExpression: \"Errors\", Result: null",
+            "source": "CQL",
+            "expressions" : null,
+            "measureServer": null
+        }           
+    }
+}

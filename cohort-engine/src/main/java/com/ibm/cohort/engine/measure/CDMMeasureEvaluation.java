@@ -104,7 +104,6 @@ public class CDMMeasureEvaluation {
 	 */
 	public MeasureReport evaluatePatientMeasure(Measure measure, Context context, String patientId) {
 		MeasureReport report = evaluation.evaluatePatientMeasure(measure, context, patientId);
-		;
 
 		MeasureScoring scoring = MeasureScoring.fromCode(measure.getScoring().getCodingFirstRep().getCode());
 		switch (scoring) {
@@ -157,7 +156,7 @@ public class CDMMeasureEvaluation {
 		// exception has already been applied by the standard report generator and the
 		// patient has been removed from the following populations as needed, so we can
 		// keep this logic simple.
-		if (results.inInitialPopulation() && results.inDenominator() && !results.inNumerator()) {
+		if (results.inDenominator() && !results.inNumerator()) {
 			isEligibleForCareGap = true;
 		}
 		return isEligibleForCareGap;

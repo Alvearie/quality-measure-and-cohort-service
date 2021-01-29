@@ -17,8 +17,7 @@ import org.hl7.fhir.r4.model.Attachment;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.execution.CqlLibraryReader;
 
-import com.helger.commons.base64.Base64;
-import com.ibm.cohort.engine.CqlTranslationProvider;
+import com.ibm.cohort.engine.translation.CqlTranslationProvider;
 
 /**
  * Implementation of a library loader that resolves FHIR R4 Library resources
@@ -107,7 +106,7 @@ public class LibraryLoader implements org.opencds.cqf.cql.engine.execution.Libra
 	}
 
 	protected InputStream getAttachmentData(Attachment attachment) throws IOException {
-		return new ByteArrayInputStream(Base64.decode(attachment.getData()));
+		return new ByteArrayInputStream(attachment.getData());
 	}
 
 	@Override

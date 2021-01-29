@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ************************************** -->
+<!-- (C) Copyright IBM Corp. 2021, 2021 -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- ************************************** -->
+
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+	<!-- localRepository | The path to the local repository maven will use to 
+		store artifacts. | | Default: ${user.home}/.m2/repository <localRepository>/path/to/local/repo</localRepository> --> 
+	<localRepository>${user.home}/.m2/repository</localRepository> <interactiveMode>false</interactiveMode>
+
+	<servers>
+		<server>
+			<id>github</id>
+			<username>${env.IBM_GITHUB_PUBLIC_USERNAME}</username>
+			<password>${env.IBM_GITHUB_PUBLIC_TOKEN}</password>
+		</server>
+	</servers>
+
+	<profiles>
+		<profile>
+			<id>github</id>
+			<repositories>
+				<repository>
+					<id>central</id>
+					<url>https://repo1.maven.org/maven2</url>
+					<releases>
+						<enabled>true</enabled>
+					</releases>
+					<snapshots>
+						<enabled>true</enabled>
+					</snapshots>
+				</repository>
+				<repository>
+					<id>github</id>
+					<name>GitHub Alvearie Apache Maven Packages</name>
+					<url>https://maven.pkg.github.com/Alvearie/rest-service-framework</url>
+				</repository>
+			</repositories>
+		</profile>
+	</profiles>
+
+	<activeProfiles>
+		<activeProfile>github</activeProfile>
+	</activeProfiles>
+
+</settings>

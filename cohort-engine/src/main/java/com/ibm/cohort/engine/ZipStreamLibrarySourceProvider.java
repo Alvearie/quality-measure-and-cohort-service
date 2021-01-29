@@ -18,33 +18,33 @@ import org.apache.commons.io.IOUtils;
 import org.hl7.elm.r1.VersionedIdentifier;
 
 /**
- * ZIP archive-based implementation of MultiFormatLibrarySourceProvider. Filenames can contain
- * library ID and version based on the logic in the provided FilenameToVersionedIdentifierStrategy.
- * When no strategy is provided {@link DefaultFilenameToVersionedIdentifierStrategy} is used.
+ * ZIP archive-based implementation of MultiFormatLibrarySourceProvider.
+ * Filenames can contain library ID and version based on the logic in the
+ * provided FilenameToVersionedIdentifierStrategy. When no strategy is provided
+ * {@link DefaultFilenameToVersionedIdentifierStrategy} is used.
  */
 public class ZipStreamLibrarySourceProvider extends MultiFormatLibrarySourceProvider {
-	
+
 	public ZipStreamLibrarySourceProvider(ZipInputStream zipInputStream) throws Exception {
-		this( zipInputStream, new DefaultFilenameToVersionedIdentifierStrategy() );
+		this(zipInputStream, new DefaultFilenameToVersionedIdentifierStrategy());
 	}
-	
-	public ZipStreamLibrarySourceProvider(ZipInputStream zipInputStream, FilenameToVersionedIdentifierStrategy idStrategy) throws Exception {
-		
+
+	public ZipStreamLibrarySourceProvider(ZipInputStream zipInputStream,
+			FilenameToVersionedIdentifierStrategy idStrategy) throws Exception {
+
 		ZipEntry ze;
 		while ((ze = zipInputStream.getNextEntry()) != null) {
-			VersionedIdentifier id = idStrategy.filenameToVersionedIdentifier(ze.getName());
-
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			IOUtils.copy(zipInputStream, baos);
-			Map<LibraryFormat, InputStream> formats = sources.get(id);
-			if (formats == null) {
-				formats = new HashMap<>();
-				sources.put(id, formats);
+			if (!ze.isDirectory()) {
+				LibraryFormat format = LibraryFormat.forString(ze.getName());
+				if( format != null ) {
+					VersionedIdentifier id = idStrategy.filenameToVersionedIdentifier(ze.getName());
+	
+					ByteArrayOutputStream baos = new ByteArrayOutputStream();
+					IOUtils.copy(zipInputStream, baos);
+					Map<LibraryFormat, InputStream> formats = sources.computeIfAbsent(id, key -> new HashMap<>());
+					formats.put(format, new ByteArrayInputStream(baos.toByteArray()));
+				}
 			}
-			formats.put(LibraryFormat.forString(ze.getName()),
-					new ByteArrayInputStream(baos.toByteArray()));
 		}
 	}
-
-
 }
