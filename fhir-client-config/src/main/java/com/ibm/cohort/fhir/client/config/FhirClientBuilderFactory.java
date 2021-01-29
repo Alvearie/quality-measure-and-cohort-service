@@ -31,7 +31,7 @@ public abstract class FhirClientBuilderFactory {
 	 * load:
 	 * 
 	 * <ul>
-	 * <li>Use the com.ibm.cohort.FhirClientBuilderFactory</li> system property.
+	 * <li>Use the com.ibm.cohort.FhirClientBuilderFactory system property.</li> 
 	 * <li>Default FhirClientBuilderFactory instance.
 	 * </ul>
 	 * 

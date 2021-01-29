@@ -314,8 +314,8 @@ public class CqlEngineWrapper {
 	/**
 	 * Usage pattern that uses the CqlEngine interface to execute provided CQL. This
 	 * is the preferred usage pattern, but
-	 * {@see #evaluateExpressionByExpression(String, String, Map, Set, List,
-	 * EvaluationResultCallback)} for details on why it might not be used.
+	 * @see #evaluateExpressionByExpression(String, String, Map, Set, List,
+	 * EvaluationResultCallback) for details on why it might not be used.
 	 * 
 	 * @param libraryName    Library identifier
 	 * @param libraryVersion Library version (optional/null)
