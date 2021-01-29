@@ -30,10 +30,10 @@ public class LibraryUtils {
 	 * When a Library is deserialized via the CqlLibraryReader helper class the
 	 * annotations do not get mapped to Objects. This method helps bridge the gap.
 	 * 
-	 * @param library
+	 * @param library Library object containing unmarshalled annotations
 	 * @return List of Annotation objects which are usually {@link CqlToElmInfo} or
 	 *         {@link CqlToElmError} objects.
-	 * @throws Exception
+	 * @throws Exception any exception in unmarshalling process
 	 */
 	public static List<Object> unmarshallAnnotations(Library library) throws Exception {
 
@@ -56,6 +56,7 @@ public class LibraryUtils {
 	 * 
 	 * @param library Deserialized ELM library
 	 * @return true if the library contains errors. Otherwise, false.
+	 * @throws Exception any exception in unmarshalling process 
 	 */
 	public static boolean hasErrors(Library library) throws Exception {
 		List<Object> annotations = unmarshallAnnotations(library);
@@ -69,7 +70,7 @@ public class LibraryUtils {
 	 * @param annotations List of deserialized ELM library annotations.
 	 * @return true if the library contains errors. Otherwise, false.
 	 */
-	public static boolean hasErrors(List<Object> annotations) throws Exception {
+	public static boolean hasErrors(List<Object> annotations) {
 		return annotations.stream().filter(
 				a -> a instanceof CqlToElmError && ((CqlToElmError) a).getErrorSeverity() == ErrorSeverity.ERROR)
 				.count() > 0;

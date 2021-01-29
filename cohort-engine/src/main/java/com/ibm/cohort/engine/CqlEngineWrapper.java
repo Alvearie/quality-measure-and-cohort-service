@@ -34,6 +34,10 @@ import org.opencds.cqf.cql.engine.model.ModelResolver;
 import org.opencds.cqf.cql.engine.retrieve.RetrieveProvider;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
+import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
+import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
+import com.ibm.cohort.fhir.client.config.FhirServerConfig;
+
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
@@ -75,7 +79,7 @@ public class CqlEngineWrapper {
 	/**
 	 * Configure the FHIR server used for retrieve operations.
 	 * 
-	 * @param config
+	 * @param config data server connection properties
 	 */
 	public void setDataServerConnectionProperties(FhirServerConfig config) {
 		setDataServerClient(clientBuilder.createFhirClient(config));
@@ -84,7 +88,7 @@ public class CqlEngineWrapper {
 	/**
 	 * Set the FHIR client used for data operations.
 	 * 
-	 * @param config
+	 * @param client data server client
 	 */
 	public void setDataServerClient(IGenericClient client) {
 		this.dataServerClient = client;
@@ -102,7 +106,7 @@ public class CqlEngineWrapper {
 	/**
 	 * Configure the FHIR server used for quality measure operations.
 	 * 
-	 * @param config
+	 * @param config measure server connection properties
 	 */
 	public void setMeasureServerConnectionProperties(FhirServerConfig config) {
 		setMeasureServerClient(clientBuilder.createFhirClient(config));
@@ -111,7 +115,7 @@ public class CqlEngineWrapper {
 	/**
 	 * Set the FHIR client used to interact with the FHIR measure server.
 	 * 
-	 * @param client
+	 * @param client measure server client
 	 */
 	public void setMeasureServerClient(IGenericClient client) {
 		this.measureServerClient = client;
@@ -129,7 +133,7 @@ public class CqlEngineWrapper {
 	/**
 	 * Configure the FHIR server used for terminology operations.
 	 * 
-	 * @param config
+	 * @param config terminology server connection properties
 	 */
 	public void setTerminologyServerConnectionProperties(FhirServerConfig config) {
 		this.terminologyServerClient = clientBuilder.createFhirClient(config);
@@ -138,7 +142,7 @@ public class CqlEngineWrapper {
 	/**
 	 * Set the FHIR client used for terminology data access.
 	 * 
-	 * @param client
+	 * @param client terminology server client
 	 */
 	public void setTerminologyServerClient(IGenericClient client) {
 		this.terminologyServerClient = client;
@@ -382,6 +386,7 @@ public class CqlEngineWrapper {
 	 *                       specified <code>expressions</code> will be executed. At
 	 *                       least one value is required.
 	 * @param callback       callback function for receiving engine execution events
+	 * @throws Exception	 any error
 	 */
 	public void evaluate(String libraryName, String libraryVersion, Map<String, Object> parameters,
 			Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback) throws Exception {
@@ -406,6 +411,7 @@ public class CqlEngineWrapper {
 	 *                       least one value is required.
 	 * @param callback       callback function to be evaluated once per context per
 	 *                       executed define
+	 * @throws Exception	 any error
 	 */
 	public void evaluate(String libraryName, String libraryVersion, Map<String, Object> parameters,
 			Set<String> expressions, List<String> contextIds, ExpressionResultCallback callback) throws Exception {

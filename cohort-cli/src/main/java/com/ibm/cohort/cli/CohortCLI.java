@@ -29,8 +29,6 @@ import com.ibm.cohort.cli.input.NoSplittingSplitter;
 import com.ibm.cohort.engine.CqlEngineWrapper;
 import com.ibm.cohort.engine.DirectoryLibrarySourceProvider;
 import com.ibm.cohort.engine.EvaluationResultCallback;
-import com.ibm.cohort.engine.FhirClientBuilder;
-import com.ibm.cohort.engine.FhirClientBuilderFactory;
 import com.ibm.cohort.engine.FhirLibraryLibrarySourceProvider;
 import com.ibm.cohort.engine.LibraryFormat;
 import com.ibm.cohort.engine.MultiFormatLibrarySourceProvider;
@@ -38,6 +36,8 @@ import com.ibm.cohort.engine.TranslatingLibraryLoader;
 import com.ibm.cohort.engine.ZipStreamLibrarySourceProvider;
 import com.ibm.cohort.engine.translation.CqlTranslationProvider;
 import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
+import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
+import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 
 public class CohortCLI extends BaseCLI {
 

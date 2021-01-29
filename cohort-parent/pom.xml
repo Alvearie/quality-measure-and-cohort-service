@@ -12,11 +12,13 @@
 
 	<modules>
 		<module>../build</module>
+		<module>../fhir-client-config</module>
 		<module>../cohort-engine</module>
 		<module>../cohort-cli</module>
 		<module>../cohort-engine-api</module>
 		<module>../cohort-engine-api-web</module>
 		<module>../cohort-util</module>
+		<module>../fhir-resource-tooling</module>
 		<module>../tests</module>
 		<module>../reports</module>
 		<module>../cohort-engine-distribution</module>
@@ -381,6 +383,11 @@
 		</testResources>
 		<pluginManagement>
 			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>3.9.1</version>
+				</plugin>
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>flatten-maven-plugin</artifactId>
@@ -828,6 +835,8 @@
 							<sourcepath>${srcjavadocDir}</sourcepath>
 							<show>public</show>
 							<splitindex>true</splitindex>
+							<source>${whBldsdkVer}</source>
+							<detectJavaApiLink>false</detectJavaApiLink>
 						</configuration>
 						<reports>
 							<report>javadoc</report>
@@ -843,6 +852,8 @@
 							<sourcepath>${srcjavadocTestDir}</sourcepath>
 							<show>public</show>
 							<splitindex>true</splitindex>
+							<source>${whBldsdkVer}</source>
+							<detectJavaApiLink>false</detectJavaApiLink>
 						</configuration>
 						<reports>
 							<report>test-javadoc</report>

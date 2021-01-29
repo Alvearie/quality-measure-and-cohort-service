@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.cohort.engine;
+package com.ibm.cohort.fhir.client.config;
 
 import java.lang.reflect.Constructor;
 
@@ -17,8 +17,8 @@ import ca.uhn.fhir.context.FhirContext;
  */
 public abstract class FhirClientBuilderFactory {
 
-	public static final String IMPL_CLASS_NAME = "com.ibm.cohort.FhirClientBuilderFactory";
-	public static final String DEFAULT_IMPL_CLASS_NAME = "com.ibm.cohort.engine.DefaultFhirClientBuilderFactory";
+	public static final String IMPL_CLASS_NAME = "com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory";
+	public static final String DEFAULT_IMPL_CLASS_NAME = "com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilderFactory";
 
 	protected FhirClientBuilderFactory() {
 

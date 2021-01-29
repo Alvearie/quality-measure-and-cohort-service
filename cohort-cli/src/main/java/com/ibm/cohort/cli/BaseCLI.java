@@ -6,7 +6,7 @@
 package com.ibm.cohort.cli;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.FhirServerConfig;
+import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
 public class BaseCLI {
 	

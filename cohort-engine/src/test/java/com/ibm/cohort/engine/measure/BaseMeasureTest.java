@@ -30,9 +30,9 @@ import org.junit.Before;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 
 import com.ibm.cohort.engine.BaseFhirTest;
-import com.ibm.cohort.engine.FhirClientBuilder;
-import com.ibm.cohort.engine.FhirClientBuilderFactory;
-import com.ibm.cohort.engine.FhirServerConfig;
+import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
+import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
+import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 

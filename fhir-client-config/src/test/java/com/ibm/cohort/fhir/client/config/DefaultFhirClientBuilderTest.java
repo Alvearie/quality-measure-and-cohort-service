@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.cohort.engine;
+package com.ibm.cohort.fhir.client.config;
 
 import static org.junit.Assert.assertEquals;
 
@@ -15,7 +15,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.FhirServerConfig.LogInfo;
+import com.ibm.cohort.fhir.client.config.FhirServerConfig.LogInfo;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
