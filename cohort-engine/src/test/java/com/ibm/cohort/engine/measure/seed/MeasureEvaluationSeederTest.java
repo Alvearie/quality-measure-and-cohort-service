@@ -15,7 +15,7 @@ public class MeasureEvaluationSeederTest {
         MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(null, new DefaultLibraryLoader(), null);
 
         seeder.disableDebugLogging();
-        seeder.disableExpressionCaching();
+        seeder.enableExpressionCaching();
         seeder.withTerminologyProvider("source", "user", "password");
 
         Context context = seeder.createContext(
@@ -25,7 +25,7 @@ public class MeasureEvaluationSeederTest {
                 seeder.createMeasurePeriod("2020-01-01", "2021-01-01"),
                 "productLine");
 
-        Assert.assertFalse(context.isExpressionCachingEnabled());
+        Assert.assertTrue(context.isExpressionCachingEnabled());
         Assert.assertNull(context.getDebugMap());
     }
 }
