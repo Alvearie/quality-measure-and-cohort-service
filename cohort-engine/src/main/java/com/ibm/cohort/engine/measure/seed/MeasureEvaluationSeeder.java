@@ -30,7 +30,7 @@ public class MeasureEvaluationSeeder {
 	private final LibraryLoader libraryLoader;
 	private final LibraryResolutionProvider<Library> libraryResourceProvider;
 
-	private boolean disableExpressionCaching;
+	private boolean enableExpressionCaching;
 	private boolean debugMode = true;
 	private String terminologyProviderSource;
 	private String terminologyProviderUser;
@@ -51,8 +51,8 @@ public class MeasureEvaluationSeeder {
 		return this;
 	}
 
-	public MeasureEvaluationSeeder disableExpressionCaching() {
-		this.disableExpressionCaching = true;
+	public MeasureEvaluationSeeder enableExpressionCaching() {
+		this.enableExpressionCaching = true;
 
 		return this;
 	}
@@ -124,7 +124,7 @@ public class MeasureEvaluationSeeder {
 			context.setParameter(null, "Product Line", productLine);
 		}
 
-		if (!disableExpressionCaching) {
+		if (enableExpressionCaching) {
 			context.setExpressionCaching(true);
 		}
 
