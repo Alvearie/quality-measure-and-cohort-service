@@ -100,7 +100,7 @@ public class MeasureEvaluationSeeder {
 			Interval measurementPeriod,
 			String productLine) {
 
-		Context context = new Context(library);
+		Context context = createDefaultContext(library);
 		context.registerLibraryLoader(libraryLoader);
 
 		if (!dataProviders.isEmpty()) {
@@ -135,6 +135,11 @@ public class MeasureEvaluationSeeder {
 		}
 
 		return context;
+	}
+
+	@VisibleForTesting
+	protected Context createDefaultContext(org.cqframework.cql.elm.execution.Library library) {
+		return new Context(library);
 	}
 
 	@VisibleForTesting
