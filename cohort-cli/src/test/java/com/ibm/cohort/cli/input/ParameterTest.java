@@ -5,6 +5,8 @@
  */
 package com.ibm.cohort.cli.input;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -59,6 +61,22 @@ public class ParameterTest {
 		parameter.validate();
 	}
 	
+	@Test
+	public void testCreateParameter() throws Exception {
+		Parameter expected = createParameter("{\"name\":\"p1\",\"type\":\"integer\",\"value\":\"1\"}");
+		Parameter created = Parameter.create("p1", "integer", "1");
+		
+		assertEquals(expected, created);
+	}
+
+	@Test
+	public void testCreateInterval() throws Exception {
+		Parameter expected = createParameter("{\"name\":\"p1\",\"type\":\"interval\",\"start\":\"1\",\"end\":\"2\",\"subtype\":\"integer\"}");
+		Parameter created = Parameter.createInterval("p1", "integer", "1", "2");
+
+		assertEquals(expected, created);
+	}
+
 	private Parameter createParameter(String parameterString) throws JsonProcessingException {
 		ObjectMapper objectMapper = new ObjectMapper();
 		return objectMapper.readValue(parameterString, Parameter.class);
