@@ -16,14 +16,15 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.Writer;
 import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
@@ -34,6 +35,7 @@ import org.hl7.fhir.r4.model.MetadataResource;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.junit.Test;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.BaseFhirTest;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
@@ -67,19 +69,7 @@ public class MeasureImporterTest extends BaseFhirTest {
 		
 		mockFhirResourcePut("/Measure/" + measureId, "2");
 		
-		File tmpFile = new File("target/fhir-stub.json");
-		ObjectMapper om = new ObjectMapper();
-		try (Writer w = new FileWriter(tmpFile)) {
-			w.write(om.writeValueAsString(fhirConfig));
-		}
-		
-		try {
-			OutputStream baos = new ByteArrayOutputStream();
-			PrintStream out = new PrintStream(baos);
-			MeasureImporter.runWithArgs( new String[] { "-m", tmpFile.getAbsolutePath(), "src/test/resources/covid_confirmed_over_suspected_v1_1_1.zip" }, out);
-		} finally {
-			tmpFile.delete();
-		}
+		runTest(fhirConfig, "src/test/resources/covid_confirmed_over_suspected_v1_1_1.zip");
 		
 		verify( 4, postRequestedFor(urlEqualTo("/Library")) );
 		verify( 1, postRequestedFor(urlEqualTo("/Measure")) );
@@ -143,7 +133,6 @@ public class MeasureImporterTest extends BaseFhirTest {
 					
 					String localUrl = "/" + resource.fhirType() + "/" + id;
 					String fullUrl = fhirConfig.getEndpoint() + localUrl;
-					System.out.println(localUrl);
 					
 					stubFor(put(urlEqualTo(localUrl)).willReturn(
 							aResponse().withStatus(200)
@@ -164,22 +153,23 @@ public class MeasureImporterTest extends BaseFhirTest {
 		assertNotNull(libraryId);
 		assertNotNull(measureId);
 		
-		File tmpFile = new File("target/fhir-stub.json");
-		ObjectMapper om = new ObjectMapper();
-		try (Writer w = new FileWriter(tmpFile)) {
-			w.write(om.writeValueAsString(fhirConfig));
-		}
-		
-		try {
-			OutputStream baos = new ByteArrayOutputStream();
-			PrintStream out = new PrintStream(baos);
-			MeasureImporter.runWithArgs( new String[] { "-m", tmpFile.getAbsolutePath(), "src/test/resources/covid_confirmed_over_suspected_v1_1_1.zip" }, out);
-		} finally {
-			tmpFile.delete();
-		}
+		runTest(fhirConfig, "src/test/resources/covid_confirmed_over_suspected_v1_1_1.zip");
 		
 		verify( 1, putRequestedFor(urlEqualTo("/Library/" + libraryId)) );
 		verify( 1, putRequestedFor(urlEqualTo("/Measure/" + measureId)) );
-		
+	}
+
+	protected void runTest(FhirServerConfig fhirConfig, String pathString) throws IOException, JsonProcessingException, Exception {
+		Path tmpFile = Files.createTempFile(Paths.get("target"), "fhir-stub", ".json");
+		try {
+			ObjectMapper om = new ObjectMapper();
+			Files.writeString(tmpFile, om.writeValueAsString(fhirConfig));
+			
+			OutputStream baos = new ByteArrayOutputStream();
+			PrintStream out = new PrintStream(baos);
+			MeasureImporter.runWithArgs( new String[] { "-m", tmpFile.toString(), pathString }, out);
+		} finally {
+			Files.delete( tmpFile );
+		}
 	}
 }

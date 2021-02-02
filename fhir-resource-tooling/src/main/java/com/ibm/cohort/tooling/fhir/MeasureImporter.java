@@ -38,7 +38,7 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 /**
  * Load a FHIR server with resources provided in the UI measure export format. Resources are cross-referenced
- * with existing content in the FHIR server by canonical url. Already existing resources are updated as needed.
+ * with existing content in the FHIR server by canonical url. Resources that already exist are updated as needed.
  * 
  * Pre-reqs:
  * $&lt; keytool -importkeystore -srckeystore /path/to/git/FHIR/fhir-server/liberty-config/resources/security/fhirKeyStore.p12 -srcstorepass change-password -cacerts -deststorepass changeit
@@ -57,6 +57,9 @@ public class MeasureImporter {
 		public String version;
 		public String name;
 		public String id;
+		
+		private ArtifactMetadata() {
+		}
 
 		public void fromResource(MetadataResource metadata) {
 			this.resourceType = metadata.fhirType();
@@ -75,6 +78,9 @@ public class MeasureImporter {
 	 */
 	public static class LibraryArtifact extends ArtifactMetadata {
 
+		private LibraryArtifact() {
+		}
+		
 		@Override
 		public int updateDependencies(List<LibraryArtifact> libraries) {
 			int numUpdated = 0;
@@ -104,6 +110,9 @@ public class MeasureImporter {
 	 */
 	public static class MeasureArtifact extends ArtifactMetadata {
 
+		private MeasureArtifact() {
+		}
+		
 		@Override
 		public int updateDependencies(List<LibraryArtifact> libraries) {
 			int numUpdated = 0;
