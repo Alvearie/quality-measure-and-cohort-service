@@ -17,10 +17,12 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.Writer;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -163,7 +165,9 @@ public class MeasureImporterTest extends BaseFhirTest {
 		Path tmpFile = Files.createTempFile(Paths.get("target"), "fhir-stub", ".json");
 		try {
 			ObjectMapper om = new ObjectMapper();
-			Files.writeString(tmpFile, om.writeValueAsString(fhirConfig));
+			try( Writer w = new FileWriter( tmpFile.toFile() ) ) {
+				w.write(om.writeValueAsString(fhirConfig));
+			}
 			
 			OutputStream baos = new ByteArrayOutputStream();
 			PrintStream out = new PrintStream(baos);
