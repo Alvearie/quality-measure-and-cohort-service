@@ -812,6 +812,7 @@
 					<forkedProcessTimeoutInSeconds>600</forkedProcessTimeoutInSeconds>
 					<skipTests>${skip.unit.tests}</skipTests>
 					<redirectTestOutputToFile>true</redirectTestOutputToFile>
+					<argLine>-Djdk.attach.allowAttachSelf=true</argLine>
 				</configuration>
 			</plugin>
 			<plugin>
