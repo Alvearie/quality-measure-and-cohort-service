@@ -16,9 +16,10 @@ import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
 import org.opencds.cqf.common.evaluation.EvaluationProviderFactory;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
-import org.opencds.cqf.cql.engine.debug.DebugMap;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
-import org.opencds.cqf.r4.evaluation.MeasureEvaluationSeed;
+
+import com.ibm.cohort.engine.measure.seed.IMeasureEvaluationSeed;
+import com.ibm.cohort.engine.measure.seed.MeasureEvaluationSeeder;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
@@ -118,19 +119,14 @@ public class MeasureEvaluator {
 		LibraryLoader libraryLoader = LibraryHelper.createLibraryLoader(libraryResolutionProvider);
 
 		EvaluationProviderFactory factory = new ProviderFactory(dataClient, terminologyClient);
-		MeasureEvaluationSeed seed = new MeasureEvaluationSeed(factory, libraryLoader, libraryResolutionProvider);
+		MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(factory, libraryLoader, libraryResolutionProvider);
+		seeder.disableDebugLogging();
 
 		// TODO - consider talking with OSS project about making source, user, and pass
 		// a properties collection for more versatile configuration of the underlying
 		// providers. For example, we need an additional custom HTTP header for
 		// configuration of our FHIR server.
-		seed.setup(measure, periodStart, periodEnd, /* productLine= */"ProductLine", /* source= */"", /* user= */"",
-				/* pass= */"");
-		
-		// This is enabled by default in cqf-ruler and we don't want it.
-		DebugMap debugMap = new DebugMap();
-		debugMap.setIsLoggingEnabled(false);
-		seed.getContext().setDebugMap(debugMap);
+		IMeasureEvaluationSeed seed = seeder.create(measure, periodStart, periodEnd, "ProductLine");
 
 		// TODO - The OSS logic converts the period start and end into an
 		// Interval and creates a parameter named "Measurement Period" that is populated
