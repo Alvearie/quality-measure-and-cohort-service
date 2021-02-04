@@ -30,10 +30,10 @@ import org.powermock.modules.agent.PowerMockAgent;
 import org.powermock.modules.junit4.rule.PowerMockRule;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.ibm.cohort.engine.DefaultFhirClientBuilder;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.measure.RestFhirLibraryResolutionProvider;
 import com.ibm.cohort.engine.measure.RestFhirMeasureResolutionProvider;
+import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;

@@ -19,11 +19,11 @@ import org.hl7.fhir.r4.model.ParameterDefinition;
 import org.hl7.fhir.r4.model.ParameterDefinition.ParameterUse;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 
-import com.ibm.cohort.engine.DefaultFhirClientBuilder;
-import com.ibm.cohort.engine.IBMFhirServerConfig;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.measure.RestFhirLibraryResolutionProvider;
 import com.ibm.cohort.engine.measure.RestFhirMeasureResolutionProvider;
+import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
+import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;

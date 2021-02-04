@@ -34,10 +34,10 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ibm.cohort.engine.DefaultFhirClientBuilder;
 import com.ibm.cohort.engine.api.service.model.EvaluateMeasuresStatus;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.api.service.model.MeasuresEvaluation;
+import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.watson.common.service.base.ServiceBaseUtility;
 import com.ibm.watson.common.service.base.security.Tenant;
 import com.ibm.watson.common.service.base.security.TenantManager;
