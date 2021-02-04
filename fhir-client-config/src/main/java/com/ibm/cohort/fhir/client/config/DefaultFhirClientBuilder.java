@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.cohort.engine;
+package com.ibm.cohort.fhir.client.config;
 
 import java.util.Map;
 

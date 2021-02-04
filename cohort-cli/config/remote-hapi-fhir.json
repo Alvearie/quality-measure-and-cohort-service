@@ -1,1 +1,1 @@
-{"@class":"com.ibm.cohort.engine.FhirServerConfig","endpoint":"http://hapi.fhir.org/baseR4"}
+{"@class":"com.ibm.cohort.fhir.client.config.FhirServerConfig","endpoint":"http://hapi.fhir.org/baseR4"}

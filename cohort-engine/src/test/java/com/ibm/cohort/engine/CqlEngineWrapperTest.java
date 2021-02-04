@@ -37,8 +37,9 @@ import org.opencds.cqf.cql.engine.runtime.DateTime;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
-public class CqlEngineWrapperTest extends BaseFhirTest {
+public class CqlEngineWrapperTest extends BasePatientTest {
 
 	@Test
 	public void testPatientIsFemaleTrue() throws Exception {

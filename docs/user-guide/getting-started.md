@@ -104,7 +104,7 @@ Usage: cql-engine [options]
 
 ### FHIR Server Configuration
 
-The Cohort Engine uses FHIR REST APIs to retrieve the information needed to process CQL queries. All FHIR servers are assumed to be R4. The ``-d`` argument to the CohortCLI is a file path pointing to a configuration file in JSON format that provides the details for connecting to the FHIR server that contains the resources that will be queried. There are two sample configuration files provided in the ``config`` folder. The ``config/remote-hapi-fhir.json`` example shows the most basic configuration which is simply the base URL of the target FHIR server. The ``config/local-ibm-fhir.json`` configuration shows a more advanced setup that uses basic authentication to connect to the FHIR server and provides a value for the IBM FHIR server tenant ID header which is used to specify which tenant in a multi-tenant environment will be used at runtime. These use the com.ibm.cohort.engine.FhirServerConfig and com.ibm.cohort.engine.IBMFhirServerConfig classes, respectively, and the @class property is required to indicate what type of configuration is being specified. Additional configuration is possible for developers that extend FhirServerConfig class and implement their own FhirClientBuilderFactory. A client builder factory can be configured using the com.ibm.cohort.FhirClientBuilderFactory.
+The Cohort Engine uses FHIR REST APIs to retrieve the information needed to process CQL queries. All FHIR servers are assumed to be R4. The ``-d`` argument to the CohortCLI is a file path pointing to a configuration file in JSON format that provides the details for connecting to the FHIR server that contains the resources that will be queried. There are two sample configuration files provided in the ``config`` folder. The ``config/remote-hapi-fhir.json`` example shows the most basic configuration which is simply the base URL of the target FHIR server. The ``config/local-ibm-fhir.json`` configuration shows a more advanced setup that uses basic authentication to connect to the FHIR server and provides a value for the IBM FHIR server tenant ID header which is used to specify which tenant in a multi-tenant environment will be used at runtime. These use the com.ibm.cohort.fhir.client.config.FhirServerConfig and com.ibm.cohort.fhir.client.config.IBMFhirServerConfig classes, respectively, and the @class property is required to indicate what type of configuration is being specified. Additional configuration is possible for developers that extend FhirServerConfig class and implement their own FhirClientBuilderFactory. A client builder factory can be configured using the com.ibm.cohort.FhirClientBuilderFactory.
 
 In a configuration file using the IBMFhirServerConfig class, custom headers will be added to the FHIR REST API calls for the tenantId and datasource name as needed. The header names for these headers are set to the defaults used by the IBM FHIR server if not specified. Users can use the tenantIdHeader and dataSourceIdHeader properties to override the defaults if they've been changed in the target FHIR server's ``fhir-server-config.json`` file. Use ``dataSourceId`` as a property in the file to override the FHIR server datasource name (not shown in the example file). See the [IBM FHIR Server User's Guide](https://ibm.github.io/FHIR/guides/FHIRServerUsersGuide#33-tenant-specific-configuration-properties) for complete details on configuration, headers, and persistence setup.
 
@@ -113,7 +113,7 @@ Only one tenant's data can be queried per execution. There are, however, additio
 #### Example Configuration with All Options
 ```json
 {
-    "@class": "com.ibm.cohort.engine.FhirServerConfig",
+    "@class": "com.ibm.cohort.fhir.client.config.FhirServerConfig",
     "endpoint": "https://localhost:9443/fhir-server/api/v4",
     "user": "fhiruser",
     "password": "change-password",
@@ -498,3 +498,12 @@ Example contents of `path/to/json/parameter/file`:
 }
 ```
 
+## UI Artifact Import
+
+There is a tooling project provided for loading resources exported from the Measure Authoring Tool (zip files) into a target FHIR server. The project is fhir-resource-tooling and it produces a shaded JAR ```fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar``` that provides a simple command line interface for loading the ZIP contents. Configuration of the tool uses the same JSON configuration file as the cohort-engine and measure-evaluator CLI tools described above.
+
+Example invocation...
+
+```
+$> java -jar fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar -m local-fhir-config.json /path/to/measurebundle.zip
+```

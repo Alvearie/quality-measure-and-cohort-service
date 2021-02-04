@@ -12,11 +12,13 @@
 
 	<modules>
 		<module>../build</module>
+		<module>../fhir-client-config</module>
 		<module>../cohort-engine</module>
 		<module>../cohort-cli</module>
 		<module>../cohort-engine-api</module>
 		<module>../cohort-engine-api-web</module>
 		<module>../cohort-util</module>
+		<module>../fhir-resource-tooling</module>
 		<module>../tests</module>
 		<module>../reports</module>
 		<module>../cohort-engine-distribution</module>
@@ -357,7 +359,11 @@
 				<version>1.6</version>
 				<scope>test</scope>
 			</dependency>
-			
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-simple</artifactId>
+				<version>1.7.30</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -381,6 +387,11 @@
 		</testResources>
 		<pluginManagement>
 			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>3.9.1</version>
+				</plugin>
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>flatten-maven-plugin</artifactId>
@@ -632,6 +643,11 @@
 						</dependency>
 					</dependencies>
 				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-shade-plugin</artifactId>
+					<version>3.2.4</version>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 
@@ -828,6 +844,8 @@
 							<sourcepath>${srcjavadocDir}</sourcepath>
 							<show>public</show>
 							<splitindex>true</splitindex>
+							<source>${whBldsdkVer}</source>
+							<detectJavaApiLink>false</detectJavaApiLink>
 						</configuration>
 						<reports>
 							<report>javadoc</report>
@@ -843,6 +861,8 @@
 							<sourcepath>${srcjavadocTestDir}</sourcepath>
 							<show>public</show>
 							<splitindex>true</splitindex>
+							<source>${whBldsdkVer}</source>
+							<detectJavaApiLink>false</detectJavaApiLink>
 						</configuration>
 						<reports>
 							<report>test-javadoc</report>

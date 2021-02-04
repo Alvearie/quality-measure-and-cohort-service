@@ -20,8 +20,8 @@ import org.opencds.cqf.r4.builders.IdentifierBuilder;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.matching.EqualToPattern;
-import com.ibm.cohort.engine.FhirClientBuilder;
-import com.ibm.cohort.engine.FhirClientBuilderFactory;
+import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
+import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 

@@ -23,9 +23,11 @@ import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Period;
 import org.junit.Test;
 
+import com.ibm.cohort.fhir.client.config.FhirServerConfig;
+
 import java.util.Calendar;
 
-public class CqlTemporalTests extends BaseFhirTest {
+public class CqlTemporalTests extends BasePatientTest {
 
 	private final Condition CONDITION_IN = getCondition(2015, 1, 10);
 

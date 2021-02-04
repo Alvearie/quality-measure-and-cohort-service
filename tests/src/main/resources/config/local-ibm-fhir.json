@@ -1,5 +1,5 @@
 {
-    "@class": "com.ibm.cohort.engine.IBMFhirServerConfig",
+    "@class": "com.ibm.cohort.fhir.client.config.IBMFhirServerConfig",
     "endpoint": "https://localhost:9443/fhir-server/api/v4",
     "password": "change-password",
     "tenantId": "test-fvt",

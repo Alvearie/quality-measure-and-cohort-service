@@ -19,10 +19,10 @@ import ca.uhn.fhir.rest.gclient.IQuery;
  * Provide a very basic mechanism for retrieving FHIR Library resources from a
  * FHIR server using FHIR REST APIs.
  * 
- * @todo - Consider loading Library and all related dependencies
+ * TODO - Consider loading Library and all related dependencies
  *       (relatedArtifacts[type="depends-on"]) in a single call and caching the
  *       results. A FHIR search call would look something like
- *       "/Library?identifier=SampleLibrary&_include=Library:depends-on". The
+ *       "/Library?identifier=SampleLibrary&amp;_include=Library:depends-on". The
  *       FHIR server does not support _include:iterate tree walking today, so
  *       that needs to be considered if we go down this route.
  */

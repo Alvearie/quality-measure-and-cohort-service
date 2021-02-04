@@ -23,8 +23,8 @@ import org.junit.Test;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.ibm.cohort.engine.BaseFhirTest;
-import com.ibm.cohort.engine.FhirClientBuilder;
-import com.ibm.cohort.engine.FhirClientBuilderFactory;
+import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
+import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;

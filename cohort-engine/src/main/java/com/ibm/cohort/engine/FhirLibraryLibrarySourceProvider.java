@@ -20,9 +20,8 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 /**
  * Implementation of the MultiFormatLibrarySourceProvider that uses FHIR R4
  * Library resources as its source. Library relatedArtifacts with depends-on
- * relationships are walked recursively and any
- * {@link LibraryFormat$isSupportedMimeType(String)} is added to the source
- * collection.
+ * relationships are walked recursively and any supported MIME type is added
+ * to the source collection.
  */
 public class FhirLibraryLibrarySourceProvider extends MultiFormatLibrarySourceProvider {
 
