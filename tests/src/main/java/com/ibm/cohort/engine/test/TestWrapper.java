@@ -28,8 +28,8 @@ public class TestWrapper {
 	 * @param f 'src/test/resources/cql/basic'
 	 * @param l 'Test'
 	 * @param c '1235008
-	 * @return
-	 * @throws Exception
+	 * @return Output stream
+	 * @throws Exception any exception
 	 */
     public String warm(String d, String t, String f, String l, String c) throws Exception
     {

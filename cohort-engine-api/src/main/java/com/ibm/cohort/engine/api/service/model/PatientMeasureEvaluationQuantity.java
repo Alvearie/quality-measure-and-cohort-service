@@ -15,9 +15,9 @@ public class PatientMeasureEvaluationQuantity {
 
 	private String fillMeIn = null;
 
-	/**
+	/*
 	 * Meaning of the group
-	 **/
+	 */
 	public PatientMeasureEvaluationQuantity fillMeIn(String fillMeIn) {
 		this.fillMeIn = fillMeIn;
 		return this;
@@ -60,7 +60,7 @@ public class PatientMeasureEvaluationQuantity {
 		return sb.toString();
 	}
 
-	/**
+	/*
 	 * Convert the given object to string with each line indented by 4 spaces
 	 * (except the first line).
 	 */

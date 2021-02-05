@@ -19,11 +19,11 @@ public class PatientMeasureEvaluationPopulation {
 	private Integer count = null;
 	private List<String> subjectResults = new ArrayList<String>();
 
-	/**
+	/*
 	 * initial-population | numerator | numerator-exclusion | denominator |
 	 * denominator-exclusion | denominator-exception | measure-population |
 	 * measure-population-exclusion | measure-observation
-	 **/
+	 */
 	public PatientMeasureEvaluationPopulation code(String code) {
 		this.code = code;
 		return this;
@@ -39,9 +39,9 @@ public class PatientMeasureEvaluationPopulation {
 		this.code = code;
 	}
 
-	/**
+	/*
 	 * Size of the population
-	 **/
+	 */
 	public PatientMeasureEvaluationPopulation count(Integer count) {
 		this.count = count;
 		return this;
@@ -57,9 +57,9 @@ public class PatientMeasureEvaluationPopulation {
 		this.count = count;
 	}
 
-	/**
+	/*
 	 * For subject-list reports, the subject id results in this population**
-	 **/
+	 */
 	public PatientMeasureEvaluationPopulation subjectResults(List<String> subjectResults) {
 		this.subjectResults = subjectResults;
 		return this;
@@ -106,7 +106,7 @@ public class PatientMeasureEvaluationPopulation {
 		return sb.toString();
 	}
 
-	/**
+	/*
 	 * Convert the given object to string with each line indented by 4 spaces
 	 * (except the first line).
 	 */

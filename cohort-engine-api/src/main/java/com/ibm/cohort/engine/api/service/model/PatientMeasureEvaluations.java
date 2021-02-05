@@ -20,10 +20,10 @@ public class PatientMeasureEvaluations {
 	private List<String> patientIds = new ArrayList<String>();
 	private List<VersionedMeasures> versionedMeasures = new ArrayList<VersionedMeasures>();
 
-	/**
+	/*
 	 * List of patient identifiers used to designate a specific patient to evaluate
 	 * one or more measures against
-	 **/
+	 */
 	public PatientMeasureEvaluations patientIds(List<String> patientIds) {
 		this.patientIds = patientIds;
 		return this;
@@ -39,8 +39,6 @@ public class PatientMeasureEvaluations {
 		this.patientIds = patientIds;
 	}
 
-	/**
-	 **/
 	public PatientMeasureEvaluations versionedMeasures(List<VersionedMeasures> versionedMeasures) {
 		this.versionedMeasures = versionedMeasures;
 		return this;
@@ -86,7 +84,7 @@ public class PatientMeasureEvaluations {
 		return sb.toString();
 	}
 
-	/**
+	/*
 	 * Convert the given object to string with each line indented by 4 spaces
 	 * (except the first line).
 	 */

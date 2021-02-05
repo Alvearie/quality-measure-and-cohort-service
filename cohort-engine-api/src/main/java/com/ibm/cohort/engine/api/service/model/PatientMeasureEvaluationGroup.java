@@ -20,9 +20,9 @@ public class PatientMeasureEvaluationGroup {
 	private PatientMeasureEvaluationQuantity measureScore = null;
 	private List<PatientMeasureEvaluationGroupStratifier> stratifier = new ArrayList<PatientMeasureEvaluationGroupStratifier>();
 
-	/**
+	/*
 	 * Meaning of the group
-	 **/
+	 */
 	public PatientMeasureEvaluationGroup code(String code) {
 		this.code = code;
 		return this;
@@ -38,8 +38,6 @@ public class PatientMeasureEvaluationGroup {
 		this.code = code;
 	}
 
-	/**
-	 **/
 	public PatientMeasureEvaluationGroup population(PatientMeasureEvaluationPopulation population) {
 		this.population = population;
 		return this;
@@ -55,8 +53,6 @@ public class PatientMeasureEvaluationGroup {
 		this.population = population;
 	}
 
-	/**
-	 **/
 	public PatientMeasureEvaluationGroup measureScore(PatientMeasureEvaluationQuantity measureScore) {
 		this.measureScore = measureScore;
 		return this;
@@ -72,8 +68,6 @@ public class PatientMeasureEvaluationGroup {
 		this.measureScore = measureScore;
 	}
 
-	/**
-	 **/
 	public PatientMeasureEvaluationGroup stratifier(List<PatientMeasureEvaluationGroupStratifier> stratifier) {
 		this.stratifier = stratifier;
 		return this;
@@ -122,7 +116,7 @@ public class PatientMeasureEvaluationGroup {
 		return sb.toString();
 	}
 
-	/**
+	/*
 	 * Convert the given object to string with each line indented by 4 spaces
 	 * (except the first line).
 	 */

@@ -16,9 +16,9 @@ public class PatientMeasureEvaluationPeriod {
 	private java.util.Date start = null;
 	private java.util.Date end = null;
 
-	/**
+	/*
 	 * Starting time with inclusive boundary
-	 **/
+	 */
 	public PatientMeasureEvaluationPeriod start(java.util.Date start) {
 		this.start = start;
 		return this;
@@ -34,9 +34,9 @@ public class PatientMeasureEvaluationPeriod {
 		this.start = start;
 	}
 
-	/**
+	/*
 	 * End time with inclusive boundary, if not ongoing
-	 **/
+	 */
 	public PatientMeasureEvaluationPeriod end(java.util.Date end) {
 		this.end = end;
 		return this;
@@ -81,7 +81,7 @@ public class PatientMeasureEvaluationPeriod {
 		return sb.toString();
 	}
 
-	/**
+	/*
 	 * Convert the given object to string with each line indented by 4 spaces
 	 * (except the first line).
 	 */
