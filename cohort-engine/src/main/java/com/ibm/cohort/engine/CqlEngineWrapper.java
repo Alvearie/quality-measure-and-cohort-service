@@ -179,11 +179,11 @@ public class CqlEngineWrapper {
 	 *                       specified <code>expressions</code> will be executed. At
 	 *                       least one value is required.
 	 * @param callback       callback function to be evaluated once per context per
-	 *                       executed define (required).
+	 *                       executed define (required).             
 	 */
 	protected void evaluateExpressionByExpression(final String libraryName, final String libraryVersion,
 			final Map<String, Object> parameters, final Set<String> expressions, final List<String> contextIds,
-			final EvaluationResultCallback callback) throws Exception {
+			final EvaluationResultCallback callback) {
 		if (this.libraryLoader == null || this.dataServerClient == null || this.terminologyServerClient == null
 				|| this.measureServerClient == null) {
 			throw new IllegalArgumentException(
@@ -289,23 +289,22 @@ public class CqlEngineWrapper {
 	 * Helper method for turning the list of supported models into a Map of
 	 * DataProviders to be used when registering with the CQLEngine.
 	 * 
+	 * @param supportedModels List of data models that are supported (i.e. base FHIR, QICore, etc)
 	 * @param dataProvider DataProvider that will be used in support of the
 	 *                     SUPPORTED_MODELS
 	 * @return Map of model url to the <code>dataProvider</code>
 	 */
 	protected Map<String, DataProvider> mapSupportedModelsToDataProvider(List<String> supportedModels,
 			DataProvider dataProvider) {
-		Map<String, DataProvider> dataProviders = supportedModels.stream()
+		return supportedModels.stream()
 				.map(url -> new SimpleEntry<String, DataProvider>(url, dataProvider))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-		return dataProviders;
 	}
 
 	/**
 	 * Initialize the terminology provider for the CQL Engine
 	 * 
 	 * @return terminology provider
-	 * @return
 	 */
 	protected TerminologyProvider getTerminologyProvider() {
 		return new R4FhirTerminologyProvider(this.terminologyServerClient);
@@ -331,7 +330,7 @@ public class CqlEngineWrapper {
 	 *                       executed define
 	 */
 	protected void evaluateWithEngineWrapper(String libraryName, String libraryVersion, Map<String, Object> parameters,
-			Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback) throws Exception {
+			Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback) {
 		if (this.libraryLoader == null || this.dataServerClient == null || this.terminologyServerClient == null
 				|| this.measureServerClient == null) {
 			throw new IllegalArgumentException(
@@ -386,10 +385,9 @@ public class CqlEngineWrapper {
 	 *                       specified <code>expressions</code> will be executed. At
 	 *                       least one value is required.
 	 * @param callback       callback function for receiving engine execution events
-	 * @throws Exception	 any error
 	 */
 	public void evaluate(String libraryName, String libraryVersion, Map<String, Object> parameters,
-			Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback) throws Exception {
+			Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback) {
 		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters, expressions, contextIds, callback);
 	}
 
@@ -411,10 +409,9 @@ public class CqlEngineWrapper {
 	 *                       least one value is required.
 	 * @param callback       callback function to be evaluated once per context per
 	 *                       executed define
-	 * @throws Exception	 any error
 	 */
 	public void evaluate(String libraryName, String libraryVersion, Map<String, Object> parameters,
-			Set<String> expressions, List<String> contextIds, ExpressionResultCallback callback) throws Exception {
+			Set<String> expressions, List<String> contextIds, ExpressionResultCallback callback) {
 		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters, expressions, contextIds,
 				new ProxyingEvaluationResultCallback(callback));
 	}

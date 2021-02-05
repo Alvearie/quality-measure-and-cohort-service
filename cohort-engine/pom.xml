@@ -154,6 +154,13 @@
                         <additionalOption>-Xdoclint:none</additionalOption>
                     </additionalOptions>
                 </configuration>
+                <executions>
+					<execution>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
             </plugin>			
 		</plugins>
 	</build>
