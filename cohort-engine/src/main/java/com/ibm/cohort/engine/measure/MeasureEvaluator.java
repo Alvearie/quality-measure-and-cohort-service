@@ -130,7 +130,7 @@ public class MeasureEvaluator {
 	public List<MeasureReport> evaluatePatientMeasures(String patientId, List<MeasureContext> measureContexts) {
 		return evaluatePatientMeasures(patientId, measureContexts, new MeasureEvidenceOptions());
 	}
-
+	
 	public MeasureReport evaluatePatientMeasure(MeasureContext context, String patientId, MeasureEvidenceOptions evidenceOptions) {
 		MeasureReport measureReport = null;
 
@@ -149,8 +149,7 @@ public class MeasureEvaluator {
 	}
 	
 	public MeasureReport evaluatePatientMeasure(String measureId, String patientId, Map<String, Object> parameters) {
-		Measure measure = MeasureHelper.loadMeasure(measureId, getMeasureResolutionProvider());
-		return evaluatePatientMeasure(measure, patientId, parameters, new MeasureEvidenceOptions());
+		return evaluatePatientMeasure(measureId, patientId, parameters, new MeasureEvidenceOptions());
 	}
 
 	public MeasureReport evaluatePatientMeasure(Identifier identifier, String version, String patientId, Map<String, Object> parameters, MeasureEvidenceOptions evidenceOptions) {
