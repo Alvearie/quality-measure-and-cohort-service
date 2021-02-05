@@ -16,9 +16,9 @@ public class PatientMeasureEvaluationGroupStratifierStratumComponent {
 	private String code = null;
 	private String value = null;
 
-	/**
+	/*
 	 * What stratifier component of the group
-	 **/
+	 */
 	public PatientMeasureEvaluationGroupStratifierStratumComponent code(String code) {
 		this.code = code;
 		return this;
@@ -34,9 +34,9 @@ public class PatientMeasureEvaluationGroupStratifierStratumComponent {
 		this.code = code;
 	}
 
-	/**
+	/*
 	 * The stratum component value, e.g. male
-	 **/
+	 */
 	public PatientMeasureEvaluationGroupStratifierStratumComponent value(String value) {
 		this.value = value;
 		return this;
@@ -81,7 +81,7 @@ public class PatientMeasureEvaluationGroupStratifierStratumComponent {
 		return sb.toString();
 	}
 
-	/**
+	/*
 	 * Convert the given object to string with each line indented by 4 spaces
 	 * (except the first line).
 	 */

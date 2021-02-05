@@ -27,9 +27,9 @@ public class MeasuresEvaluation {
 	private Integer resultsValidTil = 120;
 	private List<PatientMeasureEvaluations> measureEvaluations = new ArrayList<PatientMeasureEvaluations>();
 
-	/**
+	/*
 	 * Tenant identifier for the tenant these patients are associated with
-	 **/
+	 */
 	public MeasuresEvaluation patientsTenantId(String patientsTenantId) {
 		this.patientsTenantId = patientsTenantId;
 		return this;
@@ -45,9 +45,9 @@ public class MeasuresEvaluation {
 		this.patientsTenantId = patientsTenantId;
 	}
 
-	/**
+	/*
 	 * URL specifying the server used to store the patients
-	 **/
+	 */
 	public MeasuresEvaluation patientsServerUrl(String patientsServerUrl) {
 		this.patientsServerUrl = patientsServerUrl;
 		return this;
@@ -63,9 +63,9 @@ public class MeasuresEvaluation {
 		this.patientsServerUrl = patientsServerUrl;
 	}
 
-	/**
+	/*
 	 * A list of connection property strings to be used for the measure server
-	 **/
+	 */
 	public MeasuresEvaluation patientServerConnectionProperties(List<String> patientServerConnectionProperties) {
 		this.patientServerConnectionProperties = patientServerConnectionProperties;
 		return this;
@@ -81,9 +81,9 @@ public class MeasuresEvaluation {
 		this.patientServerConnectionProperties = patientServerConnectionProperties;
 	}
 
-	/**
+	/*
 	 * Tenant identifier for the tenant this measure is associated with
-	 **/
+	 */
 	public MeasuresEvaluation measureTenantId(String measureTenantId) {
 		this.measureTenantId = measureTenantId;
 		return this;
@@ -100,9 +100,9 @@ public class MeasuresEvaluation {
 		this.measureTenantId = measureTenantId;
 	}
 
-	/**
+	/*
 	 * URL specifying the server used to store the measure
-	 **/
+	 */
 	public MeasuresEvaluation measureServerUrl(String measureServerUrl) {
 		this.measureServerUrl = measureServerUrl;
 		return this;
@@ -119,9 +119,9 @@ public class MeasuresEvaluation {
 		this.measureServerUrl = measureServerUrl;
 	}
 
-	/**
+	/*
 	 * A list of connection property strings to be used for the measure server
-	 **/
+	 */
 	public MeasuresEvaluation measureServerConnectionProperties(List<String> measureServerConnectionProperties) {
 		this.measureServerConnectionProperties = measureServerConnectionProperties;
 		return this;
@@ -137,9 +137,9 @@ public class MeasuresEvaluation {
 		this.measureServerConnectionProperties = measureServerConnectionProperties;
 	}
 
-	/**
+	/*
 	 * Number of minutes the job results will be available after the job completes
-	 **/
+	 */
 	public MeasuresEvaluation resultsValidTil(Integer resultsValidTil) {
 		this.resultsValidTil = resultsValidTil;
 		return this;
@@ -155,8 +155,6 @@ public class MeasuresEvaluation {
 		this.resultsValidTil = resultsValidTil;
 	}
 
-	/**
-	 **/
 	public MeasuresEvaluation measureEvaluations(List<PatientMeasureEvaluations> measureEvaluations) {
 		this.measureEvaluations = measureEvaluations;
 		return this;
@@ -219,7 +217,7 @@ public class MeasuresEvaluation {
 		return sb.toString();
 	}
 
-	/**
+	/*
 	 * Convert the given object to string with each line indented by 4 spaces
 	 * (except the first line).
 	 */

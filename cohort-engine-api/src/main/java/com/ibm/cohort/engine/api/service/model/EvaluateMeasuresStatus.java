@@ -26,9 +26,9 @@ public class EvaluateMeasuresStatus {
 	private String jobProgress = null;
 	private String jobStatus = null;
 
-	/**
+	/*
 	 * Measure evaluation job identifier
-	 **/
+	 */
 	public EvaluateMeasuresStatus jobId(String jobId) {
 		this.jobId = jobId;
 		return this;
@@ -44,9 +44,9 @@ public class EvaluateMeasuresStatus {
 		this.jobId = jobId;
 	}
 
-	/**
+	/*
 	 * The time the measure evaluation job was started
-	 **/
+	 */
 	public EvaluateMeasuresStatus jobStartTime(java.util.Date jobStartTime) {
 		this.jobStartTime = jobStartTime;
 		return this;
@@ -62,9 +62,9 @@ public class EvaluateMeasuresStatus {
 		this.jobStartTime = jobStartTime;
 	}
 
-	/**
+	/*
 	 * The time the measure evaluation job finished
-	 **/
+	 */
 	public EvaluateMeasuresStatus jobFinishTime(java.util.Date jobFinishTime) {
 		this.jobFinishTime = jobFinishTime;
 		return this;
@@ -80,9 +80,9 @@ public class EvaluateMeasuresStatus {
 		this.jobFinishTime = jobFinishTime;
 	}
 
-	/**
+	/*
 	 * Percentage of the measure evaluation job that is completed
-	 **/
+	 */
 	public EvaluateMeasuresStatus jobProgress(String jobProgress) {
 		this.jobProgress = jobProgress;
 		return this;
@@ -98,9 +98,9 @@ public class EvaluateMeasuresStatus {
 		this.jobProgress = jobProgress;
 	}
 
-	/**
+	/*
 	 * Status of the measure evaluation job (eg. running, completed, error etc.)
-	 **/
+	 */
 	public EvaluateMeasuresStatus jobStatus(String jobStatus) {
 		this.jobStatus = jobStatus;
 		return this;
@@ -151,7 +151,7 @@ public class EvaluateMeasuresStatus {
 		return sb.toString();
 	}
 
-	/**
+	/*
 	 * Convert the given object to string with each line indented by 4 spaces
 	 * (except the first line).
 	 */

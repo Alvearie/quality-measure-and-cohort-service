@@ -23,9 +23,9 @@ public class VersionedMeasures {
 	private List<String> measureProperties = new ArrayList<String>();
 	private Boolean persistResults = false;
 
-	/**
+	/*
 	 * Measure identifier used to designate a specific measure to evaluate
-	 **/
+	 */
 	public VersionedMeasures measureId(String measureId) {
 		this.measureId = measureId;
 		return this;
@@ -42,10 +42,10 @@ public class VersionedMeasures {
 		this.measureId = measureId;
 	}
 
-	/**
+	/*
 	 * The version of the measure to evaluate. If none is provided, the latest
 	 * version of the measure is used.
-	 **/
+	 */
 	public VersionedMeasures measureVersion(String measureVersion) {
 		this.measureVersion = measureVersion;
 		return this;
@@ -61,9 +61,9 @@ public class VersionedMeasures {
 		this.measureVersion = measureVersion;
 	}
 
-	/**
+	/*
 	 * A list of parameter strings to be passed to the measure
-	 **/
+	 */
 	public VersionedMeasures measureParameters(List<String> measureParameters) {
 		this.measureParameters = measureParameters;
 		return this;
@@ -79,9 +79,9 @@ public class VersionedMeasures {
 		this.measureParameters = measureParameters;
 	}
 
-	/**
+	/*
 	 * A list of property strings to be passed to the measure
-	 **/
+	 */
 	public VersionedMeasures measureProperties(List<String> measureProperties) {
 		this.measureProperties = measureProperties;
 		return this;
@@ -97,9 +97,9 @@ public class VersionedMeasures {
 		this.measureProperties = measureProperties;
 	}
 
-	/**
+	/*
 	 * If true, results will be persisted in the datastore
-	 **/
+	 */
 	public VersionedMeasures persistResults(Boolean persistResults) {
 		this.persistResults = persistResults;
 		return this;
@@ -150,7 +150,7 @@ public class VersionedMeasures {
 		return sb.toString();
 	}
 
-	/**
+	/*
 	 * Convert the given object to string with each line indented by 4 spaces
 	 * (except the first line).
 	 */

@@ -29,9 +29,9 @@ public class EvaluateMeasureResults {
 	private List<PatientMeasureEvaluationGroup> group = new ArrayList<PatientMeasureEvaluationGroup>();
 	private List<String> evaluatedResource = new ArrayList<String>();
 
-	/**
+	/*
 	 * Tenant the measure was evaluated for
-	 **/
+	 */
 	public EvaluateMeasureResults tenant(String tenant) {
 		this.tenant = tenant;
 		return this;
@@ -47,9 +47,9 @@ public class EvaluateMeasureResults {
 		this.tenant = tenant;
 	}
 
-	/**
+	/*
 	 * Additional identifier for the MeasureReport
-	 **/
+	 */
 	public EvaluateMeasureResults identifier(String identifier) {
 		this.identifier = identifier;
 		return this;
@@ -65,9 +65,9 @@ public class EvaluateMeasureResults {
 		this.identifier = identifier;
 	}
 
-	/**
+	/*
 	 * complete | pending | error
-	 **/
+	 */
 	public EvaluateMeasureResults status(String status) {
 		this.status = status;
 		return this;
@@ -83,9 +83,9 @@ public class EvaluateMeasureResults {
 		this.status = status;
 	}
 
-	/**
+	/*
 	 * individual | subject-list | summary | data-collection
-	 **/
+	 */
 	public EvaluateMeasureResults type(String type) {
 		this.type = type;
 		return this;
@@ -101,9 +101,9 @@ public class EvaluateMeasureResults {
 		this.type = type;
 	}
 
-	/**
+	/*
 	 * What measure was calculated (measureId)
-	 **/
+	 */
 	public EvaluateMeasureResults measure(String measure) {
 		this.measure = measure;
 		return this;
@@ -119,10 +119,10 @@ public class EvaluateMeasureResults {
 		this.measure = measure;
 	}
 
-	/**
+	/*
 	 * What individual(s) the report is for (subjectId) (Patient | Practitioner |
 	 * PractitionerRole | Location | Device | RelatedPerson | Group
-	 **/
+	 */
 	public EvaluateMeasureResults subject(List<String> subject) {
 		this.subject = subject;
 		return this;
@@ -138,9 +138,9 @@ public class EvaluateMeasureResults {
 		this.subject = subject;
 	}
 
-	/**
+	/*
 	 * When the report was generated
-	 **/
+	 */
 	public EvaluateMeasureResults date(java.util.Date date) {
 		this.date = date;
 		return this;
@@ -156,9 +156,9 @@ public class EvaluateMeasureResults {
 		this.date = date;
 	}
 
-	/**
+	/*
 	 * Who is reporting the data
-	 **/
+	 */
 	public EvaluateMeasureResults reporter(String reporter) {
 		this.reporter = reporter;
 		return this;
@@ -174,8 +174,6 @@ public class EvaluateMeasureResults {
 		this.reporter = reporter;
 	}
 
-	/**
-	 **/
 	public EvaluateMeasureResults period(PatientMeasureEvaluationPeriod period) {
 		this.period = period;
 		return this;
@@ -191,9 +189,9 @@ public class EvaluateMeasureResults {
 		this.period = period;
 	}
 
-	/**
+	/*
 	 * increase | decrease
-	 **/
+	 */
 	public EvaluateMeasureResults improvementNotation(String improvementNotation) {
 		this.improvementNotation = improvementNotation;
 		return this;
@@ -209,8 +207,6 @@ public class EvaluateMeasureResults {
 		this.improvementNotation = improvementNotation;
 	}
 
-	/**
-	 **/
 	public EvaluateMeasureResults group(List<PatientMeasureEvaluationGroup> group) {
 		this.group = group;
 		return this;
@@ -226,8 +222,6 @@ public class EvaluateMeasureResults {
 		this.group = group;
 	}
 
-	/**
-	 **/
 	public EvaluateMeasureResults evaluatedResource(List<String> evaluatedResource) {
 		this.evaluatedResource = evaluatedResource;
 		return this;
@@ -293,7 +287,7 @@ public class EvaluateMeasureResults {
 		return sb.toString();
 	}
 
-	/**
+	/*
 	 * Convert the given object to string with each line indented by 4 spaces
 	 * (except the first line).
 	 */
