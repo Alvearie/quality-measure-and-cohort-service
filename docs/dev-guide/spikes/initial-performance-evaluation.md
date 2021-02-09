@@ -14,7 +14,9 @@ Measure engine runtime <br/> _leveraging the `Taurus` framework_
 - `2` _Shared vCores`
 - `8 GB` _RAM_
 
-### `localhost` <-> `IBM Cloud`
+### Performance
+
+#### `localhost` <-> `IBM Cloud`
 using `k8s` _port forwarding_
 
 | # of Measures | # of Patients | Total Time (sec) | Seconds/Execution |
@@ -24,7 +26,7 @@ using `k8s` _port forwarding_
 |             1 |         1,000 |            1,680 |              1.68 |
 |            10 |             1 |            12.99 |              1.30 |
 
-### intra-`IBM Cloud`
+#### intra-`IBM Cloud`
 
 | # of Measures | # of Patients | Total Time (sec) | Seconds/Execution |
 | ------------: | ------------: | ---------------: | ----------------: |
