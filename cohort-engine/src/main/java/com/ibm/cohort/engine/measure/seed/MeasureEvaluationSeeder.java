@@ -20,9 +20,9 @@ import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 import org.opencds.cqf.cql.engine.runtime.DateTime;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
-import org.opencds.cqf.r4.helpers.LibraryHelper;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.ibm.cohort.engine.measure.LibraryHelper;
 
 public class MeasureEvaluationSeeder {
 
@@ -68,13 +68,12 @@ public class MeasureEvaluationSeeder {
 
 
 	public IMeasureEvaluationSeed create(Measure measure, String periodStart, String periodEnd, String productLine) {
-		LibraryHelper.loadLibraries(measure, this.libraryLoader, this.libraryResourceProvider);
+		List<org.cqframework.cql.elm.execution.Library> libraries = LibraryHelper.loadLibraries(measure, this.libraryLoader, this.libraryResourceProvider);
 
-		// resolve primary library
-		org.cqframework.cql.elm.execution.Library library =
-                LibraryHelper.resolvePrimaryLibrary(measure, libraryLoader, this.libraryResourceProvider);
-
-		List<Triple<String, String, String>> usingDefs = UsingHelper.getUsingUrlAndVersion(library.getUsings());
+		// the "primary" library is always the first library loaded for the measure
+		org.cqframework.cql.elm.execution.Library primaryLibrary = libraries.get(0);
+		
+		List<Triple<String, String, String>> usingDefs = UsingHelper.getUsingUrlAndVersion(primaryLibrary.getUsings());
 
 		if (usingDefs.size() > 1) {
 			throw new IllegalArgumentException("Evaluation of Measure using multiple Models is not supported at this time.");
@@ -84,7 +83,7 @@ public class MeasureEvaluationSeeder {
 		TerminologyProvider terminologyProvider = createTerminologyProvider(usingDefs);
 		Map<Triple<String, String, String>, DataProvider> dataProviders = createDataProviders(usingDefs, terminologyProvider);
 		Interval measurementPeriod = createMeasurePeriod(periodStart, periodEnd);
-		Context context = createContext(library, dataProviders, terminologyProvider, measurementPeriod, productLine);
+		Context context = createContext(primaryLibrary, dataProviders, terminologyProvider, measurementPeriod, productLine);
 
 		List<Map.Entry<Triple<String, String, String>, DataProvider>> dataProviderList = new ArrayList<>(dataProviders.entrySet());
 		DataProvider lastDataProvider = dataProviderList.get(dataProviderList.size() - 1).getValue();
