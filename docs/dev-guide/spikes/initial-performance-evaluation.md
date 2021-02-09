@@ -1,6 +1,19 @@
 ## Initial Performance Evaluation
 Measure engine runtime <br/> _leveraging the `Taurus` framework_
 
+### Environment Information
+
+#### `FHIR` Server
+- `1` _node_
+- `4` _CPU_ 
+- `16 GB` _RAM_ 
+- `4 GB` _Java heap_
+
+#### `DB2` Server
+- `20 GB` _Disk_
+- `2` _Shared vCores`
+- `8 GB` _RAM_
+
 ### `localhost` <-> `IBM Cloud`
 using `k8s` _port forwarding_
 
