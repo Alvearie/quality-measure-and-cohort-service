@@ -47,10 +47,12 @@ public class ServiceErrorList   {
 		trace = ServiceBaseUtility.getCorrelationId();
 	}
 	
+
   /**
-   * Errors
-   **/
-  public ServiceErrorList errors(List<ServiceError> errors) {
+ * @param errors A list of input errors
+ * @return
+ */
+public ServiceErrorList errors(List<ServiceError> errors) {
     this.errors = errors;
     return this;
   }
@@ -67,9 +69,10 @@ public class ServiceErrorList   {
   }
 
   /**
-   * error message correlation identifier
-   **/
-  public ServiceErrorList trace(String trace) {
+ * @param trace error message correlation identifier
+ * @return
+ */
+public ServiceErrorList trace(String trace) {
     this.trace = trace;
     return this;
   }
@@ -85,9 +88,10 @@ public class ServiceErrorList   {
   }
 
   /**
-   * respone code
-   **/
-  public ServiceErrorList statusCode(Integer statusCode) {
+ * @param statusCode response code
+ * @return
+ */
+public ServiceErrorList statusCode(Integer statusCode) {
     this.statusCode = statusCode;
     return this;
   }

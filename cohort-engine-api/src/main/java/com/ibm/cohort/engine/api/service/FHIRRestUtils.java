@@ -36,14 +36,14 @@ public class FHIRRestUtils {
 
 	
 	/**
-	 * @param fhirEndpoint
-	 * @param userName
-	 * @param password
-	 * @param fhirTenantIdHeader
-	 * @param fhirTenantId
-	 * @param fhirDataSourceIdHeader
-	 * @param fhirDataSourceId
-	 * @return IGenericClient
+	 * @param fhirEndpoint The REST endpoint for the FHIR server
+	 * @param userName FHIR server username
+	 * @param password FHIR server password
+	 * @param fhirTenantIdHeader the header used by FHIR to identify the tenant
+	 * @param fhirTenantId the actual FHIR tenant id
+	 * @param fhirDataSourceIdHeader The header used by FHIR to identify the datasource
+	 * @param fhirDataSourceId the actual FHIR datasource name
+	 * @return IGenericClient A client that cna be used to make calls to the FHIR server
 	 * 
 	 * Convenience method to get a FHIR client
 	 */
@@ -74,10 +74,10 @@ public class FHIRRestUtils {
 	}
 	
 	/**
-	 * @param measureClient
-	 * @param identifier
-	 * @param measureVersion
-	 * @return List<MeasureParameterInfo>
+	 * @param measureClient A client that cna be used to make calls to the FHIR server
+	 * @param identifier Identifier object which describes the measure
+	 * @param measureVersion The version of the measure we want to retrieve
+	 * @return A list containing parameter info for all the parameters 
 	 * 
 	 * Get a list of MeasureParameterInfo objects which are used to return results via the REST API.
 	 * Objects describe the parameters for libraries linked to by the Measure resource
@@ -92,9 +92,9 @@ public class FHIRRestUtils {
 	}
 	
 	/**
-	 * @param measureClient
-	 * @param measureId
-	 * @return List<MeasureParameterInfo>
+	 * @param measureClient A client that cna be used to make calls to the FHIR server
+	 * @param measureId THe FHIR resource id used to identify the measure
+	 * @return A list containing parameter info for all the parameters
 	 * 
 	 * Get a list of MeasureParameterInfo objects which are used to return results via the REST API.
 	 * Objects describe the parameters for libraries linked to by the FHIR Measure resource id
@@ -107,9 +107,9 @@ public class FHIRRestUtils {
 	}
 	
 	/**
-	 * @param measureClient
-	 * @param measure
-	 * @return List<MeasureParameterInfo>
+	 * @param measureClient A client that cna be used to make calls to the FHIR server
+	 * @param measure A measure resource object we want to get the parameters for
+	 * @return A list containing parameter info for all the parameters
 	 * 
 	 * Get a list of MeasureParameterInfo objects which are used to return results via the REST API.
 	 * Objects describe the parameters for libraries linked to by the given FHIR Measure object
@@ -162,9 +162,9 @@ public class FHIRRestUtils {
 	}
 	
 	/**
-	 * @param httpHeaders
+	 * @param httpHeaders The HttpHeaders from the request we want to parse
 	 * @return String[] containing username as first element and password as second
-	 * @throws IllegalArgumentException
+	 * @throws IllegalArgumentException thrown if the information in the headers is bad
 	 */
 	public static String[] parseAuthenticationHeaderInfo(HttpHeaders httpHeaders) throws IllegalArgumentException {
 		List<String> headers = httpHeaders.getRequestHeader(HttpHeaders.AUTHORIZATION);
