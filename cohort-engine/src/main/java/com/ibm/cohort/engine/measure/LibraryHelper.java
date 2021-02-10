@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
-import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Measure;
@@ -196,7 +195,7 @@ public class LibraryHelper {
         if (!library.hasType()) {
             // If no type is specified, assume it is a logic library based on whether there is a CQL content element.
             if (library.hasContent()) {
-                for (Attachment a : library.getContent()) {
+                for (org.hl7.fhir.r4.model.Attachment a : library.getContent()) {
                     if (a.hasContentType() && (a.getContentType().equals("text/cql")
                             || a.getContentType().equals("application/elm+xml")
                             || a.getContentType().equals("application/elm+json"))) {
