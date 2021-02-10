@@ -14,4 +14,9 @@
 
 -Xmx2G
 
+-Dcom.ibm.jsse2.overrideDefaultTLS=true
+-Djavax.net.ssl.trustStore=LIBERTY_TRUST_STORE_LOC_TOKEN/cohortCDTTrust.p12
+-Djavax.net.ssl.trustStorePassword=ENCODED_PWD_TOKEN
+-Djavax.net.ssl.trustStoreType=PKCS12
+
 -Denabled.dark.features=none

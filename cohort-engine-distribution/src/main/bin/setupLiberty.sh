@@ -2,6 +2,7 @@ LIBERTY_INSTALL_ROOT=/opt/ibm
 LIBERTY_SERVER_LOC=/wlp/usr/servers
 #LIBERTY_SERVER_NAME=cohortServer
 SERVER_XML_FILE=/config/server.xml
+JVM_OPTIONS_FILE=/config/jvm.options
 LIBERTY_TRUST_STORE_LOC=${LIBERTY_INSTALL_ROOT}/wlp/output/$LIBERTY_SERVER_NAME/resources/security
 K8S_CERT_BUNDLE_LOC=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 
@@ -48,6 +49,7 @@ LIBERTY_STORE_ENCODED_PWD=
 encodePasswordForLiberty $LIBERTY_INSTALL_ROOT $LIBERTY_STORE_PWD LIBERTY_STORE_ENCODED_PWD
 #export ENCODED_PWD_TOKEN=$LIBERTY_STORE_ENCODED_PWD
 replaceToken $SERVER_XML_FILE ENCODED_PWD_TOKEN $LIBERTY_STORE_ENCODED_PWD
+replaceToken $JVM_OPTIONS_FILE LIBERTY_TRUST_STORE_LOC_TOKEN $LIBERTY_TRUST_STORE_LOC
 
 # create keystore using K8s CA signed certificate and key in mounted secret
 # a comOpps ticket is needed to create this cert. It is mounted as a volume in the deployment yaml.
