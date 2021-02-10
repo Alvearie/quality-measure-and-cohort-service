@@ -6,6 +6,7 @@
 
   - Spikes
     - [cql_engine audit](dev-guide/spikes/cql-engine-audit.md)
+    - [inital performance evaluation](dev-guide/spikes/initial-performance-evaluation.md)
 
 - Index
 
