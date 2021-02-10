@@ -66,7 +66,7 @@ LABEL maintainer="IBM Quality Measure and Cohort Service Team" \
       description="Quality Measure and Cohort Service available via REST API"
 
 ENV WLP_HOME=/opt/ibm/wlp \
-    SERVER_NAME=myServer \
+    SERVER_NAME=cohortServer \
     ALVEARIE_HOME=/opt/alvearie \
     COHORT_DIST_SOLUTION=/app/cohortSolutionDistribution \
     COHORT_TEST_SOLUTION=/app/cohortTestDistribution \
@@ -129,4 +129,4 @@ USER whuser
 # Expose the servers HTTP and HTTPS ports.  NOTE:  must match with hardcoded testcase stage scripts, Helm charts (values.yaml), server.xml
 EXPOSE 9080 9443
 
-ENTRYPOINT $WLP_HOME/bin/runServer.sh
+ENTRYPOINT $WLP_HOME/bin/entrypoint.sh

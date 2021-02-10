@@ -2,7 +2,8 @@
 <!-- (C) Copyright IBM Corp. 2021, 2021 -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- ************************************** -->
-<server description="cohort-server">
+<!-- must match SERVER_NAME value in Dockerfile -->
+<server description="cohortServer">
 
 	<!-- Enable features -->
 
@@ -27,7 +28,10 @@
 
 
 	<ssl id="defaultSSLConfig" sslProtocol="TLSv1.2" />
-	<keyStore id="defaultKeyStore" password="abc123" />
+	
+	<!-- ENCODED_PWD_TOKEN set in postDeploy.sh -->
+	<keyStore id="defaultKeyStore" password="ENCODED_PWD_TOKEN" />
+	<keyStore id="defaultTrustStore" location="${server.output.dir}/resources/security/cohortCDTTrust.p12" type="PKCS12" password="ENCODED_PWD_TOKEN"/>
 
 	<!-- To access this server from a remote client add a host attribute to 
 		the following element, e.g. host="*" -->

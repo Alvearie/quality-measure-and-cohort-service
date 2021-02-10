@@ -31,3 +31,5 @@ service:
   ports:
     - 9080
     - 9443
+
+internalTlsCertSecretName: k8s-tls-secret
