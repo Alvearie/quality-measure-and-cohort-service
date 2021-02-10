@@ -51,6 +51,8 @@ import ca.uhn.fhir.parser.IParser;
 
 public class BaseFhirTest {
 
+	public static String DEFAULT_RESOURCE_VERSION = "1.0.0";
+	
 	static int HTTP_PORT = 0;
 	static String IBM_PREFIX = "http://ibm.com/fhir/measure";
 
