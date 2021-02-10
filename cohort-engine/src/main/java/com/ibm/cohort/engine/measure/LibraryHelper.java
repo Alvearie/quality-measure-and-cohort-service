@@ -11,7 +11,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
+import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.CanonicalType;
+import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.RelatedArtifact;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
@@ -23,6 +25,9 @@ import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
  * Helper functions for working with FHIR Library resources
  */
 public class LibraryHelper {
+
+	public static final String CODE_LOGIC_LIBRARY = "logic-library";
+	public static final String CODE_SYSTEM_LIBRARY_TYPE = "http://terminology.hl7.org/CodeSystem/library-type";
 
 	/**
 	 * Create a LibraryLoader using the provided LibraryResolutionProvider.
@@ -166,10 +171,53 @@ public class LibraryHelper {
 			library = libraryResourceProvider.resolveLibraryByCanonicalUrl(resource);
 		}
 
-		// TODO: The cqf-ruler code checks at this point whether or not the library
-		// looks ok by checking for 1) the type field set to "logic-library" or 2) no
-		// type, but a valid CQL/ELM attachment. Is that necessary?
-
-		return library;
+		if( isLogicLibrary(library) ) {
+			return library;
+		} else { 
+			return null;
+		}
 	}
+	
+	/**
+	 * Perform basic checks to verify that the loaded Library contains CQL/ELM logic that 
+	 * can be evaluated by the runtime engine. This logic is cribbed from the cqf-ruler
+	 * LibraryHelper implementation. It is specificaly useful for Library content related
+	 * to the measure, such as the FHIR modelinfo file, that is not directly part of the 
+	 * CQL logic.
+	 * 
+	 * @param library
+	 * @return true if the Library resource contains executable CQL logic or false otherwise
+	 */
+	public static boolean isLogicLibrary(org.hl7.fhir.r4.model.Library library) {
+        if (library == null) {
+            return false;
+        }
+
+        if (!library.hasType()) {
+            // If no type is specified, assume it is a logic library based on whether there is a CQL content element.
+            if (library.hasContent()) {
+                for (Attachment a : library.getContent()) {
+                    if (a.hasContentType() && (a.getContentType().equals("text/cql")
+                            || a.getContentType().equals("application/elm+xml")
+                            || a.getContentType().equals("application/elm+json"))) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        if (!library.getType().hasCoding()) {
+            return false;
+        }
+
+        for (Coding c : library.getType().getCoding()) {
+            if (c.hasSystem() && c.getSystem().equals(CODE_SYSTEM_LIBRARY_TYPE)
+                    && c.hasCode() && c.getCode().equals(CODE_LOGIC_LIBRARY)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
