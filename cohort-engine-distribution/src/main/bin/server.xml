@@ -27,7 +27,7 @@
 		deferServletLoad="false" />
 
 
-	<ssl id="defaultSSLConfig" sslProtocol="TLSv1.2" />
+	<ssl id="defaultSSLConfig" keyStoreRef="defaultKeyStore" trustStoreRef="defaultTrustStore" clientAuthenticationSupported="true" sslProtocol="TLSv1.2" />
 	
 	<!-- ENCODED_PWD_TOKEN set in postDeploy.sh -->
 	<keyStore id="defaultKeyStore" password="ENCODED_PWD_TOKEN" />
