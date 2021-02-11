@@ -18,9 +18,9 @@ public class PatientMeasureEvaluationGroupStratifier {
 	private String code = null;
 	private List<PatientMeasureEvaluationGroupStratifierStratum> stratum = new ArrayList<PatientMeasureEvaluationGroupStratifierStratum>();
 
-	/**
+	/*
 	 * What stratifier of the group
-	 **/
+	 */
 	public PatientMeasureEvaluationGroupStratifier code(String code) {
 		this.code = code;
 		return this;
@@ -36,8 +36,6 @@ public class PatientMeasureEvaluationGroupStratifier {
 		this.code = code;
 	}
 
-	/**
-	 **/
 	public PatientMeasureEvaluationGroupStratifier stratum(
 			List<PatientMeasureEvaluationGroupStratifierStratum> stratum) {
 		this.stratum = stratum;
@@ -83,7 +81,7 @@ public class PatientMeasureEvaluationGroupStratifier {
 		return sb.toString();
 	}
 
-	/**
+	/*
 	 * Convert the given object to string with each line indented by 4 spaces
 	 * (except the first line).
 	 */

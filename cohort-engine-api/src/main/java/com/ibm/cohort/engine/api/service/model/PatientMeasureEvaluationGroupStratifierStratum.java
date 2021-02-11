@@ -20,9 +20,9 @@ public class PatientMeasureEvaluationGroupStratifierStratum {
 	private List<PatientMeasureEvaluationPopulation> population = new ArrayList<PatientMeasureEvaluationPopulation>();
 	private PatientMeasureEvaluationQuantity measureScore = null;
 
-	/**
+	/*
 	 * The stratum value, e.g. male
-	 **/
+	 */
 	public PatientMeasureEvaluationGroupStratifierStratum value(String value) {
 		this.value = value;
 		return this;
@@ -38,9 +38,9 @@ public class PatientMeasureEvaluationGroupStratifierStratum {
 		this.value = value;
 	}
 
-	/**
+	/*
 	 * Stratifier component values
-	 **/
+	 */
 	public PatientMeasureEvaluationGroupStratifierStratum component(
 			List<PatientMeasureEvaluationGroupStratifierStratumComponent> component) {
 		this.component = component;
@@ -57,9 +57,9 @@ public class PatientMeasureEvaluationGroupStratifierStratum {
 		this.component = component;
 	}
 
-	/**
+	/*
 	 * Population results in this stratum
-	 **/
+	 */
 	public PatientMeasureEvaluationGroupStratifierStratum population(
 			List<PatientMeasureEvaluationPopulation> population) {
 		this.population = population;
@@ -76,8 +76,6 @@ public class PatientMeasureEvaluationGroupStratifierStratum {
 		this.population = population;
 	}
 
-	/**
-	 **/
 	public PatientMeasureEvaluationGroupStratifierStratum measureScore(PatientMeasureEvaluationQuantity measureScore) {
 		this.measureScore = measureScore;
 		return this;
@@ -126,7 +124,7 @@ public class PatientMeasureEvaluationGroupStratifierStratum {
 		return sb.toString();
 	}
 
-	/**
+	/*
 	 * Convert the given object to string with each line indented by 4 spaces
 	 * (except the first line).
 	 */

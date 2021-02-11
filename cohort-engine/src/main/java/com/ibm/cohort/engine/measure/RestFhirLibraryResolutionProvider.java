@@ -88,7 +88,7 @@ public class RestFhirLibraryResolutionProvider implements LibraryResolutionProvi
 			Bundle bundle = query.returnBundle(Bundle.class).execute();
 			if (bundle.getTotal() != 1) {
 				throw new IllegalArgumentException(String.format("Unexpected number of libraries %d matching url %s ",
-						bundle.getTotal(), query.toString()));
+						bundle.getTotal(), libraryUrl));
 			}
 
 			return (Library) bundle.getEntry().get(0).getResource();

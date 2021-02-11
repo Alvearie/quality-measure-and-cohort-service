@@ -69,7 +69,7 @@ public class RestFhirMeasureResolutionProvider implements MeasureResolutionProvi
 				.returnBundle(Bundle.class).execute();
 		if (b.getEntry().isEmpty()) {
 			throw new IllegalArgumentException(
-					String.format("Measure lookup for identifier: %s returned an unexpected number of results", identifier));
+					String.format("Measure lookup for identifier: %s returned no results", identifier.getValue()));
 		} else {
 			Optional<Measure> optional = resolveMeasureFromList(b);
 			if (!optional.isPresent()) {
@@ -89,7 +89,7 @@ public class RestFhirMeasureResolutionProvider implements MeasureResolutionProvi
 			return (Measure) b.getEntryFirstRep().getResource();
 		} else {
 			throw new IllegalArgumentException(
-					String.format("Measure lookup for identifier: %s version: %s returned unexpected number of results", identifier, version));
+					String.format("Measure lookup for identifier: %s version: %s returned unexpected number of results: %s", identifier.getValue(), version, b.getEntry().size()));
 		}
 	}
 	
