@@ -82,7 +82,7 @@ public class CohortEngineRestHandler {
 			+ "<Major>.<Minor>.<Patch> format (ie if versions 1.0.0 and 2.0.0 both exist, the code will return the 2.0.0 version)";
 	private static final String MEASURE_API_NOTES = "Retrieves the parameter information for libraries linked to by a measure";
 
-	private static final String DEFAULT_FHIR_URL = "https://fhir-dev.wh-cohort.dev.watson-health.ibm.com/fhir-server/api/v4";
+	private static final String DEFAULT_FHIR_URL = "https://fhir-internal.dev:9443/fhir-server/api/v4";
 
 	public static final String DELAY_DEFAULT = "3";
 
