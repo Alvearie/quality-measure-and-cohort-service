@@ -55,7 +55,7 @@ replaceToken $JVM_OPTIONS_FILE LIBERTY_TRUST_STORE_LOC_TOKEN $LIBERTY_TRUST_STOR
 # create keystore using K8s CA signed certificate and key in mounted secret
 # a comOpps ticket is needed to create this cert. It is mounted as a volume in the deployment yaml.
 mkdir -p ${LIBERTY_TRUST_STORE_LOC}
-keytool -import -v -trustcacerts -alias k8s-cluster-cert -file ${K8S_CERT_BUNDLE_LOC} -keystore ${LIBERTY_TRUST_STORE_LOC}/keystore.p12 -storepass ${LIBERTY_STORE_PWD} -noprompt
+keytool -import -v -trustcacerts -alias k8s-cluster-cert -file ${K8S_CERT_BUNDLE_LOC} -keystore ${LIBERTY_TRUST_STORE_LOC}/keystore.p12 -storetype PKCS12 -storepass ${LIBERTY_STORE_PWD} -noprompt
 #openssl pkcs12 -export -inkey /secrets/tls/tls.key -in /secrets/tls/tls.crt -out ${LIBERTY_TRUST_STORE_LOC}/keystore.p12 -password pass:${LIBERTY_STORE_PWD}
 mv -f ${LIBERTY_TRUST_STORE_LOC}/keystore.p12 ${LIBERTY_TRUST_STORE_LOC}/cohortCDTTrust.p12
 chmod 755 ${LIBERTY_TRUST_STORE_LOC}/cohortCDTTrust.p12
