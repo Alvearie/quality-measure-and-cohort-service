@@ -295,8 +295,8 @@ public class CohortCLITest extends BasePatientTest {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 		mockFhirResourceRetrieval(patient);
 
-		Library root = getLibrary("Breast-Cancer-Screening", "cql/includes/Breast-Cancer-Screening.cql");
-		Library helpers = getLibrary("FHIRHelpers", "cql/includes/FHIRHelpers.cql", "text/cql",
+		Library root = getLibrary("Breast-Cancer-Screening", DEFAULT_RESOURCE_VERSION, "cql/includes/Breast-Cancer-Screening.cql");
+		Library helpers = getLibrary("FHIRHelpers", "4.0.0", "cql/includes/FHIRHelpers.cql", "text/cql",
 				"cql/includes/FHIRHelpers.xml", "application/elm+json");
 
 		RelatedArtifact related = new RelatedArtifact();
@@ -319,7 +319,7 @@ public class CohortCLITest extends BasePatientTest {
 			try (PrintStream captureOut = new PrintStream(baos)) {
 				System.setOut(captureOut);
 				CohortCLI.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-f", root.getId(), "-l",
-						root.getId(), "-v", "1", "-c", patient.getId(), "-s", "CQL" });
+						root.getName(), "-v", root.getVersion(), "-c", patient.getId(), "-s", "CQL" });
 			} finally {
 				System.setOut(originalOut);
 			}
@@ -396,8 +396,8 @@ public class CohortCLITest extends BasePatientTest {
 		patient.addExtension(new Extension("http://fakeIg.com/fake-extension", new StringType("fakeValue")));
 		mockFhirResourceRetrieval(patient);
 
-		Library root = getLibrary("test", "cql/ig-test/test.cql");
-		Library helpers = getLibrary("FHIRHelpers", "cql/includes/FHIRHelpers.cql", "text/cql",
+		Library root = getLibrary("test", DEFAULT_RESOURCE_VERSION, "cql/ig-test/test.cql");
+		Library helpers = getLibrary("FHIRHelpers", "4.0.0", "cql/includes/FHIRHelpers.cql", "text/cql",
 									 "cql/includes/FHIRHelpers.xml", "application/elm+json");
 
 		RelatedArtifact related = new RelatedArtifact();
@@ -420,7 +420,7 @@ public class CohortCLITest extends BasePatientTest {
 			try (PrintStream captureOut = new PrintStream(baos)) {
 				System.setOut(captureOut);
 				CohortCLI.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-f", root.getId(), "-l",
-						root.getId(), "-v", "1.0.0", "-c", patient.getId(), "-s", "CQL", "-i", "src/test/resources/modelinfo/ig-with-target-modelinfo-0.0.1.xml" });
+						root.getName(), "-v", root.getVersion(), "-c", patient.getId(), "-s", "CQL", "-i", "src/test/resources/modelinfo/ig-with-target-modelinfo-0.0.1.xml" });
 			} finally {
 				System.setOut(originalOut);
 			}

@@ -8,6 +8,8 @@ package com.ibm.cohort.engine.measure;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -93,11 +95,18 @@ public class BaseMeasureTest extends BaseFhirTest {
 		return careGapPopulations;
 	}
 
-	protected Library mockLibraryRetrieval(String libraryName, String... cqlResource) throws Exception {
-		Library library = getLibrary(libraryName, cqlResource);
+	protected Library mockLibraryRetrieval(String libraryName, String libraryVersion, String... cqlResource) throws Exception {
+		Library library = getLibrary(libraryName, libraryVersion, cqlResource);
 		mockFhirResourceRetrieval(library);
 
 		Bundle bundle = getBundle(library);
+		
+		String url = URLEncoder.encode( library.getUrl(), StandardCharsets.UTF_8.toString() );
+		if( library.getVersion() != null ) {
+			url += "&version=" + library.getVersion();
+		}
+		
+		mockFhirResourceRetrieval("/Library?url=" + url, bundle );
 		mockFhirResourceRetrieval("/Library?name=" + library.getName() + "&_sort=-date", bundle);
 		mockFhirResourceRetrieval("/Library?name=" + library.getName() + "&version=1.0.0&_sort=-date", bundle);
 		return library;

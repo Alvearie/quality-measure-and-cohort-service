@@ -27,35 +27,34 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.hl7.elm.r1.VersionedIdentifier;
 import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CapabilityStatement;
 import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Library;
+import org.hl7.fhir.r4.model.MetadataResource;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.junit.BeforeClass;
 import org.junit.Rule;
-import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import com.ibm.cohort.engine.translation.CqlTranslationProvider;
-import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
-import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
+import com.ibm.cohort.fhir.client.config.FhirServerConfig.LogInfo;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 
 public class BaseFhirTest {
 
+	public static String DEFAULT_RESOURCE_VERSION = "1.0.0";
+	
 	static int HTTP_PORT = 0;
+	static String IBM_PREFIX = "http://ibm.com/fhir/measure";
 
 	@BeforeClass
 	public static void setUpBeforeClass() {
@@ -125,6 +124,7 @@ public class BaseFhirTest {
 	protected FhirServerConfig getFhirServerConfig() {
 		FhirServerConfig fhirConfig = new FhirServerConfig();
 		fhirConfig.setEndpoint("http://localhost:" + HTTP_PORT);
+		fhirConfig.setLogInfo(Arrays.asList(LogInfo.REQUEST_SUMMARY));
 		return fhirConfig;
 	}
 
@@ -166,7 +166,7 @@ public class BaseFhirTest {
 		return patient;
 	}	
 
-	protected Library getLibrary(String id, String... attachmentData) throws Exception {
+	protected Library getLibrary(String name, String version, String... attachmentData) throws Exception {
 		if (attachmentData == null || attachmentData.length == 0
 				|| (attachmentData.length > 2) && ((attachmentData.length % 2) != 0)) {
 			fail("Invalid attachment data. Data must consist of one or more pairs of resource path and content-type strings");
@@ -192,11 +192,12 @@ public class BaseFhirTest {
 				attachments.add(attachment);
 			}
 		}
-
+		
 		Library library = new Library();
-		library.setId(id);
-		library.setName(id);
-		// library.setVersion("1.0.0");
+		library.setId("library-" + name + "-" + version);
+		library.setName(name);
+		library.setUrl(IBM_PREFIX + "/Library/" + name);
+		library.setVersion(version);
 		library.setContent(attachments);
 
 		return library;
@@ -206,8 +207,13 @@ public class BaseFhirTest {
 		return new Reference(resource.getIdElement().getResourceType() + "/" + resource.getId());
 	}
 
-	public CanonicalType asCanonical(Resource resource) {
-		return new CanonicalType(resource.getClass().getSimpleName() + "/" + resource.getId());
+	public CanonicalType asCanonical(MetadataResource resource) {
+		//return new CanonicalType(resource.getClass().getSimpleName() + "/" + resource.getId());
+		String canonical = "http://ibm.com/fhir/measure/" + resource.getClass().getSimpleName() + "/" + resource.getName();
+		if( resource.getVersion() != null ) {
+			canonical = canonical + "|" + resource.getVersion();
+		}
+		return new CanonicalType(canonical);
 	}
 
 	protected CapabilityStatement getCapabilityStatement() {
