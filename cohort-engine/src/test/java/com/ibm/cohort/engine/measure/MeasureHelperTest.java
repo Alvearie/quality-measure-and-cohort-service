@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2020, 2020
+ * (C) Copyright IBM Corp. 2020, 2021
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -16,7 +16,6 @@ import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Measure;
 import org.junit.Before;
 import org.junit.Test;
-import org.opencds.cqf.r4.builders.IdentifierBuilder;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.matching.EqualToPattern;
@@ -69,10 +68,9 @@ public class MeasureHelperTest extends BaseMeasureTest {
 
 		Measure measure = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/test.xml"), "Female");
 
-		Identifier identifier = new IdentifierBuilder()
-				.buildValue(identifierValue)
-				.buildSystem(identifierSystem)
-				.build();
+		Identifier identifier = new Identifier();
+		identifier.setValue(identifierValue);
+		identifier.setSystem(identifierSystem);
 
 		measure.setIdentifier(Collections.singletonList(identifier));
 		measure.setVersion("1.0.0");
@@ -97,10 +95,9 @@ public class MeasureHelperTest extends BaseMeasureTest {
 		measure1.setVersion("1.0.0");
 		measure2.setVersion("2.0.0");
 
-		Identifier identifier = new IdentifierBuilder()
-				.buildValue(identifierValue)
-				.buildSystem(identifierSystem)
-				.build();
+		Identifier identifier = new Identifier();
+		identifier.setValue(identifierValue);
+		identifier.setSystem(identifierSystem);
 
 		measure1.setIdentifier(Collections.singletonList(identifier));
 		measure2.setIdentifier(Collections.singletonList(identifier));
@@ -122,10 +119,9 @@ public class MeasureHelperTest extends BaseMeasureTest {
 
 		Measure measure = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/test.xml"), "Female");
 
-		Identifier identifier = new IdentifierBuilder()
-				.buildValue(identifierValue)
-				.buildSystem(identifierSystem)
-				.build();
+		Identifier identifier = new Identifier();
+		identifier.setValue(identifierValue);
+		identifier.setSystem(identifierSystem);
 
 		measure.setIdentifier(Collections.singletonList(identifier));
 

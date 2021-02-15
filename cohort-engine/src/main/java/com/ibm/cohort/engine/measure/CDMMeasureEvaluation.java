@@ -17,7 +17,9 @@ import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.runtime.Interval;
-import org.opencds.cqf.r4.evaluation.MeasureEvaluation;
+
+import com.ibm.cohort.engine.cqfruler.MeasureEvaluation;
+import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 
 /**
  * Implementation of measure evaluation logic for the IBM Common Data Model IG
@@ -27,7 +29,7 @@ public class CDMMeasureEvaluation {
 
 	public static final String CARE_GAP = "care-gap";
 	public static final String CDM_CODE_SYSTEM_MEASURE_POPULATION_TYPE = "http://ibm.com/fhir/cdm/CodeSystem/measure-population-type";
-
+	
 	/**
 	 * Helper for collecting and indexing the various standard population types from
 	 * base FHIR and their count values so that they can easily be referenced in the
@@ -87,10 +89,7 @@ public class CDMMeasureEvaluation {
 	private MeasureEvaluation evaluation;
 
 	public CDMMeasureEvaluation(DataProvider provider, Interval measurementPeriod) {
-		// The DaoRegistry parameter is only used for practitioner and subject-list type
-		// measures, so we can safely null it out right now. It is based on HAPI JPA
-		// ResourceProvider interface that we won't be able to use with IBM FHIR.
-		evaluation = new MeasureEvaluation(provider, /* daoRegistry= */null, measurementPeriod);
+		evaluation = new MeasureEvaluation(provider, measurementPeriod);
 	}
 
 	/**
@@ -102,8 +101,9 @@ public class CDMMeasureEvaluation {
 	 * @param patientId Patient ID of the patient to evaluate
 	 * @return MeasureReport with population components filled out.
 	 */
-	public MeasureReport evaluatePatientMeasure(Measure measure, Context context, String patientId) {
-		MeasureReport report = evaluation.evaluatePatientMeasure(measure, context, patientId);
+	public MeasureReport evaluatePatientMeasure(Measure measure, Context context, String patientId, MeasureEvidenceOptions evidenceOptions) {
+		context.setExpressionCaching(true);
+		MeasureReport report = evaluation.evaluatePatientMeasure(measure, context, patientId, evidenceOptions);
 
 		MeasureScoring scoring = MeasureScoring.fromCode(measure.getScoring().getCodingFirstRep().getCode());
 		switch (scoring) {

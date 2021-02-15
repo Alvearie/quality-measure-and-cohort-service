@@ -503,6 +503,8 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		mockFhirResourceRetrieval(patient);
 
 		Library library = mockLibraryRetrieval("TestAdultMales", "cql/fhir-measure/test-adult-males.cql");
+		Library library2 = mockLibraryRetrieval("TestAdultMales2", "cql/fhir-measure/test-adult-males2.cql");
+		Library library3 = mockLibraryRetrieval("TestAdultMales3", "cql/fhir-measure/test-adult-males3.cql");
 
 		expressionsByPopulationType.clear();
 		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
@@ -512,7 +514,28 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
 		mockFhirResourceRetrieval(measure);
 
+//		long ms = System.currentTimeMillis();
 		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(true, true));
+//		System.out.println("Duration: " + (System.currentTimeMillis() - ms));
+//		
+//		List<Long> durationWith = new ArrayList<>();
+//		for(int i = 0; i < 100; i++) {
+//			ms = System.currentTimeMillis();
+//			report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(true, true));
+//			durationWith.add(System.currentTimeMillis() - ms);
+//		}
+//		
+//		
+//		List<Long> durationWithout = new ArrayList<>();
+//		for(int i = 0; i < 100; i++) {
+//			ms = System.currentTimeMillis();
+//			report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null);
+//			durationWithout.add(System.currentTimeMillis() - ms);
+//		}
+//		
+//		System.out.println("Average duration with evidence: " + durationWith.stream().mapToDouble(a -> a).average());
+//		System.out.println("Average duration without evidence: " + durationWithout.stream().mapToDouble(a -> a).average());
+		
 		assertNotNull(report);
 		
 		assertTrue(report.getEvaluatedResource().size() > 0);
