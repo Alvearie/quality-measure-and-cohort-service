@@ -27,7 +27,7 @@ DEBUG_FAILURE: false
 
 service:
   type: ClusterIP
-  apiservicePortSecure: 9443
+  externalPort: 9443
   ports:
     - 9080
     - 9443
