@@ -51,6 +51,8 @@ spec:
           volumeMounts:
             - name: secret-tls
               mountPath: /secrets/tls
+            - name: cluster-star-secret
+              mountPath: /secrets/cluster-star-secret
       nodeSelector:
         worker-type: application
 
