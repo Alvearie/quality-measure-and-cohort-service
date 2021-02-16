@@ -490,5 +490,35 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		assertEquals(1, resultCount.get());
 	}
 
+	@Test
+	/**
+	 * This test exists to document the engine behavior when an author attempts to compare
+	 * quantities with different UoM values. 
+	 * @throws Exception on any error.
+	 */
+	public void testUOMEquivalence() throws Exception {
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1983-12-02");
+
+		final AtomicInteger resultCount = new AtomicInteger(0);
+		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/uomequivalence/TestUOMCompare-1.0.0.cql");
+		wrapper.evaluate("TestUOMCompare", "1.0.0", /* parameters= */null, new HashSet<>(Arrays.asList("IsEqual", "AreEquivalent", "UpConvert")),
+				Arrays.asList(patient.getId()), (p, e, r) -> {
+					if( e.equals("IsEqual") ) {
+						// when you compare two quantities with different UoM, the
+						// the engine returns null.
+						assertEquals(null, r);
+					} else if( e.equals( "AreEquivalent") ) {
+						// you can use the *convert* function to change the
+						// units of a quantity to a known value
+						assertEquals(Boolean.TRUE, r); 
+					} else if( e.equals( "UpConvert") ) {
+						// Or, the safest thing to do is convert the left and right
+						// values to a known, fixed unit
+						assertEquals(Boolean.TRUE, r);
+					}
+					resultCount.incrementAndGet();
+				});
+		assertEquals(3, resultCount.get());
+	}
 	
 }
