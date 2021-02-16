@@ -18,14 +18,14 @@ import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
 
 public class BasePatientTest extends BaseFhirTest {
-	protected CqlEngineWrapper setupTestFor(Patient patient, String... elm) throws Exception {
+	protected CqlEngineWrapper setupTestFor(Patient patient, String... resources) throws Exception {
 		IBMFhirServerConfig fhirConfig = new IBMFhirServerConfig();
 		fhirConfig.setEndpoint("http://localhost:" + HTTP_PORT);
 		fhirConfig.setUser("fhiruser");
 		fhirConfig.setPassword("change-password");
 		fhirConfig.setTenantId("default");
 
-		return setupTestFor(patient, fhirConfig, elm);
+		return setupTestFor(patient, fhirConfig, resources);
 	}
 
 	protected CqlEngineWrapper setupTestFor(Patient patient, FhirServerConfig fhirConfig, String... resources)
@@ -48,7 +48,7 @@ public class BasePatientTest extends BaseFhirTest {
 					if( basename.startsWith("test") ) {
 						result = new VersionedIdentifier().withId("Test").withVersion("1.0.0");
 					} else { 
-						result = super.filenameToVersionedIdentifier( basename );
+						result = super.filenameToVersionedIdentifier( filename );
 					}
 					return result;
 				}
