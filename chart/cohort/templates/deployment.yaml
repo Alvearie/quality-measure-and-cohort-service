@@ -37,6 +37,9 @@ spec:
         - name: secret-tls
           secret:
             secretName: {{ .Values.internalTlsCertSecretName }}
+        name: cluster-star-secret
+          secret:
+            secretName: {{ .Values.clusterStarSecretName }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
