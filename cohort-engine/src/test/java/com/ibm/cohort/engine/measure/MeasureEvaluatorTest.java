@@ -34,7 +34,6 @@ import org.junit.Test;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 
 import com.ibm.cohort.engine.LibraryFormat;
-import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 
 public class MeasureEvaluatorTest extends BaseMeasureTest {
 
@@ -72,7 +71,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		verify(1, getRequestedFor(urlMatching("/Library\\?url=http.*")));
 		verify(1, getRequestedFor(urlEqualTo("/Library?name=" + library.getName() + "&version=1.0.0&_sort=-date")));
 	}
-	
+
 	@Test
 	public void elm_and_cql_in_initial_population___cohort_evaluated_correctly() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
@@ -336,56 +335,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		}
 	}
 	
-
 	protected RelatedArtifact asRelation(Library library) {
 		return new RelatedArtifact().setType(RelatedArtifact.RelatedArtifactType.DEPENDSON).setResource( library.getUrl() + "|" + library.getVersion() );
-	}
-	
-	@Test
-	public void in_populations_evaluated_resources_returned() throws Exception {
-		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
-
-		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
-		mockFhirResourceRetrieval(patient);
-
-		Library library = mockLibraryRetrieval("TestAdultMales", "cql/fhir-measure/test-adult-males.cql");
-
-		expressionsByPopulationType.clear();
-		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
-		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOR, DENOMINATOR);
-		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
-
-		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
-		mockFhirResourceRetrieval(measure);
-
-		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(true, true));
-		assertNotNull(report);
-		
-		assertTrue(report.getEvaluatedResource().size() > 0);
-	}
-	
-	@Test
-	public void in_populations_no_evaluated_resources_returned() throws Exception {
-		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
-
-		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
-		mockFhirResourceRetrieval(patient);
-
-		Library library = mockLibraryRetrieval("TestAdultMales", "cql/fhir-measure/test-adult-males.cql");
-
-		expressionsByPopulationType.clear();
-		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
-		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOR, DENOMINATOR);
-		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
-
-		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
-		mockFhirResourceRetrieval(measure);
-
-		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());
-		assertNotNull(report);
-		
-		assertEquals(0, report.getEvaluatedResource().size());
 	}
 }
