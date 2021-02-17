@@ -169,8 +169,6 @@ public class MeasureEvaluator {
 		}
 
 		CDMMeasureEvaluation evaluation = new CDMMeasureEvaluation(seed.getDataProvider(), seed.getMeasurementPeriod());
-		MeasureReport measureReport = evaluation.evaluatePatientMeasure(measure, seed.getContext(), patientId);
-		
-		return measureReport;
+		return evaluation.evaluatePatientMeasure(measure, seed.getContext(), patientId);
 	}
 }
