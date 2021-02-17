@@ -33,5 +33,3 @@ service:
     - 9443
 
 internalTlsCertSecretName: k8s-tls-secret
-tls:
-  secretName: star.wh-cohort.dev.watson-health.ibm.com

@@ -37,9 +37,6 @@ spec:
         - name: secret-tls
           secret:
             secretName: {{ .Values.internalTlsCertSecretName }}
-        - name: cluster-star-secret
-          secret:
-            secretName: {{ .Values.tls.secretName }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -51,8 +48,6 @@ spec:
           volumeMounts:
             - name: secret-tls
               mountPath: /secrets/tls
-            - name: cluster-star-secret
-              mountPath: /secrets/cluster-star-secret
       nodeSelector:
         worker-type: application
 
