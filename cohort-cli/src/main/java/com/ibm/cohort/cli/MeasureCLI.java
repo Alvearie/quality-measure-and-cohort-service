@@ -62,7 +62,7 @@ public class MeasureCLI extends BaseCLI {
 				"--include-evaluated-resources" }, description = "Include evaluated resources on measure report. Defaults to false.")
 		private boolean includeEvaluatedResources = false;
 		
-		@Parameter(names = { "-d",
+		@Parameter(names = { "-i",
 				"--include-define-results" }, description = "Include results for evaluated define statements on measure report. Defaults to false.")
 		private boolean includeDefineResults = false;
 
