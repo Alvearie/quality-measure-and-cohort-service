@@ -347,8 +347,8 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 
 		assertTrue(!report.getEvaluatedResource().isEmpty());
 		
-		//When this functionality is implemented, this is what we want to be returned
-//		assertEquals(0, report.getEvaluatedResource().size());
+		// When this functionality is implemented, this is what we want to be returned
+//		assertTrue(report.getEvaluatedResource().isEmpty());
 	}
 
 	private void runCareGapTest(Map<String, Object> parameters, Map<String, Integer> careGapExpectations)
