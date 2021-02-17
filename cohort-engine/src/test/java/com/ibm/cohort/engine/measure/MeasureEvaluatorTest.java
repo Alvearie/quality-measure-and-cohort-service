@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 
 import com.ibm.cohort.engine.LibraryFormat;
+import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 
 public class MeasureEvaluatorTest extends BaseMeasureTest {
 
@@ -296,6 +297,58 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		verifyStandardPopulationCounts(report);
 		
 		verify(1, getRequestedFor(urlEqualTo("/Library/" + library.getId())));
+	}
+	
+	@Test
+	public void in_populations_evaluated_resources_returned() throws Exception {
+		CapabilityStatement metadata = getCapabilityStatement();
+		mockFhirResourceRetrieval("/metadata", metadata);
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = mockLibraryRetrieval("TestAdultMales", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males.cql");
+
+		expressionsByPopulationType.clear();
+		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
+		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOR, DENOMINATOR);
+		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
+
+		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
+		mockFhirResourceRetrieval(measure);
+
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(true, true));
+
+		assertNotNull(report);
+
+		assertTrue(!report.getEvaluatedResource().isEmpty());
+	}
+
+	@Test
+	public void in_populations_no_evaluated_resources_returned() throws Exception {
+		CapabilityStatement metadata = getCapabilityStatement();
+		mockFhirResourceRetrieval("/metadata", metadata);
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = mockLibraryRetrieval("TestAdultMales", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males.cql");
+
+		expressionsByPopulationType.clear();
+		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
+		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOR, DENOMINATOR);
+		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
+
+		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
+		mockFhirResourceRetrieval(measure);
+
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());
+		assertNotNull(report);
+
+		assertTrue(!report.getEvaluatedResource().isEmpty());
+		
+		//When this functionality is implemented, this is what we want to be returned
+//		assertEquals(0, report.getEvaluatedResource().size());
 	}
 
 	private void runCareGapTest(Map<String, Object> parameters, Map<String, Integer> careGapExpectations)
