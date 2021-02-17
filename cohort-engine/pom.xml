@@ -56,11 +56,6 @@
 			<groupId>org.opencds.cqf</groupId>
 			<artifactId>common</artifactId>
 		</dependency>
-		
-		<dependency>
-			<groupId>org.opencds.cqf</groupId>
-			<artifactId>r4</artifactId>
-		</dependency>
 
 		<dependency>
 			<groupId>org.apache.commons</groupId>

@@ -103,6 +103,7 @@ public class CDMMeasureEvaluation {
 	 */
 	public MeasureReport evaluatePatientMeasure(Measure measure, Context context, String patientId, MeasureEvidenceOptions evidenceOptions) {
 		context.setExpressionCaching(true);
+		
 		MeasureReport report = evaluation.evaluatePatientMeasure(measure, context, patientId, evidenceOptions);
 
 		MeasureScoring scoring = MeasureScoring.fromCode(measure.getScoring().getCodingFirstRep().getCode());
