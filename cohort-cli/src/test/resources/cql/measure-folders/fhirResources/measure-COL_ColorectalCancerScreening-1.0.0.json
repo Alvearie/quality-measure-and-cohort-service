@@ -1,0 +1,139 @@
+{
+  "purpose": "To identify and decrease the incidence of colorectal cancer",
+  "description": "Based upon recommendations from 2016 USPSTF guidance. \nThe percentage of individuals 50-75 years of age who had appropriate screening for colorectal cancer.\nIndividuals who received appropriate screening:\n    Fecal Occult Blood Test (FOBT) during the last 1 year\n    Flexible Sigmoidoscopy during the last 5 years\n    Colonoscopy during the last 10 years\n    Computed Tomographic Colonography (CTC) during the last 5 years\n    Cologuard during the last 3 years",
+  "improvementNotation": {
+    "coding": [
+      {
+        "system": "http://terminology.hl7.org/CodeSystem/measure-improvement-notation",
+        "code": "increase"
+      }
+    ]
+  },
+  "scoring": {
+    "coding": [
+      {
+        "code": "proportion"
+      }
+    ]
+  },
+  "status": "draft",
+  "date": "2021-01-19T06:00:00.000Z",
+  "title": "Colorectal Cancer Screening (COL) ",
+  "copyright": "add \"IBM proprietary\" language here",
+  "disclaimer": "add IBM legal language here AND/OR guidance-specific disclaimers\nIBM has chosen the greatest interval frequency (configurable) for each individual screening",
+  "group": [
+    {
+      "population": [
+        {
+          "criteria": {
+            "language": "text/cql",
+            "expression": "COLpop_define"
+          },
+          "description": "All patients aged 50-75 years",
+          "code": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/measure-population",
+                "code": "initial-population"
+              }
+            ]
+          },
+          "id": "COLpop"
+        },
+        {
+          "criteria": {
+            "language": "text/cql",
+            "expression": "COLden_define"
+          },
+          "description": "Patients in the initial population who need a colorectal cancer screening excluding patients with documentation of colon cancer or total colectomy.",
+          "code": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/measure-population",
+                "code": "denominator"
+              }
+            ]
+          },
+          "id": "COLden"
+        },
+        {
+          "id": "COLnum",
+          "code": {
+            "coding": [
+              {
+                "code": "numerator",
+                "system": "http://terminology.hl7.org/CodeSystem/measure-population"
+              }
+            ]
+          },
+          "description": "Patients who received appropriate screening:\n    Fecal Occult Blood Test (FOBT) during the last 1 year\n    Flexible Sigmoidoscopy during the last 5 years\n    Colonoscopy during the last 10 years\n    Double Contrast Barium Enema (DCBE) during the last 5 years\n    Computed Tomographic Colonography (CTC) during the last 5 years\n    Cologuard during the last 3 years",
+          "criteria": {
+            "expression": "COLnum_define",
+            "language": "text/cql"
+          }
+        },
+        {
+          "id": "COLgap",
+          "code": {
+            "coding": [
+              {
+                "code": "care-gap",
+                "system": "http://terminology.hl7.org/CodeSystem/measure-population"
+              }
+            ]
+          },
+          "description": "Patients without evidence of colon cancer or total colectomy who did not receive an appropriate screening for colorectal cancer",
+          "criteria": {
+            "language": "text/cql",
+            "expression": "COLgap_define"
+          }
+        }
+      ]
+    }
+  ],
+  "type": [
+    {
+      "coding": [
+        {
+          "code": "process",
+          "system": "http://terminology.hl7.org/CodeSystem/measure-type"
+        }
+      ]
+    }
+  ],
+  "library": [
+    "Library/library-COL_ColorectalCancerScreening_genCql-1.0.0"
+  ],
+  "topic": [
+    {
+      "coding": [
+        {
+          "code": "assessment",
+          "system": "http://terminology.hl7.org/CodeSystem/definition-topic"
+        }
+      ]
+    }
+  ],
+  "identifier": [
+    {
+      "assigner": {
+        "display": "IBM"
+      },
+      "period": {},
+      "system": "http://ibm.com/fhir/cdm/quality-measure",
+      "type": {
+        "coding": [
+          {
+            "code": "RI",
+            "system": "http://terminology.hl7.org/CodeSystem/v2-0203"
+          }
+        ]
+      },
+      "use": "usual"
+    }
+  ],
+  "name": "COL_ColorectalCancerScreening",
+  "version": "1.0.0",
+  "resourceType": "Measure",
+  "url": "Measure/measure-COL_ColorectalCancerScreening"
+}
