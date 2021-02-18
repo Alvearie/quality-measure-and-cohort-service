@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
@@ -69,7 +70,10 @@ public class MeasureEvaluationSeeder {
 
 	public IMeasureEvaluationSeed create(Measure measure, String periodStart, String periodEnd, String productLine) {
 		List<org.cqframework.cql.elm.execution.Library> libraries = LibraryHelper.loadLibraries(measure, this.libraryLoader, this.libraryResourceProvider);
-
+		if( CollectionUtils.isEmpty(libraries) ) { 
+			throw new IllegalArgumentException(String.format("No libraries were able to be loaded for Measure/%s", measure.getId()));
+		}
+		
 		// the "primary" library is always the first library loaded for the measure
 		org.cqframework.cql.elm.execution.Library primaryLibrary = libraries.get(0);
 		

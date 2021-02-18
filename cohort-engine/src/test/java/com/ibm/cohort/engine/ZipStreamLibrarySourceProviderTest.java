@@ -7,6 +7,7 @@ package com.ibm.cohort.engine;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -31,6 +32,32 @@ public class ZipStreamLibrarySourceProviderTest {
 				CqlTranslationProvider tx = new InJVMCqlTranslationProvider();
 				Library library = tx.translate( is );
 				assertEquals( "FHIRHelpers", library.getIdentifier().getId() );
+			}
+		}
+	}
+	
+	@Test
+	public void testLibraryFoundInZipWithSearchPathsSuccess() throws Exception {
+		try ( ZipInputStream zip = new ZipInputStream( new FileInputStream( "src/test/resources/cql/zip-structured/col_colorectal_cancer_screening_v1_0_0.zip" ) ) ) {
+		
+			ZipStreamLibrarySourceProvider provider = new ZipStreamLibrarySourceProvider(zip, "CDSexport");
+			try( InputStream is = provider.getLibrarySource( new VersionedIdentifier().withId("COL_InitialPop").withVersion("1.0.0") ) ) { 
+				assertNotNull( is );
+				
+				CqlTranslationProvider tx = new InJVMCqlTranslationProvider();
+				Library library = tx.translate( is );
+				assertEquals( "COL_InitialPop", library.getIdentifier().getId() );
+			}
+		}
+	}
+	
+	@Test
+	public void testLibraryFoundInZipWithSearchPathsMissingError() throws Exception {
+		try ( ZipInputStream zip = new ZipInputStream( new FileInputStream( "src/test/resources/cql/zip-structured/col_colorectal_cancer_screening_v1_0_0.zip" ) ) ) {
+		
+			ZipStreamLibrarySourceProvider provider = new ZipStreamLibrarySourceProvider(zip, "deploypackage");
+			try( InputStream is = provider.getLibrarySource( new VersionedIdentifier().withId("COL_InitialPop").withVersion("1.0.0") ) ) { 
+				assertNull( "Unexpectedly found resource", is );
 			}
 		}
 	}

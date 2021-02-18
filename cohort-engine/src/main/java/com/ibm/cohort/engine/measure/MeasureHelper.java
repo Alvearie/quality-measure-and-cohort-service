@@ -28,7 +28,7 @@ public class MeasureHelper {
 		}
 		
 		if( result == null ) {
-			throw new IllegalArgumentException(String.format("Failed to determine resolution path for provided resourceID '%s'", resourceID));
+			throw new IllegalArgumentException(String.format("Failed to resolve provided resourceID '%s'", resourceID));
 		}
 		
 		return result;

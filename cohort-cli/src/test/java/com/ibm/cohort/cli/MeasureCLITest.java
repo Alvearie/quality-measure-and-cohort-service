@@ -5,6 +5,8 @@
  */
 package com.ibm.cohort.cli;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -19,6 +21,7 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
@@ -400,6 +403,86 @@ public class MeasureCLITest extends BaseMeasureTest {
 		} finally {
 			tmpFile.delete();
 			tmpMeasureConfigurationsFile.delete();
+		}
+		
+		String output = new String(baos.toByteArray());
+		System.out.println(output);
+		assertTrue( output.contains("\"resourceType\": \"MeasureReport\"") );
+	}
+	
+	@Test
+	public void testZipFileInput() throws Exception {
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		
+		Patient patient = getPatient("123", AdministrativeGender.MALE, 65);
+		mockFhirResourceRetrieval(patient);
+		
+		
+		Bundle emptyBundle = getBundle();
+		mockFhirResourceRetrieval(get(urlMatching("/Condition.*")), emptyBundle);
+		mockFhirResourceRetrieval(get(urlMatching("/Procedure.*")), emptyBundle);
+		mockFhirResourceRetrieval(get(urlMatching("/Observation.*")), emptyBundle);
+		
+		File tmpFile = new File("target/fhir-stub.json");
+		ObjectMapper om = new ObjectMapper();
+		try (Writer w = new FileWriter(tmpFile)) {
+			w.write(om.writeValueAsString(getFhirServerConfig()));
+		}
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream out = new PrintStream(baos);
+		try {
+			MeasureCLI cli = new MeasureCLI();
+			cli.runWithArgs(new String[] {
+					"-d", tmpFile.getAbsolutePath(),
+					"-m", "src/test/resources/cql/measure-zip/col_colorectal_cancer_screening_1.0.0.zip",					
+					"-r", "Measure/measure-COL_ColorectalCancerScreening-1.0.0",
+					"--filter", "fhirResources",
+					"-c", patient.getId(),
+					"-f", "JSON"
+			}, out);	
+		} finally {
+			tmpFile.delete();
+		}
+		
+		String output = new String(baos.toByteArray());
+		System.out.println(output);
+		assertTrue( output.contains("\"resourceType\": \"MeasureReport\"") );
+	}
+	
+	@Test
+	public void testFolderInput() throws Exception {
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		
+		Patient patient = getPatient("123", AdministrativeGender.MALE, 65);
+		mockFhirResourceRetrieval(patient);
+		
+		
+		Bundle emptyBundle = getBundle();
+		mockFhirResourceRetrieval(get(urlMatching("/Condition.*")), emptyBundle);
+		mockFhirResourceRetrieval(get(urlMatching("/Procedure.*")), emptyBundle);
+		mockFhirResourceRetrieval(get(urlMatching("/Observation.*")), emptyBundle);
+		
+		File tmpFile = new File("target/fhir-stub.json");
+		ObjectMapper om = new ObjectMapper();
+		try (Writer w = new FileWriter(tmpFile)) {
+			w.write(om.writeValueAsString(getFhirServerConfig()));
+		}
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream out = new PrintStream(baos);
+		try {
+			MeasureCLI cli = new MeasureCLI();
+			cli.runWithArgs(new String[] {
+					"-d", tmpFile.getAbsolutePath(),
+					"-m", "src/test/resources/cql/measure-folders",					
+					"-r", "Measure/measure-COL_ColorectalCancerScreening-1.0.0",
+					"--filter", "fhirResources",
+					"-c", patient.getId(),
+					"-f", "JSON"
+			}, out);	
+		} finally {
+			tmpFile.delete();
 		}
 		
 		String output = new String(baos.toByteArray());
