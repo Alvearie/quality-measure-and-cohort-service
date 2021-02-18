@@ -207,7 +207,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	}
 	
 	@Test
-	public void in_one_initial_population_for_two_measures___single_measure_report_returned() throws Exception {
+	public void in_one_initial_population_for_two_measures___two_measure_reports_returned() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
 		mockFhirResourceRetrieval("/metadata", metadata);
 
@@ -234,7 +234,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		measureContexts.add(new MeasureContext(measure1.getId(), passingParameters));
 		measureContexts.add(new MeasureContext(measure2.getId(), failingParameters));
 
-		assertEquals(1, evaluator.evaluatePatientMeasures(patient.getId(), measureContexts).size());
+		assertEquals(2, evaluator.evaluatePatientMeasures(patient.getId(), measureContexts).size());
 	}
 	
 	@Test
