@@ -22,24 +22,14 @@
 			<outputFileNameMapping>cohort-engine.war</outputFileNameMapping>
 			<outputDirectory>webapps</outputDirectory>
 		</dependencySet>
-		<!-- Uncomment to include cohort engine jar in the distribution .tar -->
-		<!-- We could also include artifacts from the cli projects as well -->
-		<!-- dependencySet>
-			<includes>
-				<include>com.ibm.cohort:cohort-engine:jar</include>
-			</includes>
-			<outputFileNameMapping>cohort-engine.jar</outputFileNameMapping>
-			<outputDirectory>jars</outputDirectory>
-		</dependencySet>
+		<!-- Add the shaded/uber jar to the distribution zip -->
 		<dependencySet>
 			<includes>
-				<include>*:jar</include>
-				<include>*:jar:classes</include>
+				<include>com.ibm.cohort:cohort-cli:jar</include>
 			</includes>
-			<outputDirectory>lib</outputDirectory>
-			<useProjectArtifact>false</useProjectArtifact>
-			<useTransitiveFiltering>true</useTransitiveFiltering>
-		</dependencySet> -->
+			<outputFileNameMapping>cohort-cli-shaded.jar</outputFileNameMapping>
+			<outputDirectory>jars</outputDirectory>
+		</dependencySet>
 	</dependencySets>
 	<fileSets>
 		<fileSet>
