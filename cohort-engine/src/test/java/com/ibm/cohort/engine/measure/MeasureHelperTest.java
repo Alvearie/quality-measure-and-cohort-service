@@ -27,6 +27,8 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 public class MeasureHelperTest extends BaseMeasureTest {
 	
+	private static final String DEFAULT_VERSION = "1.0.0";
+	
 	private MeasureResolutionProvider<Measure> provider;
 
 	@Before
@@ -41,7 +43,7 @@ public class MeasureHelperTest extends BaseMeasureTest {
 	
 	@Test
 	public void testResolveByID() throws Exception {
-		Measure measure = getCohortMeasure("Test", getLibrary("123", "cql/basic/test.xml"), "Female");
+		Measure measure = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/test.xml"), "Female");
 		mockFhirResourceRetrieval(measure);
 		
 		Measure actual = MeasureHelper.loadMeasure(measure.getId(), provider);
@@ -50,7 +52,7 @@ public class MeasureHelperTest extends BaseMeasureTest {
 	
 	@Test
 	public void testResolveByCanonicalUrl() throws Exception {
-		Measure measure = getCohortMeasure("Test", getLibrary("123", "cql/basic/test.xml"), "Female");
+		Measure measure = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/test.xml"), "Female");
 		measure.setUrl("http://fhir.ibm.com/fhir-server/api/v4/Measure/Test-1.0.0");
 		
 		MappingBuilder builder = get(urlMatching("/Measure\\?url=.*"));
@@ -65,7 +67,7 @@ public class MeasureHelperTest extends BaseMeasureTest {
 		String identifierSystem = "system1";
 		String identifierValue = "val1";
 
-		Measure measure = getCohortMeasure("Test", getLibrary("123", "cql/basic/test.xml"), "Female");
+		Measure measure = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/test.xml"), "Female");
 
 		Identifier identifier = new IdentifierBuilder()
 				.buildValue(identifierValue)
@@ -88,9 +90,9 @@ public class MeasureHelperTest extends BaseMeasureTest {
 		String identifierSystem = "system1";
 		String identifierValue = "val1";
 
-		Measure measure1 = getCohortMeasure("Test", getLibrary("123", "cql/basic/test.xml"), "Female");
-		Measure measure2 = getCohortMeasure("Test", getLibrary("123", "cql/basic/test.xml"), "Female");
-		Measure measure3 = getCohortMeasure("Test", getLibrary("123", "cql/basic/test.xml"), "Female");
+		Measure measure1 = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/test.xml"), "Female");
+		Measure measure2 = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/test.xml"), "Female");
+		Measure measure3 = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/test.xml"), "Female");
 
 		measure1.setVersion("1.0.0");
 		measure2.setVersion("2.0.0");
@@ -118,7 +120,7 @@ public class MeasureHelperTest extends BaseMeasureTest {
 		String identifierValue = "val1";
 		String measureVersion = "4.5.6";
 
-		Measure measure = getCohortMeasure("Test", getLibrary("123", "cql/basic/test.xml"), "Female");
+		Measure measure = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/test.xml"), "Female");
 
 		Identifier identifier = new IdentifierBuilder()
 				.buildValue(identifierValue)

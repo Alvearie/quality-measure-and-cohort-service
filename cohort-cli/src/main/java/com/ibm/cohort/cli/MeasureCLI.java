@@ -19,6 +19,7 @@ import com.ibm.cohort.cli.input.MeasureContextProvider;
 import com.ibm.cohort.cli.input.NoSplittingSplitter;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.MeasureEvaluator;
+import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 
@@ -56,6 +57,14 @@ public class MeasureCLI extends BaseCLI {
 		@Parameter(names = { "-r",
 				"--resource" }, description = "FHIR Resource ID for the measure resource to be evaluated. Cannot be specified if -j option is used")
 		private String resourceId;
+		
+		@Parameter(names = { "-e",
+				"--include-evaluated-resources" }, description = "Include evaluated resources on measure report. Defaults to false.")
+		private boolean includeEvaluatedResources = false;
+		
+		@Parameter(names = { "-i",
+				"--include-define-results" }, description = "Include results for evaluated define statements on measure report. Defaults to false.")
+		private boolean includeDefineResults = false;
 
 		public void validate() {
 			boolean resourceSpecified = resourceId != null;
@@ -107,7 +116,7 @@ public class MeasureCLI extends BaseCLI {
 			for( String contextId : arguments.contextIds ) {
 				out.println("Evaluating: " + contextId);
 				// Reports only returned for measures where patient is in initial population
-				List<MeasureReport> reports = evaluator.evaluatePatientMeasures(contextId, measureContexts);
+				List<MeasureReport> reports = evaluator.evaluatePatientMeasures(contextId, measureContexts, new MeasureEvidenceOptions(arguments.includeEvaluatedResources, arguments.includeDefineResults));
 
 				for (MeasureReport report : reports) {
 					if (arguments.reportFormat == ReportFormat.TEXT) {

@@ -7,6 +7,7 @@ package com.ibm.cohort.engine.measure;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -15,24 +16,30 @@ import static org.junit.Assert.fail;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CapabilityStatement;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.RelatedArtifact;
 import org.junit.Before;
 import org.junit.Test;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 
 import com.ibm.cohort.engine.LibraryFormat;
+import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 
 public class MeasureEvaluatorTest extends BaseMeasureTest {
 
+	public static final String DEFAULT_VERSION = "1.0.0";
+	
 	private MeasureEvaluator evaluator;
 	
 	@Before
@@ -49,7 +56,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
 
-		Library library = mockLibraryRetrieval("TestDummyPopulations", "cql/fhir-measure/test-dummy-populations.xml",
+		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.xml",
 				LibraryFormat.MIME_TYPE_APPLICATION_ELM_XML);
 
 		Measure measure = getCohortMeasure("CohortMeasureName", library, INITIAL_POPULATION);
@@ -62,7 +69,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
 
 		// These ensure that the cache is working
-		verify(1, getRequestedFor(urlEqualTo("/Library/TestDummyPopulations")));
+		verify(1, getRequestedFor(urlMatching("/Library\\?url=http.*")));
 		verify(1, getRequestedFor(urlEqualTo("/Library?name=" + library.getName() + "&version=1.0.0&_sort=-date")));
 	}
 
@@ -74,7 +81,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
 
-		Library library = mockLibraryRetrieval("TestDummyPopulations", "cql/fhir-measure/test-dummy-populations.cql",
+		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.cql",
 				"text/cql", "cql/fhir-measure/test-dummy-populations.xml", "application/elm+xml");
 
 		Measure measure = getCohortMeasure("CohortMeasureName", library, INITIAL_POPULATION);
@@ -93,7 +100,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
 
-		Library library = mockLibraryRetrieval("TestDummyPopulations", "cql/fhir-measure/test-dummy-populations.cql");
+		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.cql");
 
 		expressionsByPopulationType.clear();
 		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
@@ -207,7 +214,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
 
-		Library library = mockLibraryRetrieval("TestDummyPopulations", "cql/fhir-measure/test-dummy-populations.cql");
+		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.cql");
 
 		Measure measure1 = getCareGapMeasure("ProportionMeasureName1", library, expressionsByPopulationType, "CareGap1",
 											"CareGap2");
@@ -221,13 +228,127 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		passingParameters.put("InInitialPopulation", Boolean.TRUE);
 
 		Map<String, Object> failingParameters = new HashMap<>();
-		passingParameters.put("InInitialPopulation", Boolean.FALSE);
+		failingParameters.put("InInitialPopulation", Boolean.FALSE);
 
 		List<MeasureContext> measureContexts = new ArrayList<>();
 		measureContexts.add(new MeasureContext(measure1.getId(), passingParameters));
 		measureContexts.add(new MeasureContext(measure2.getId(), failingParameters));
 
 		assertEquals(1, evaluator.evaluatePatientMeasures(patient.getId(), measureContexts).size());
+	}
+	
+	@Test
+	public void multilevel_library_dependencies___successfully_loaded_and_evaluated() throws Exception {
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		Library nestedHelperLibrary = mockLibraryRetrieval("NestedChild", DEFAULT_VERSION, "cql/fhir-measure-nested-libraries/test-nested-child.cql");
+		
+		Library helperLibrary = mockLibraryRetrieval("Child", DEFAULT_VERSION, "cql/fhir-measure-nested-libraries/test-child.cql");
+		helperLibrary.addRelatedArtifact( asRelation(nestedHelperLibrary) );
+		
+		Library library = mockLibraryRetrieval("Parent", DEFAULT_VERSION, "cql/fhir-measure-nested-libraries/test-parent.cql");
+		library.addRelatedArtifact( asRelation(helperLibrary) );
+		
+		Measure measure = getCareGapMeasure("NestedLibraryMeasure", library, expressionsByPopulationType, "CareGap1",
+											"CareGap2");
+		mockFhirResourceRetrieval(measure);
+
+		Map<String, Object> passingParameters = new HashMap<>();
+		passingParameters.put("InInitialPopulation", Boolean.TRUE);
+
+		List<MeasureContext> measureContexts = new ArrayList<>();
+		measureContexts.add(new MeasureContext(measure.getId(), passingParameters));
+
+		List<MeasureReport> reports = evaluator.evaluatePatientMeasures(patient.getId(), measureContexts);
+		assertEquals(1, reports.size());
+		
+		MeasureReport report = reports.get(0);
+		verifyStandardPopulationCounts(report);
+	}
+	
+	@Test
+	public void id_based_library_link___successfully_loaded_and_evaluated() throws Exception {
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+		
+		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.cql");
+		
+		Measure measure = getCareGapMeasure("IDBasedLibraryMeasure", library, expressionsByPopulationType, "CareGap1",
+											"CareGap2");
+		
+		measure.setLibrary( Arrays.asList( new CanonicalType( "Library/" + library.getId()) ) );
+		mockFhirResourceRetrieval(measure);
+
+		Map<String, Object> passingParameters = new HashMap<>();
+		passingParameters.put("InInitialPopulation", Boolean.TRUE);
+
+		List<MeasureContext> measureContexts = new ArrayList<>();
+		measureContexts.add(new MeasureContext(measure.getId(), passingParameters));
+
+		List<MeasureReport> reports = evaluator.evaluatePatientMeasures(patient.getId(), measureContexts);
+		assertEquals(1, reports.size());
+		
+		MeasureReport report = reports.get(0);
+		verifyStandardPopulationCounts(report);
+		
+		verify(1, getRequestedFor(urlEqualTo("/Library/" + library.getId())));
+	}
+	
+	@Test
+	public void in_populations_evaluated_resources_returned() throws Exception {
+		CapabilityStatement metadata = getCapabilityStatement();
+		mockFhirResourceRetrieval("/metadata", metadata);
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = mockLibraryRetrieval("TestAdultMales", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males.cql");
+
+		expressionsByPopulationType.clear();
+		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
+		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOR, DENOMINATOR);
+		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
+
+		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
+		mockFhirResourceRetrieval(measure);
+
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(true, true));
+
+		assertNotNull(report);
+
+		assertTrue(!report.getEvaluatedResource().isEmpty());
+	}
+
+	@Test
+	public void in_populations_no_evaluated_resources_returned() throws Exception {
+		CapabilityStatement metadata = getCapabilityStatement();
+		mockFhirResourceRetrieval("/metadata", metadata);
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = mockLibraryRetrieval("TestAdultMales", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males.cql");
+
+		expressionsByPopulationType.clear();
+		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
+		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOR, DENOMINATOR);
+		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
+
+		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
+		mockFhirResourceRetrieval(measure);
+
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());
+		assertNotNull(report);
+
+		assertTrue(!report.getEvaluatedResource().isEmpty());
+		
+		// When this functionality is implemented, this is what we want to be returned
+//		assertTrue(report.getEvaluatedResource().isEmpty());
 	}
 
 	private void runCareGapTest(Map<String, Object> parameters, Map<String, Integer> careGapExpectations)
@@ -238,7 +359,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
 
-		Library library = mockLibraryRetrieval("TestDummyPopulations", "cql/fhir-measure/test-dummy-populations.cql");
+		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.cql");
 
 		Measure measure = getCareGapMeasure("ProportionMeasureName", library, expressionsByPopulationType, "CareGap1",
 				"CareGap2");
@@ -246,6 +367,11 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 
 		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), parameters);
 		assertNotNull(report);
+		assertPopulationExpectations(measure, report, careGapExpectations);
+	}
+
+	protected void assertPopulationExpectations(Measure measure, MeasureReport report,
+			Map<String, Integer> expectations) {
 		assertEquals(measure.getGroupFirstRep().getPopulation().size(),
 				report.getGroupFirstRep().getPopulation().size());
 		List<MeasureReport.MeasureReportGroupPopulationComponent> careGapPopulations = verifyStandardPopulationCounts(
@@ -258,7 +384,11 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 			assertEquals(CDMMeasureEvaluation.CARE_GAP, pop.getCode().getCodingFirstRep().getCode());
 			assertTrue(pop.getId().startsWith("CareGap")); // this is part of the test fixture and may not match
 															// production behavior
-			assertEquals(pop.getId(), careGapExpectations.get(pop.getId()).intValue(), pop.getCount());
+			assertEquals(pop.getId(), expectations.get(pop.getId()).intValue(), pop.getCount());
 		}
+	}
+	
+	protected RelatedArtifact asRelation(Library library) {
+		return new RelatedArtifact().setType(RelatedArtifact.RelatedArtifactType.DEPENDSON).setResource( library.getUrl() + "|" + library.getVersion() );
 	}
 }

@@ -32,6 +32,7 @@ import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 
 	private static final String TEST_URL = "http://somewhere.com/cds/Test|1.0.0";
+	private static final String DEFAULT_VERSION = "1.0.0";
 	private RestFhirLibraryResolutionProvider provider;
 
 	@Before
@@ -46,7 +47,7 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 	public void resolveLibraryById___returns_library_when_found() throws Exception {
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 		
-		Library library = getLibrary("Test", "cql/basic/test.cql");
+		Library library = getLibrary("Test", DEFAULT_VERSION, "cql/basic/test.cql");
 		mockFhirResourceRetrieval( library );
 		
 		Library actual = provider.resolveLibraryById(library.getId());
@@ -70,7 +71,7 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 	public void resolveLibraryById_twice___returns_cached_data() throws Exception {
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 		
-		Library library = getLibrary("Test", "cql/basic/test.cql");
+		Library library = getLibrary("Test", DEFAULT_VERSION, "cql/basic/test.cql");
 		mockFhirResourceRetrieval( library );
 		
 		Library actual = provider.resolveLibraryById(library.getId());
@@ -86,7 +87,7 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 	public void resolveLibraryByName___returns_library_when_found() throws Exception {
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 		
-		Library library = getLibrary("Test", "cql/basic/test.cql");
+		Library library = getLibrary("Test", DEFAULT_VERSION, "cql/basic/test.cql");
 		library.setVersion("1.0.0");
 		MappingBuilder mapping = get(urlMatching("/Library\\?name=[^&]+&version=.+"));
 		mockFhirResourceRetrieval( mapping, makeBundle(library) );
@@ -111,7 +112,7 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 	public void resolveLibraryByName_twice___returns_cached_data() throws Exception {
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 		
-		Library library = getLibrary("Test", "cql/basic/test.cql");
+		Library library = getLibrary("Test", DEFAULT_VERSION, "cql/basic/test.cql");
 		library.setVersion("1.0.0");
 		MappingBuilder mapping = get(urlMatching("/Library\\?name=[^&]+&version=.+"));
 		mockFhirResourceRetrieval( mapping, makeBundle(library) );
@@ -127,7 +128,7 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 
 	@Test
 	public void resolveLibraryByCanonicalUrl___returns_library_when_found() throws Exception {
-		Library library = getLibrary("Test", "cql/basic/test.cql");
+		Library library = getLibrary("Test", DEFAULT_VERSION, "cql/basic/test.cql");
 		library.setUrl(TEST_URL);
 
 		Library actual = runTest(TEST_URL, makeBundle( library ));
@@ -137,7 +138,7 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 	
 	@Test
 	public void resolveLibraryByCanonicalUrl_twice___returns_cached_data() throws Exception {
-		Library library = getLibrary("Test", "cql/basic/test.cql");
+		Library library = getLibrary("Test", DEFAULT_VERSION, "cql/basic/test.cql");
 		library.setUrl(TEST_URL);
 
 		Library actual = runTest(TEST_URL, makeBundle( library ));
@@ -155,10 +156,10 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void resolveLibraryByCanonicalUrl___exception_when_multiple_library_found() throws Exception {
-		Library library1 = getLibrary("Test", "cql/basic/test.cql");
+		Library library1 = getLibrary("Test", DEFAULT_VERSION, "cql/basic/test.cql");
 		library1.setUrl(TEST_URL);
 
-		Library library2 = getLibrary("Test", "cql/basic/test.cql");
+		Library library2 = getLibrary("Test", DEFAULT_VERSION, "cql/basic/test.cql");
 		library2.setUrl(TEST_URL);
 
 		Library actual = runTest(TEST_URL, makeBundle(library1, library2));
@@ -167,7 +168,7 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 	
 	@Test(expected = UnsupportedOperationException.class)
 	public void update___exception_throw() throws Exception {
-		Library library = getLibrary("Test", "cql/basic/test.cql");
+		Library library = getLibrary("Test", DEFAULT_VERSION, "cql/basic/test.cql");
 		provider.update(library);
 	}
 
