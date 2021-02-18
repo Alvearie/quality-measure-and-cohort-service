@@ -42,6 +42,11 @@ public class DefaultFilenameToVersionedIdentifierStrategyTest {
 	}
 	
 	@Test
+	public void testDottedVersionValidFilenameConversion2() {
+		runTest( "TestUOMCompare-1.0.0.cql", "TestUOMCompare", "1.0.0");
+	}
+	
+	@Test
 	public void testNoExtensionWithDotsValidFilenameConversion() {
 		runTest( "Corey-Is-Here-1.0.0", "Corey-Is-Here", "1.0");
 	}
