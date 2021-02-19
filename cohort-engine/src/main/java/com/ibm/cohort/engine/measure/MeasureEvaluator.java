@@ -18,6 +18,7 @@ import org.opencds.cqf.common.evaluation.EvaluationProviderFactory;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 
+import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.measure.seed.IMeasureEvaluationSeed;
 import com.ibm.cohort.engine.measure.seed.MeasureEvaluationSeeder;
 
@@ -80,13 +81,21 @@ public class MeasureEvaluator {
 		return this.measurementPeriodStrategy;
 	}
 	
-	public List<MeasureReport> evaluatePatientMeasures(String patientId, List<MeasureContext> measureContexts) {
+	/**
+	 * Evaluates measures for a given patient
+	 * 
+	 * @param patientId Patient id to evaluate measures for
+	 * @param measureContexts Measure info with parameters
+	 * @param evidenceOptions Evidence options impacting the returned MeasureReports 
+	 * @return List of Measure Reports
+	 */
+	public List<MeasureReport> evaluatePatientMeasures(String patientId, List<MeasureContext> measureContexts, MeasureEvidenceOptions evidenceOptions) {
 		List<MeasureReport> measureReports = new ArrayList<>();
 		MeasureReport measureReport = null;
 		boolean inInitialPopulation;
 		for (MeasureContext measureContext: measureContexts) {
 			inInitialPopulation = false;
-			measureReport = evaluatePatientMeasure(measureContext, patientId);
+			measureReport = evaluatePatientMeasure(measureContext, patientId, evidenceOptions);
 			if (measureReport != null) {
 				for (MeasureReport.MeasureReportGroupComponent group : measureReport.getGroup()) {
 					if (CDMMeasureEvaluation.StandardReportResults.fromMeasureReportGroup(group).inInitialPopulation()) {
@@ -100,36 +109,52 @@ public class MeasureEvaluator {
 		}
 		return measureReports;
 	}
+	
+	/**
+	 * Evaluates measures for a given patient
+	 * 
+	 * @param patientId Patient id to evaluate measures for
+	 * @param measureContexts Measure info with parameters
+	 * @return List of Measure Reports
+	 */
+	public List<MeasureReport> evaluatePatientMeasures(String patientId, List<MeasureContext> measureContexts) {
+		return evaluatePatientMeasures(patientId, measureContexts, new MeasureEvidenceOptions());
+	}
 
-	public MeasureReport evaluatePatientMeasure(MeasureContext context, String patientId) {
+	public MeasureReport evaluatePatientMeasure(MeasureContext context, String patientId, MeasureEvidenceOptions evidenceOptions) {
 		MeasureReport measureReport = null;
 
 		if (context.getMeasureId() != null) {
-			measureReport = evaluatePatientMeasure(context.getMeasureId(), patientId, context.getParameters());
+			measureReport = evaluatePatientMeasure(context.getMeasureId(), patientId, context.getParameters(), evidenceOptions);
 		} else if (context.getIdentifier() != null) {
-			measureReport = evaluatePatientMeasure(context.getIdentifier(), context.getVersion(), patientId, context.getParameters());
+			measureReport = evaluatePatientMeasure(context.getIdentifier(), context.getVersion(), patientId, context.getParameters(), evidenceOptions);
 		}
 
 		return measureReport;
 	}
 
+	public MeasureReport evaluatePatientMeasure(String measureId, String patientId, Map<String, Object> parameters, MeasureEvidenceOptions evidenceOptions) {
+		Measure measure = MeasureHelper.loadMeasure(measureId, getMeasureResolutionProvider());
+		return evaluatePatientMeasure(measure, patientId, parameters, evidenceOptions);
+	}
+	
 	public MeasureReport evaluatePatientMeasure(String measureId, String patientId, Map<String, Object> parameters) {
 		Measure measure = MeasureHelper.loadMeasure(measureId, getMeasureResolutionProvider());
-		return evaluatePatientMeasure(measure, patientId, parameters);
+		return evaluatePatientMeasure(measure, patientId, parameters, new MeasureEvidenceOptions());
 	}
 
-	public MeasureReport evaluatePatientMeasure(Identifier identifier, String version, String patientId, Map<String, Object> parameters) {
+	public MeasureReport evaluatePatientMeasure(Identifier identifier, String version, String patientId, Map<String, Object> parameters, MeasureEvidenceOptions evidenceOptions) {
 		Measure measure =  MeasureHelper.loadMeasure(identifier,  version, getMeasureResolutionProvider());
-		return evaluatePatientMeasure(measure, patientId, parameters);
+		return evaluatePatientMeasure(measure, patientId, parameters, evidenceOptions);
 	}
 
-	public MeasureReport evaluatePatientMeasure(Measure measure, String patientId, Map<String, Object> parameters) {
+	public MeasureReport evaluatePatientMeasure(Measure measure, String patientId, Map<String, Object> parameters, MeasureEvidenceOptions evidenceOptions) {
 		Pair<String, String> period = getMeasurementPeriodStrategy().getMeasurementPeriod();
-		return evaluatePatientMeasure(measure, patientId, period.getLeft(), period.getRight(), parameters);
+		return evaluatePatientMeasure(measure, patientId, period.getLeft(), period.getRight(), parameters, evidenceOptions);
 	}
 
 	public MeasureReport evaluatePatientMeasure(Measure measure, String patientId, String periodStart, String periodEnd,
-			Map<String, Object> parameters) {
+			Map<String, Object> parameters, MeasureEvidenceOptions evidenceOptions) {
 		LibraryResolutionProvider<Library> libraryResolutionProvider = getLibraryResolutionProvider();
 		LibraryLoader libraryLoader = LibraryHelper.createLibraryLoader(libraryResolutionProvider);
 
