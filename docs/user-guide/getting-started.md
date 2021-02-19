@@ -195,8 +195,8 @@ $ java -classpath cohort-cli/target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar com.ibm
         additional parameterized elements separated by comma. Multiple 
         parameters must be specified as multiple -p options
       -r, --resource
-        FHIR Resource ID for the measure resource to be evaluated. Cannot be 
-        specified if -j option is used
+        FHIR Resource ID or canonical URL for the measure resource to be evaluated.
+        Cannot be specified if -j option is used
       -t, --terminology-server
         Path to JSON configuration data for the FHIR server connection that will 
         be used to retrieve terminology.
@@ -258,7 +258,7 @@ Outer Structure:
 * `measureConfigurations` (Required):
     * Description:  List containing configurations for which measures to run.
 * `measureConfigurations.measureId` (Optional*):
-    * Description: Measure id (resource id) of a measure to evaluate.
+    * Description: Measure id (resource id or canonical URL) of a measure to evaluate.
     * Type: String
     * *Note*: *Is required when `identifier` is not specified.
 * `measureConfigurations.parameters` (Optional): 

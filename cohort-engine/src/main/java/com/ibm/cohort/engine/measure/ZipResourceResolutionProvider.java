@@ -12,6 +12,10 @@ import java.util.zip.ZipFile;
 
 import ca.uhn.fhir.parser.IParser;
 
+/**
+ * Implementation of a FHIR knowledge artifact resource resolution provider that is based
+ * on data in a zip file.
+ */
 public class ZipResourceResolutionProvider extends ResourceResolutionProvider {
 
 	public ZipResourceResolutionProvider(ZipFile zipFile, IParser parser, String... searchPaths) throws IOException {

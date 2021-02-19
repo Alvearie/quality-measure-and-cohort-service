@@ -21,6 +21,10 @@ import com.ibm.cohort.engine.measure.ResourceResolutionProvider;
 
 import ca.uhn.fhir.parser.IParser;
 
+/**
+ * Implementation of a FHIR knowledge artifact resource resolution provider that is based
+ * on data in a filesystem folder.
+ */
 public class DirectoryResourceResolutionProvider extends ResourceResolutionProvider {
 	public DirectoryResourceResolutionProvider(File directory, IParser parser, String... searchPaths) throws IOException {
 		this( directory.toPath(), parser, searchPaths );

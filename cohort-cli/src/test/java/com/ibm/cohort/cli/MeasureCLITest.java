@@ -136,7 +136,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 	}
 
 	@Test
-	public void testCohortMeasuresMultiplePatientsJsonInput() throws Exception {
+	public void testCohortMeasuresMultiplePatientsJsonInputByUrl() throws Exception {
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 
 		Patient patient1 = getPatient("123", AdministrativeGender.MALE, "1592-14-03");
@@ -151,7 +151,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		Library library1 = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/test.cql");
 
 		Measure measure = getCohortMeasure("Test", library1, "Male");
-		mockFhirResourceRetrieval(measure);
+		mockMeasureRetrieval(measure);
 
 		File tmpFile = new File("target/fhir-stub.json");
 		ObjectMapper om = new ObjectMapper();
@@ -160,7 +160,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		}
 
 		File tmpMeasureConfigurationsFile = createTmpConfigurationsFileFromContents(
-				"{\"measureConfigurations\":[{\"measureId\":\"" + measure.getId() + "\"}," + 
+				"{\"measureConfigurations\":[{\"measureId\":\"" + measure.getUrl() + "\"}," + 
 						"{\"measureId\":\"" + measure.getId() + "\",\"parameters\":[" + createParameterString("p1", "integer", "10")+ "]}]}");
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -411,7 +411,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 	}
 	
 	@Test
-	public void testZipFileInput() throws Exception {
+	public void testZipFileKnowledgeArtifacts() throws Exception {
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 		
 		Patient patient = getPatient("123", AdministrativeGender.MALE, 65);
@@ -451,7 +451,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 	}
 	
 	@Test
-	public void testFolderInput() throws Exception {
+	public void testFolderKnowledgeArtifacts() throws Exception {
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 		
 		Patient patient = getPatient("123", AdministrativeGender.MALE, 65);
@@ -476,7 +476,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
 					"-m", "src/test/resources/cql/measure-folders",					
-					"-r", "Measure/measure-COL_ColorectalCancerScreening-1.0.0",
+					"-r", "http://ibm.com/health/Measure/measure-COL_ColorectalCancerScreening|1.0.0",
 					"--filter", "fhirResources",
 					"-c", patient.getId(),
 					"-f", "JSON"

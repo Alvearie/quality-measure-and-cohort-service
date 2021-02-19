@@ -135,5 +135,5 @@
   "name": "COL_ColorectalCancerScreening",
   "version": "1.0.0",
   "resourceType": "Measure",
-  "url": "Measure/measure-COL_ColorectalCancerScreening"
+  "url": "http://ibm.com/health/Measure/measure-COL_ColorectalCancerScreening"
 }

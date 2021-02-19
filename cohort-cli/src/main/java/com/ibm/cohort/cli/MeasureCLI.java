@@ -64,7 +64,7 @@ public class MeasureCLI extends BaseCLI {
 		private List<String> parameters;
 
 		@Parameter(names = { "-r",
-				"--resource" }, description = "FHIR Resource ID for the measure resource to be evaluated. Cannot be specified if -j option is used")
+				"--resource" }, description = "FHIR Resource ID or canonical URL for the measure resource to be evaluated. Cannot be specified if -j option is used")
 		private String resourceId;
 		
 		@Parameter(names = { "--filter" }, description = "Filter information for resource loader if the resource loader supports filtering")

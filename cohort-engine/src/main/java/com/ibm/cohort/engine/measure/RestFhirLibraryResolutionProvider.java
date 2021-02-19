@@ -8,9 +8,12 @@ package com.ibm.cohort.engine.measure;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-import org.hl7.fhir.r4.model.Bundle;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hl7.fhir.instance.model.api.IBaseBundle;
 import org.hl7.fhir.r4.model.Library;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
+
+import com.ibm.cohort.engine.helpers.CanonicalHelper;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.gclient.IQuery;
@@ -26,7 +29,7 @@ import ca.uhn.fhir.rest.gclient.IQuery;
  *       FHIR server does not support _include:iterate tree walking today, so
  *       that needs to be considered if we go down this route.
  */
-public class RestFhirLibraryResolutionProvider implements LibraryResolutionProvider<Library> {
+public class RestFhirLibraryResolutionProvider extends RestFhirResourceResolutionProvider implements LibraryResolutionProvider<Library> {
 
 	private Map<String, Library> cacheByNameVersion = new WeakHashMap<>();
 	private Map<String, Library> cacheById = new WeakHashMap<>();
@@ -41,63 +44,57 @@ public class RestFhirLibraryResolutionProvider implements LibraryResolutionProvi
 	@Override
 	public Library resolveLibraryById(String libraryId) {
 		Library library = cacheById.computeIfAbsent(libraryId, k -> {
-			return libraryClient.read().resource(Library.class).withId(libraryId).execute();
+			return resolveLibraryByIdRaw(libraryId);
 		});
 		cacheByNameVersion.computeIfAbsent(getCacheKey(library), k -> library);
 		return library;
+	}
+	
+	public Library resolveLibraryByIdRaw(String libraryId) {
+		return libraryClient.read().resource(Library.class).withId(libraryId).execute();
 	}
 
 	@Override
 	public Library resolveLibraryByName(String libraryName, String libraryVersion) {
 		String cacheKey = getCacheKey(libraryName, libraryVersion);
 		Library library = cacheByNameVersion.computeIfAbsent(cacheKey, k -> {
-			Bundle bundle = null;
-			try {
-				bundle = libraryClient.search().forResource(Library.class)
-						.where(Library.NAME.matches().value(libraryName))
-						.and(Library.VERSION.exactly().code(libraryVersion)).returnBundle(Bundle.class).sort()
-						.descending(Library.DATE).execute();
-			} catch (Exception ex) {
-				throw new RuntimeException(ex);
-			}
-
-			if (bundle.getTotal() == 0) {
-				throw new IllegalArgumentException(
-						String.format("No library found matching %s version %s", libraryName, libraryVersion));
-			}
-
-			return (Library) bundle.getEntry().get(0).getResource();
-
+			return resolveLibraryByNameRaw(libraryName, libraryVersion);
 		});
 		return library;
+	}
+	
+	public Library resolveLibraryByNameRaw(String libraryName, String libraryVersion) {
+		IQuery<IBaseBundle> query = libraryClient.search().forResource(Library.class)
+					.where(Library.NAME.matches().value(libraryName));
+		return (Library) queryWithVersion( query, Library.VERSION, libraryVersion);
 	}
 
 	@Override
 	public Library resolveLibraryByCanonicalUrl(String libraryUrl) {
 				
 		return cacheByUrl.computeIfAbsent(libraryUrl, cacheKey -> {
-			// The IBM FHIR Server does not honor the vertical bar convention yet.
-			String [] parts = libraryUrl.split("\\|");
-
-			IQuery<Bundle> query = libraryClient.search().forResource(Library.class)
-					.where(Library.URL.matches().value(parts[0])).returnBundle(Bundle.class);
-			if( parts.length > 1 ) {
-				query = query.and(Library.VERSION.exactly().identifier(parts[1]));
-			}
-			
-			Bundle bundle = query.returnBundle(Bundle.class).execute();
-			if (bundle.getTotal() != 1) {
-				throw new IllegalArgumentException(String.format("Unexpected number of libraries %d matching url %s ",
-						bundle.getTotal(), libraryUrl));
-			}
-
-			return (Library) bundle.getEntry().get(0).getResource();
+			return resolveLibraryByCanonicalUrlRaw(libraryUrl);
 		});
+	}
+	
+	public Library resolveLibraryByCanonicalUrlRaw(String libraryUrl) {
+		// The IBM FHIR Server does not honor the vertical bar convention yet.
+		Pair<String,String> parts = CanonicalHelper.separateParts(libraryUrl);
+
+		IQuery<IBaseBundle> query = libraryClient.search().forResource(Library.class)
+				.where(Library.URL.matches().value(parts.getLeft()));
+		return (Library) queryWithVersion(query, Library.VERSION, parts.getRight());
 	}
 
 	@Override
 	public void update(Library library) {
 		throw new UnsupportedOperationException("No support for Library updates");
+	}
+	
+	public void clearCache() {
+		cacheById.clear();
+		cacheByNameVersion.clear();
+		cacheByUrl.clear();
 	}
 
 	protected String getCacheKey(Library library) {
