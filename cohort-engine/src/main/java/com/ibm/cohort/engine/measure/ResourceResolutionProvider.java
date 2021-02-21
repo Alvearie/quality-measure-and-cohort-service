@@ -95,6 +95,8 @@ public abstract class ResourceResolutionProvider
 					addToIndexes(metadataResource);
 				}
 			}
+		} else {
+			throw new UnsupportedOperationException("Only FHIR knowledge artifacts as single resources or in a bundle are supported.");
 		}
 	}
 

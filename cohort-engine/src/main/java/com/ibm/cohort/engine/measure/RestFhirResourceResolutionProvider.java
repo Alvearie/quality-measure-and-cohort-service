@@ -11,7 +11,6 @@ import java.util.Optional;
 
 import org.hl7.fhir.instance.model.api.IBaseBundle;
 import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MetadataResource;
 
 import com.ibm.cohort.version.SemanticVersion;
@@ -50,17 +49,17 @@ public abstract class RestFhirResourceResolutionProvider {
 		MetadataResource retVal = null;
 	
 		for (Bundle.BundleEntryComponent b : bundle.getEntry()) {
-			MetadataResource measure = (Measure) b.getResource();
-			Optional<SemanticVersion> optional = SemanticVersion.create(measure.getVersion());
+			MetadataResource resource = (MetadataResource) b.getResource();
+			Optional<SemanticVersion> optional = SemanticVersion.create(resource.getVersion());
 			if (optional.isPresent()) {
-				SemanticVersion measureVersion = optional.get();
+				SemanticVersion resourceVersion = optional.get();
 	
 				// Max not initialized or new max found
-				if (currentMax == null || measureVersion.compareTo(currentMax) > 0) {
-					retVal = measure;
-					currentMax = measureVersion;
+				if (currentMax == null || resourceVersion.compareTo(currentMax) > 0) {
+					retVal = resource;
+					currentMax = resourceVersion;
 					numberOfMaxVersionSeen = 1;
-				} else if (measureVersion.equals(currentMax)) {
+				} else if (resourceVersion.equals(currentMax)) {
 					numberOfMaxVersionSeen += 1;
 				}
 			}
