@@ -385,7 +385,7 @@ public class CohortCLITest extends BasePatientTest {
 		root.addRelatedArtifact(related);
 
 		mockFhirResourceRetrieval(root);
-		mockFhirResourceRetrieval(helpers);
+		mockFhirSingletonBundleRetrieval(helpers);
 
 		File tmpFile = new File("target/fhir-stub.json");
 		ObjectMapper om = new ObjectMapper();
@@ -412,7 +412,7 @@ public class CohortCLITest extends BasePatientTest {
 
 			verify(1, getRequestedFor(urlEqualTo("/Patient/" + patient.getId())));
 			verify(1, getRequestedFor(urlEqualTo("/Library/" + root.getId())));
-			verify(1, getRequestedFor(urlEqualTo("/Library/" + helpers.getId())));
+			verify(1, getRequestedFor(urlEqualTo("/Library?url=%2FLibrary%2F" + helpers.getId())));
 		} finally {
 			tmpFile.delete();
 		}
@@ -486,7 +486,7 @@ public class CohortCLITest extends BasePatientTest {
 		root.addRelatedArtifact(related);
 
 		mockFhirResourceRetrieval(root);
-		mockFhirResourceRetrieval(helpers);
+		mockFhirSingletonBundleRetrieval(helpers);
 
 		File tmpFile = new File("target/fhir-stub.json");
 		ObjectMapper om = new ObjectMapper();
@@ -510,7 +510,7 @@ public class CohortCLITest extends BasePatientTest {
 
 			verify(2, getRequestedFor(urlEqualTo("/Patient/" + patient.getId())));
 			verify(1, getRequestedFor(urlEqualTo("/Library/" + root.getId())));
-			verify(1, getRequestedFor(urlEqualTo("/Library/" + helpers.getId())));
+			verify(1, getRequestedFor(urlEqualTo("/Library?url=%2FLibrary%2F" + helpers.getId())));
 		} finally {
 			tmpFile.delete();
 		}

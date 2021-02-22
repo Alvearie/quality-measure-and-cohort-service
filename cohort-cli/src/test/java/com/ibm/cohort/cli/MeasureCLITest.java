@@ -71,7 +71,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		
 		String output = new String(baos.toByteArray());
 		String[] lines = output.split(System.getProperty("line.separator"));
-		assertEquals( output, 2, lines.length );
+		assertEquals( output, 4, lines.length );
 	}
 
 	@Test
@@ -109,7 +109,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 
 		String output = new String(baos.toByteArray());
 		String[] lines = output.split(System.getProperty("line.separator"));
-		assertEquals( output, 2, lines.length );
+		assertEquals( output, 4, lines.length );
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -181,9 +181,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 
 		String output = new String(baos.toByteArray());
 		String[] lines = output.split(System.getProperty("line.separator"));
-		// First two patients create 7 lines of output each (1 for start of patient context, 3 per measure result).
-		// Last patient only creates 2 lines (1 for start of patient context, 1 for line divider since there is no measure report returned).
-		assertEquals( output, 16, lines.length );
+		assertEquals( output, 21, lines.length );
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -317,7 +315,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		System.out.println(output);
 		
 		String[] lines = output.split(System.getProperty("line.separator"));
-		assertEquals( output, 14, lines.length );
+		assertEquals( output, 18, lines.length );
 	}
 	
 	@Test

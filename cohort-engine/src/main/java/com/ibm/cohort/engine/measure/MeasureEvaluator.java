@@ -91,21 +91,10 @@ public class MeasureEvaluator {
 	 */
 	public List<MeasureReport> evaluatePatientMeasures(String patientId, List<MeasureContext> measureContexts, MeasureEvidenceOptions evidenceOptions) {
 		List<MeasureReport> measureReports = new ArrayList<>();
-		MeasureReport measureReport = null;
-		boolean inInitialPopulation;
+		MeasureReport measureReport;
 		for (MeasureContext measureContext: measureContexts) {
-			inInitialPopulation = false;
 			measureReport = evaluatePatientMeasure(measureContext, patientId, evidenceOptions);
-			if (measureReport != null) {
-				for (MeasureReport.MeasureReportGroupComponent group : measureReport.getGroup()) {
-					if (CDMMeasureEvaluation.StandardReportResults.fromMeasureReportGroup(group).inInitialPopulation()) {
-						inInitialPopulation = true;
-					}
-				}
-			}
-			if (inInitialPopulation) {
-				measureReports.add(measureReport);
-			}
+			measureReports.add(measureReport);
 		}
 		return measureReports;
 	}

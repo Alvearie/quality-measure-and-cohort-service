@@ -14,6 +14,7 @@
 		<module>../build</module>
 		<module>../fhir-client-config</module>
 		<module>../cohort-engine</module>
+		<module>../cohort-engine-flink-example</module>
 		<module>../cohort-cli</module>
 		<module>../cohort-engine-api</module>
 		<module>../cohort-engine-api-web</module>
