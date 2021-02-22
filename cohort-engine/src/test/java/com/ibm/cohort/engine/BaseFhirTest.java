@@ -80,6 +80,20 @@ public class BaseFhirTest {
 		String resourcePath = "/" + resource.getClass().getSimpleName() + "/" + resource.getId();
 		mockFhirResourceRetrieval(resourcePath, getFhirParser(), resource);
 	}
+	
+	protected void mockFhirSingletonBundleRetrieval(Resource resource) {
+		String resourceType = resource.getClass().getSimpleName();
+		String resourcePath = "/" + resourceType + "?url=%2F" + resourceType + "%2F" + resource.getId();
+
+		BundleEntryComponent bundleEntryComponent = new BundleEntryComponent();
+		bundleEntryComponent.setResource(resource);
+
+		Bundle bundle = new Bundle();
+		bundle.addEntry(bundleEntryComponent);
+		bundle.setTotal(1);
+
+		mockFhirResourceRetrieval(resourcePath, getFhirParser(), bundle);
+	}	
 
 	protected void mockFhirResourceRetrieval(String resourcePath, Resource resource) {
 		mockFhirResourceRetrieval(resourcePath, getFhirParser(), resource);
