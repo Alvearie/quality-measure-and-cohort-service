@@ -17,6 +17,7 @@ import com.ibm.cohort.engine.helpers.CanonicalHelper;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.gclient.IQuery;
+import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 
 /**
  * Provide a very basic mechanism for retrieving FHIR Library resources from a
@@ -46,12 +47,20 @@ public class RestFhirLibraryResolutionProvider extends RestFhirResourceResolutio
 		Library library = cacheById.computeIfAbsent(libraryId, k -> {
 			return resolveLibraryByIdRaw(libraryId);
 		});
-		cacheByNameVersion.computeIfAbsent(getCacheKey(library), k -> library);
+		if( library != null ) {
+			cacheByNameVersion.computeIfAbsent(getCacheKey(library), k -> library);
+		}
 		return library;
 	}
 	
 	public Library resolveLibraryByIdRaw(String libraryId) {
-		return libraryClient.read().resource(Library.class).withId(libraryId).execute();
+		Library result = null;
+		try {
+			result = libraryClient.read().resource(Library.class).withId(libraryId).execute();
+		} catch( ResourceNotFoundException rnfe ) {
+			result = null;
+		}
+		return result;
 	}
 
 	@Override

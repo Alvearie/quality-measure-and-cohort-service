@@ -33,11 +33,13 @@ public abstract class RestFhirResourceResolutionProvider {
 			query.and(versionParam.exactly().code(version));
 	
 			Bundle b = query.returnBundle(Bundle.class).execute();
-			if (b.getEntry().size() == 1) {
-				result = (MetadataResource) b.getEntryFirstRep().getResource();
-			} else {
-				throw new IllegalArgumentException(String.format(
-						"Measure lookup for %s returned unexpected number of elements %d", query.toString(), b.getEntry().size()));
+			if( b.hasEntry() ) {
+				if (b.getEntry().size() == 1) {
+					result = (MetadataResource) b.getEntryFirstRep().getResource();
+				} else {
+					throw new IllegalArgumentException(String.format(
+							"Measure lookup for %s returned unexpected number of elements %d", query.toString(), b.getEntry().size()));
+				}
 			}
 		}
 		return result;

@@ -20,6 +20,7 @@ import com.ibm.cohort.engine.helpers.CanonicalHelper;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.gclient.IQuery;
+import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 
 public class RestFhirMeasureResolutionProvider extends RestFhirResourceResolutionProvider implements MeasureResolutionProvider<Measure> {
 	private IGenericClient measureClient;
@@ -30,7 +31,13 @@ public class RestFhirMeasureResolutionProvider extends RestFhirResourceResolutio
 
 	@Override
 	public Measure resolveMeasureById(String resourceID) {
-		return measureClient.read().resource(Measure.class).withId(resourceID).execute();
+		Measure result = null;
+		try {
+			result = measureClient.read().resource(Measure.class).withId(resourceID).execute();
+		} catch( ResourceNotFoundException rnfe ) {
+			result = null;
+		}
+		return result;
 	}
 
 	@Override
@@ -57,32 +64,37 @@ public class RestFhirMeasureResolutionProvider extends RestFhirResourceResolutio
 	}
 	
 	private Measure resolveMeasureByIdentifierOnly(Identifier identifier) {
+		Measure result = null;
+		
 		Bundle b = measureClient.search().forResource(Measure.class)
 				.where(Measure.IDENTIFIER.exactly().systemAndValues(identifier.getSystem(), identifier.getValue()))
 				.returnBundle(Bundle.class).execute();
-		if (b.getEntry().isEmpty()) {
-			throw new IllegalArgumentException(
-					String.format("Measure lookup for identifier: %s returned no results", identifier.getValue()));
-		} else {
+		if (b.hasEntry()) {
 			Optional<MetadataResource> optional = resolveResourceFromList(b);
-			if (!optional.isPresent()) {
-				throw new IllegalArgumentException(
-						String.format("Measure lookup for identifier: %s did not yield a definitive result with a semantic version", identifier));
+			if (optional.isPresent()) {
+				result = (Measure) optional.get(); 
 			}
-			return (Measure) optional.get();
 		}
+		
+		return result;
 	}
 	
 	private Measure resolveMeasureByIdentifierWithVersion(Identifier identifier, String version) {
+		Measure result = null;
+		
 		Bundle b = measureClient.search().forResource(Measure.class)
 				.where(Measure.IDENTIFIER.exactly().systemAndValues(identifier.getSystem(), identifier.getValue()))
 				.and(Measure.VERSION.exactly().code(version))
 				.returnBundle(Bundle.class).execute();
-		if (b.getEntry().size() == 1) {
-			return (Measure) b.getEntryFirstRep().getResource();
-		} else {
-			throw new IllegalArgumentException(
-					String.format("Measure lookup for identifier: %s version: %s returned unexpected number of results: %s", identifier.getValue(), version, b.getEntry().size()));
+		if( b.hasEntry() ) { 
+			if (b.getEntry().size() == 1) {
+				result = (Measure) b.getEntryFirstRep().getResource();
+			} else {
+				throw new IllegalArgumentException(
+						String.format("Measure lookup for identifier: %s version: %s returned unexpected number of results: %s", identifier.getValue(), version, b.getEntry().size()));
+			}
 		}
+		
+		return result;
 	}
 }

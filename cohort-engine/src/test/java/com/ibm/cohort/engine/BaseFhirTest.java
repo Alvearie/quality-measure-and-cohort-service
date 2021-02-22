@@ -11,6 +11,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -29,6 +30,7 @@ import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.hl7.fhir.r4.model.Attachment;
+import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CapabilityStatement;
 import org.hl7.fhir.r4.model.Enumerations;
@@ -98,9 +100,28 @@ public class BaseFhirTest {
 
 	protected void mockFhirResourceRetrieval(MappingBuilder builder, IParser encoder, Resource resource,
 			FhirServerConfig fhirConfig) {
+		mockFhirResourceRetrieval( builder, encoder, resource, fhirConfig, 200);
+	}
+	
+	protected void mockFhirResourceRetrieval(MappingBuilder builder, IParser encoder, Resource resource,
+			FhirServerConfig fhirConfig, int statusCode) {
+		
+		String body = null;
+		if( resource != null ) {
+			body = encoder.encodeResourceToString(resource);
+		}
+		
 		builder = setAuthenticationParameters(fhirConfig, builder);
-		stubFor(builder.willReturn(aResponse().withStatus(200).withHeader("Content-Type", "application/json")
-				.withBody(encoder.encodeResourceToString(resource))));
+		stubFor(builder.willReturn(aResponse().withStatus(statusCode).withHeader("Content-Type", "application/json")
+				.withBody(body)));
+	}
+	
+	protected void mockEmptySearchResults(String fhirType) {
+		mockFhirResourceRetrieval( get(urlMatching("/" + fhirType + "\\?.*")), new Bundle() );
+	}
+	
+	protected void mockNotFound(String resource) {
+		mockFhirResourceRetrieval( get(urlMatching(resource)), getFhirParser(), null, getFhirServerConfig(), 404 );
 	}
 
 	protected MappingBuilder setAuthenticationParameters(FhirServerConfig fhirConfig, MappingBuilder builder) {
@@ -220,5 +241,17 @@ public class BaseFhirTest {
 		CapabilityStatement metadata = new CapabilityStatement();
 		metadata.setFhirVersion(Enumerations.FHIRVersion._4_0_1);
 		return metadata;
+	}
+	
+	protected Bundle makeBundle(Resource... resources) {		
+		Bundle bundle = new Bundle();
+		bundle.setType(Bundle.BundleType.SEARCHSET);
+		bundle.setTotal(resources != null ? resources.length : 0);
+		if( resources != null ) {
+			for (Resource l : resources) {
+				bundle.addEntry().setResource(l).setFullUrl("/" + l.getIdBase() + "/" + l.getId());
+			}
+		}
+		return bundle;
 	}
 }
