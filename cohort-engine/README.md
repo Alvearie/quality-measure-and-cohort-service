@@ -3,4 +3,5 @@
 
 This project contains the Java API to Watson Health Cohort Engine functionality.
 
-Details on how to get started can be found in the [User's Guide](https://pages.github.ibm.com/watson-health-cohorting/cohort-engine/#/user-guide/getting-started)
+Details on how to get started can be found in the [User Guide](https://alvearie.github.io/quality-measure-and-cohort-service/#/user-guide/getting-started)
+and [Developer Guide](https://alvearie.github.io/quality-measure-and-cohort-service/#/dev-guide/getting-started).
