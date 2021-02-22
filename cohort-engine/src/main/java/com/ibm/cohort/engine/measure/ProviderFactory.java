@@ -26,6 +26,12 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
  */
 public class ProviderFactory implements EvaluationProviderFactory {
 
+	/*
+	 * Wrap the ModelResolver around a static ThreadLocal to prevent
+	 * excess creation of FhirContext instances.
+	 */
+	private static final ThreadLocal<ModelResolver> MODEL_RESOLVER = ThreadLocal.withInitial(R4FhirModelResolver::new);
+
 	private IGenericClient dataClient;
 	private IGenericClient terminologyClient;
 
@@ -53,7 +59,7 @@ public class ProviderFactory implements EvaluationProviderFactory {
 	@Override
 	public DataProvider createDataProvider(String model, String version, TerminologyProvider terminologyProvider) {
 		//TODO: throw an error for an unsupported model and/or version
-		ModelResolver modelResolver = new R4FhirModelResolver();
+		ModelResolver modelResolver = MODEL_RESOLVER.get();
 		SearchParameterResolver resolver = new SearchParameterResolver(this.dataClient.getFhirContext());
 		
 		//TODO: plug in our own retrieve provider when it becomes a thing

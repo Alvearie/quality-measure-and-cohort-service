@@ -51,6 +51,12 @@ public class CqlEngineWrapper {
 	public static final List<String> SUPPORTED_MODELS = Arrays.asList("http://hl7.org/fhir",
 			"http://hl7.org/fhir/us/core", "http://hl7.org/fhir/us/qicore", "http://ibm.com/fhir/cdm");
 
+	/*
+	 * Wrap the ModelResolver around a static ThreadLocal to prevent
+	 * excess creation of FhirContext instances.
+	 */
+	private static final ThreadLocal<ModelResolver> MODEL_RESOLVER = ThreadLocal.withInitial(R4FhirModelResolver::new);
+
 	private LibraryLoader libraryLoader = null;
 
 	private FhirClientBuilder clientBuilder;
@@ -264,10 +270,9 @@ public class CqlEngineWrapper {
 	 * @return Map of supported model URL to data provider
 	 */
 	protected Map<String, DataProvider> getDataProviders() {
-		ModelResolver modelResolver = new R4FhirModelResolver();
 		SearchParameterResolver resolver = new SearchParameterResolver(this.dataServerClient.getFhirContext());
 		RetrieveProvider retrieveProvider = new RestFhirRetrieveProvider(resolver, this.dataServerClient);
-		CompositeDataProvider dataProvider = new CompositeDataProvider(modelResolver, retrieveProvider);
+		CompositeDataProvider dataProvider = new CompositeDataProvider(MODEL_RESOLVER.get(), retrieveProvider);
 
 		Map<String, DataProvider> dataProviders = mapSupportedModelsToDataProvider(dataProvider);
 		return dataProviders;
