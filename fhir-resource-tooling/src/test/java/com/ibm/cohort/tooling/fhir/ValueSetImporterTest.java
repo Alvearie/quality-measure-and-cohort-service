@@ -37,7 +37,7 @@ public class ValueSetImporterTest extends BaseFhirTest {
 	private final String valueSetIdentifier = "2.16.840.1.113762.1.4.1114.7";
 	private final String resourcePath = "/ValueSet?url=" + URLEncoder.encode("http://cts.nlm.nih.gov/fhir/ValueSet/") + valueSetIdentifier;
 	@Test
-	public void testImportAllNewResources() throws Exception {
+	public void testImportAllNewResources() throws IOException {
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 		fhirConfig.setLogInfo(Arrays.asList(FhirServerConfig.LogInfo.REQUEST_SUMMARY));
 
@@ -56,7 +56,7 @@ public class ValueSetImporterTest extends BaseFhirTest {
 	}
 
 	@Test
-	public void testImportAllNewResourcesWithComments() throws Exception {
+	public void testImportAllNewResourcesWithComments() throws IOException {
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 		fhirConfig.setLogInfo(Arrays.asList(FhirServerConfig.LogInfo.REQUEST_SUMMARY));
 
