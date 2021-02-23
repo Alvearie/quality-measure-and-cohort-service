@@ -58,7 +58,7 @@ public class MeasureImporter {
 		public String name;
 		public String id;
 		
-		private ArtifactMetadata() {
+		 ArtifactMetadata() {
 		}
 
 		public void fromResource(MetadataResource metadata) {
@@ -112,7 +112,7 @@ public class MeasureImporter {
 
 		private MeasureArtifact() {
 		}
-		
+
 		@Override
 		public int updateDependencies(List<LibraryArtifact> libraries) {
 			int numUpdated = 0;

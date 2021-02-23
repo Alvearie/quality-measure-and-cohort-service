@@ -94,7 +94,7 @@ public class MeasureImporterTest extends BaseFhirTest {
 	protected String getLocation(String localUrl, String version) {
 		return getFhirServerConfig().getEndpoint() + localUrl + "/_history/" + version;
 	}
-	
+
 	protected void mockFhirResourcePut(String localUrl, String newVersion) {
 		stubFor(put(urlEqualTo(localUrl)).willReturn(
 				aResponse().withStatus(200)
@@ -161,7 +161,7 @@ public class MeasureImporterTest extends BaseFhirTest {
 		verify( 1, putRequestedFor(urlEqualTo("/Measure/" + measureId)) );
 	}
 
-	protected void runTest(FhirServerConfig fhirConfig, String pathString) throws IOException, JsonProcessingException, Exception {
+	protected void runTest(FhirServerConfig fhirConfig, String pathString) throws Exception {
 		Path tmpFile = Files.createTempFile(Paths.get("target"), "fhir-stub", ".json");
 		try {
 			ObjectMapper om = new ObjectMapper();

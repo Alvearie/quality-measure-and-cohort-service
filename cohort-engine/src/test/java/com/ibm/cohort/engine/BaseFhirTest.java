@@ -9,15 +9,24 @@ package com.ibm.cohort.engine;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileWriter;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.Writer;
 import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.OffsetDateTime;
@@ -43,6 +52,7 @@ import org.hl7.fhir.r4.model.Resource;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
@@ -236,5 +246,17 @@ public class BaseFhirTest {
 		CapabilityStatement metadata = new CapabilityStatement();
 		metadata.setFhirVersion(Enumerations.FHIRVersion._4_0_1);
 		return metadata;
+	}
+
+	protected void mockFhirResourcePost(String localUrl, String newId, String newVersion) {
+		stubFor(post(urlEqualTo(localUrl)).willReturn(
+				aResponse().withStatus(201)
+						.withHeader("Location", getLocation(localUrl, newId, newVersion))
+						.withHeader("ETag", newVersion)
+						.withHeader("Last-Modified", "2021-01-12T21:21:21.286Z")) );
+	}
+
+	protected String getLocation(String localUrl, String newId, String version) {
+		return getFhirServerConfig().getEndpoint() + localUrl + "/" + newId + "/_history/" + version;
 	}
 }
