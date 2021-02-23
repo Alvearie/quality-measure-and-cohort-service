@@ -118,7 +118,7 @@ public abstract class ResourceResolutionProvider
 		Optional<SemanticVersion> version = SemanticVersion.create(resource.getVersion());
 		if (!version.isPresent()) {
 			throw new IllegalArgumentException(
-					"Knowledge artifacts must contain a version and the value must be a valid semantic version string");
+					String.format("Error processing %s-%s: knowledge artifacts must contain a version and the value must be a valid semantic version string", resource.getName(), resource.getVersion()));
 		}
 
 		Map<String, SortedMap<SemanticVersion, MetadataResource>> typedResourcesByName = resourcesByNameByResourceType
@@ -184,9 +184,11 @@ public abstract class ResourceResolutionProvider
 		if (semver.isPresent()) {
 			result = resourceVersions.get(semver.get());
 		} else {
-			Optional<MetadataResource> latest = resourceVersions.values().stream().reduce((x, y) -> y);
-			if (latest.isPresent()) {
-				result = latest.get();
+			if( resourceVersions != null ) {
+				Optional<MetadataResource> latest = resourceVersions.values().stream().reduce((x, y) -> y);
+				if (latest.isPresent()) {
+					result = latest.get();
+				}
 			}
 		}
 		return result;
@@ -200,14 +202,20 @@ public abstract class ResourceResolutionProvider
 	 * @return resolved resource or null if not found
 	 */
 	protected MetadataResource resolveByCanonicalUrl(String fhirType, String canonicalUrl) {
+		MetadataResource result = null;
+		
 		Pair<String, String> parts = CanonicalHelper.separateParts(canonicalUrl);
 
-		SortedMap<SemanticVersion, MetadataResource> versions = resourcesByUrlByResourceType.get(fhirType)
-				.get(parts.getLeft());
-
-		String version = parts.getRight();
-
-		return getByVersion(versions, version);
+		Map<String, SortedMap<SemanticVersion, MetadataResource>> resourcesByUrl = resourcesByUrlByResourceType.get(fhirType);
+		if( resourcesByUrl != null ) {
+			SortedMap<SemanticVersion, MetadataResource> versions = resourcesByUrl.get(parts.getLeft());
+	
+			String version = parts.getRight();
+	
+			result = getByVersion(versions, version);
+		} 
+		
+		return result;
 	}
 
 	/**

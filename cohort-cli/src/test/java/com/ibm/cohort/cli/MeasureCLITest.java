@@ -449,6 +449,47 @@ public class MeasureCLITest extends BaseMeasureTest {
 	}
 	
 	@Test
+	public void testZipFileInputExtraFolders() throws Exception {
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		
+		Patient patient = getPatient("123", AdministrativeGender.MALE, 65);
+		mockFhirResourceRetrieval(patient);
+		
+		
+		Bundle emptyBundle = getBundle();
+		mockFhirResourceRetrieval(get(urlMatching("/Condition.*")), emptyBundle);
+		mockFhirResourceRetrieval(get(urlMatching("/Procedure.*")), emptyBundle);
+		mockFhirResourceRetrieval(get(urlMatching("/Observation.*")), emptyBundle);
+		
+		File tmpFile = new File("target/fhir-stub.json");
+		ObjectMapper om = new ObjectMapper();
+		try (Writer w = new FileWriter(tmpFile)) {
+			w.write(om.writeValueAsString(getFhirServerConfig()));
+		}
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream out = new PrintStream(baos);
+		try {
+			MeasureCLI cli = new MeasureCLI();
+			cli.runWithArgs(new String[] {
+					"-d", tmpFile.getAbsolutePath(),
+					"-m", "src/test/resources/cql/measure-zip/simple_age_measure_v2_2_2.zip",					
+					"-r", "http://ibm.com/health/Measure/SimpleAgeMeasure|2.2.2",
+					"--filter", "fhirResources",
+					"--filter", "fhirResources/libraries",
+					"-c", patient.getId(),
+					"-f", "JSON"
+			}, out);	
+		} finally {
+			tmpFile.delete();
+		}
+		
+		String output = new String(baos.toByteArray());
+		System.out.println(output);
+		assertTrue( output.contains("\"resourceType\": \"MeasureReport\"") );
+	}
+	
+	@Test
 	public void testFolderKnowledgeArtifacts() throws Exception {
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 		
