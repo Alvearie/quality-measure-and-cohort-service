@@ -92,9 +92,13 @@ RUN microdnf update -y && rm -rf /var/cache/yum && \
 
 #Copy in war files, config files, etc. to final image
 USER whuser
+# copy webApp and files required for liberty server
 COPY --from=builder $COHORT_DIST_SOLUTION/solution/webapps/*.war /config/apps/
 COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/server.xml /config/
 COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/jvm.options /config/
+# copy the cohort engine uber jar (aka shaded jar)
+COPY --from=builder $COHORT_DIST_SOLUTION/solution/jars/*.jar $COHORT_ENGINE_HOME/
+# copy the files needed to run the test suite
 COPY --from=builder $COHORT_TEST_SOLUTION/ $ALVEARIE_TEST_HOME/
 COPY --from=builder $COHORT_DIST_SOLUTION/solution/jars/*.jar $COHORT_ENGINE_HOME/
 COPY --from=builder $ANT_HOME $ANT_HOME

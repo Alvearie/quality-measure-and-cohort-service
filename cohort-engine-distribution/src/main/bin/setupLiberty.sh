@@ -1,6 +1,5 @@
 LIBERTY_INSTALL_ROOT=/opt/ibm
 LIBERTY_SERVER_LOC=/wlp/usr/servers
-#LIBERTY_SERVER_NAME=cohortServer
 SERVER_XML_FILE=/config/server.xml
 JVM_OPTIONS_FILE=/config/jvm.options
 LIBERTY_TRUST_STORE_LOC=${LIBERTY_INSTALL_ROOT}/wlp/output/$LIBERTY_SERVER_NAME/resources/security
@@ -43,11 +42,8 @@ replaceToken() {
 
 # Generate encoded/encrypted passwords and token
 LIBERTY_STORE_PWD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 15 | head -n 1)
-#echo "LIBERTY_STORE_PWD=$LIBERTY_STORE_PWD" >> /opt/alvearie/store_info
-#chmod 640 $WORA_INSTALL_ROOT/config/store_info
 LIBERTY_STORE_ENCODED_PWD=
 encodePasswordForLiberty $LIBERTY_INSTALL_ROOT $LIBERTY_STORE_PWD LIBERTY_STORE_ENCODED_PWD
-#export ENCODED_PWD_TOKEN=$LIBERTY_STORE_ENCODED_PWD
 replaceToken $SERVER_XML_FILE ENCODED_PWD_TOKEN $LIBERTY_STORE_ENCODED_PWD
 replaceToken $JVM_OPTIONS_FILE LIBERTY_STORE_PWD_TOKEN $LIBERTY_STORE_PWD
 replaceToken $JVM_OPTIONS_FILE LIBERTY_TRUST_STORE_LOC_TOKEN $LIBERTY_TRUST_STORE_LOC
@@ -56,6 +52,5 @@ replaceToken $JVM_OPTIONS_FILE LIBERTY_TRUST_STORE_LOC_TOKEN $LIBERTY_TRUST_STOR
 # a comOpps ticket is needed to create this cert. It is mounted as a volume in the deployment yaml.
 mkdir -p ${LIBERTY_TRUST_STORE_LOC}
 keytool -import -v -trustcacerts -alias k8s-cluster-cert -file ${K8S_CERT_BUNDLE_LOC} -keystore ${LIBERTY_TRUST_STORE_LOC}/keystore.p12 -storetype PKCS12 -storepass ${LIBERTY_STORE_PWD} -noprompt
-#openssl pkcs12 -export -inkey /secrets/tls/tls.key -in /secrets/tls/tls.crt -out ${LIBERTY_TRUST_STORE_LOC}/keystore.p12 -password pass:${LIBERTY_STORE_PWD}
 mv -f ${LIBERTY_TRUST_STORE_LOC}/keystore.p12 ${LIBERTY_TRUST_STORE_LOC}/cohortCDTTrust.p12
 chmod 755 ${LIBERTY_TRUST_STORE_LOC}/cohortCDTTrust.p12
