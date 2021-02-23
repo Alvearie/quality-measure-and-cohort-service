@@ -44,44 +44,12 @@ public class ValueSetImporter {
 		List<String> spreadsheets;
 	}
 
-	public static class ValueSetArtifact {
+	private static class ValueSetArtifact {
 
-		private MetadataResource resource;
-		private String url;
-		private String name;
-		private String id;
-
-		MetadataResource getResource() {
-			return resource;
-		}
-
-		void setResource(MetadataResource resource) {
-			this.resource = resource;
-		}
-
-		public String getUrl() {
-			return url;
-		}
-
-		public void setUrl(String url) {
-			this.url = url;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public String getId() {
-			return id;
-		}
-
-		public void setId(String id) {
-			this.id = id;
-		}
+		MetadataResource resource;
+		String url;
+		String name;
+		String id;
 	}
 
 	private IGenericClient client;
@@ -95,14 +63,14 @@ public class ValueSetImporter {
 	private void importArtifacts(List<ValueSetArtifact> valueSetArtifacts) {
 
 		for (ValueSetArtifact valueSetArtifact : valueSetArtifacts) {
-			Bundle bundle = client.search().forResource(ValueSet.class).where(ValueSet.URL.matches().value(valueSetArtifact.getUrl()))
+			Bundle bundle = client.search().forResource(ValueSet.class).where(ValueSet.URL.matches().value(valueSetArtifact.url))
 					.returnBundle(Bundle.class).execute();
 			if (bundle.getEntry().size() > 0) {
-				valueSetArtifact.setId(bundle.getEntryFirstRep().getResource().getIdElement().getIdPart());
+				valueSetArtifact.id = bundle.getEntryFirstRep().getResource().getIdElement().getIdPart();
 			} else {
-				MethodOutcome outcome = client.create().resource(parser.encodeResourceToString(valueSetArtifact.getResource())).execute();
+				MethodOutcome outcome = client.create().resource(parser.encodeResourceToString(valueSetArtifact.resource)).execute();
 				if (outcome.getCreated()) {
-					valueSetArtifact.setId(outcome.getId().getIdPart());
+					valueSetArtifact.id = outcome.getId().getIdPart();
 				}
 			}
 		}
@@ -152,9 +120,9 @@ public class ValueSetImporter {
 		compose.setInclude(composeIncludes);
 		valueSet.setCompose(compose);
 		ValueSetArtifact artifact = new ValueSetArtifact();
-		artifact.setName(valueSet.getName());
-		artifact.setResource(valueSet);
-		artifact.setUrl(valueSet.getUrl());
+		artifact.name = valueSet.getName();
+		artifact.resource = valueSet;
+		artifact.url = valueSet.getUrl();
 		return artifact;
 	}
 
