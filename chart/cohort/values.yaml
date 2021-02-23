@@ -22,7 +22,6 @@ image:
   pullPolicy: IfNotPresent
   imageName: cohort-app
 
-#nameOverride: "cohort"
 DEBUG_FAILURE: false
 
 service:
