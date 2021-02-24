@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.compress.utils.Lists;
@@ -102,25 +104,37 @@ public class VSACValueSetImporter {
 		}
 		XSSFSheet expansionSheet = wb.getSheetAt(1);
 		ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
-		List<ValueSet.ConceptSetComponent> composeIncludes = new ArrayList<>();
 		boolean inCodesSection = false;
+		HashMap<String, List<ValueSet.ConceptSetComponent>> codeSystemToCodes = new HashMap<>();
 		for(Row currentRow : expansionSheet){
 			if (inCodesSection){
+				List<ValueSet.ConceptSetComponent> composeIncludes = new ArrayList<>();
 				ValueSet.ConceptSetComponent component = new ValueSet.ConceptSetComponent();
 				component.setSystem(currentRow.getCell(2).getStringCellValue());
+
 				ValueSet.ConceptReferenceComponent concept = new ValueSet.ConceptReferenceComponent();
 				concept.setCode(currentRow.getCell(0).getStringCellValue());
 				concept.setDisplay(currentRow.getCell(1).getStringCellValue());
+
 				List<ValueSet.ConceptReferenceComponent> concepts = new ArrayList<>();
 				concepts.add(concept);
 				component.setConcept(concepts);
+
+				if(codeSystemToCodes.containsKey(currentRow.getCell(2).getStringCellValue())){
+					composeIncludes = codeSystemToCodes.get(currentRow.getCell(2).getStringCellValue());
+				}
 				composeIncludes.add(component);
+				codeSystemToCodes.put(currentRow.getCell(2).getStringCellValue(), composeIncludes);
 			}
 			if(currentRow.getCell(0) != null && currentRow.getCell(0).getStringCellValue().toLowerCase().equals("code")){
 				inCodesSection = true;
 			}
 		}
-		compose.setInclude(composeIncludes);
+		for(List<ValueSet.ConceptSetComponent> singleInclude : codeSystemToCodes.values()){
+			List<ValueSet.ConceptSetComponent> compositeInclude = compose.getInclude();
+			compositeInclude.addAll(singleInclude);
+			compose.setInclude(compositeInclude);
+		}
 		valueSet.setCompose(compose);
 		ValueSetArtifact artifact = new ValueSetArtifact();
 		artifact.name = valueSet.getName();
