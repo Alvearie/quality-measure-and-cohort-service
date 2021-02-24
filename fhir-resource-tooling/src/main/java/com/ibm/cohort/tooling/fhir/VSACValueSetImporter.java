@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.compress.utils.Lists;
 import org.apache.poi.ss.usermodel.Row;
@@ -105,35 +106,30 @@ public class VSACValueSetImporter {
 		XSSFSheet expansionSheet = wb.getSheetAt(1);
 		ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
 		boolean inCodesSection = false;
-		HashMap<String, List<ValueSet.ConceptSetComponent>> codeSystemToCodes = new HashMap<>();
+		HashMap<String, List<ValueSet.ConceptReferenceComponent>> codeSystemToCodes = new HashMap<>();
 		for(Row currentRow : expansionSheet){
 			if (inCodesSection){
-				List<ValueSet.ConceptSetComponent> composeIncludes = new ArrayList<>();
-				ValueSet.ConceptSetComponent component = new ValueSet.ConceptSetComponent();
-				component.setSystem(currentRow.getCell(2).getStringCellValue());
+				List<ValueSet.ConceptReferenceComponent> conceptsSoFar = new ArrayList<>();
 
 				ValueSet.ConceptReferenceComponent concept = new ValueSet.ConceptReferenceComponent();
 				concept.setCode(currentRow.getCell(0).getStringCellValue());
 				concept.setDisplay(currentRow.getCell(1).getStringCellValue());
 
-				List<ValueSet.ConceptReferenceComponent> concepts = new ArrayList<>();
-				concepts.add(concept);
-				component.setConcept(concepts);
-
 				if(codeSystemToCodes.containsKey(currentRow.getCell(2).getStringCellValue())){
-					composeIncludes = codeSystemToCodes.get(currentRow.getCell(2).getStringCellValue());
+					conceptsSoFar = codeSystemToCodes.get(currentRow.getCell(2).getStringCellValue());
 				}
-				composeIncludes.add(component);
-				codeSystemToCodes.put(currentRow.getCell(2).getStringCellValue(), composeIncludes);
+				conceptsSoFar.add(concept);
+				codeSystemToCodes.put(currentRow.getCell(2).getStringCellValue(), conceptsSoFar);
 			}
 			if(currentRow.getCell(0) != null && currentRow.getCell(0).getStringCellValue().toLowerCase().equals("code")){
 				inCodesSection = true;
 			}
 		}
-		for(List<ValueSet.ConceptSetComponent> singleInclude : codeSystemToCodes.values()){
-			List<ValueSet.ConceptSetComponent> compositeInclude = compose.getInclude();
-			compositeInclude.addAll(singleInclude);
-			compose.setInclude(compositeInclude);
+		for(Map.Entry<String, List<ValueSet.ConceptReferenceComponent>> singleInclude : codeSystemToCodes.entrySet()){
+			ValueSet.ConceptSetComponent component = new ValueSet.ConceptSetComponent();
+			component.setSystem(singleInclude.getKey());
+			component.setConcept(singleInclude.getValue());
+			compose.addInclude(component);
 		}
 		valueSet.setCompose(compose);
 		ValueSetArtifact artifact = new ValueSetArtifact();
