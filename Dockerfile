@@ -72,6 +72,7 @@ ENV WLP_HOME=/opt/ibm/wlp \
     COHORT_TEST_SOLUTION=/app/cohortTestDistribution \
     JAVA_HOME=/opt/ibm/java
 ENV ALVEARIE_TEST_HOME=$ALVEARIE_HOME/cohortTestResources \
+    COHORT_ENGINE_HOME=$ALVEARIE_HOME/cohortEngine \
     ANT_HOME=$ALVEARIE_HOME/ant
 
 # create server instance
@@ -84,7 +85,7 @@ USER root
 # Make dir for test resources
 # Update symlnk used by Liberty to new server.  Need root.
 RUN microdnf update -y && rm -rf /var/cache/yum && \
-    microdnf install -y --nodocs vim && \
+    microdnf install -y --nodocs vim openssl && \
     microdnf clean all && \
     mkdir -p $ALVEARIE_TEST_HOME && \
     ln -sfn $WLP_HOME/usr/servers/$SERVER_NAME /config
@@ -95,6 +96,7 @@ COPY --from=builder $COHORT_DIST_SOLUTION/solution/webapps/*.war /config/apps/
 COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/server.xml /config/
 COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/jvm.options /config/
 COPY --from=builder $COHORT_TEST_SOLUTION/ $ALVEARIE_TEST_HOME/
+COPY --from=builder $COHORT_DIST_SOLUTION/solution/jars/*.jar $COHORT_ENGINE_HOME/
 COPY --from=builder $ANT_HOME $ANT_HOME
 
 # Add ant to the path so that our test executions
@@ -102,7 +104,7 @@ COPY --from=builder $ANT_HOME $ANT_HOME
 ENV PATH="$JAVA_HOME/jre/bin:${PATH}:$ANT_HOME/bin"
 
 # Copy our startup script into the installed Liberty bin
-COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/runServer.sh $WLP_HOME/bin/
+COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/*.sh $WLP_HOME/bin/
 
 # Change to root so we can do chmods to our WH user
 USER root
@@ -111,7 +113,9 @@ USER root
 RUN chown -R --from=root whuser $WLP_HOME && \
 	chmod -R u+rwx $WLP_HOME && \
 	chown -R --from=root whuser $ALVEARIE_TEST_HOME && \
-    chmod -R u+rwx $ALVEARIE_TEST_HOME
+    chmod -R u+rwx $ALVEARIE_TEST_HOME && \
+    chown -R --from=root whuser $COHORT_ENGINE_HOME && \
+    chmod -R u+rwx $COHORT_ENGINE_HOME
 
 # install any missing features required by server config
 RUN $WLP_HOME/bin/installUtility install --acceptLicense $SERVER_NAME

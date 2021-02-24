@@ -115,6 +115,13 @@
 			<classifier>tests</classifier>
 			<scope>test</scope>
 		</dependency>
+		<!-- Added so we can copy the shaded (aka uber) jar into the distribution zip -->
+		<dependency>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-cli</artifactId>
+			<version>${project.version}</version>
+			<classifier>shaded</classifier>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.ant</groupId>
 			<artifactId>ant-junit</artifactId>
