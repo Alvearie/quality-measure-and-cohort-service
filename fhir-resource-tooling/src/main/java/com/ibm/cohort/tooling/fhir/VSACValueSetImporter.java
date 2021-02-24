@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.compress.utils.Lists;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -55,9 +56,6 @@ public class VSACValueSetImporter {
 
 	private IGenericClient client;
 	private IParser parser;
-	private final int CELL_0 = 0;
-	private final int CELL_1 = 1;
-	private final int CELL_2 = 2;
 
 	private VSACValueSetImporter(IGenericClient client) {
 		this.client = client;
@@ -85,9 +83,9 @@ public class VSACValueSetImporter {
 		XSSFSheet mainSheet = wb.getSheetAt(wb.getSheetIndex("Value Set Info"));
 		ValueSet valueSet = new ValueSet();
 		for (Row currentRow : mainSheet) {
-			if(currentRow.getCell(CELL_0) != null && currentRow.getCell(CELL_1) != null) {
-				String value = currentRow.getCell(CELL_1).getStringCellValue();
-				switch (currentRow.getCell(CELL_0).getStringCellValue().toLowerCase()) {
+			if(currentRow.getCell(0) != null && currentRow.getCell(1) != null) {
+				String value = currentRow.getCell(1).getStringCellValue();
+				switch (currentRow.getCell(0).getStringCellValue().toLowerCase()) {
 					case "value set name":
 						valueSet.setName(value);
 						valueSet.setTitle(value);
@@ -110,19 +108,20 @@ public class VSACValueSetImporter {
 		boolean inCodesSection = false;
 		HashMap<String, List<ValueSet.ConceptReferenceComponent>> codeSystemToCodes = new HashMap<>();
 		for(Row currentRow : expansionSheet){
+			String code = currentRow.getCell(0) == null ? "" : currentRow.getCell(0).getStringCellValue();
 			if (inCodesSection){
-
+				String display = currentRow.getCell(1).getStringCellValue();
+				String codeSystem = currentRow.getCell(2).getStringCellValue();
 				ValueSet.ConceptReferenceComponent concept = new ValueSet.ConceptReferenceComponent();
-				concept.setCode(currentRow.getCell(CELL_0).getStringCellValue());
-				concept.setDisplay(currentRow.getCell(CELL_1).getStringCellValue());
+				concept.setCode(code);
+				concept.setDisplay(display);
 
 				List<ValueSet.ConceptReferenceComponent> conceptsSoFar
-						= codeSystemToCodes.computeIfAbsent(currentRow.getCell(CELL_2).getStringCellValue(), x-> new ArrayList<>());
-//
+						= codeSystemToCodes.computeIfAbsent(codeSystem, x-> new ArrayList<>());
+
 				conceptsSoFar.add(concept);
-				codeSystemToCodes.put(currentRow.getCell(CELL_2).getStringCellValue(), conceptsSoFar);
 			}
-			if(currentRow.getCell(CELL_0) != null && currentRow.getCell(CELL_0).getStringCellValue().toLowerCase().equals("code")){
+			if(code.toLowerCase().equals("code")){
 				inCodesSection = true;
 			}
 		}
