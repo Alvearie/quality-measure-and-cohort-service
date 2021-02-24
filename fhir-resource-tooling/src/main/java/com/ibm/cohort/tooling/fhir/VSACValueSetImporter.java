@@ -55,6 +55,9 @@ public class VSACValueSetImporter {
 
 	private IGenericClient client;
 	private IParser parser;
+	private final int CELL_0 = 0;
+	private final int CELL_1 = 1;
+	private final int CELL_2 = 2;
 
 	private VSACValueSetImporter(IGenericClient client) {
 		this.client = client;
@@ -82,9 +85,9 @@ public class VSACValueSetImporter {
 		XSSFSheet mainSheet = wb.getSheetAt(wb.getSheetIndex("Value Set Info"));
 		ValueSet valueSet = new ValueSet();
 		for (Row currentRow : mainSheet) {
-			if(currentRow.getCell(0) != null && currentRow.getCell(1) != null) {
-				String value = currentRow.getCell(1).getStringCellValue();
-				switch (currentRow.getCell(0).getStringCellValue().toLowerCase()) {
+			if(currentRow.getCell(CELL_0) != null && currentRow.getCell(CELL_1) != null) {
+				String value = currentRow.getCell(CELL_1).getStringCellValue();
+				switch (currentRow.getCell(CELL_0).getStringCellValue().toLowerCase()) {
 					case "value set name":
 						valueSet.setName(value);
 						valueSet.setTitle(value);
@@ -108,19 +111,18 @@ public class VSACValueSetImporter {
 		HashMap<String, List<ValueSet.ConceptReferenceComponent>> codeSystemToCodes = new HashMap<>();
 		for(Row currentRow : expansionSheet){
 			if (inCodesSection){
-				List<ValueSet.ConceptReferenceComponent> conceptsSoFar = new ArrayList<>();
 
 				ValueSet.ConceptReferenceComponent concept = new ValueSet.ConceptReferenceComponent();
-				concept.setCode(currentRow.getCell(0).getStringCellValue());
-				concept.setDisplay(currentRow.getCell(1).getStringCellValue());
+				concept.setCode(currentRow.getCell(CELL_0).getStringCellValue());
+				concept.setDisplay(currentRow.getCell(CELL_1).getStringCellValue());
 
-				if(codeSystemToCodes.containsKey(currentRow.getCell(2).getStringCellValue())){
-					conceptsSoFar = codeSystemToCodes.get(currentRow.getCell(2).getStringCellValue());
-				}
+				List<ValueSet.ConceptReferenceComponent> conceptsSoFar
+						= codeSystemToCodes.computeIfAbsent(currentRow.getCell(CELL_2).getStringCellValue(), x-> new ArrayList<>());
+//
 				conceptsSoFar.add(concept);
-				codeSystemToCodes.put(currentRow.getCell(2).getStringCellValue(), conceptsSoFar);
+				codeSystemToCodes.put(currentRow.getCell(CELL_2).getStringCellValue(), conceptsSoFar);
 			}
-			if(currentRow.getCell(0) != null && currentRow.getCell(0).getStringCellValue().toLowerCase().equals("code")){
+			if(currentRow.getCell(CELL_0) != null && currentRow.getCell(CELL_0).getStringCellValue().toLowerCase().equals("code")){
 				inCodesSection = true;
 			}
 		}
