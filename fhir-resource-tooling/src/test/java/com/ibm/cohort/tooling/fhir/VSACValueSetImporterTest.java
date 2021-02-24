@@ -31,7 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.BaseFhirTest;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
-public class ValueSetImporterTest extends BaseFhirTest {
+public class VSACValueSetImporterTest extends BaseFhirTest {
 
 	private final String defaultInputFile = "src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx";
 	private final String valueSetIdentifier = "2.16.840.1.113762.1.4.1114.7";
@@ -117,7 +117,7 @@ public class ValueSetImporterTest extends BaseFhirTest {
 
 			OutputStream baos = new ByteArrayOutputStream();
 			PrintStream out = new PrintStream(baos);
-			ValueSetImporter.runWithArgs( new String[] { "-m", tmpFile.toString(), pathString }, out);
+			VSACValueSetImporter.runWithArgs( new String[] { "-m", tmpFile.toString(), pathString }, out);
 		} finally {
 			Files.delete( tmpFile );
 		}

@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.compress.utils.Lists;
-import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -30,7 +29,7 @@ import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
-public class ValueSetImporter {
+public class VSACValueSetImporter {
 
 	public static final class ValueSetImporterArguments {
 		@Parameter(names = {"-m",
@@ -55,7 +54,7 @@ public class ValueSetImporter {
 	private IGenericClient client;
 	private IParser parser;
 
-	private ValueSetImporter(IGenericClient client) {
+	private VSACValueSetImporter(IGenericClient client) {
 		this.client = client;
 		this.parser = client.getFhirContext().newJsonParser();
 	}
@@ -83,17 +82,17 @@ public class ValueSetImporter {
 		for (Row currentRow : mainSheet) {
 			if(currentRow.getCell(0) != null && currentRow.getCell(1) != null) {
 				String value = currentRow.getCell(1).getStringCellValue();
-				switch (currentRow.getCell(0).getStringCellValue()) {
-					case "Value Set Name":
+				switch (currentRow.getCell(0).getStringCellValue().toLowerCase()) {
+					case "value set name":
 						valueSet.setName(value);
 						valueSet.setTitle(value);
 						break;
-					case "OID":
+					case "oid":
 						valueSet.setId(value);
 						String url = "http://cts.nlm.nih.gov/fhir/ValueSet/" + value;
 						valueSet.setUrl(url);
 						break;
-					case "Definition Version":
+					case "definition version":
 						valueSet.setVersion(value);
 						break;
 					default:
@@ -104,8 +103,9 @@ public class ValueSetImporter {
 		XSSFSheet expansionSheet = wb.getSheetAt(1);
 		ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
 		List<ValueSet.ConceptSetComponent> composeIncludes = new ArrayList<>();
+		boolean inCodesSection = false;
 		for(Row currentRow : expansionSheet){
-			if (currentRow.getCell(0) != null && currentRow.getCell(0).getCellType().equals(CellType.NUMERIC)){
+			if (inCodesSection){
 				ValueSet.ConceptSetComponent component = new ValueSet.ConceptSetComponent();
 				component.setSystem(currentRow.getCell(2).getStringCellValue());
 				ValueSet.ConceptReferenceComponent concept = new ValueSet.ConceptReferenceComponent();
@@ -115,6 +115,9 @@ public class ValueSetImporter {
 				concepts.add(concept);
 				component.setConcept(concepts);
 				composeIncludes.add(component);
+			}
+			if(currentRow.getCell(0) != null && currentRow.getCell(0).getStringCellValue().toLowerCase().equals("code")){
+				inCodesSection = true;
 			}
 		}
 		compose.setInclude(composeIncludes);
@@ -144,7 +147,7 @@ public class ValueSetImporter {
 					.createFhirClient(config);
 
 
-			ValueSetImporter importer = new ValueSetImporter(client);
+			VSACValueSetImporter importer = new VSACValueSetImporter(client);
 			List<ValueSetArtifact> valueSetArtifacts = Lists.newArrayList();
 			for (String arg : arguments.spreadsheets) {
 				try (InputStream is = new FileInputStream(arg)) {
@@ -156,6 +159,6 @@ public class ValueSetImporter {
 	}
 
 	public static void main(String[] args) throws Exception {
-		ValueSetImporter.runWithArgs(args, System.out);
+		VSACValueSetImporter.runWithArgs(args, System.out);
 	}
 }
