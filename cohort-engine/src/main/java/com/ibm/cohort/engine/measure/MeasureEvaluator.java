@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
@@ -45,6 +46,7 @@ public class MeasureEvaluator {
 	private MeasureResolutionProvider<Measure> provider = null;
 	private LibraryResolutionProvider<Library> libraryProvider = null;
 	private MeasurementPeriodStrategy measurementPeriodStrategy;
+	private RetrieveCacheContext retrieveCacheContext = null;
 
 	public MeasureEvaluator(IGenericClient dataClient, IGenericClient terminologyClient) {
 		this.dataClient = dataClient;
@@ -100,6 +102,10 @@ public class MeasureEvaluator {
 			this.measurementPeriodStrategy = new DefaultMeasurementPeriodStrategy();
 		}
 		return this.measurementPeriodStrategy;
+	}
+
+	public void setRetrieveCacheContext(RetrieveCacheContext retrieveCacheContext) {
+		this.retrieveCacheContext = retrieveCacheContext;
 	}
 	
 	/**
@@ -168,7 +174,8 @@ public class MeasureEvaluator {
 		LibraryResolutionProvider<Library> libraryResolutionProvider = getLibraryResolutionProvider();
 		LibraryLoader libraryLoader = LibraryHelper.createLibraryLoader(libraryResolutionProvider);
 
-		EvaluationProviderFactory factory = new ProviderFactory(dataClient, terminologyClient);
+		EvaluationProviderFactory factory = new ProviderFactory(dataClient, terminologyClient, retrieveCacheContext);
+
 		MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(factory, libraryLoader, libraryResolutionProvider);
 		seeder.disableDebugLogging();
 

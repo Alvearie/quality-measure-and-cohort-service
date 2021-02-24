@@ -5,6 +5,8 @@
  */
 package com.ibm.cohort.engine.measure;
 
+import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
+import com.ibm.cohort.engine.measure.cache.CachingRetrieveProvider;
 import org.opencds.cqf.common.evaluation.EvaluationProviderFactory;
 import org.opencds.cqf.cql.engine.data.CompositeDataProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
@@ -34,20 +36,26 @@ public class ProviderFactory implements EvaluationProviderFactory {
 
 	private IGenericClient dataClient;
 	private IGenericClient terminologyClient;
+	private RetrieveCacheContext retrieveCacheContext;
 
-	public ProviderFactory(IGenericClient dataClient, IGenericClient terminologyClient) {
+	public ProviderFactory(IGenericClient dataClient, IGenericClient terminologyClient, RetrieveCacheContext retrieveCacheContext) {
 		this.dataClient = dataClient;
 		this.terminologyClient = terminologyClient;
+		this.retrieveCacheContext = retrieveCacheContext;
 	}
 	
 	@Override
 	public DataProvider createDataProvider(String model, String version) {
 		//TODO: throw an error for an unsupported model and/or version
-		ModelResolver modelResolver = new R4FhirModelResolver();
+		ModelResolver modelResolver = MODEL_RESOLVER.get();
 		SearchParameterResolver resolver = new SearchParameterResolver(this.dataClient.getFhirContext());
-		//TODO: plug in our own retrieve provider when it becomes a thing
-		RetrieveProvider retrieveProvider = new RestFhirRetrieveProvider(resolver, this.dataClient);
-		CompositeDataProvider dataProvider = new CompositeDataProvider(modelResolver, retrieveProvider);	
+
+		RetrieveProvider baseRetrieveProvider = new RestFhirRetrieveProvider(resolver, this.dataClient);
+		RetrieveProvider retrieveProvider = retrieveCacheContext != null
+				? new CachingRetrieveProvider(baseRetrieveProvider, retrieveCacheContext)
+				: baseRetrieveProvider;
+
+		CompositeDataProvider dataProvider = new CompositeDataProvider(modelResolver, retrieveProvider);
 		return dataProvider;
 	}
 
@@ -63,9 +71,12 @@ public class ProviderFactory implements EvaluationProviderFactory {
 		SearchParameterResolver resolver = new SearchParameterResolver(this.dataClient.getFhirContext());
 		
 		//TODO: plug in our own retrieve provider when it becomes a thing
-		RestFhirRetrieveProvider retrieveProvider = new RestFhirRetrieveProvider(resolver, this.dataClient);
-		retrieveProvider.setTerminologyProvider(terminologyProvider);
-		
+		RestFhirRetrieveProvider baseRetrieveProvider = new RestFhirRetrieveProvider(resolver, this.dataClient);
+		baseRetrieveProvider.setTerminologyProvider(terminologyProvider);
+		RetrieveProvider retrieveProvider = retrieveCacheContext != null
+				? new CachingRetrieveProvider(baseRetrieveProvider, retrieveCacheContext)
+				: baseRetrieveProvider;
+
 		CompositeDataProvider dataProvider = new CompositeDataProvider(modelResolver, retrieveProvider);
 		return dataProvider;
 	}

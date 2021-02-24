@@ -109,6 +109,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+			<version>2.9.0</version>
+		</dependency>
+
+		<dependency>
 			<groupId>com.ibm.cohort</groupId>
 			<artifactId>cohort-util</artifactId>
 			<version>${project.version}</version>
