@@ -500,7 +500,7 @@ Example contents of `path/to/json/parameter/file`:
 
 ## UI Artifact Import
 
-There is a tooling project provided for loading resources exported from the Measure Authoring Tool (zip files) into a target FHIR server. The project is fhir-resource-tooling and it produces a shaded JAR ```fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar``` that provides a simple command line interface for loading the ZIP contents. Configuration of the tool uses the same JSON configuration file as the cohort-engine and measure-evaluator CLI tools described above.
+There is a tooling project provided for loading resources exported from the Measure Authoring Tool (zip files) into a target FHIR server. The project is fhir-resource-tooling and it produces a shaded JAR ```fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar``` that provides a simple command line interface for loading the ZIP contents. Configuration of the tool uses the same JSON configuration file as the cohort-engine and measure-evaluator CLI tools described above. Requests are processed as FHIR bundles and the contents of the request and response bundles are written to an output path specified by the -o option. If no -o option is provided then the output is written to the current working directory. 
 
 Example invocation...
 
