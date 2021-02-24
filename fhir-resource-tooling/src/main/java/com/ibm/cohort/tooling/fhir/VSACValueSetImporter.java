@@ -79,7 +79,7 @@ public class VSACValueSetImporter {
 
 	private ValueSetArtifact createArtifact(InputStream is) throws IOException {
 		XSSFWorkbook wb = new XSSFWorkbook(is);
-		XSSFSheet mainSheet = wb.getSheetAt(0);
+		XSSFSheet mainSheet = wb.getSheetAt(wb.getSheetIndex("Value Set Info"));
 		ValueSet valueSet = new ValueSet();
 		for (Row currentRow : mainSheet) {
 			if(currentRow.getCell(0) != null && currentRow.getCell(1) != null) {
@@ -102,7 +102,7 @@ public class VSACValueSetImporter {
 				}
 			}
 		}
-		XSSFSheet expansionSheet = wb.getSheetAt(1);
+		XSSFSheet expansionSheet = wb.getSheetAt(wb.getSheetIndex("Expansion List"));
 		ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
 		boolean inCodesSection = false;
 		HashMap<String, List<ValueSet.ConceptReferenceComponent>> codeSystemToCodes = new HashMap<>();
