@@ -9,6 +9,7 @@ package com.ibm.cohort.engine;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
@@ -236,5 +237,17 @@ public class BaseFhirTest {
 		CapabilityStatement metadata = new CapabilityStatement();
 		metadata.setFhirVersion(Enumerations.FHIRVersion._4_0_1);
 		return metadata;
+	}
+
+	protected void mockFhirResourcePost(String localUrl, String newId, String newVersion) {
+		stubFor(post(urlEqualTo(localUrl)).willReturn(
+				aResponse().withStatus(201)
+						.withHeader("Location", getLocation(localUrl, newId, newVersion))
+						.withHeader("ETag", newVersion)
+						.withHeader("Last-Modified", "2021-01-12T21:21:21.286Z")) );
+	}
+
+	protected String getLocation(String localUrl, String newId, String version) {
+		return getFhirServerConfig().getEndpoint() + localUrl + "/" + newId + "/_history/" + version;
 	}
 }

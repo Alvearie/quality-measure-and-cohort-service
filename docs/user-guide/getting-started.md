@@ -500,10 +500,16 @@ Example contents of `path/to/json/parameter/file`:
 
 ## UI Artifact Import
 
-There is a tooling project provided for loading resources exported from the Measure Authoring Tool (zip files) into a target FHIR server. The project is fhir-resource-tooling and it produces a shaded JAR ```fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar``` that provides a simple command line interface for loading the ZIP contents. Configuration of the tool uses the same JSON configuration file as the cohort-engine and measure-evaluator CLI tools described above.
+There is a tooling project provided for loading certain resources into a target FHIR server. The project is fhir-resource-tooling and it produces a shaded JAR fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar that provides a simple command line interface for loading the resources. There are two implementations, one for loading resources exported from the Measure Authoring Tool (zip files), and one for loading VSAC Value Sets spreadsheets as downloaded from https://cts.nlm.nih.gov/fhir.
 
-Example invocation...
+To load resources exported from the Measure Authoring Tool (zip files) into a target FHIR server, use the following invocation:
 
 ```
 $> java -jar fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar -m local-fhir-config.json /path/to/measurebundle.zip
+```
+
+To load resources downloaded from the NIH website (spreadsheets) into a target FHIR server, use the following invocation:
+
+```
+$> java -cp fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar com.ibm.cohort.tooling.fhir.VSACValueSetImporter -m local-fhir-config.json <list_of_spreadsheet_valuesets>
 ```
