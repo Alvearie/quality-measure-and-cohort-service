@@ -229,12 +229,48 @@
 				<version>${ruler.version}</version>
 				<exclusions>
 					<exclusion>
+						<groupId>org.opencds.cqf</groupId>
+						<artifactId>tooling</artifactId>
+					</exclusion>
+					<exclusion>
 						<groupId>ch.qos.logback</groupId>
 						<artifactId>logback-classic</artifactId>
 					</exclusion>
 					<exclusion>
 						<groupId>ca.uhn.hapi.fhir</groupId>
 						<artifactId>hapi-fhir-jpaserver-base</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.thymeleaf</groupId>
+						<artifactId>thymeleaf</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>com.h2database</groupId>
+						<artifactId>h2</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>com.helger</groupId>
+						<artifactId>ph-schematron</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>com.jamesmurty.utils</groupId>
+						<artifactId>java-xmlbuilder</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.jsoup</groupId>
+						<artifactId>jsoup</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.webjars</groupId>
+						<artifactId>*</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.webjars.bower</groupId>
+						<artifactId>*</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>com.vladsch.flexmark</groupId>
+						<artifactId>flexmark-all</artifactId>
 					</exclusion>
 				</exclusions>
 			</dependency>
@@ -244,12 +280,48 @@
 				<version>${ruler.version}</version>
 				<exclusions>
 					<exclusion>
+						<groupId>org.opencds.cqf</groupId>
+						<artifactId>tooling</artifactId>
+					</exclusion>
+					<exclusion>
 						<groupId>ch.qos.logback</groupId>
 						<artifactId>logback-classic</artifactId>
 					</exclusion>
 					<exclusion>
 						<groupId>ca.uhn.hapi.fhir</groupId>
 						<artifactId>hapi-fhir-jpaserver-base</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.thymeleaf</groupId>
+						<artifactId>thymeleaf</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>com.h2database</groupId>
+						<artifactId>h2</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>com.helger</groupId>
+						<artifactId>ph-schematron</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>com.jamesmurty.utils</groupId>
+						<artifactId>java-xmlbuilder</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.jsoup</groupId>
+						<artifactId>jsoup</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.webjars</groupId>
+						<artifactId>*</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.webjars.bower</groupId>
+						<artifactId>*</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>com.vladsch.flexmark</groupId>
+						<artifactId>flexmark-all</artifactId>
 					</exclusion>
 				</exclusions>
 			</dependency>
