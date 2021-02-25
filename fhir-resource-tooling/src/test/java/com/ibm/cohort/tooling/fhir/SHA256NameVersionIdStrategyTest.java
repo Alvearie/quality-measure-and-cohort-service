@@ -32,7 +32,7 @@ public class SHA256NameVersionIdStrategyTest {
 		String name = RandomStringUtils.random(256, /*useLetters=*/true, /*useNumbers=*/true);
 		
 		// There is no defined upper limit here, but we are guessing
-		// that a three digits for each dotted triplet entry + 
+		// that three digits for each dotted triplet entry + 
 		// delimiter + some label stuff isn't much bigger than this
 		String version = RandomStringUtils.random(20, /*useLetters=*/true, /*useNumbers=*/true);;
 		
