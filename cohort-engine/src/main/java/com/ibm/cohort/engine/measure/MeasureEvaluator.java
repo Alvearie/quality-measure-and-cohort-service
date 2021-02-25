@@ -201,7 +201,7 @@ public class MeasureEvaluator {
 		}
 
 		CDMMeasureEvaluation evaluation = new CDMMeasureEvaluation(seed.getDataProvider(), seed.getMeasurementPeriod());
-		return evaluation.evaluatePatientMeasure(measure, seed.getContext(), patientId);
+		return evaluation.evaluatePatientMeasure(measure, seed.getContext(), patientId, evidenceOptions);
 	}
 
 	private Object toCqlObject(Type type) {

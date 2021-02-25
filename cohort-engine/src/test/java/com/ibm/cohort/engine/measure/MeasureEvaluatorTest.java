@@ -10,6 +10,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -305,58 +306,6 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		
 		verify(1, getRequestedFor(urlEqualTo("/Library/" + library.getId())));
 	}
-	
-//	@Test
-//	public void in_populations_evaluated_resources_returned() throws Exception {
-//		CapabilityStatement metadata = getCapabilityStatement();
-//		mockFhirResourceRetrieval("/metadata", metadata);
-//
-//		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
-//		mockFhirResourceRetrieval(patient);
-//
-//		Library library = mockLibraryRetrieval("TestAdultMales", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males.cql");
-//
-//		expressionsByPopulationType.clear();
-//		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
-//		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOR, DENOMINATOR);
-//		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
-//
-//		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
-//		mockFhirResourceRetrieval(measure);
-//
-//		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(true, true));
-//
-//		assertNotNull(report);
-//
-//		assertTrue(!report.getEvaluatedResource().isEmpty());
-//	}
-//
-//	@Test
-//	public void in_populations_no_evaluated_resources_returned() throws Exception {
-//		CapabilityStatement metadata = getCapabilityStatement();
-//		mockFhirResourceRetrieval("/metadata", metadata);
-//
-//		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
-//		mockFhirResourceRetrieval(patient);
-//
-//		Library library = mockLibraryRetrieval("TestAdultMales", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males.cql");
-//
-//		expressionsByPopulationType.clear();
-//		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
-//		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOR, DENOMINATOR);
-//		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
-//
-//		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
-//		mockFhirResourceRetrieval(measure);
-//
-//		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());
-//		assertNotNull(report);
-//
-//		assertTrue(!report.getEvaluatedResource().isEmpty());
-//		
-//		// When this functionality is implemented, this is what we want to be returned
-////		assertTrue(report.getEvaluatedResource().isEmpty());
-//	}
 
 	@Test
 	public void measure_default_valid() throws Exception {
@@ -540,7 +489,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		
 		assertNotNull(report);
 		
-		assertTrue(report.getEvaluatedResource().size() > 0);
+		assertFalse(report.getEvaluatedResource().isEmpty());
 	}
 	
 	@Test
@@ -564,6 +513,6 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());
 		assertNotNull(report);
 		
-		assertEquals(0, report.getEvaluatedResource().size());
+		assertTrue(report.getEvaluatedResource().isEmpty());
 	}
 }
