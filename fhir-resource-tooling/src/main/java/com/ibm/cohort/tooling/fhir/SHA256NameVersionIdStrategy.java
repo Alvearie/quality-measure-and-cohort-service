@@ -14,7 +14,7 @@ import org.hl7.fhir.r4.model.MetadataResource;
  * In order to guarantee uniqueness when PUT'ing the same resource to the
  * same FHIR server simultaneously in separate threads, a Resource.id 
  * value needs to be specified. The IBM FHIR server will not guarantee 
- * uniqueness when using search params (e.g. name:exact=XXX&version=YYY).
+ * uniqueness when using search params (e.g. name:exact=XXX&amp;version=YYY).
  * 
  * In order to keep the logical name + version key as the unique identifier
  * across environments outside of FHIR, we decided to use an algorithm to

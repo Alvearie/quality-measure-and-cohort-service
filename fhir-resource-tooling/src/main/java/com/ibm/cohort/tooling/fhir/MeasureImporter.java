@@ -152,6 +152,7 @@ public class MeasureImporter {
 	 * Import the contents of a list of UI export files.
 	 * 
 	 * @param artifactPaths list of UI export file paths.
+	 * @param outputPath path to the folder where output files will be written.
 	 * @return number representing how many errors were encountered processing the 
 	 * specified artifacts
 	 * @throws Exception on any error.
@@ -170,7 +171,8 @@ public class MeasureImporter {
 	/**
 	 * Import the contents of a single UI export file.
 	 * 
-	 * @param path path to the UI export file.
+	 * @param inputPath path to the UI export file.
+	 * @param output path to the folder where output will be written
 	 * @return Pair of FHIR resources representing the request bundle and server response (bundle, operation outcome, etc.)
 	 * @throws Exception on any error
 	 */
