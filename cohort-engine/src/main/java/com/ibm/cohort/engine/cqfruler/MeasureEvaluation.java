@@ -17,38 +17,30 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
 
 import org.cqframework.cql.elm.execution.ExpressionDef;
-import org.cqframework.cql.elm.execution.ExpressionRef;
-import org.cqframework.cql.elm.execution.FunctionDef;
-import org.cqframework.cql.elm.execution.IncludeDef;
-import org.cqframework.cql.elm.execution.Library;
-import org.cqframework.cql.elm.execution.Library.Includes;
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
-import org.hl7.fhir.r4.model.CanonicalType;
-import org.hl7.fhir.r4.model.CodeableConcept;
-import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.ListResource;
+import org.hl7.fhir.r4.model.ListResource.ListEntryComponent;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
-import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Quantity;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
-import org.hl7.fhir.r4.model.StringType;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 import org.opencds.cqf.common.evaluation.MeasureScoring;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.execution.Context;
-import org.opencds.cqf.cql.engine.execution.Variable;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
+import com.ibm.cohort.engine.r4.builder.MeasureReportBuilder;
 
 public class MeasureEvaluation {
 
@@ -122,19 +114,20 @@ public class MeasureEvaluation {
 //        return evaluate(measure, context, getAllPatients(), MeasureReport.MeasureReportType.SUMMARY, isSingle, false);
 //    }
 
-    private void clearExpressionCache(Context context) {
-        // Hack to clear expression cache
-        // See cqf-ruler github issue #153
-        try {
-            Field privateField = Context.class.getDeclaredField("expressions");
-            privateField.setAccessible(true);
-            LinkedHashMap<String, Object> expressions = (LinkedHashMap<String, Object>) privateField.get(context);
-            expressions.clear();
-
-        } catch (Exception e) {
-            logger.warn("Error resetting expression cache", e);
-        }
-    }
+//    private void clearExpressionCache(Context context) {
+//        // Hack to clear expression cache
+//        // See cqf-ruler github issue #153
+//        try {
+//            Field privateField = Context.class.getDeclaredField("expressions");
+//            privateField.setAccessible(true);
+//            @SuppressWarnings("unchecked")
+//			LinkedHashMap<String, Object> expressions = (LinkedHashMap<String, Object>) privateField.get(context);
+//            expressions.clear();
+//
+//        } catch (Exception e) {
+//            logger.warn("Error resetting expression cache", e);
+//        }
+//    }
     
     private void getExpressionCache(Context context) {
     	// Hack to clear return cache
@@ -142,65 +135,19 @@ public class MeasureEvaluation {
         try {
             Field privateField = Context.class.getDeclaredField("expressions");
             privateField.setAccessible(true);
-            LinkedHashMap<VersionedIdentifier, LinkedHashMap<String, Object>> expressions = (LinkedHashMap<VersionedIdentifier, LinkedHashMap<String, Object>>) privateField.get(context);
+            @SuppressWarnings("unchecked")
+			LinkedHashMap<VersionedIdentifier, LinkedHashMap<String, Object>> expressions = (LinkedHashMap<VersionedIdentifier, LinkedHashMap<String, Object>>) privateField.get(context);
       
             for(Entry<VersionedIdentifier, LinkedHashMap<String, Object>> e : expressions.entrySet()) {
             	for(Entry<String, Object> e2 : e.getValue().entrySet()) {
-            		System.out.println(e.getKey() + " " + e2.getKey() + " " + e2.getValue());
+//            		System.out.println(e.getKey() + " " + e2.getKey() + " " + e2.getValue());
+            		logger.warn(e.getKey() + " " + e2.getKey() + " " + e2.getValue());
             	}
             }
 
         } catch (Exception e) {
             logger.warn("Error resetting expression cache", e);
         }
-    }
-
-    private Resource evaluateObservationCriteria(Context context, Patient patient, Resource resource, Measure.MeasureGroupPopulationComponent pop, MeasureReport report) {
-        if (pop == null || !pop.hasCriteria()) {
-            return null;
-        }
-
-        context.setContextValue("Patient", patient.getIdElement().getIdPart());
-
-        clearExpressionCache(context);
-
-        String observationName = pop.getCriteria().getExpression();
-        ExpressionDef ed = context.resolveExpressionRef(observationName);
-        if (!(ed instanceof FunctionDef)) {
-            throw new IllegalArgumentException(String.format("Measure observation %s does not reference a function definition", observationName));
-        }
-
-        Object result = null;
-        context.pushWindow();
-        try {
-            context.push(new Variable().withName(((FunctionDef)ed).getOperand().get(0).getName()).withValue(resource));
-            result = ed.getExpression().evaluate(context);
-        }
-        finally {
-            context.popWindow();
-        }
-
-        if (result instanceof Resource) {
-            return (Resource)result;
-        }
-
-        Observation obs = new Observation();
-        obs.setStatus(Observation.ObservationStatus.FINAL);
-        obs.setId(UUID.randomUUID().toString());
-        CodeableConcept cc = new CodeableConcept();
-        cc.setText(observationName);
-        obs.setCode(cc);
-        Extension obsExtension = new Extension().setUrl("http://hl7.org/fhir/StructureDefinition/cqf-measureInfo");
-        Extension extExtMeasure = new Extension()
-                .setUrl("measure")
-                .setValue(new CanonicalType("http://hl7.org/fhir/us/cqfmeasures/" + report.getMeasure()));
-        obsExtension.addExtension(extExtMeasure);
-        Extension extExtPop = new Extension()
-                .setUrl("populationId")
-                .setValue(new StringType(observationName));
-        obsExtension.addExtension(extExtPop);
-        obs.addExtension(obsExtension);
-        return obs;
     }
 
     @SuppressWarnings("unchecked")
@@ -217,14 +164,18 @@ public class MeasureEvaluation {
         ExpressionDef populationExpressionDef = context.resolveExpressionRef(pop.getCriteria().getExpression());
         Object result = populationExpressionDef.evaluate(context);
         
-        System.out.println(populationExpressionDef.getName());
+//        System.out.println(populationExpressionDef.getName());
+        logger.warn(populationExpressionDef.getName());
         
         DefineContext defineContext = (DefineContext) context;
         
-        for(Entry<VersionedIdentifier, LinkedHashMap<String, Object>> e : defineContext.getEntriesInCache()) {
-        	for(Entry<String, Object> e2 : e.getValue().entrySet()) {
-        		System.out.println(e.getKey() + " " + e2.getKey() + " " + e2.getValue());
-        	}
+        if(includeEvidence) {
+	        for(Entry<VersionedIdentifier, Map<String, Object>> e : defineContext.getEntriesInCache()) {
+	        	for(Entry<String, Object> e2 : e.getValue().entrySet()) {
+	//        		System.out.println(e.getKey() + " " + e2.getKey() + " " + e2.getValue());
+	        		logger.warn(e.getKey() + " " + e2.getKey() + " " + e2.getValue());
+	        	}
+	        }
         }
         
         getExpressionCache(context);
@@ -277,9 +228,9 @@ public class MeasureEvaluation {
 //    }
 
     private boolean evaluatePopulationCriteria(Context context, Patient patient,
-            Measure.MeasureGroupPopulationComponent criteria, HashMap<String, Resource> population,
-            HashMap<String, Patient> populationPatients, Measure.MeasureGroupPopulationComponent exclusionCriteria,
-            HashMap<String, Resource> exclusionPopulation, HashMap<String, Patient> exclusionPatients,
+            Measure.MeasureGroupPopulationComponent criteria, Map<String, Resource> population,
+            Map<String, Patient> populationPatients, Measure.MeasureGroupPopulationComponent exclusionCriteria,
+            Map<String, Resource> exclusionPopulation, Map<String, Patient> exclusionPatients,
             boolean includeEvidence) {
         
     	boolean inPopulation = false;
@@ -353,8 +304,8 @@ public class MeasureEvaluation {
 
         MeasureReport report = reportBuilder.build();
 
-        HashMap<String, Resource> resources = new HashMap<>();
-        HashMap<String, HashSet<String>> codeToResourceMap = new HashMap<>();
+        Map<String, Resource> resources = new HashMap<>();
+        Map<String, Set<String>> codeToResourceMap = new HashMap<>();
 
         MeasureScoring measureScoring = MeasureScoring.fromCode(measure.getScoring().getCodingFirstRep().getCode());
         if (measureScoring == null) {
@@ -362,7 +313,7 @@ public class MeasureEvaluation {
         }
 
         List<Measure.MeasureSupplementalDataComponent> sde = new ArrayList<>();
-        HashMap<String, HashMap<String, Integer>> sdeAccumulators = null;
+        Map<String, Map<String, Integer>> sdeAccumulators = null;
         for (Measure.MeasureGroupComponent group : measure.getGroup()) {
             MeasureReport.MeasureReportGroupComponent reportGroup = new MeasureReport.MeasureReportGroupComponent();
             reportGroup.setId(group.getId());
@@ -382,24 +333,24 @@ public class MeasureEvaluation {
 //            // TODO: Isn't quite right, there may be multiple measure observations...
             Measure.MeasureGroupPopulationComponent measureObservationCriteria = null;
 
-            HashMap<String, Resource> initialPopulation = null;
-            HashMap<String, Resource> numerator = null;
-            HashMap<String, Resource> numeratorExclusion = null;
-            HashMap<String, Resource> denominator = null;
-            HashMap<String, Resource> denominatorExclusion = null;
-            HashMap<String, Resource> denominatorException = null;
-            HashMap<String, Resource> measurePopulation = null;
-            HashMap<String, Resource> measurePopulationExclusion = null;
-            HashMap<String, Resource> measureObservation = null;
+            Map<String, Resource> initialPopulation = null;
+            Map<String, Resource> numerator = null;
+            Map<String, Resource> numeratorExclusion = null;
+            Map<String, Resource> denominator = null;
+            Map<String, Resource> denominatorExclusion = null;
+            Map<String, Resource> denominatorException = null;
+            Map<String, Resource> measurePopulation = null;
+            Map<String, Resource> measurePopulationExclusion = null;
+            Map<String, Resource> measureObservation = null;
 
-            HashMap<String, Patient> initialPopulationPatients = null;
-            HashMap<String, Patient> numeratorPatients = null;
-            HashMap<String, Patient> numeratorExclusionPatients = null;
-            HashMap<String, Patient> denominatorPatients = null;
-            HashMap<String, Patient> denominatorExclusionPatients = null;
-            HashMap<String, Patient> denominatorExceptionPatients = null;
-            HashMap<String, Patient> measurePopulationPatients = null;
-            HashMap<String, Patient> measurePopulationExclusionPatients = null;
+            Map<String, Patient> initialPopulationPatients = null;
+            Map<String, Patient> numeratorPatients = null;
+            Map<String, Patient> numeratorExclusionPatients = null;
+            Map<String, Patient> denominatorPatients = null;
+            Map<String, Patient> denominatorExclusionPatients = null;
+            Map<String, Patient> denominatorExceptionPatients = null;
+            Map<String, Patient> measurePopulationPatients = null;
+            Map<String, Patient> measurePopulationExclusionPatients = null;
 
             for (Measure.MeasureGroupPopulationComponent pop : group.getPopulation()) {
                 MeasurePopulationType populationType = MeasurePopulationType
@@ -556,7 +507,7 @@ public class MeasureEvaluation {
 
                             if (inMeasurePopulation) {
                                 for (Resource resource : measurePopulation.values()) {
-                                    Resource observation = evaluateObservationCriteria(context, patient, resource, measureObservationCriteria, report);
+                                    Resource observation = ObservationMeasureEvaluation.evaluateObservationCriteria(context, patient, resource, measureObservationCriteria, report);
                                     measureObservation.put(resource.getIdElement().getIdPart(), observation);
                                     report.addContained(observation);
                                     report.getEvaluatedResource().add(new Reference("#" + observation.getId()));
@@ -612,17 +563,18 @@ public class MeasureEvaluation {
             // TODO: Measure Observations...
         }
 
-        for (String key : codeToResourceMap.keySet()) {
-            org.hl7.fhir.r4.model.ListResource list = new org.hl7.fhir.r4.model.ListResource();
-            for (String element : codeToResourceMap.get(key)) {
-                org.hl7.fhir.r4.model.ListResource.ListEntryComponent comp = new org.hl7.fhir.r4.model.ListResource.ListEntryComponent();
+        for (Entry<String, Set<String>> entry : codeToResourceMap.entrySet()) {
+            ListResource list = new ListResource();
+            
+            for (String element : entry.getValue()) {
+                ListResource.ListEntryComponent comp = new ListEntryComponent();
                 comp.setItem(new Reference('#' + element));
                 list.addEntry(comp);
             }
 
             if (!list.isEmpty()) {
                 list.setId(UUID.randomUUID().toString());
-                list.setTitle(key);
+                list.setTitle(entry.getKey());
                 resources.put(list.getId(), list);
             }
         }
@@ -641,8 +593,8 @@ public class MeasureEvaluation {
         return report;
     }
 
-    private void populateResourceMap(Context context, MeasurePopulationType type, HashMap<String, Resource> resources,
-            HashMap<String, HashSet<String>> codeToResourceMap, boolean includeEvidence) {
+    private void populateResourceMap(Context context, MeasurePopulationType type, Map<String, Resource> resources,
+            Map<String, Set<String>> codeToResourceMap, boolean includeEvidence) {
         if (context.getEvaluatedResources().isEmpty()) {
             return;
         }
@@ -664,7 +616,7 @@ public class MeasureEvaluation {
 //        }
 //        
 
-        HashSet<String> codeHashSet = codeToResourceMap.get((type.toCode()));
+        Set<String> codeHashSet = codeToResourceMap.get((type.toCode()));
 
         for (Object o : context.getEvaluatedResources()) {
             if (o instanceof Resource) {

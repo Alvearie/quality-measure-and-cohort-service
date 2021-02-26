@@ -500,8 +500,12 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
 
+		Library library2 = mockLibraryRetrieval("TestAdultMales2", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males2.cql");
+		Library library3 = mockLibraryRetrieval("TestAdultMales3", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males3.cql");
 		Library library = mockLibraryRetrieval("TestAdultMales", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males.cql");
-
+		library.addRelatedArtifact(asRelation(library2));
+		
+		library.addRelatedArtifact(asRelation(library3));
 		expressionsByPopulationType.clear();
 		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
 		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOR, DENOMINATOR);

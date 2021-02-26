@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -28,8 +29,11 @@ import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.runtime.Code;
 
 public class MeasureSupplementalDataEvaluation {
+	
+	private MeasureSupplementalDataEvaluation() {}
+	
 	public static void populateSDEAccumulators(Measure measure, Context context, Patient patient,
-			HashMap<String, HashMap<String, Integer>> sdeAccumulators,
+			Map<String, Map<String, Integer>> sdeAccumulators,
 			List<Measure.MeasureSupplementalDataComponent> sde) {
 		context.setContextValue("Patient", patient.getIdElement().getIdPart());
 		List<Object> sdeList = sde.stream()
@@ -43,7 +47,7 @@ public class MeasureSupplementalDataEvaluation {
 					if (null == sdeAccumulatorKey || sdeAccumulatorKey.length() < 1) {
 						sdeAccumulatorKey = sde.get(i).getCriteria().getExpression();
 					}
-					HashMap<String, Integer> sdeItemMap = sdeAccumulators.get(sdeAccumulatorKey);
+					Map<String, Integer> sdeItemMap = sdeAccumulators.get(sdeAccumulatorKey);
 					String code = "";
 
 					switch (sdeListItem.getClass().getSimpleName()) {
@@ -51,7 +55,7 @@ public class MeasureSupplementalDataEvaluation {
 						code = ((Code) sdeListItem).getCode();
 						break;
 					case "ArrayList":
-						if (((ArrayList<?>) sdeListItem).size() > 0) {
+						if (((ArrayList<?>) sdeListItem).isEmpty()) {
 							code = ((Coding) ((ArrayList<?>) sdeListItem).get(0)).getCode();
 						} else {
 							continue;
@@ -81,7 +85,7 @@ public class MeasureSupplementalDataEvaluation {
 	}
 
 	public static MeasureReport processAccumulators(MeasureReport report,
-			HashMap<String, HashMap<String, Integer>> sdeAccumulators,
+			Map<String, Map<String, Integer>> sdeAccumulators,
 			List<Measure.MeasureSupplementalDataComponent> sde, boolean isSingle, List<Patient> patients) {
 		List<Reference> newRefList = new ArrayList<>();
 		sdeAccumulators.forEach((sdeKey, sdeAccumulator) -> {

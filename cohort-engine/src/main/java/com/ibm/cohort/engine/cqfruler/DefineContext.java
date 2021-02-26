@@ -19,15 +19,14 @@ import org.opencds.cqf.cql.engine.execution.Context;
 public class DefineContext extends Context {
 
 	@SuppressWarnings("serial")
-    private LinkedHashMap<VersionedIdentifier, LinkedHashMap<String, Object>> expressions = new LinkedHashMap<VersionedIdentifier, LinkedHashMap<String, Object>>(10, 0.9f, true) {
+    private Map<VersionedIdentifier, Map<String, Object>> expressions = new LinkedHashMap<VersionedIdentifier, Map<String, Object>>(10, 0.9f, true) {
 //		protected boolean removeEldestEntry(Map.Entry<VersionedIdentifier, LinkedHashMap<String, Object>> eldestEntry) {
 //            return size() > 10;
 //        }
     };
     
-    @SuppressWarnings("serial")
-    private LinkedHashMap<String, Object> constructLibraryExpressionHashMap() {
-        return  new LinkedHashMap<String, Object>(15, 0.9f, true);
+    private Map<String, Object> constructLibraryExpressionHashMap() {
+        return new LinkedHashMap<>(15, 0.9f, true);
 //        {
 //            protected boolean removeEldestEntry(Map.Entry<String, Object> eldestEntry) {
 //                return size() > 15;
@@ -43,7 +42,7 @@ public class DefineContext extends Context {
 		return expressions.keySet();
 	}
 	
-	public Set<Entry<VersionedIdentifier, LinkedHashMap<String, Object>>> getEntriesInCache() {
+	public Set<Entry<VersionedIdentifier, Map<String, Object>>> getEntriesInCache() {
 		return expressions.entrySet();
 	}
 	

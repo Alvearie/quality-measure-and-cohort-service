@@ -13,11 +13,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.hl7.fhir.r4.model.Identifier;
-import org.opencds.cqf.r4.builders.IdentifierBuilder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.cli.ParameterHelper;
 import com.ibm.cohort.engine.measure.MeasureContext;
+import com.ibm.cohort.engine.r4.builder.IdentifierBuilder;
 
 public class MeasureContextProvider {
 	public static List<MeasureContext> getMeasureContexts(File input) throws IOException {

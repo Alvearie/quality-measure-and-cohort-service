@@ -76,4 +76,3 @@ define "Male19":
 	
 define "Male20":
 	Patient.gender.value = 'male'
->>>>>>> In flight work

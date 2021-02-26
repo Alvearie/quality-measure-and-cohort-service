@@ -6,7 +6,7 @@
  * Originated from org.opencds.cqf.r4.builders.MeasureReportBuilder  
  */
 
-package com.ibm.cohort.engine.cqfruler;
+package com.ibm.cohort.engine.r4.builder;
 
 import java.util.Date;
 
