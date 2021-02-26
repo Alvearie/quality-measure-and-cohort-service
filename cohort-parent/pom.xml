@@ -42,8 +42,8 @@
 		<maven.compiler.source>${whBldsdkVer}</maven.compiler.source>
 		<maven.compiler.target>${whBldsdkVer}</maven.compiler.target>
 
-		<cqframework.version>1.5.1-SNAPSHOT</cqframework.version>
-		<engine.version>1.5.1-SNAPSHOT</engine.version>
+		<cqframework.version>1.5.1</cqframework.version>
+		<engine.version>1.5.1</engine.version>
 		<ruler.version>0.4.0</ruler.version>
 
 		<jackson.version>2.10.1</jackson.version>
@@ -652,6 +652,9 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-javadoc-plugin</artifactId>
 					<version>2.9.1</version>
+					<configuration>
+						<source>${whBldsdkVer}</source>
+					</configuration>
 				</plugin>
 				<!-- Used by the cohort-engine-api-web project to set build properties in ServiceBuildConstants at build time-->
 				<plugin>

@@ -2,17 +2,23 @@
 
 The [IBM Quality Measure and Cohort Engine](https://github.com/Alvearie/quality-measure-and-cohort-service/) is an open source project under the [Alvearie](https://github.com/Alvearie/) organization in Github. The Cohort Engine provides APIs for evaluating cohorts via definitions written in Clinical Quality Language (CQL). Users can execute CQL scripts directly using the CqlEngineWrapper API or indirectly through the use of FHIR measure and library resources. 
 
-Since moving the project into Alvearie organization, publication of release builds has been temporarily put on hold until a suitable location for the builds has been determined. In the meantime, you will want to use "git clone" to pull down [the repository](https://github.com/Alvearie/quality-measure-and-cohort-service) and ``mvn install -f cohort-parent`` to build it. If you don't already have Maven installed on your workstation, [download](https://maven.apache.org/download.cgi) version 3.6.3 or newer and follow the [installation instructions](https://maven.apache.org/install.html). You should be using a Java SDK version 8.0 or higher. If you don't already have a Java SDK on your workstation, you can download one [here](https://adoptopenjdk.net/).
+Builds are published in [Github packages](https://github.com/orgs/Alvearie/packages?repo_name=quality-measure-and-cohort-service) or you can pull the source code and build it yourself. If you are using the precompiled artifacts, you will most likely want to start with [cohort-cli](https://github.com/Alvearie/quality-measure-and-cohort-service/packages/506888) and choose the latest shaded jar (more on that below). If you are building yourselft, use``git clone`` to pull down [the repository](https://github.com/Alvearie/quality-measure-and-cohort-service) and ``mvn install -f cohort-parent`` to build it. If you don't already have Maven installed on your workstation, [download](https://maven.apache.org/download.cgi) version 3.6.3 or newer and follow the [installation instructions](https://maven.apache.org/install.html). You should be using a Java SDK version 8.0 or higher. If you don't already have a Java SDK on your workstation, you can download one [here](https://adoptopenjdk.net/).
 
-Once the prerequisites are installed and you have successfully executed the ``mvn install -f cohort-parent`` command, there will be a library JAR produced under cohort-engine/target and two JARs under cohort-cli/target. Under cohort-cli/target, one jar is the project without dependencies (cohort-cli-VERSION.jar) and the other is an "uber jar" (aka shaded jar) that contains all the project code and dependencies in a single executable artifact (cohort-cli-VERSION-shaded.jar). Choose the artifact that makes the most sense for your execution environment. Simple command-line testing is easiest with the shaded JAR.
+When building yourself using the ``mvn install -f cohort-parent`` command, there will be a library JAR produced under ``cohort-engine/target`` and two client JARs under ``cohort-cli/target``. The ``cohort-engine/target`` JAR is intended to be consumed by applications that are including the cohort-engine capabilities wrapped up in a larger application. The cohort-cli JARs are for clients that wish to use either of the provided command line interfaces. One of the ``cohort-cli/target`` jars is the command-line interface without dependencies (cohort-cli-VERSION.jar) and the other is an "uber jar" (aka shaded jar) that contains all the project code and dependencies in a single executable artifact (cohort-cli-VERSION-shaded.jar). Choose the artifact that makes the most sense for your execution environment. Simple command-line testing is easiest with the shaded JAR.
 
-The CQL engine utilizes data and terminology stored in a FHIR server adhering to the FHIR R4 standard. Our testing is focused on use of the [IBM Open Source FHIR Server](https://github.com/IBM/FHIR) server, but any FHIR server, such as the [open source HAPI FHIR server](https://github.com/jamesagnew/hapi-fhir), should be usable. The configuration and management of the FHIR server is left to the user. Configuration details for connecting to the server are provided to the API and can be managed in JSON files as needed (see below).
+The CQL engine utilizes data and terminology stored in a FHIR server adhering to the FHIR R4 standard. Our testing is focused on use of the [IBM Open Source FHIR Server](https://github.com/IBM/FHIR), but any reasonably robust FHIR server, such as the [open source HAPI FHIR server](https://github.com/jamesagnew/hapi-fhir), should be usable. The configuration and management of the FHIR server is left to the user. Configuration details for connecting to the server are provided to the API and can be managed in JSON files as needed (see below).
 
 A common pattern is to have the FHIR server deployed in the IBM Cloud. For instance, you might grab the [latest Docker image](https://hub.docker.com/r/ibmcom/ibm-fhir-server) of the IBM FHIR Server and deploy it to a Kubernetes cluster in your IBM cloud account.  If your FHIR server is in IBM cloud and you don't have direct network line of sight to the server, you can use Kubernetes port-forward to point the engine the instance in the cloud using a command similar to the one below (substituting the <xxx> variables as appropriate for your environment).
 
-`kubectl -n <kubernetes-namespace> port-forward service/<fhir-service> 9443:9443`
+```
+kubectl -n <kubernetes-namespace> port-forward service/<fhir-service> 9443:9443
+```
 
-If you don't have a FHIR server of your own to use, you can test with [http://hapi.fhir.org/baseR4](http://hapi.fhir.org/baseR4). Sample configuration files are provided in the config directory that will connect to either a local or port-forwarded IBM FHIR server (config/local-ibm-fhir.json) or the public HAPI FHIR server (config/remote-hapi-fhir.json).  Three possible servers can be configured - a data server, a terminology server, and a measure resource server. Only the data server configuration is required. If the terminology server or measure resource server configuration is not provided, it is assumed that the data server connection will be used. The separation allows for more complex configurations where terminology or library resources are spread across multiple FHIR tenants (for example, using a shared tenant for terminology and measure resources).
+If you don't have a FHIR server of your own to use, you can test with [http://hapi.fhir.org/baseR4](http://hapi.fhir.org/baseR4). 
+
+Sample configuration files are provided in the config directory that will connect to either a local or port-forwarded IBM FHIR server (config/local-ibm-fhir.json) or the public HAPI FHIR server (config/remote-hapi-fhir.json).  Three possible servers can be configured - a data server, a terminology server, and a measure resource server. Only the data server configuration is required. If the terminology server or measure resource server configuration is not provided, it is assumed that the data server connection will be used. The separation allows for more complex configurations where terminology or measure and library resources are spread across multiple FHIR tenants (for example, using a shared tenant for terminology and measure resources). More detail on the [FHIR Server Configuration](#fhir-server-configuration) can be found in later sections.
+
+### Secure Socket Layer (SSL) Configuration
 
 If you choose to use an IBM FHIR option, you will need to consider how to handle SSL setup. Out of the box, IBM FHIR only enables an SSL endpoint and not a plain text HTTP endpoint. You could enable the FHIR server plain text HTTP endpoint in the FHIR server's server.xml, but more than likely you will want to keep SSL in place and [configure your Java Virtual Machine (JVM) for SSL](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html). There is a sample java keystore config/trustStore.pkcs12 that contains the IBM Cloud ingress service SSL certificate. You can use the provided trustStore.pkcs12 (or your own as needed) by passing standard arguments to your JVM on startup. An example that uses the provided trustStore file would include `-Djavax.net.ssl.trustStore=config/trustStore.pkcs12 -Djavax.net.ssl.trustStorePassword=change-password -Djavax.net.ssl.trustStoreType=pkcs12`.
 
@@ -31,7 +37,7 @@ CQL is a public specification and there are a number of helpful resources on the
 A command-line interface (CLI) is provided for use in testing the cohort engine. There is a simple CLI execution packaged with the Maven build that can be executed from the cohort-cli project using ``mvn exec:java``. This will demonstrate connectivity with the public HAPI FHIR server using a very simple CQL library. An execution where you run the command yourself would look like the following...
 
 ```bash
-$ java -jar target/cohort-engine-0.0.1-SNAPSHOT-shaded.jar -d config/remote-hapi-fhir.json -f src/test/resources/cql/basic -l test -c 1235008
+$ java -jar target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar -d config/remote-hapi-fhir.json -f src/test/resources/cql/basic -l test -c 1235008
 [main] INFO ca.uhn.fhir.util.VersionUtil - HAPI FHIR version 5.0.2 - Rev ecf175a352
 [main] INFO ca.uhn.fhir.context.FhirContext - Creating new FHIR context for FHIR version [R4]
 [main] INFO ca.uhn.fhir.util.XmlUtil - Unable to determine StAX implementation: java.xml/META-INF/MANIFEST.MF not found
@@ -48,7 +54,7 @@ Expression: Over the hill, Result: true
 Or if you need to pass parameters...
 
 ```bash
-$ java -jar target/cohort-engine-0.0.1-SNAPSHOT-shaded.jar -d config/remote-hapi-fhir.json -f src/test/resources/cql/parameters -l test-with -v params -c 1235008 -p MaxAge:integer:40
+$ java -jar target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar -d config/remote-hapi-fhir.json -f src/test/resources/cql/parameters -l test-with -v params -c 1235008 -p MaxAge:integer:40
 [main] INFO ca.uhn.fhir.util.VersionUtil - HAPI FHIR version 5.0.2 - Rev ecf175a352
 [main] INFO ca.uhn.fhir.context.FhirContext - Creating new FHIR context for FHIR version [R4]
 [main] INFO ca.uhn.fhir.util.XmlUtil - Unable to determine StAX implementation: java.xml/META-INF/MANIFEST.MF not found
@@ -65,7 +71,7 @@ Expression: ParamMaxAge, Result: 40
 Complete usage is available using the --help flag...
 
 ```
-$ java -jar target/cohort-engine-0.0.1-SNAPSHOT-shaded.jar --help
+$ java -jar target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar --help
 [main] INFO ca.uhn.fhir.util.VersionUtil - HAPI FHIR version 5.0.2 - Rev ecf175a352
 [main] INFO ca.uhn.fhir.context.FhirContext - Creating new FHIR context for FHIR version [R4]
 Usage: cql-engine [options]
@@ -145,6 +151,14 @@ For the FHIR Library resource loader, CQL is embedded in the ``content`` field a
 
 ## Logging
 Logging in Java can be a complicated topic because there are a variety of logging frameworks available and combining open source projects together often ends up with multiple different strategies in use at the same time. SLF4J is the preferred logging framework for cohort engine use. Users should refer to the [SLF4j manual](http://www.slf4j.org/manual.html) for instructions on how to configure SLF4J for their purposes. When executing from the command-line, the slf4j-simple binding is used. Configuration can be provided via Java system properties. See [the SimpleLogger documentation](http://www.slf4j.org/api/org/slf4j/impl/SimpleLogger.html) for complete details.
+
+### Dealing with potential PHI leakage in the logs
+<div style="background-color: beige; color: red; border: 1px solid red;">The Execution Logical Model (ELM) specification has a <a href="https://cql.hl7.org/04-logicalspecification.html#errors-and-messages">Message</a> feature that can be leveraged by CQL authors to write debug messages to the logging framework. The contents of the debug message can include any amount of detail in the objects being processed by the engine. In a situation where PHI is being processed, care should be taken to avoid logging PHI using the "Message" feature or to disable the logging entirely in the solution's logging framework configuration. The logging comes from <span style="font-family: Courier New; color: black;">org.opencds.cqf.cql.engine.elm.execution.MessageEvaluator</span>. This could be disabled from the SimpleLogger implementation used during CLI execution by setting a system property as shown below.</div>
+
+```
+java -jar cohort-cli-*.jar -Dorg.slf4j.simpleLogger.log.org.opencds.cqf.cql.engine.elm.execution.MessageEvaluator=off ...
+```
+
 
 # Error states
 The Engine detects and throws IllegalArgumentException for the following error states:
