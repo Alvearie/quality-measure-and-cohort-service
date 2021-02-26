@@ -193,6 +193,8 @@ public class MeasureImporter {
 		} catch( BaseServerResponseException ex ) {
 			if( ex.getOperationOutcome() != null ) {
 				response = ex.getOperationOutcome();
+			} else { 
+				throw ex;
 			}
 		}
 
