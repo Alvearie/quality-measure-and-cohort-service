@@ -1,0 +1,37 @@
+#
+# (C) Copyright IBM Corp. 2021, 2021
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+apiVersion: v1
+kind: Pod
+metadata:
+  name: POD_NAME_PLACEHOLDER
+  namespace: CLUSTER_NAMESPACE_PLACEHOLDER
+  labels:
+    app: POD_NAME_PLACEHOLDER
+spec:
+  restartPolicy: Never
+  imagePullSecrets:
+    - name: all-icr-io
+  containers:
+  - name: engine-test-app
+    image: us.icr.io/cdt-provider-cohort-rns/taurus-javabridge:1
+    imagePullPolicy: Always
+    command: ["sleep"]
+    args: ["28800"]
+    securityContext:
+      privileged: true
+    env:
+    - name: TRUSTSTORE
+      value: "TRUSTSTORE_PLACEHOLDER"
+    - name: TRUSTSTORE_PASSWORD
+      value: "TRUSTSTORE_PASSWORD_PLACEHOLDER"
+    - name: TRUSTSTORE_TYPE
+      value: "TRUSTSTORE_TYPE_PLACEHOLDER"
+    volumeMounts:
+      - name: test-files
+        mountPath: /bzt-configs
+  volumes:
+    - name: test-files
+      emptyDir: {}
