@@ -29,9 +29,9 @@
 
 	<ssl id="defaultSSLConfig" keyStoreRef="defaultKeyStore" trustStoreRef="defaultTrustStore" clientAuthenticationSupported="true" sslProtocol="TLSv1.2" />
 	
-	<!-- ENCODED_PWD_TOKEN set in postDeploy.sh -->
-	<keyStore id="defaultKeyStore" password="ENCODED_PWD_TOKEN" />
-	<keyStore id="defaultTrustStore" location="${server.output.dir}/resources/security/cohortCDTTrust.p12" type="PKCS12" password="ENCODED_PWD_TOKEN"/>
+	<!-- ENCODED_PWD_TOKEN set in setupLiberty.sh -->
+	<keyStore id="defaultKeyStore" location="${server.output.dir}/resources/security/LIBERTY_KEY_STORE_NAME_TOKEN" type="PKCS12" password="ENCODED_PWD_TOKEN"/>
+	<keyStore id="defaultTrustStore" location="${server.output.dir}/resources/security/LIBERTY_TRUST_STORE_NAME_TOKEN" type="PKCS12" password="ENCODED_PWD_TOKEN"/>
 
 	<!-- To access this server from a remote client add a host attribute to 
 		the following element, e.g. host="*" -->
