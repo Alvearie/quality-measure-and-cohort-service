@@ -42,11 +42,11 @@
 		<maven.compiler.source>${whBldsdkVer}</maven.compiler.source>
 		<maven.compiler.target>${whBldsdkVer}</maven.compiler.target>
 
-		<cqframework.version>1.5.1-SNAPSHOT</cqframework.version>
-		<engine.version>1.5.1-SNAPSHOT</engine.version>
+		<cqframework.version>1.5.1</cqframework.version>
+		<engine.version>1.5.1</engine.version>
 		<ruler.version>0.4.0</ruler.version>
 
-		<jackson.version>2.10.1</jackson.version>
+		<jackson.version>2.10.5.1</jackson.version>
 		<jacoco.version>0.8.6</jacoco.version>
 
 		<!-- Default values for the jacoco-maven-plugin reports -->
@@ -406,7 +406,7 @@
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
 				<artifactId>httpclient</artifactId>
-				<version>4.5.3</version>
+				<version>4.5.13</version>
 			</dependency>
 			<dependency>
 				<groupId>org.codehaus.groovy</groupId>
@@ -460,6 +460,16 @@
 				<artifactId>powermock-module-junit4-rule-agent</artifactId>
 				<version>2.0.9</version>
 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>commons-beanutils</groupId>
+				<artifactId>commons-beanutils</artifactId>
+				<version>1.9.4</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.cxf</groupId>
+				<artifactId>cxf-rt-transports-http</artifactId>
+				<version>3.3.8</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
