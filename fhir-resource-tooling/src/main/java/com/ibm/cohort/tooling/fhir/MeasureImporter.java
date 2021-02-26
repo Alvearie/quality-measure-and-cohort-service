@@ -237,6 +237,12 @@ public class MeasureImporter {
 
 			MeasureImporter importer = new MeasureImporter(client);
 			resultCode = importer.importFiles(arguments.artifactPaths, arguments.outputPath);
+			
+			if( resultCode == 0 ) {
+				out.println("Process completed with no errors.");
+			} else { 
+				out.println(String.format("Process completed with errors. Failed to process %d artifacts.", resultCode));
+			}
 		}
 		
 		return resultCode;

@@ -13,11 +13,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
@@ -68,7 +68,17 @@ public class MeasureImporterTest extends BaseFhirTest {
 		roundTripTest("src/test/resources/simple_age_measure_v2_2_2.zip", expectedRequest, expectedResponse, 500, 1);
 	}
 	
-	protected void roundTripTest(String inputPath, String expectedRequest, String expectedResponse, int statusCode, int numExpectedErrors) throws Exception {
+	@Test(expected=ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException.class)
+	public void testImportBundleClientConnectFailure() throws Exception {
+		FhirServerConfig fhirConfig = new FhirServerConfig();
+		fhirConfig.setEndpoint("http://i.am.not.here");
+		
+		runTest(fhirConfig, "src/test/resources/simple_age_measure_v2_2_2.zip", -1);
+	}
+	
+	protected String roundTripTest(String inputPath, String expectedRequest, String expectedResponse, int statusCode, int numExpectedErrors) throws Exception {
+		String consoleOutput;
+	
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 		fhirConfig.setLogInfo(Arrays.asList(LogInfo.REQUEST_SUMMARY));
 		
@@ -78,17 +88,21 @@ public class MeasureImporterTest extends BaseFhirTest {
 				aResponse().withStatus(statusCode).withHeader("Content-Type", "application/json")
 					.withBody(expectedResponse)));
 		
-		runTest(fhirConfig, inputPath, numExpectedErrors);
+		consoleOutput = runTest(fhirConfig, inputPath, numExpectedErrors);
 		
 		verify( 1, postRequestedFor(urlEqualTo("/"))
 				.withRequestBody(equalTo(expectedRequest)));
+		
+		return consoleOutput;
 	}
 	
-	protected void runTest(FhirServerConfig fhirConfig, String pathString) throws IOException, JsonProcessingException, Exception {
-		runTest(fhirConfig,pathString,0);
+	protected String runTest(FhirServerConfig fhirConfig, String pathString) throws IOException, JsonProcessingException, Exception {
+		return runTest(fhirConfig,pathString,0);
 	}
 
-	protected void runTest(FhirServerConfig fhirConfig, String pathString, int expectedNumErrors) throws IOException, JsonProcessingException, Exception {
+	protected String runTest(FhirServerConfig fhirConfig, String pathString, int expectedNumErrors) throws IOException, JsonProcessingException, Exception {
+		String consoleOutput;
+		
 		Path tmpFile = Files.createTempFile(Paths.get("target"), "fhir-stub", ".json");
 		try {
 			ObjectMapper om = new ObjectMapper();
@@ -96,12 +110,22 @@ public class MeasureImporterTest extends BaseFhirTest {
 				w.write(om.writeValueAsString(fhirConfig));
 			}
 			
-			OutputStream baos = new ByteArrayOutputStream();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			PrintStream out = new PrintStream(baos);
 			int actualErrors = MeasureImporter.runWithArgs( new String[] { "-m", tmpFile.toString(), "-o", "target", pathString }, out);
 			assertEquals( expectedNumErrors, actualErrors );
+			
+			consoleOutput = baos.toString(StandardCharsets.UTF_8.name());
+			
+			if( expectedNumErrors == 0 ) { 
+				assertTrue( consoleOutput.contains("Process completed with no errors") );
+			} else { 
+				assertTrue( consoleOutput.contains("Process completed with errors") );
+			}
 		} finally {
 			Files.delete( tmpFile );
 		}
+		
+		return consoleOutput;
 	}
 }
