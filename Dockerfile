@@ -101,6 +101,8 @@ COPY --from=builder $COHORT_DIST_SOLUTION/solution/jars/*.jar $COHORT_ENGINE_HOM
 # copy the files needed to run the test suite
 COPY --from=builder $COHORT_TEST_SOLUTION/ $ALVEARIE_TEST_HOME/
 COPY --from=builder $COHORT_DIST_SOLUTION/solution/jars/*.jar $COHORT_ENGINE_HOME/
+# workaround for docker bug https://github.com/moby/moby/issues/37965
+RUN true
 COPY --from=builder $ANT_HOME $ANT_HOME
 
 # Add ant to the path so that our test executions
