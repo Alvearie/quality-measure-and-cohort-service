@@ -26,7 +26,7 @@ COLORECTAL_XMLFILE="\/bzt-configs\/tests\/results\/coloRectalCancerTestScenarios
 LUNG_XMLFILE="\/bzt-configs\/tests\/results\/lungCancerTestScenarios.xml"
 MEASURECLI_XMLFILE="\/bzt-configs\/tests\/results\/measureCLITests.xml"
 
-FHIR_ENDPOINT="https:\/\/fhir-internal.dev.svc:9443\/fhir-server\/api\/v4"
+FHIR_ENDPOINT="https:\/\/fhir-internal.${CLUSTER_NAMESPACE}.svc:9443\/fhir-server\/api\/v4"
 SHADED_JAR="\/bzt-configs\/tests\/src\/main\/resources\/libraries\/cohort-cli-shaded.jar"
 
 # Usage statement on how this script is invoked from run-fvttests.sh script
@@ -39,7 +39,7 @@ usage() {
 # Helper to run bzt on the pod specifying a test yaml file to be executed
 runTest() {
   echo "Running test" ${1}
-  kubectl -n ${CLUSTER_NAMESPACE} exec ${POD_NAME} -- bzt ${1}
+  kubectl -n ${CLUSTER_NAMESPACE} exec ${POD_NAME} -- bash -c "export TRUSTSTORE_PASSWORD=${TRUSTSTORE_PASSWORD} && bzt ${1}"
 }
 
 # Parse args passed in by run-fvttests.sh script when calling this script with the -o and -t options. 
@@ -77,15 +77,14 @@ cp run-engine-taurus-deploy.yaml run-engine-taurus-deploy-with-replaced-values.y
 sed -i "s/CLUSTER_NAMESPACE_PLACEHOLDER/${CLUSTER_NAMESPACE}/g" run-engine-taurus-deploy-with-replaced-values.yaml
 sed -i "s/POD_NAME_PLACEHOLDER/${POD_NAME}/g" run-engine-taurus-deploy-with-replaced-values.yaml
 sed -i "s/TRUSTSTORE_PLACEHOLDER/${TRUSTSTORE}/" run-engine-taurus-deploy-with-replaced-values.yaml
-sed -i "s/TRUSTSTORE_PASSWORD_PLACEHOLDER/${TRUSTSTORE_PASSWORD}/" run-engine-taurus-deploy-with-replaced-values.yaml
 sed -i "s/TRUSTSTORE_TYPE_PLACEHOLDER/${TRUSTSTORE_TYPE}/" run-engine-taurus-deploy-with-replaced-values.yaml
 
 cd ${TEST_DIR}
 
 # Get the cohort-cli shaded jar from the cohort-services pod.
 COHORTSVC_POD=$(kubectl get pods --namespace "${CLUSTER_NAMESPACE}" | grep -i "${APP_NAME}" | grep Running | cut -d " " -f 1 | head -n1)
-kubectl -n dev cp ${COHORTSVC_POD}:/opt/alvearie/cohortEngine/cohort-cli-shaded.jar ${LIB_DIR}/cohort-cli-shaded.jar
-echo "Copied cohort-cli shaded jar from the running cohort-services pod into ${POD_NAME}"
+kubectl -n ${CLUSTER_NAMESPACE} cp ${COHORTSVC_POD}:/opt/alvearie/cohortEngine/cohort-cli-shaded.jar ${LIB_DIR}/cohort-cli-shaded.jar
+echo "Copied cohort-cli shaded jar from the running cohort-services pod."
 
 # Before tests can be executed prepare the test yaml files to have the right values replaced in them  
 
@@ -150,7 +149,7 @@ echo "Making createTrustStore.sh script executable inside of the pod environment
 kubectl -n ${CLUSTER_NAMESPACE} exec ${POD_NAME} -- chmod +x /bzt-configs/tests/createTrustStore.sh
 
 echo "Generating trustStore.pkcs12 object"  
-kubectl -n ${CLUSTER_NAMESPACE} exec ${POD_NAME} -- /bzt-configs/tests/createTrustStore.sh
+kubectl -n ${CLUSTER_NAMESPACE} exec ${POD_NAME} -- bash -c "export TRUSTSTORE_PASSWORD=${TRUSTSTORE_PASSWORD} TRUSTSTORE=${TRUSTSTORE} CLUSTER_NAMESPACE=${CLUSTER_NAMESPACE} && /bzt-configs/tests/createTrustStore.sh"
 
 # Loop through all the tests specified to be executed on the call to this script from the run-fvttests.sh script and execute bzt passing in the 
 # test yaml file as a parameter. 

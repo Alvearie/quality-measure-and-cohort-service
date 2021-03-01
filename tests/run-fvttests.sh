@@ -8,7 +8,7 @@
 # Export the following Environment variables so that they are accessible to the child script 
 # run-engine-taurus-deploy.sh invoked from this script.                   
 ##############################################################################################
-export TRUSTSTORE_PASSWORD="TStore-Password"
+export TRUSTSTORE_PASSWORD="${FHIR_TRUSTSTORE_PASSWD}"
 export TRUSTSTORE_TYPE="pkcs12"
 export TRUSTSTORE="tests\/src\/main\/resources\/config\/trustStore.pkcs12"
 export FHIR_USER_PASS="${FHIR_USER_PASSWORD}"

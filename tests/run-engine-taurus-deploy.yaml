@@ -25,8 +25,6 @@ spec:
     env:
     - name: TRUSTSTORE
       value: "TRUSTSTORE_PLACEHOLDER"
-    - name: TRUSTSTORE_PASSWORD
-      value: "TRUSTSTORE_PASSWORD_PLACEHOLDER"
     - name: TRUSTSTORE_TYPE
       value: "TRUSTSTORE_TYPE_PLACEHOLDER"
     volumeMounts:
