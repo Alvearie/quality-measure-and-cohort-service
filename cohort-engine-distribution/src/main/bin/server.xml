@@ -29,7 +29,7 @@
 
 	<ssl id="defaultSSLConfig" keyStoreRef="defaultKeyStore" trustStoreRef="defaultTrustStore" clientAuthenticationSupported="true" sslProtocol="TLSv1.2" />
 	
-	<!-- ENCODED_PWD_TOKEN set in setupLiberty.sh -->
+	<!-- XXX_TOKEN values set in setupLiberty.sh -->
 	<keyStore id="defaultKeyStore" location="${server.output.dir}/resources/security/LIBERTY_KEY_STORE_NAME_TOKEN" type="PKCS12" password="ENCODED_PWD_TOKEN"/>
 	<keyStore id="defaultTrustStore" location="${server.output.dir}/resources/security/LIBERTY_TRUST_STORE_NAME_TOKEN" type="PKCS12" password="ENCODED_PWD_TOKEN"/>
 
@@ -45,7 +45,7 @@
 		updateTrigger="mbean" />
 
 	<webApplication id="cohort-engine"
-		location="cohort-engine.war" name="cohort-engine" />
+		location="cohort-engine.war" name="cohort-engine" contextRoot="services/cohort"/>
 
 
 	<logging consoleLogLevel="INFO" maxFileSize="20" maxFiles="10"
