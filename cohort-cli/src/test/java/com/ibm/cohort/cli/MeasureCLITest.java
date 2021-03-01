@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.cohort.engine.helpers.CanonicalHelper;
 import com.ibm.cohort.engine.measure.BaseMeasureTest;
 
 public class MeasureCLITest extends BaseMeasureTest {
@@ -75,7 +76,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 	}
 
 	@Test
-	public void testCohortMeasureSinglePatientCommandLineInput() throws Exception {
+	public void testCohortMeasureByIDSinglePatientCommandLineInput() throws Exception {
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1592-14-03");
@@ -101,6 +102,44 @@ public class MeasureCLITest extends BaseMeasureTest {
 					"-p", "p1:interval:decimal,1.0,100.5",
 					"-p", "p2:integer:1",
 					"-r", measure.getId(),
+					"-c", patient.getId()
+			}, out);
+		} finally {
+			tmpFile.delete();
+		}
+
+		String output = new String(baos.toByteArray());
+		String[] lines = output.split(System.getProperty("line.separator"));
+		assertEquals( output, 4, lines.length );
+	}
+	
+	@Test
+	public void testCohortMeasureByURLSinglePatientCommandLineInput() throws Exception {
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1592-14-03");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/test.cql");
+
+		Measure measure = getCohortMeasure("Test", library, "Female");
+		mockMeasureRetrieval(measure);
+
+		File tmpFile = new File("target/fhir-stub.json");
+		ObjectMapper om = new ObjectMapper();
+		try (Writer w = new FileWriter(tmpFile)) {
+			w.write(om.writeValueAsString(getFhirServerConfig()));
+		}
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream out = new PrintStream(baos);
+		try {
+			MeasureCLI cli = new MeasureCLI();
+			cli.runWithArgs(new String[] {
+					"-d", tmpFile.getAbsolutePath(),
+					"-p", "p1:interval:decimal,1.0,100.5",
+					"-p", "p2:integer:1",
+					"-r", CanonicalHelper.toCanonicalUrl(measure),
 					"-c", patient.getId()
 			}, out);
 		} finally {

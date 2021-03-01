@@ -6,6 +6,7 @@
 package com.ibm.cohort.engine.helpers;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.hl7.fhir.r4.model.MetadataResource;
 
 /**
  * Helper methods for dealing with FHIR canonical URL syntax. <a href=
@@ -45,5 +46,9 @@ public class CanonicalHelper {
 		}
 
 		return Pair.of(url, version);
+	}
+
+	public static String toCanonicalUrl(MetadataResource resource) {
+		return String.format("%s|%s", resource.getUrl(), resource.getVersion());
 	}
 }
