@@ -11,7 +11,7 @@ import org.hl7.fhir.r4.model.Identifier;
  * Defines the interface for resource resolution mechanism for FHIR Measure resources. This could
  * be direct DB, REST, filesystem, zip, etc. as needed by the implementation.
  *
- * @param <MeasureType>
+ * @param <MeasureType> specific implementation of Measure resource
  */
 public interface MeasureResolutionProvider<MeasureType> {
 	/**

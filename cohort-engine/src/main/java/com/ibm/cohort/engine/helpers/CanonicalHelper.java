@@ -31,7 +31,7 @@ public class CanonicalHelper {
 	 * fields are delimited by a pipe character ('|'). This method will separate the
 	 * parts.
 	 * 
-	 * @param canonicalUrl
+	 * @param canonicalUrl canonical URL value
 	 * @return a pair of values where the left side is the url and the right side is
 	 *         the version.
 	 */

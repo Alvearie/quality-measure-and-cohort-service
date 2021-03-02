@@ -19,6 +19,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
+import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
@@ -78,7 +79,8 @@ public abstract class ResourceResolutionProvider
 			MetadataResource metadataResource = (MetadataResource) resource;
 
 			if (metadataResource.getId() == null) {
-				metadataResource.setId(FilenameUtils.getBaseName(resourceName));
+				String id = FilenameUtils.getBaseName(resourceName);
+				metadataResource.setIdElement(new IdType(metadataResource.fhirType(), id));
 			}
 
 			addToIndexes(metadataResource);
@@ -88,7 +90,7 @@ public abstract class ResourceResolutionProvider
 			for (BundleEntryComponent be : bundle.getEntry()) {
 				if (be.getResource() instanceof MetadataResource) {
 					MetadataResource metadataResource = (MetadataResource) be.getResource();
-					if (metadataResource.getId() == null) {
+					if (metadataResource.getIdElement().getValueAsString() == null) {
 						throw new IllegalArgumentException("Bundle resources must contain an ID value");
 					}
 
@@ -113,7 +115,7 @@ public abstract class ResourceResolutionProvider
 
 		Map<String, MetadataResource> typedResourcesById = resourcesByIdByResourceType
 				.computeIfAbsent(resource.fhirType(), x -> new HashMap<String, MetadataResource>());
-		typedResourcesById.put(resource.getId(), resource);
+		typedResourcesById.put(resource.getIdElement().getIdPart(), resource);
 
 		Optional<SemanticVersion> version = SemanticVersion.create(resource.getVersion());
 		if (!version.isPresent()) {

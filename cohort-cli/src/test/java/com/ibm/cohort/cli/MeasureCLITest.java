@@ -8,6 +8,7 @@ package com.ibm.cohort.cli;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
@@ -485,6 +486,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		String output = new String(baos.toByteArray());
 		System.out.println(output);
 		assertTrue( output.contains("\"resourceType\": \"MeasureReport\"") );
+		assertFalse( "Found null string in output", output.contains("null/") );
 	}
 	
 	@Test
@@ -566,6 +568,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		String output = new String(baos.toByteArray());
 		System.out.println(output);
 		assertTrue( output.contains("\"resourceType\": \"MeasureReport\"") );
+		assertFalse( "Found null string in output", output.contains("null/") );
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
