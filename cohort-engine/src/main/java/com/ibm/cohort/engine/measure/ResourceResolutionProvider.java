@@ -180,11 +180,12 @@ public abstract class ResourceResolutionProvider
 	 */
 	protected MetadataResource getByVersion(Map<SemanticVersion, MetadataResource> resourceVersions, String requestedVersion) {
 		MetadataResource result = null;
-		Optional<SemanticVersion> semver = SemanticVersion.create(requestedVersion);
-		if (semver.isPresent()) {
-			result = resourceVersions.get(semver.get());
-		} else {
-			if( resourceVersions != null ) {
+		
+		if( resourceVersions != null ) {
+			Optional<SemanticVersion> semver = SemanticVersion.create(requestedVersion);
+			if (semver.isPresent()) {
+				result = resourceVersions.get(semver.get());
+			} else {
 				Optional<MetadataResource> latest = resourceVersions.values().stream().reduce((x, y) -> y);
 				if (latest.isPresent()) {
 					result = latest.get();
