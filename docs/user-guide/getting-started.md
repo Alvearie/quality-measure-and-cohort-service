@@ -185,35 +185,47 @@ during measure evaluation.
 
 ```
 $ java -classpath cohort-cli/target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar com.ibm.cohort.cli.MeasureCLI --help
-  Usage: measure-engine [options]
-    Options:
-    * -c, --context-id
-        FHIR resource ID for one or more patients to evaluate.
-    * -d, --data-server
-        Path to JSON configuration data for the FHIR server connection that will 
-        be used to retrieve data.
-      -f, --format
-        Output format of the report (JSON|TEXT*)
-        Default: TEXT
-        Possible Values: [TEXT, JSON]
-      -h, --help
-        Display this help
-      -j, --json-measure-configurations
-        JSON File containing measure resource ids and optional parameters. 
-        Cannot be specified if -r option is used
-      -m, --measure-server
-        Path to JSON configuration data for the FHIR server connection that will 
-        be used to retrieve measure and library resources.
-      -p, --parameters
-        Parameter value(s) in format name:type:value where value can contain 
-        additional parameterized elements separated by comma. Multiple 
-        parameters must be specified as multiple -p options
-      -r, --resource
-        FHIR Resource ID or canonical URL for the measure resource to be evaluated.
-        Cannot be specified if -j option is used
-      -t, --terminology-server
-        Path to JSON configuration data for the FHIR server connection that will 
-        be used to retrieve terminology.
+Usage: measure-engine [options]
+  Options:
+  * -c, --context-id
+      FHIR resource ID for one or more patients to evaluate.
+  * -d, --data-server
+      Path to JSON configuration data for the FHIR server connection that will
+      be used to retrieve data.
+    --filter
+      Filter information for resource loader if the resource loader supports
+      filtering
+    -f, --format
+      Output format of the report (JSON|TEXT*)
+      Default: TEXT
+      Possible Values: [TEXT, JSON]
+    -h, --help
+      Display this help
+    -i, --include-define-results
+      Include results for evaluated define statements on measure report.
+      Defaults to false.
+      Default: false
+    -e, --include-evaluated-resources
+      Include evaluated resources on measure report. Defaults to false.
+      Default: false
+    -j, --json-measure-configurations
+      JSON File containing measure resource ids and optional parameters.
+      Cannot be specified if -r option is used
+    -m, --measure-server
+      Path to configuration data for the FHIR knowledge assets. This will be
+      either a JSON configuration file containing FHIR server connection
+      details or the path to a file containing the FHIR resources of interest.
+    -p, --parameters
+      Parameter value(s) in format name:type:value where value can contain
+      additional parameterized elements separated by comma. Multiple
+      parameters must be specified as multiple -p options
+    -r, --resource
+      FHIR Resource ID or canonical URL for the measure resource to be
+      evaluated. Cannot be specified if -j option is used
+    -t, --terminology-server
+      Path to JSON configuration data for the FHIR server connection that will
+      be used to retrieve terminology.
+
 ```
 
 ## Passing parameters on the command line (-p option)
@@ -512,19 +524,23 @@ Example contents of `path/to/json/parameter/file`:
 }
 ```
 
-## UI Artifact Import
+## FHIR Resource Import
 
-There is a tooling project provided for loading resources exported from the Measure Authoring Tool (zip files) into a target FHIR server. The project is fhir-resource-tooling and it produces a shaded JAR ```fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar``` that provides a simple command line interface for loading the ZIP contents. Configuration of the tool uses the same JSON configuration file as the cohort-engine and measure-evaluator CLI tools described above. Requests are processed as FHIR bundles and the contents of the request and response bundles are written to an output path specified by the -o option. If no -o option is provided then the output is written to the current working directory. Users are responsible for creating the directory used in the -o option prior to executing the importer. The directory will not be created for you.
+There is a tooling project provided for loading necessary resources into a target FHIR server. The project is fhir-resource-tooling and it produces a shaded JAR ```fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar``` that provides a simple command line interface for loading the resources. The JAR provides two tools, one for loading resources exported from the Measure Authoring Tool (zip files), and one for loading VSAC Value Set spreadsheets as downloaded from https://cts.nlm.nih.gov/fhir.
 
-To load resources exported from the Measure Authoring Tool (zip files) into a target FHIR server, use the following invocation making sure to include whatever SSL configuration settings are needed as described in [Secure Socket Layer (SSL) Configuration](#secure-socket-layer-ssl-configuration) section above:
+Configuration of the importer tooling uses the same JSON configuration file as the cohort-engine and measure-evaluator CLI tools described above. Users should also make sure to provide whatever SSL configuration settings are needed as described in [Secure Socket Layer (SSL) Configuration](#secure-socket-layer-ssl-configuration) section above.
+
+### Measure ZIP
+To load Measure and Library resources exported from the Measure Authoring Tool (zip files) into a target FHIR server, use the following invocation:
 
 ```
 $> java -jar fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar -m local-fhir-config.json /path/to/measurebundle.zip
 ```
 
-The requests is processed as single FHIR bundles for each input artifact and the contents of the request and response bundles are written to an output path specified by the -o option. If no -o option is provided then the output is written to the current working directory. 
+Requests are processed as FHIR bundles and the contents of the request and response bundles are written to an output path specified by the ``-o`` option. If no ``-o`` option is provided then the output is written to the current working directory. Users are responsible for creating the directory used in the -o option prior to executing the importer. The directory will not be created for you.
 
-To load resources downloaded from the NIH website (spreadsheets) into a target FHIR server, use the following invocation:
+### VSAC Spreadsheet
+To load value set resources downloaded from the NIH website (spreadsheets) into a target FHIR server, use the following invocation:
 
 ```
 $> java -cp fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar com.ibm.cohort.tooling.fhir.VSACValueSetImporter -m local-fhir-config.json <list_of_spreadsheet_valuesets>
