@@ -1,40 +1,32 @@
 /*
- * (C) Copyright IBM Corp. 2021
+ * (C) Copyright IBM Corp. 2021, 2021
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 package com.ibm.cohort.tooling.fhir;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.put;
-import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Writer;
-import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.UUID;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.MetadataResource;
-import org.hl7.fhir.r4.model.ResourceType;
+import org.hl7.fhir.r4.model.OperationOutcome;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -45,123 +37,72 @@ import com.ibm.cohort.fhir.client.config.FhirServerConfig.LogInfo;
 
 public class MeasureImporterTest extends BaseFhirTest {
 	@Test
-	public void testImportAllNewResources() throws Exception {
-		FhirServerConfig fhirConfig = getFhirServerConfig();
-		fhirConfig.setLogInfo(Arrays.asList(LogInfo.REQUEST_SUMMARY));
+	public void testImportBundleSuccess200() throws Exception {
 		
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		String expectedRequest = new String(Files.readAllBytes(Paths.get("src/test/resources/simple_age_measure_v2_2_2-request.json")), StandardCharsets.UTF_8);
+		String expectedResponse = new String(Files.readAllBytes(Paths.get("src/test/resources/simple_age_measure_v2_2_2-response.json")), StandardCharsets.UTF_8);
 		
-		Bundle noResults = new Bundle();
-		
-		mockFhirResourceRetrieval("/Library?url=Library%2Flibrary-CovidConfirmedOverSuspected_genCql", noResults);
-		mockFhirResourceRetrieval("/Library?url=Library%2Flibrary-SuspectedCovid", noResults);
-		mockFhirResourceRetrieval("/Library?url=Library%2Flibrary-GotCovid", noResults);
-		mockFhirResourceRetrieval("/Library?url=Library%2Flibrary-FHIRHelpers", noResults);
-		mockFhirResourceRetrieval("/Measure?url=Measure%2Fmeasure-CovidConfirmedOverSuspected", noResults);
-		
-		String libraryId = UUID.randomUUID().toString();
-		
-		mockFhirResourcePost("/Library", libraryId, "1");
-		
-		mockFhirResourcePut("/Library/" + libraryId, "2");
-		
-		String measureId = UUID.randomUUID().toString();
-		
-		mockFhirResourcePost("/Measure", measureId, "1");
-		
-		mockFhirResourcePut("/Measure/" + measureId, "2");
-		
-		runTest(fhirConfig, "src/test/resources/covid_confirmed_over_suspected_v1_1_1.zip");
-		
-		verify( 4, postRequestedFor(urlEqualTo("/Library")) );
-		verify( 1, postRequestedFor(urlEqualTo("/Measure")) );
-		verify( 1, putRequestedFor(urlEqualTo("/Library/" + libraryId)) );
-		verify( 1, putRequestedFor(urlEqualTo("/Measure/" + measureId)) );	
-	}
+		roundTripTest("src/test/resources/simple_age_measure_v2_2_2.zip", expectedRequest, expectedResponse, 200, 0);
 
-	protected void mockFhirResourcePost(String localUrl, String newId, String newVersion) {		
-		stubFor(post(urlEqualTo(localUrl)).willReturn(
-				aResponse().withStatus(201)
-					.withHeader("Location", getLocation(localUrl, newId, newVersion))
-					.withHeader("ETag", newVersion)
-					.withHeader("Last-Modified", "2021-01-12T21:21:21.286Z")) );
-	}
-
-	protected String getLocation(String localUrl, String newId, String version) {
-		return getFhirServerConfig().getEndpoint() + localUrl + "/" + newId + "/_history/" + version;
-	}
-	
-	protected String getLocation(String localUrl, String version) {
-		return getFhirServerConfig().getEndpoint() + localUrl + "/_history/" + version;
-	}
-
-	protected void mockFhirResourcePut(String localUrl, String newVersion) {
-		stubFor(put(urlEqualTo(localUrl)).willReturn(
-				aResponse().withStatus(200)
-					.withHeader("Location", getLocation(localUrl, newVersion))
-					.withHeader("ETag", newVersion)
-					.withHeader("Last-Modified", "2021-01-12T21:21:21.286Z")) );
 	}
 	
 	@Test
-	public void testImportAllExistingResources() throws Exception {
-		String libraryId = null;
-		String measureId = null;
+	public void testImportBundleFailure400() throws Exception {
+		String expectedRequest = new String(Files.readAllBytes(Paths.get("src/test/resources/simple_age_measure_v2_2_2-request.json")), StandardCharsets.UTF_8);
+
+		OperationOutcome outcome = new OperationOutcome();
+		outcome.getText().setDivAsString("<div>Something went wrong</div>");
+		String expectedResponse = getFhirParser().encodeResourceToString(outcome);
 		
+		roundTripTest("src/test/resources/simple_age_measure_v2_2_2.zip", expectedRequest, expectedResponse, 400, 1);
+	}
+	
+	@Test
+	public void testImportBundleFailure500() throws Exception {
+		String expectedRequest = new String(Files.readAllBytes(Paths.get("src/test/resources/simple_age_measure_v2_2_2-request.json")), StandardCharsets.UTF_8);
+
+		OperationOutcome outcome = new OperationOutcome();
+		outcome.getText().setDivAsString("<div>Something went wrong</div>");
+		String expectedResponse = getFhirParser().encodeResourceToString(outcome);
+		
+		roundTripTest("src/test/resources/simple_age_measure_v2_2_2.zip", expectedRequest, expectedResponse, 500, 1);
+	}
+	
+	@Test(expected=ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException.class)
+	public void testImportBundleClientConnectFailure() throws Exception {
+		FhirServerConfig fhirConfig = new FhirServerConfig();
+		fhirConfig.setEndpoint("http://i.am.not.here");
+		
+		runTest(fhirConfig, "src/test/resources/simple_age_measure_v2_2_2.zip", -1);
+	}
+	
+	protected String roundTripTest(String inputPath, String expectedRequest, String expectedResponse, int statusCode, int numExpectedErrors) throws Exception {
+		String consoleOutput;
+	
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 		fhirConfig.setLogInfo(Arrays.asList(LogInfo.REQUEST_SUMMARY));
 		
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 		
-		try( InputStream is = new FileInputStream("src/test/resources/covid_confirmed_over_suspected_v1_1_1.zip") ) {
-			ZipInputStream zis = new ZipInputStream(is);
-			ZipEntry entry;
-			while ((entry = zis.getNextEntry()) != null) {
-				if (MeasureImporter.isDeployable(entry)) {
-					String id = UUID.randomUUID().toString();
-					
-					MetadataResource resource = (MetadataResource) getFhirParser().parseResource(zis);
-					resource.setId( id );
-					
-					String searchUrl = "/" + resource.fhirType() + "?url=" + URLEncoder.encode(resource.getUrl(), "UTF-8");
-					
-					Bundle.BundleEntryComponent bundleEntry = new Bundle.BundleEntryComponent();
-					bundleEntry.setResource(resource);
-					
-					Bundle bundle = new Bundle();
-					bundle.addEntry(bundleEntry);
-					
-					mockFhirResourceRetrieval( searchUrl, bundle );
-					
-					String localUrl = "/" + resource.fhirType() + "/" + id;
-					String fullUrl = fhirConfig.getEndpoint() + localUrl;
-					
-					stubFor(put(urlEqualTo(localUrl)).willReturn(
-							aResponse().withStatus(200)
-								.withHeader("Location", fullUrl)
-								.withHeader("ETag", /*version=*/"2") 
-								.withHeader("Last-Modified", "2021-01-12T21:21:21.286Z")) );
-					
-					if( resource.getResourceType() == ResourceType.Measure ) { 
-						measureId = id;
-					} else if( resource.getUrl().equals("Library/library-CovidConfirmedOverSuspected_genCql") ) {
-						libraryId = id;
-					}
-				}
-			}
-		}
+		stubFor(post(urlEqualTo("/")).willReturn(
+				aResponse().withStatus(statusCode).withHeader("Content-Type", "application/json")
+					.withBody(expectedResponse)));
 		
-		// sanity check the results of the ZIP loader
-		assertNotNull(libraryId);
-		assertNotNull(measureId);
+		consoleOutput = runTest(fhirConfig, inputPath, numExpectedErrors);
 		
-		runTest(fhirConfig, "src/test/resources/covid_confirmed_over_suspected_v1_1_1.zip");
+		verify( 1, postRequestedFor(urlEqualTo("/"))
+				.withRequestBody(equalTo(expectedRequest)));
 		
-		verify( 1, putRequestedFor(urlEqualTo("/Library/" + libraryId)) );
-		verify( 1, putRequestedFor(urlEqualTo("/Measure/" + measureId)) );
+		return consoleOutput;
+	}
+	
+	protected String runTest(FhirServerConfig fhirConfig, String pathString) throws IOException, JsonProcessingException, Exception {
+		return runTest(fhirConfig,pathString,0);
 	}
 
-	protected void runTest(FhirServerConfig fhirConfig, String pathString) throws Exception {
+	protected String runTest(FhirServerConfig fhirConfig, String pathString, int expectedNumErrors) throws IOException, JsonProcessingException, Exception {
+		String consoleOutput;
+		
 		Path tmpFile = Files.createTempFile(Paths.get("target"), "fhir-stub", ".json");
 		try {
 			ObjectMapper om = new ObjectMapper();
@@ -169,11 +110,22 @@ public class MeasureImporterTest extends BaseFhirTest {
 				w.write(om.writeValueAsString(fhirConfig));
 			}
 			
-			OutputStream baos = new ByteArrayOutputStream();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			PrintStream out = new PrintStream(baos);
-			MeasureImporter.runWithArgs( new String[] { "-m", tmpFile.toString(), pathString }, out);
+			int actualErrors = MeasureImporter.runWithArgs( new String[] { "-m", tmpFile.toString(), "-o", "target", pathString }, out);
+			assertEquals( expectedNumErrors, actualErrors );
+			
+			consoleOutput = baos.toString(StandardCharsets.UTF_8.name());
+			
+			if( expectedNumErrors == 0 ) { 
+				assertTrue( consoleOutput.contains("Process completed with no errors") );
+			} else { 
+				assertTrue( consoleOutput.contains("Process completed with errors") );
+			}
 		} finally {
 			Files.delete( tmpFile );
 		}
+		
+		return consoleOutput;
 	}
 }

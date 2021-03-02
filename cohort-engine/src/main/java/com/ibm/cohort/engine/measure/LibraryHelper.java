@@ -184,7 +184,7 @@ public class LibraryHelper {
 	 * to the measure, such as the FHIR modelinfo file, that is not directly part of the 
 	 * CQL logic.
 	 * 
-	 * @param library
+	 * @param library FHIR Library resource
 	 * @return true if the Library resource contains executable CQL logic or false otherwise
 	 */
 	public static boolean isLogicLibrary(org.hl7.fhir.r4.model.Library library) {

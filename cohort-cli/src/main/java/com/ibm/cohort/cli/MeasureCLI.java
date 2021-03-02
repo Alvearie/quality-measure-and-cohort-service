@@ -8,8 +8,12 @@ package com.ibm.cohort.cli;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.List;
+import java.util.zip.ZipFile;
 
+import org.hl7.fhir.r4.model.Library;
+import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
+import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -17,13 +21,18 @@ import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
 import com.ibm.cohort.cli.input.MeasureContextProvider;
 import com.ibm.cohort.cli.input.NoSplittingSplitter;
+import com.ibm.cohort.engine.DirectoryResourceResolutionProvider;
+import com.ibm.cohort.engine.helpers.FileHelpers;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.MeasureEvaluator;
+import com.ibm.cohort.engine.measure.MeasureResolutionProvider;
+import com.ibm.cohort.engine.measure.ResourceResolutionProvider;
+import com.ibm.cohort.engine.measure.RestFhirLibraryResolutionProvider;
+import com.ibm.cohort.engine.measure.RestFhirMeasureResolutionProvider;
+import com.ibm.cohort.engine.measure.ZipResourceResolutionProvider;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
-import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 
-import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
@@ -55,8 +64,11 @@ public class MeasureCLI extends BaseCLI {
 		private List<String> parameters;
 
 		@Parameter(names = { "-r",
-				"--resource" }, description = "FHIR Resource ID for the measure resource to be evaluated. Cannot be specified if -j option is used")
+				"--resource" }, description = "FHIR Resource ID or canonical URL for the measure resource to be evaluated. Cannot be specified if -j option is used")
 		private String resourceId;
+		
+		@Parameter(names = { "--filter" }, description = "Filter information for resource loader if the resource loader supports filtering")
+		private List<String> filters;
 		
 		@Parameter(names = { "-e",
 				"--include-evaluated-resources" }, description = "Include evaluated resources on measure report. Defaults to false.")
@@ -93,16 +105,42 @@ public class MeasureCLI extends BaseCLI {
 		} else {
 			arguments.validate();
 
-			readConnectionConfiguration(arguments);
+			readDataServerConfiguration(arguments);
+			readTerminologyServerConfiguration(arguments);
 			
-			FhirContext fhirContext = FhirContext.forR4();
-			
-			FhirClientBuilderFactory factory = FhirClientBuilderFactory.newInstance();
-			FhirClientBuilder builder = factory.newFhirClientBuilder(fhirContext);
+			FhirClientBuilder builder = getFhirClientBuilder();
 			
 			IGenericClient dataServerClient = builder.createFhirClient(dataServerConfig);
 			IGenericClient terminologyServerClient = builder.createFhirClient(terminologyServerConfig);
-			IGenericClient measureServerClient = builder.createFhirClient(measureServerConfig);
+			
+			LibraryResolutionProvider<Library> libraryProvider;
+			MeasureResolutionProvider<Measure> measureProvider;
+
+			IParser parser = getFhirContext().newJsonParser().setPrettyPrint(true);
+			String [] filters = (arguments.filters != null) ? arguments.filters.toArray(new String[arguments.filters.size()]) : null;
+			
+			if( arguments.measureServerConfigFile != null && FileHelpers.isZip(arguments.measureServerConfigFile)) {
+				ZipFile zipFile = new ZipFile( arguments.measureServerConfigFile );
+				
+				ResourceResolutionProvider resourceProvider = new ZipResourceResolutionProvider(zipFile, parser, filters);
+				
+				libraryProvider = resourceProvider;
+				measureProvider = resourceProvider;
+				
+			} else if( arguments.measureServerConfigFile != null && arguments.measureServerConfigFile.isDirectory() ) {
+				
+				ResourceResolutionProvider resourceProvider = new DirectoryResourceResolutionProvider(arguments.measureServerConfigFile, parser, filters);
+				
+				libraryProvider = resourceProvider;
+				measureProvider = resourceProvider;
+				
+			} else {
+				readMeasureServerConfiguration( arguments );
+				IGenericClient measureServerClient = builder.createFhirClient(measureServerConfig);
+				
+				libraryProvider = new RestFhirLibraryResolutionProvider( measureServerClient );
+				measureProvider = new RestFhirMeasureResolutionProvider( measureServerClient );
+			}
 			
 			List<MeasureContext> measureContexts;
 
@@ -112,7 +150,10 @@ public class MeasureCLI extends BaseCLI {
 				measureContexts = MeasureContextProvider.getMeasureContexts(arguments.resourceId,  arguments.parameters);
 			}
 			
-			evaluator = new MeasureEvaluator(dataServerClient, terminologyServerClient, measureServerClient);
+			evaluator = new MeasureEvaluator(dataServerClient, terminologyServerClient);
+			evaluator.setMeasureResolutionProvider(measureProvider);
+			evaluator.setLibraryResolutionProvider(libraryProvider);
+			
 			for( String contextId : arguments.contextIds ) {
 				out.println("Evaluating: " + contextId);
 				// Reports only returned for measures where patient is in initial population
@@ -131,7 +172,6 @@ public class MeasureCLI extends BaseCLI {
 							}
 						}
 					} else {
-						IParser parser = fhirContext.newJsonParser().setPrettyPrint(true);
 						out.println(parser.encodeResourceToString(report));
 					}
 					out.println("---");
