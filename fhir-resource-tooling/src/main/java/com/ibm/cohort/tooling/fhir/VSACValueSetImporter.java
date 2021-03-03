@@ -20,6 +20,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.MetadataResource;
 import org.hl7.fhir.r4.model.ValueSet;
 
@@ -86,6 +87,7 @@ public class VSACValueSetImporter {
 		XSSFWorkbook wb = new XSSFWorkbook(is);
 		XSSFSheet mainSheet = wb.getSheetAt(wb.getSheetIndex("Value Set Info"));
 		ValueSet valueSet = new ValueSet();
+		valueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
 		for (Row currentRow : mainSheet) {
 			if(currentRow.getCell(0) != null && currentRow.getCell(1) != null) {
 				String value = currentRow.getCell(1).getStringCellValue();
@@ -96,7 +98,7 @@ public class VSACValueSetImporter {
 						break;
 					case "oid":
 						valueSet.setId(value);
-						String url = "http://cts.nlm.nih.gov/fhir/ValueSet/" + value;
+						String url = "http://cts.nlm.nih.gov/fhir/ValueSet/" + value.replace(" ", "");
 						valueSet.setUrl(url);
 						break;
 					case "definition version":
