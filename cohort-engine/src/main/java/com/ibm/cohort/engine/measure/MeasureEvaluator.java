@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
@@ -38,59 +37,40 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 public class MeasureEvaluator {
 	protected static final String PARAMETER_EXTENSION_URL = "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-parameter";
 
-	private IGenericClient dataClient;
-	private IGenericClient terminologyClient;
-	private IGenericClient measureClient;
+	private final MeasureResolutionProvider<Measure> measureProvider;
+	private final LibraryResolutionProvider<Library> libraryProvider;
+	private final EvaluationProviderFactory providerFactory;
 	private FhirModelResolver fhirModelResolver;
-
-	private MeasureResolutionProvider<Measure> provider = null;
-	private LibraryResolutionProvider<Library> libraryProvider = null;
 	private MeasurementPeriodStrategy measurementPeriodStrategy;
-	private RetrieveCacheContext retrieveCacheContext = null;
 
-	public MeasureEvaluator(IGenericClient dataClient, IGenericClient terminologyClient) {
-		this.dataClient = dataClient;
-		this.terminologyClient = terminologyClient;
+	public MeasureEvaluator(IGenericClient fhirClient) {
+		this(
+				new ProviderFactory(fhirClient, fhirClient),
+				new RestFhirMeasureResolutionProvider(fhirClient),
+				new RestFhirLibraryResolutionProvider(fhirClient),
+				new R4FhirModelResolver()
+		);
 	}
 
-	public MeasureEvaluator(IGenericClient dataClient, IGenericClient terminologyClient, IGenericClient measureClient) {
-		this.dataClient = dataClient;
-		this.terminologyClient = terminologyClient;
-		this.measureClient = measureClient;
-		this.fhirModelResolver = new R4FhirModelResolver();
+	public MeasureEvaluator(EvaluationProviderFactory providerFactory, IGenericClient fhirClient) {
+		this(
+				providerFactory,
+				new RestFhirMeasureResolutionProvider(fhirClient),
+				new RestFhirLibraryResolutionProvider(fhirClient),
+				new R4FhirModelResolver()
+		);
 	}
 
 	public MeasureEvaluator(
-			IGenericClient dataClient,
-			IGenericClient terminologyClient,
-			IGenericClient measureClient,
-			FhirModelResolver fhirModelResolver) {
-		this.dataClient = dataClient;
-		this.terminologyClient = terminologyClient;
-		this.measureClient = measureClient;
+			EvaluationProviderFactory providerFactory,
+			MeasureResolutionProvider<Measure> measureProvider,
+			LibraryResolutionProvider<Library> libraryProvider,
+			FhirModelResolver fhirModelResolver
+	) {
+		this.providerFactory = providerFactory;
+		this.measureProvider = measureProvider;
+		this.libraryProvider = libraryProvider;
 		this.fhirModelResolver = fhirModelResolver;
-	}
-
-	public void setMeasureResolutionProvider(MeasureResolutionProvider<Measure> provider) {
-		this.provider = provider;
-	}
-	
-	public MeasureResolutionProvider<Measure> getMeasureResolutionProvider() {
-		if( this.provider == null ) {
-			this.provider = new RestFhirMeasureResolutionProvider(measureClient);
-		}
-		return this.provider;
-	}
-	
-	public void setLibraryResolutionProvider(LibraryResolutionProvider<Library> provider) {
-		this.libraryProvider = provider;
-	}
-	
-	public LibraryResolutionProvider<Library> getLibraryResolutionProvider() {
-		if( this.libraryProvider == null ) {
-			this.libraryProvider = new RestFhirLibraryResolutionProvider(measureClient);
-		}
-		return this.libraryProvider;
 	}
 
 	public void setMeasurementPeriodStrategy(MeasurementPeriodStrategy strategy) {
@@ -104,9 +84,6 @@ public class MeasureEvaluator {
 		return this.measurementPeriodStrategy;
 	}
 
-	public void setRetrieveCacheContext(RetrieveCacheContext retrieveCacheContext) {
-		this.retrieveCacheContext = retrieveCacheContext;
-	}
 	
 	/**
 	 * Evaluates measures for a given patient
@@ -119,6 +96,15 @@ public class MeasureEvaluator {
 	public List<MeasureReport> evaluatePatientMeasures(String patientId, List<MeasureContext> measureContexts, MeasureEvidenceOptions evidenceOptions) {
 		List<MeasureReport> measureReports = new ArrayList<>();
 		MeasureReport measureReport;
+		// TODO: we can't currently interact with the cache context here.
+		// we could have it as a dependency.
+		//
+		// TODO: Having the cache context managed by the measure evaluator has its own issues.
+		// It works great for the singlepatient-manymeasure usecase, but what about the singlepatient-singlemeasure usecase?
+		// It definitely shouldn't create a new cache every single time since the user _might_ call with the same patient multiple times.
+		// These usecases might be complex enough that it's worth just supporting caching for the singlepatient-manymeasure case.
+		//
+		// See TransientRetrieveCacheContext for more thoughts.
 		for (MeasureContext measureContext: measureContexts) {
 			measureReport = evaluatePatientMeasure(measureContext, patientId, evidenceOptions);
 			measureReports.add(measureReport);
@@ -150,7 +136,7 @@ public class MeasureEvaluator {
 	}
 
 	public MeasureReport evaluatePatientMeasure(String measureId, String patientId, Map<String, Object> parameters, MeasureEvidenceOptions evidenceOptions) {
-		Measure measure = MeasureHelper.loadMeasure(measureId, getMeasureResolutionProvider());
+		Measure measure = MeasureHelper.loadMeasure(measureId, measureProvider);
 		return evaluatePatientMeasure(measure, patientId, parameters, evidenceOptions);
 	}
 	
@@ -159,7 +145,7 @@ public class MeasureEvaluator {
 	}
 
 	public MeasureReport evaluatePatientMeasure(Identifier identifier, String version, String patientId, Map<String, Object> parameters, MeasureEvidenceOptions evidenceOptions) {
-		Measure measure =  MeasureHelper.loadMeasure(identifier,  version, getMeasureResolutionProvider());
+		Measure measure =  MeasureHelper.loadMeasure(identifier,  version, measureProvider);
 		return evaluatePatientMeasure(measure, patientId, parameters, evidenceOptions);
 	}
 
@@ -170,12 +156,9 @@ public class MeasureEvaluator {
 
 	public MeasureReport evaluatePatientMeasure(Measure measure, String patientId, String periodStart, String periodEnd,
 			Map<String, Object> parameters, MeasureEvidenceOptions evidenceOptions) {
-		LibraryResolutionProvider<Library> libraryResolutionProvider = getLibraryResolutionProvider();
-		LibraryLoader libraryLoader = LibraryHelper.createLibraryLoader(libraryResolutionProvider);
+		LibraryLoader libraryLoader = LibraryHelper.createLibraryLoader(libraryProvider);
 
-		EvaluationProviderFactory factory = new ProviderFactory(dataClient, terminologyClient, retrieveCacheContext);
-
-		MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(factory, libraryLoader, libraryResolutionProvider);
+		MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(providerFactory, libraryLoader, libraryProvider);
 		seeder.disableDebugLogging();
 
 		// TODO - consider talking with OSS project about making source, user, and pass

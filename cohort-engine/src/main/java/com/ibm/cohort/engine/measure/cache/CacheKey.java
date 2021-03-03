@@ -30,6 +30,8 @@ public class CacheKey {
 			Iterable<Code> codes,
 			String valueSet
 	) {
+		// TODO: Would using `Set` here be smart?
+		// It would allow for different orderings of the same codes to match
 		List<CacheCode> cacheCodes = Collections.emptyList();
 		if (codes != null) {
 			cacheCodes = new ArrayList<>();

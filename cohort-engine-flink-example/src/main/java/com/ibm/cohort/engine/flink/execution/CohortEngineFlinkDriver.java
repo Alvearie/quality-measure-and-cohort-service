@@ -17,6 +17,9 @@ import com.ibm.cohort.engine.flink.KafkaInfo;
 import com.ibm.cohort.engine.flink.MeasureExecution;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.MeasureEvaluator;
+import com.ibm.cohort.engine.measure.ProviderFactory;
+import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
+import com.ibm.cohort.engine.measure.cache.TransientRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
@@ -28,6 +31,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.hl7.fhir.r4.model.MeasureReport;
+import org.opencds.cqf.common.evaluation.EvaluationProviderFactory;
 
 public class CohortEngineFlinkDriver implements Serializable {
 
@@ -168,11 +172,11 @@ public class CohortEngineFlinkDriver implements Serializable {
 
 		FhirClientBuilder builder = factory.newFhirClientBuilder(getFhirContext());
 		IGenericClient genericClient = builder.createFhirClient(fhirServerInfo.toIbmServerConfig());
-		return new MeasureEvaluator(
-				genericClient,
-				genericClient,
-				genericClient
-		);
+
+		RetrieveCacheContext retrieveCacheContext = new TransientRetrieveCacheContext();
+		EvaluationProviderFactory providerFactory = new ProviderFactory(genericClient, genericClient, retrieveCacheContext);
+
+		return new MeasureEvaluator(providerFactory, genericClient);
 	}
 
 	private MeasureExecution deserializeMeasureExecution(String input) throws Exception {
