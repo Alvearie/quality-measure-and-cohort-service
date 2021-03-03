@@ -90,7 +90,7 @@ public class VSACValueSetImporter {
 		valueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
 		for (Row currentRow : mainSheet) {
 			if(currentRow.getCell(0) != null && currentRow.getCell(1) != null) {
-				String value = currentRow.getCell(1).getStringCellValue();
+				String value = currentRow.getCell(1).getStringCellValue().replace(" ", "");
 				switch (currentRow.getCell(0).getStringCellValue().toLowerCase()) {
 					case "value set name":
 						valueSet.setName(value);
@@ -98,7 +98,7 @@ public class VSACValueSetImporter {
 						break;
 					case "oid":
 						valueSet.setId(value);
-						String url = "http://cts.nlm.nih.gov/fhir/ValueSet/" + value.replace(" ", "");
+						String url = "http://cts.nlm.nih.gov/fhir/ValueSet/" + value;
 						valueSet.setUrl(url);
 						break;
 					case "definition version":
