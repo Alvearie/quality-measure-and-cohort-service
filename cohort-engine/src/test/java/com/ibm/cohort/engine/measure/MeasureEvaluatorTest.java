@@ -21,20 +21,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hl7.fhir.r4.model.Address;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CapabilityStatement;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
+import org.hl7.fhir.r4.model.Extension;
+import org.hl7.fhir.r4.model.IntegerType;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.RelatedArtifact;
+import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.Type;
 import org.junit.Before;
 import org.junit.Test;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
+import org.opencds.cqf.cql.engine.exception.InvalidOperatorArgument;
 
 import com.ibm.cohort.engine.LibraryFormat;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
+import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
 
 public class MeasureEvaluatorTest extends BaseMeasureTest {
 
@@ -349,6 +356,100 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		
 		// When this functionality is implemented, this is what we want to be returned
 //		assertTrue(report.getEvaluatedResource().isEmpty());
+	}
+
+	@Test
+	public void measure_default_valid() throws Exception {
+		CapabilityStatement metadata = getCapabilityStatement();
+		mockFhirResourceRetrieval("/metadata", metadata);
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = mockLibraryRetrieval("TestAdultMales", DEFAULT_VERSION, "cql/fhir-measure/test-parameter-defaults.cql");
+
+		expressionsByPopulationType.clear();
+		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
+		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOR, DENOMINATOR);
+		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
+
+		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
+		Extension parameterExtension = new Extension();
+		parameterExtension.setUrl(MeasureEvaluator.PARAMETER_EXTENSION_URL);
+		parameterExtension.setId("SomeAge");
+
+		Type age = new IntegerType(20);
+		parameterExtension.setValue(age);
+
+		measure.addExtension(parameterExtension);
+		mockFhirResourceRetrieval(measure);
+
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());
+		assertNotNull(report);
+
+		assertTrue(!report.getEvaluatedResource().isEmpty());
+	}
+
+	@Test(expected = InvalidOperatorArgument.class)
+	public void measure_default_invalid_type() throws Exception {
+		CapabilityStatement metadata = getCapabilityStatement();
+		mockFhirResourceRetrieval("/metadata", metadata);
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = mockLibraryRetrieval("TestAdultMales", DEFAULT_VERSION, "cql/fhir-measure/test-parameter-defaults.cql");
+
+		expressionsByPopulationType.clear();
+		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
+		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOR, DENOMINATOR);
+		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
+
+		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
+
+		Extension parameterExtension = new Extension();
+		parameterExtension.setUrl(MeasureEvaluator.PARAMETER_EXTENSION_URL);
+		parameterExtension.setId("SomeAge");
+		Type age = new StringType("invalid");
+
+		parameterExtension.setValue(age);
+
+		measure.addExtension(parameterExtension);
+		mockFhirResourceRetrieval(measure);
+
+		evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());
+	}
+
+	@Test(expected = UnsupportedFhirTypeException.class)
+	public void measure_default_unsupported_type() throws Exception {
+		CapabilityStatement metadata = getCapabilityStatement();
+		mockFhirResourceRetrieval("/metadata", metadata);
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = mockLibraryRetrieval("TestAdultMales", DEFAULT_VERSION, "cql/fhir-measure/test-parameter-defaults.cql");
+
+		expressionsByPopulationType.clear();
+		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
+		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOR, DENOMINATOR);
+		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
+
+		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
+
+		Extension parameterExtension = new Extension();
+		parameterExtension.setUrl(MeasureEvaluator.PARAMETER_EXTENSION_URL);
+		parameterExtension.setId("SomeAge");
+
+		Address unsupportedType = new Address();
+		unsupportedType.setCity("Cleaveland");
+
+		parameterExtension.setValue(unsupportedType);
+
+		measure.addExtension(parameterExtension);
+		mockFhirResourceRetrieval(measure);
+
+		evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());
 	}
 
 	private void runCareGapTest(Map<String, Object> parameters, Map<String, Integer> careGapExpectations)
