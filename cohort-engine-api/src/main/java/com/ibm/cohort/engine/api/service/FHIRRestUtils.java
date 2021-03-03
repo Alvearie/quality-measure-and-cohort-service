@@ -242,7 +242,7 @@ public class FHIRRestUtils {
 		}
 		
 		//If OAuth authentication is being used, parse the bearer token value from the headers and return it
-		if(authString.startsWith("Bearer")) {
+		if(authString.startsWith("Bearer ")) {
 			return new String[] {authString.substring("Bearer ".length())};
 		}
 		//HTTP basic authentication headers are passed in as a base64 encoded string so we need to decode it
