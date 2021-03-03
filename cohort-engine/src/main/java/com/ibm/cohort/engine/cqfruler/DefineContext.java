@@ -72,5 +72,9 @@ public class DefineContext extends Context {
 
         return this.expressions.get(libraryId).get(name);
     }
+	
+	public void clearExpressionCache() {
+		expressions.clear();
+	}
 
 }

@@ -270,9 +270,9 @@ public class MeasureEvaluation {
             MeasureReport.MeasureReportGroupPopulationComponent populationReport = new MeasureReport.MeasureReportGroupPopulationComponent();
             populationReport.setCode(populationCriteria.getCode());
             if (report.getType() == MeasureReport.MeasureReportType.SUBJECTLIST && patientPopulation != null) {
-                ListResource SUBJECTLIST = new ListResource();
-                SUBJECTLIST.setId(UUID.randomUUID().toString());
-                populationReport.setSubjectResults(new Reference().setReference("#" + SUBJECTLIST.getId()));
+                ListResource subjectList = new ListResource();
+                subjectList.setId(UUID.randomUUID().toString());
+                populationReport.setSubjectResults(new Reference().setReference("#" + subjectList.getId()));
                 for (Patient patient : patientPopulation) {
                     ListResource.ListEntryComponent entry = new ListResource.ListEntryComponent()
                             .setItem(new Reference()
@@ -280,9 +280,9 @@ public class MeasureEvaluation {
                                             ? patient.getIdElement().getIdPart()
                                             : String.format("Patient/%s", patient.getIdElement().getIdPart()))
                                     .setDisplay(patient.getNameFirstRep().getNameAsSingleString()));
-                    SUBJECTLIST.addEntry(entry);
+                    subjectList.addEntry(entry);
                 }
-                report.addContained(SUBJECTLIST);
+                report.addContained(subjectList);
             }
             populationReport.setCount(populationCount);
             reportGroup.addPopulation(populationReport);
@@ -606,15 +606,6 @@ public class MeasureEvaluation {
         if (!codeToResourceMap.containsKey(type.toCode())) {
             codeToResourceMap.put(type.toCode(), new HashSet<>());
         }
-        
-//        VersionedIdentifier libId = context.getCurrentLibrary().getIdentifier();
-        
-//        for(ExpressionDef s : context.getCurrentLibrary().getStatements().getDef()) {
-//        	String name = s.getName();
-//        	
-//        	System.out.println(name + " : " + context.getExpressionResultFromCache(libId, s.getName()));
-//        }
-//        
 
         Set<String> codeHashSet = codeToResourceMap.get((type.toCode()));
 

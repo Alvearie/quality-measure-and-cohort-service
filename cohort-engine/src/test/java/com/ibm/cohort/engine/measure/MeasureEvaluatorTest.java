@@ -25,9 +25,12 @@ import java.util.Map;
 import org.hl7.fhir.r4.model.Address;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CapabilityStatement;
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.IntegerType;
+import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
@@ -40,6 +43,7 @@ import org.junit.Test;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 import org.opencds.cqf.cql.engine.exception.InvalidOperatorArgument;
 
+import com.google.common.collect.Lists;
 import com.ibm.cohort.engine.LibraryFormat;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
@@ -449,11 +453,34 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		mockFhirResourceRetrieval("/metadata", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		
+		//Add 2 names to test list
+		HumanName name1 = new HumanName();
+		name1.setFamily("Jones");
+		HumanName name2 = new HumanName();
+		name2.setFamily("Smith");
+		patient.setName(Lists.newArrayList(name1, name2));
+		
+		// Add marital status to test codeable concept
+		CodeableConcept maritalStatus = new CodeableConcept();
+		Coding maritalCoding = new Coding();
+		maritalCoding.setCode("M");
+		maritalCoding.setSystem("http://terminology.hl7.org/CodeSystem/v3-MaritalStatus");
+		maritalCoding.setDisplay("Married");
+		
+		maritalStatus.setCoding(Lists.newArrayList(maritalCoding));
+		maritalStatus.setText("Married");
+		
+		patient.setMaritalStatus(maritalStatus);
+		
 		mockFhirResourceRetrieval(patient);
 
+		Library fhirHelpers = mockLibraryRetrieval("FHIRHelpers", DEFAULT_VERSION, "cql/fhir-measure/FHIRHelpers.cql");
 		Library library2 = mockLibraryRetrieval("TestAdultMales2", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males2.cql");
 		Library library3 = mockLibraryRetrieval("TestAdultMales3", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males3.cql");
 		Library library = mockLibraryRetrieval("TestAdultMales", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males.cql");
+
+		library.addRelatedArtifact(asRelation(fhirHelpers));
 		library.addRelatedArtifact(asRelation(library2));
 		library.addRelatedArtifact(asRelation(library3));
 		
@@ -467,6 +494,16 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 
 //		long ms = System.currentTimeMillis();
 		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(true, true));
+		
+		for(Extension extension : report.getExtension()) {
+			System.out.println(extension.getExtensionByUrl(CDMMeasureEvaluation.EVIDENCE_TEXT_URL).getValue());
+			List<Extension> values = extension.getExtensionsByUrl(CDMMeasureEvaluation.EVIDENCE_VALUE_URL);
+			
+			for(Extension value : values) {
+				System.out.println("\t" + value.getValue());
+			}
+			
+		}
 //		System.out.println("Duration: " + (System.currentTimeMillis() - ms));
 //		
 //		List<Long> durationWith = new ArrayList<>();

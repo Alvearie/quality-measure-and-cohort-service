@@ -9,16 +9,24 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
+import org.cqframework.cql.elm.execution.VersionedIdentifier;
+import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
+import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.Type;
 import org.hl7.fhir.r4.model.codesystems.MeasureScoring;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 
+import com.ibm.cohort.engine.cqfruler.DefineContext;
 import com.ibm.cohort.engine.cqfruler.MeasureEvaluation;
+import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceHelper;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 
 /**
@@ -29,6 +37,15 @@ public class CDMMeasureEvaluation {
 
 	public static final String CARE_GAP = "care-gap";
 	public static final String CDM_CODE_SYSTEM_MEASURE_POPULATION_TYPE = "http://ibm.com/fhir/cdm/CodeSystem/measure-population-type";
+	
+	public static final String EVIDENCE = "measure-report-evidence";
+	public static final String EVIDENCE_URL = "http://ibm.com/fhir/cdm/StructureDefinition/measure-report-evidence";
+	
+	public static final String EVIDENCE_TEXT = "measure-report-evidence-text";
+	public static final String EVIDENCE_TEXT_URL = "http://ibm.com/fhir/cdm/StructureDefinition/measure-report-evidence-text";
+	
+	public static final String EVIDENCE_VALUE = "measure-report-evidence-value";
+	public static final String EVIDENCE_VALUE_URL = "http://ibm.com/fhir/cdm/StructureDefinition/measure-report-evidence-value";
 	
 	/**
 	 * Helper for collecting and indexing the various standard population types from
@@ -136,8 +153,51 @@ public class CDMMeasureEvaluation {
 		default:
 			// no customizations needed
 		}
+		
+		if(context instanceof DefineContext) {
+			DefineContext defineContext = (DefineContext) context;
+			
+			// Grab the define results from the expression cache
+			if(evidenceOptions.isIncludeDefineEvaluation()) {
+				addDefineEvaluationToReport(report, defineContext);
+			}
+			
+			defineContext.clearExpressionCache();
+		}
 
 		return report;
+	}
+	
+	protected static void addDefineEvaluationToReport(MeasureReport report, DefineContext defineContext) {
+		for(Entry<VersionedIdentifier, Map<String, Object>> libraryCache : defineContext.getEntriesInCache()) {
+			for(Entry<String, Object> defineResult : libraryCache.getValue().entrySet()) {
+				
+				List<Type> values = MeasureEvidenceHelper.getFhirTypes(defineResult.getValue());
+				
+				if (!values.isEmpty()) {
+					
+					Extension evidence = new Extension();
+					evidence.setUrl(EVIDENCE_URL);
+					
+					StringType key = new StringType(MeasureEvidenceHelper.createEvidenceKey(libraryCache.getKey(), defineResult.getKey()));
+					
+					Extension textExtension = new Extension();
+					textExtension.setUrl(EVIDENCE_TEXT_URL);
+					textExtension.setValue(key);
+					
+					evidence.addExtension(textExtension);
+					
+					for(Type value : values) {
+						Extension valueExtension = new Extension();
+						valueExtension.setUrl(EVIDENCE_VALUE_URL);
+						valueExtension.setValue(value);
+						evidence.addExtension(valueExtension);
+					}
+					
+					report.addExtension(evidence);
+				}
+			}
+		}
 	}
 
 	/**
@@ -188,7 +248,7 @@ public class CDMMeasureEvaluation {
 		if (result instanceof Boolean) {
 			return (Boolean) result;
 		} else if (result instanceof List) {
-			return ((List<?>) result).size() > 0;
+			return !((List<?>) result).isEmpty();
 		} else {
 			throw new IllegalArgumentException(String
 					.format("Criteria expression '%s' did not evaluate to a boolean or list result.", expression));

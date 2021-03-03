@@ -82,7 +82,7 @@ public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
 				optionsList.toArray(new Options[optionsList.size()]));
 
 		LOG.debug("Translated CQL contains {} errors", translator.getErrors().size());
-		if (translator.getErrors().size() > 0) {
+		if (!translator.getErrors().isEmpty()) {
 			throw new Exception("CQL translation contained errors: " + String.join("\n",
 					translator.getErrors().stream().map(x -> x.toString()).collect(Collectors.toList())));
 		}
