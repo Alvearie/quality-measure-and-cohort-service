@@ -48,7 +48,8 @@ public class RestFhirLibraryResolutionProvider extends RestFhirResourceResolutio
 			return resolveLibraryByIdRaw(libraryId);
 		});
 		if( library != null ) {
-			cacheByNameVersion.computeIfAbsent(getCacheKey(library), k -> library);
+			cacheByUrl.computeIfAbsent(getUrlCacheKey(library), key -> library);
+			cacheByNameVersion.computeIfAbsent(getCacheKey(library), key -> library);
 		}
 		return library;
 	}
@@ -69,6 +70,10 @@ public class RestFhirLibraryResolutionProvider extends RestFhirResourceResolutio
 		Library library = cacheByNameVersion.computeIfAbsent(cacheKey, k -> {
 			return resolveLibraryByNameRaw(libraryName, libraryVersion);
 		});
+		if( library != null ) {
+			cacheById.computeIfAbsent(library.getId(), key -> library);
+			cacheByUrl.computeIfAbsent(getUrlCacheKey(library), key -> library);
+		}
 		return library;
 	}
 	
@@ -80,10 +85,14 @@ public class RestFhirLibraryResolutionProvider extends RestFhirResourceResolutio
 
 	@Override
 	public Library resolveLibraryByCanonicalUrl(String libraryUrl) {
-				
-		return cacheByUrl.computeIfAbsent(libraryUrl, cacheKey -> {
+		Library library = cacheByUrl.computeIfAbsent(libraryUrl, cacheKey -> {
 			return resolveLibraryByCanonicalUrlRaw(libraryUrl);
 		});
+		if( library != null ) {
+			cacheById.computeIfAbsent(library.getId(), key -> library);
+			cacheByNameVersion.computeIfAbsent(getCacheKey(library), key -> library);
+		}
+		return library;
 	}
 	
 	public Library resolveLibraryByCanonicalUrlRaw(String libraryUrl) {
@@ -104,6 +113,10 @@ public class RestFhirLibraryResolutionProvider extends RestFhirResourceResolutio
 		cacheById.clear();
 		cacheByNameVersion.clear();
 		cacheByUrl.clear();
+	}
+	
+	protected String getUrlCacheKey(Library library) {
+		return CanonicalHelper.toCanonicalUrl(library);
 	}
 
 	protected String getCacheKey(Library library) {

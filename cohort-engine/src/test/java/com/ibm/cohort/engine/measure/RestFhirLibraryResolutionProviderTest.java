@@ -146,6 +146,19 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 		provider.resolveLibraryByCanonicalUrl(TEST_URL);
 		verify(1, getRequestedFor(urlMatching("/Library\\?url=.*")));
 	}
+	
+	@Test
+	public void resolveLibraryByCanonicalUrlThenNameVersion___returns_cached_data() throws Exception {
+		Library library = getLibrary("Test", DEFAULT_VERSION, "cql/basic/test.cql");
+		library.setUrl(TEST_URL);
+
+		Library actual = runTest(TEST_URL, makeBundle( library ));
+		assertNotNull(actual);
+		assertEquals(library.getUrl(), actual.getUrl());
+		
+		provider.resolveLibraryByName(library.getName(), library.getVersion());
+		verify(1, getRequestedFor(urlMatching("/Library\\?.*")));
+	}
 
 	@Test
 	public void resolveLibraryByCanonicalUrl__null_when_library_not_found() throws Exception {
