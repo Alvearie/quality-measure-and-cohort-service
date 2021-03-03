@@ -178,6 +178,14 @@ public class MeasureEvaluator {
 		// configuration of our FHIR server.
 		IMeasureEvaluationSeed seed = seeder.create(measure, periodStart, periodEnd, "ProductLine");
 
+		measure.getExtension().stream()
+				.filter(this::isParameterExtension)
+				.forEach(measureDefault ->
+						         seed.getContext().setParameter(
+								         null,
+								         measureDefault.getId(),
+								         toCqlObject(measureDefault.getValue())));
+
 		// TODO - The OSS logic converts the period start and end into an
 		// Interval and creates a parameter named "Measurement Period" that is populated
 		// with that value. We need to sync with the authoring and clinical informatics
@@ -192,14 +200,6 @@ public class MeasureEvaluator {
 				seed.getContext().setParameter(null, entry.getKey(), entry.getValue());
 			}
 		}
-
-		measure.getExtension().stream()
-				.filter(this::isParameterExtension)
-				.forEach(measureDefault ->
-						         seed.getContext().setParameter(
-								         null,
-								         measureDefault.getId(),
-								         toCqlObject(measureDefault.getValue())));
 
 		CDMMeasureEvaluation evaluation = new CDMMeasureEvaluation(seed.getDataProvider(), seed.getMeasurementPeriod());
 		return evaluation.evaluatePatientMeasure(measure, seed.getContext(), patientId);
