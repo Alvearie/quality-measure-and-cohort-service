@@ -10,7 +10,7 @@ The measure evaluation engine relies on Measure and Library definitions that are
 In the fhir-server-config.json for the knowledge tenant created above, set fhirServer/core/serverRegistryResourceProviderEnabled to true to enable user-defined ValueSet resources to be searchable via the REST API. This is a required setting to enable search functionality in the cohort and measure authoring tool. See [the Dev Guide](/dev-guide/value-sets?id=fhir-server-setup) for complete details. The property is also described in the [IBM FHIR Server User's Guide](https://ibm.github.io/FHIR/guides/FHIRServerUsersGuide/).
 
 ## Configure the FHIR Server's SSL certificate
-IBM FHIR comes preconfigured with only an SSL endpoint enabled. A clear text HTTP endpoint can be setup, but it is *strongly recommend* not to do this for any type of production environment, especially one that processes PHI data. 
+IBM FHIR comes preconfigured with only an SSL endpoint enabled. A clear text HTTP endpoint can be setup, but it is *strongly recommended* not to do this for any type of production environment, especially one that processes PHI data. 
 
 A default, well-known certificate is provided in the FHIR server installation with a subject name of localhost. The cohorting service will check the host name used to connect to the FHIR server against the certificate's subject and fail if there is no match. Users running the FHIR server on a different service from the cohorting engine code will need to update the FHIR server's SSL certificate and then make sure that the server's public key is trusted by the JVM that runs the cohorting component.
 
