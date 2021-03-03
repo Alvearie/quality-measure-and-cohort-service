@@ -10,11 +10,13 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.zip.ZipFile;
 
+import com.ibm.cohort.engine.measure.ProviderFactory;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.TransientRetrieveCacheContext;
 import org.hl7.fhir.r4.model.MeasureReport;
+import org.opencds.cqf.common.evaluation.EvaluationProviderFactory;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 
 import com.beust.jcommander.JCommander;
@@ -153,10 +155,8 @@ public class MeasureCLI extends BaseCLI {
 			}
 
 			RetrieveCacheContext retrieveCacheContext = new TransientRetrieveCacheContext();
-			evaluator = new MeasureEvaluator(dataServerClient, terminologyServerClient);
-			evaluator.setMeasureResolutionProvider(measureProvider);
-			evaluator.setLibraryResolutionProvider(libraryProvider);
-			evaluator.setRetrieveCacheContext(retrieveCacheContext);
+			EvaluationProviderFactory factory = new ProviderFactory(dataServerClient, terminologyServerClient, retrieveCacheContext);
+			evaluator = new MeasureEvaluator(factory, measureProvider, libraryProvider);
 
 			for( String contextId : arguments.contextIds ) {
 				out.println("Evaluating: " + contextId);

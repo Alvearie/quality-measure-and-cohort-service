@@ -36,7 +36,12 @@ public class ProviderFactory implements EvaluationProviderFactory {
 
 	private IGenericClient dataClient;
 	private IGenericClient terminologyClient;
-	private RetrieveCacheContext retrieveCacheContext;
+	private RetrieveCacheContext retrieveCacheContext = null;
+
+	public ProviderFactory(IGenericClient dataClient, IGenericClient terminologyClient) {
+		this.dataClient = dataClient;
+		this.terminologyClient = terminologyClient;
+	}
 
 	public ProviderFactory(IGenericClient dataClient, IGenericClient terminologyClient, RetrieveCacheContext retrieveCacheContext) {
 		this.dataClient = dataClient;

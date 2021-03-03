@@ -36,6 +36,7 @@ import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Type;
 import org.junit.Before;
 import org.junit.Test;
+import org.opencds.cqf.common.evaluation.EvaluationProviderFactory;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 import org.opencds.cqf.cql.engine.exception.InvalidOperatorArgument;
 
@@ -52,7 +53,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Before
 	public void setUp() {
 		super.setUp();
-		evaluator = new MeasureEvaluator(client, client, client);
+		evaluator = new MeasureEvaluator(client);
 	}
 
 	@Test

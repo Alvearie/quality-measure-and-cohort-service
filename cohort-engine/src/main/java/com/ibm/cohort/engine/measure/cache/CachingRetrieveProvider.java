@@ -48,8 +48,8 @@ public class CachingRetrieveProvider implements RetrieveProvider {
 			retVal = baseProvider.retrieve(context, contextPath, contextValue, dataType, templateId, codePath, codes, valueSet, datePath, dateLowPath, dateHighPath, dateRange);
 		}
 		else {
-			// TODO: Make trace before PR
 			Cache<CacheKey, Iterable<Object>> cache = retrieveCacheContext.getCurrentCache();
+			// TODO: Make trace before PR
 			LOG.info("Attempting cache");
 			CacheKey key = CacheKey.create(context, contextPath, (String)contextValue, dataType, templateId, codePath, codes, valueSet);
 			retVal = cache.get(key, x -> baseProvider.retrieve(context, contextPath, contextValue, dataType, templateId, codePath, codes, valueSet, datePath, dateLowPath, dateHighPath, dateRange));
