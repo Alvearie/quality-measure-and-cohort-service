@@ -2,7 +2,8 @@
 <!-- (C) Copyright IBM Corp. 2021, 2021 -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- ************************************** -->
-<server description="cohort-server">
+<!-- must match SERVER_NAME value in Dockerfile -->
+<server description="cohortServer">
 
 	<!-- Enable features -->
 
@@ -11,7 +12,7 @@
 		<feature>localConnector-1.0</feature>
 		<feature>jaxrs-2.1</feature>
 		<feature>servlet-4.0</feature>
-		<feature>ssl-1.0</feature>
+		<feature>transportSecurity-1.0</feature>
 		<!-- <feature>apiDiscovery-1.0</feature> -->
 	</featureManager>
 
@@ -26,8 +27,11 @@
 		deferServletLoad="false" />
 
 
-	<ssl id="defaultSSLConfig" sslProtocol="TLSv1.2" />
-	<keyStore id="defaultKeyStore" password="abc123" />
+	<ssl id="defaultSSLConfig" keyStoreRef="defaultKeyStore" trustStoreRef="defaultTrustStore" clientAuthenticationSupported="true" sslProtocol="TLSv1.2" />
+	
+	<!-- XXX_TOKEN values set in setupLiberty.sh -->
+	<keyStore id="defaultKeyStore" location="${server.output.dir}/resources/security/LIBERTY_KEY_STORE_NAME_TOKEN" type="PKCS12" password="ENCODED_PWD_TOKEN"/>
+	<keyStore id="defaultTrustStore" location="${server.output.dir}/resources/security/LIBERTY_TRUST_STORE_NAME_TOKEN" type="PKCS12" password="ENCODED_PWD_TOKEN"/>
 
 	<!-- To access this server from a remote client add a host attribute to 
 		the following element, e.g. host="*" -->
@@ -41,7 +45,7 @@
 		updateTrigger="mbean" />
 
 	<webApplication id="cohort-engine"
-		location="cohort-engine.war" name="cohort-engine" />
+		location="cohort-engine.war" name="cohort-engine" contextRoot="services/cohort"/>
 
 
 	<logging consoleLogLevel="INFO" maxFileSize="20" maxFiles="10"

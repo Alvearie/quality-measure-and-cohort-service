@@ -10,6 +10,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -284,6 +285,85 @@ public class CohortCLITest extends BasePatientTest {
 			tmpFile.delete();
 		}
 	}	
+	
+	@Test
+	public void testMainZippedLibrariesMultiFolderWithExtraEntriesFiltered() throws Exception {
+
+		FhirServerConfig fhirConfig = getFhirServerConfig();
+
+		IParser encoder = getFhirParser();
+
+		mockFhirResourceRetrieval("/metadata", encoder, getCapabilityStatement(), fhirConfig);
+
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, 65);
+		mockFhirResourceRetrieval(patient);
+
+		File tmpFile = new File("target/fhir-stub.json");
+		ObjectMapper om = new ObjectMapper();
+		try (Writer w = new FileWriter(tmpFile)) {
+			w.write(om.writeValueAsString(fhirConfig));
+		}
+
+		try {
+			PrintStream originalOut = System.out;
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			try (PrintStream captureOut = new PrintStream(baos)) {
+				System.setOut(captureOut);
+				CohortCLI.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-t", tmpFile.getAbsolutePath(),
+						"-f", "src/test/resources/cql/zip-with-folders/cohorts.zip", "--filter", "cohorts/ci_colorectal_cancer_screening_v1_0_0_cql", "-l",
+						"CI_Colorectal-Cancer", "-v", "Screening", "-e", "Individuals 50-75 years of age", "-c", "123", "-s", "CQL" });
+			} finally {
+				System.setOut(originalOut);
+			}
+
+			String output = new String(baos.toByteArray());
+			String[] lines = output.split("\r?\n");
+
+			assertEquals(output, 4, lines.length);
+			System.out.println(output);
+
+			verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
+		} finally {
+			tmpFile.delete();
+		}
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testMainZippedLibrariesMultiFolderWithExtraEntriesFilteredNoneFound() throws Exception {
+
+		FhirServerConfig fhirConfig = getFhirServerConfig();
+
+		IParser encoder = getFhirParser();
+
+		mockFhirResourceRetrieval("/metadata", encoder, getCapabilityStatement(), fhirConfig);
+
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, 65);
+		mockFhirResourceRetrieval(patient);
+
+		File tmpFile = new File("target/fhir-stub.json");
+		ObjectMapper om = new ObjectMapper();
+		try (Writer w = new FileWriter(tmpFile)) {
+			w.write(om.writeValueAsString(fhirConfig));
+		}
+
+		try {
+			PrintStream originalOut = System.out;
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			try (PrintStream captureOut = new PrintStream(baos)) {
+				System.setOut(captureOut);
+				CohortCLI.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-t", tmpFile.getAbsolutePath(),
+						"-f", "src/test/resources/cql/zip-with-folders/cohorts.zip", "--filter", "does-not-exist", "-l",
+						"CI_Colorectal-Cancer", "-v", "Screening", "-e", "Individuals 50-75 years of age", "-c", "123", "-s", "CQL" });
+				
+				fail("Execution should not reach this point");
+			} finally {
+				System.setOut(originalOut);
+			}
+
+		} finally {
+			tmpFile.delete();
+		}
+	}
 
 	@Test
 	public void testMainFHIRLibrariesWithDependencies() throws Exception {

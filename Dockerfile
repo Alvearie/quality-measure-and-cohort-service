@@ -66,7 +66,7 @@ LABEL maintainer="IBM Quality Measure and Cohort Service Team" \
       description="Quality Measure and Cohort Service available via REST API"
 
 ENV WLP_HOME=/opt/ibm/wlp \
-    SERVER_NAME=myServer \
+    SERVER_NAME=cohortServer \
     ALVEARIE_HOME=/opt/alvearie \
     COHORT_DIST_SOLUTION=/app/cohortSolutionDistribution \
     COHORT_TEST_SOLUTION=/app/cohortTestDistribution \
@@ -92,11 +92,17 @@ RUN microdnf update -y && rm -rf /var/cache/yum && \
 
 #Copy in war files, config files, etc. to final image
 USER whuser
+# copy webApp and files required for liberty server
 COPY --from=builder $COHORT_DIST_SOLUTION/solution/webapps/*.war /config/apps/
 COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/server.xml /config/
 COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/jvm.options /config/
+# copy the cohort engine uber jar (aka shaded jar)
+COPY --from=builder $COHORT_DIST_SOLUTION/solution/jars/*.jar $COHORT_ENGINE_HOME/
+# copy the files needed to run the test suite
 COPY --from=builder $COHORT_TEST_SOLUTION/ $ALVEARIE_TEST_HOME/
 COPY --from=builder $COHORT_DIST_SOLUTION/solution/jars/*.jar $COHORT_ENGINE_HOME/
+# workaround for docker bug https://github.com/moby/moby/issues/37965
+RUN true
 COPY --from=builder $ANT_HOME $ANT_HOME
 
 # Add ant to the path so that our test executions
@@ -129,4 +135,4 @@ USER whuser
 # Expose the servers HTTP and HTTPS ports.  NOTE:  must match with hardcoded testcase stage scripts, Helm charts (values.yaml), server.xml
 EXPOSE 9080 9443
 
-ENTRYPOINT $WLP_HOME/bin/runServer.sh
+ENTRYPOINT $WLP_HOME/bin/entrypoint.sh

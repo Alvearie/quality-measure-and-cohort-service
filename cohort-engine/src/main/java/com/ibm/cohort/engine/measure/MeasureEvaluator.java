@@ -34,8 +34,13 @@ public class MeasureEvaluator {
 	private IGenericClient terminologyClient;
 	private IGenericClient measureClient;
 	private MeasureResolutionProvider<Measure> provider = null;
+	private LibraryResolutionProvider<Library> libraryProvider = null;
 	private MeasurementPeriodStrategy measurementPeriodStrategy;
 
+	public MeasureEvaluator(IGenericClient dataClient, IGenericClient terminologyClient) {
+		this.dataClient = dataClient;
+		this.terminologyClient = terminologyClient;
+	}
 	
 	public MeasureEvaluator(IGenericClient dataClient, IGenericClient terminologyClient, IGenericClient measureClient) {
 		this.dataClient = dataClient;
@@ -52,6 +57,17 @@ public class MeasureEvaluator {
 			this.provider = new RestFhirMeasureResolutionProvider(measureClient);
 		}
 		return this.provider;
+	}
+	
+	public void setLibraryResolutionProvider(LibraryResolutionProvider<Library> provider) {
+		this.libraryProvider = provider;
+	}
+	
+	public LibraryResolutionProvider<Library> getLibraryResolutionProvider() {
+		if( this.libraryProvider == null ) {
+			this.libraryProvider = new RestFhirLibraryResolutionProvider(measureClient);
+		}
+		return this.libraryProvider;
 	}
 
 	public void setMeasurementPeriodStrategy(MeasurementPeriodStrategy strategy) {
@@ -128,8 +144,7 @@ public class MeasureEvaluator {
 
 	public MeasureReport evaluatePatientMeasure(Measure measure, String patientId, String periodStart, String periodEnd,
 			Map<String, Object> parameters, MeasureEvidenceOptions evidenceOptions) {
-		LibraryResolutionProvider<Library> libraryResolutionProvider = new RestFhirLibraryResolutionProvider(
-				measureClient);
+		LibraryResolutionProvider<Library> libraryResolutionProvider = getLibraryResolutionProvider();
 		LibraryLoader libraryLoader = LibraryHelper.createLibraryLoader(libraryResolutionProvider);
 
 		EvaluationProviderFactory factory = new ProviderFactory(dataClient, terminologyClient);

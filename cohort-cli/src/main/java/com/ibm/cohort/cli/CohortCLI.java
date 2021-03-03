@@ -34,6 +34,7 @@ import com.ibm.cohort.engine.LibraryFormat;
 import com.ibm.cohort.engine.MultiFormatLibrarySourceProvider;
 import com.ibm.cohort.engine.TranslatingLibraryLoader;
 import com.ibm.cohort.engine.ZipStreamLibrarySourceProvider;
+import com.ibm.cohort.engine.helpers.FileHelpers;
 import com.ibm.cohort.engine.translation.CqlTranslationProvider;
 import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
@@ -50,6 +51,9 @@ public class CohortCLI extends BaseCLI {
 		@Parameter(names = { "-f",
 				"--files" }, description = "Resource that contains the CQL library sources. Valid options are the path to a zip file or folder containing the cohort definitions or the resource ID of a FHIR Library resource contained in the measure server.", required = true)
 		private String libraryPath;
+		
+		@Parameter(names = { "--filter" }, description = "Additional filters to apply to library loaders if supported by the library loading mechansim")
+		private List<String> filters;
 
 		@Parameter(names = { "-l",
 				"--libraryName" }, description = "Library Name", required = true)
@@ -119,10 +123,15 @@ public class CohortCLI extends BaseCLI {
 			if (libraryFolder.toFile().isDirectory()) {
 				out.println(String.format("Loading libraries from folder '%s'", libraryFolder.toString()));
 				sourceProvider = new DirectoryLibrarySourceProvider(libraryFolder);
-			} else if (libraryFolder.toFile().isFile() && libraryFolder.toString().endsWith(".zip")) {
+			} else if ( FileHelpers.isZip(libraryFolder.toFile()) ) {
 				out.println(String.format("Loading libraries from ZIP '%s'", libraryFolder.toString()));
 				try (InputStream is = new FileInputStream(libraryFolder.toFile())) {
-					sourceProvider = new ZipStreamLibrarySourceProvider(new ZipInputStream(is));
+					String [] filters = null;
+					if( arguments.filters != null ) {
+						filters = arguments.filters.toArray(new String[arguments.filters.size()]);
+					}
+					
+					sourceProvider = new ZipStreamLibrarySourceProvider(new ZipInputStream(is), filters);
 				}
 			} else {
 				out.println(String.format("Loading libraries from FHIR Library '%s'", libraryFolder.toString()));

@@ -17,7 +17,6 @@ import static org.junit.Assert.assertNull;
 
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Library;
-import org.hl7.fhir.r4.model.Resource;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -27,7 +26,6 @@ import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
-import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 
 public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 
@@ -55,8 +53,8 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 		assertEquals(actual.getName(), library.getName());
 	}
 	
-	@Test(expected = ResourceNotFoundException.class)
-	public void resolveLibraryById___exception_when_not_found() throws Exception {
+	@Test
+	public void resolveLibraryById___null_when_not_found() throws Exception {
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 		
 		MappingBuilder builder = get(urlMatching("/Library.+"));
@@ -97,8 +95,8 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 		assertEquals(actual.getName(), library.getName());
 	}
 	
-	@Test(expected = IllegalArgumentException.class)
-	public void resolveLibraryByName___exception_when_not_found() throws Exception {
+	@Test
+	public void resolveLibraryByName___null_when_not_found() throws Exception {
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 		
 		MappingBuilder mapping = get(urlMatching("/Library.+"));
@@ -149,8 +147,8 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 		verify(1, getRequestedFor(urlMatching("/Library\\?url=.*")));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void resolveLibraryByCanonicalUrl___exception_when_library_not_found() throws Exception {
+	@Test
+	public void resolveLibraryByCanonicalUrl__null_when_library_not_found() throws Exception {
 		runTest(TEST_URL, makeBundle());
 	}
 
@@ -180,17 +178,5 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 
 		Library actual = provider.resolveLibraryByCanonicalUrl(url);
 		return actual;
-	}
-
-	protected Bundle makeBundle(Resource... resources) {		
-		Bundle bundle = new Bundle();
-		bundle.setType(Bundle.BundleType.SEARCHSET);
-		bundle.setTotal(resources != null ? resources.length : 0);
-		if( resources != null ) {
-			for (Resource l : resources) {
-				bundle.addEntry().setResource(l).setFullUrl("/" + l.getIdBase() + "/" + l.getId());
-			}
-		}
-		return bundle;
 	}
 }

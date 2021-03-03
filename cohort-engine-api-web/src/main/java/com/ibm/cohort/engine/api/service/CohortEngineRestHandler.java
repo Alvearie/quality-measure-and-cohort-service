@@ -82,7 +82,7 @@ public class CohortEngineRestHandler {
 			+ "<Major>.<Minor>.<Patch> format (ie if versions 1.0.0 and 2.0.0 both exist, the code will return the 2.0.0 version)";
 	private static final String MEASURE_API_NOTES = "Retrieves the parameter information for libraries linked to by a measure";
 
-	private static final String DEFAULT_FHIR_URL = "https://fhir-dev.wh-cohort.dev.watson-health.ibm.com/fhir-server/api/v4";
+	private static final String DEFAULT_FHIR_URL = "https://fhir-internal.dev:9443/fhir-server/api/v4";
 
 	public static final String DELAY_DEFAULT = "3";
 
@@ -201,13 +201,9 @@ public class CohortEngineRestHandler {
 			if(errorResponse != null) {
 				return errorResponse;
 			}
-			// FHIR credentials are passed using HTTP basic authentication and are base 64 encoded
-			// parse the username/password and handle any errors. authParts contains the username
-			// in the first element and password in the second
-			String[] authParts = FHIRRestUtils.parseAuthenticationHeaderInfo(httpHeaders);
 			
 			//get the fhir client object used to call to FHIR
-			IGenericClient measureClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, authParts[0], authParts[1], fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId);
+			IGenericClient measureClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId, httpHeaders);
 			
 			//build the identifier object which is used by the fhir client
 			//to find the measure
@@ -262,13 +258,8 @@ public class CohortEngineRestHandler {
 				return errorResponse;
 			}
 			
-			// FHIR credentials are passed using HTTP basic authentication and are base 64 encoded
-			// parse the username/password and handle any errors. authParts contains the username
-			// in the first element and password in the second
-			String[] authParts = FHIRRestUtils.parseAuthenticationHeaderInfo(httpHeaders);
-
 			//get the fhir client object used to call to FHIR
-			IGenericClient measureClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, authParts[0], authParts[1], fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId);
+			IGenericClient measureClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId, httpHeaders);
 
 			//resolve the measure, and return the parameter info for all the libraries linked to by the measure
 			List<MeasureParameterInfo> parameterInfoList = FHIRRestUtils.getParametersForMeasureId(measureClient, measureId);

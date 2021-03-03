@@ -28,7 +28,7 @@ public class MeasureHelper {
 		}
 		
 		if( result == null ) {
-			throw new IllegalArgumentException(String.format("Failed to determine resolution path for provided resourceID '%s'", resourceID));
+			throw new IllegalArgumentException(String.format("Failed to resolve Measure resource '%s'", resourceID));
 		}
 		
 		return result;
@@ -40,7 +40,7 @@ public class MeasureHelper {
 		result = provider.resolveMeasureByIdentifier(identifier, version);
 
 		if ( result == null ) {
-			throw new IllegalArgumentException(String.format("Failed to determine resolution path for identifier:'%s', version:'%s'", identifier, version));
+			throw new IllegalArgumentException(String.format("Failed to resolve Measure resource with identifier:'%s', version:'%s'", identifier, version));
 		}
 
 		return result;
