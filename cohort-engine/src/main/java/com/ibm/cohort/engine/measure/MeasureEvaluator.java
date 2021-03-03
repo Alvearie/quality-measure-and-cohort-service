@@ -193,13 +193,6 @@ public class MeasureEvaluator {
 			}
 		}
 
-		// after callbacks:
-		// care gaps
-		// define level evidence (stubbed out)
-
-		// measure and parameters
-
-		//// todo: [daniel.kim] decorator pattern?
 		measure.getExtension().stream()
 				.filter(this::isParameterExtension)
 				.forEach(measureDefault ->
@@ -209,7 +202,6 @@ public class MeasureEvaluator {
 								         toCqlObject(measureDefault.getValue())));
 
 		CDMMeasureEvaluation evaluation = new CDMMeasureEvaluation(seed.getDataProvider(), seed.getMeasurementPeriod());
-		// todo: [daniel.kim] before callback, after callback?
 		return evaluation.evaluatePatientMeasure(measure, seed.getContext(), patientId);
 	}
 
