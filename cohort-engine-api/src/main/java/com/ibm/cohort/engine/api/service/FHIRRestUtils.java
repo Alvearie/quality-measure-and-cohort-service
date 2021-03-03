@@ -34,6 +34,35 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
  */
 public class FHIRRestUtils {
 
+	/**
+	 * @param fhirEndpoint The REST endpoint for the FHIR server
+	 * @param fhirTenantIdHeader the header used by FHIR to identify the tenant
+	 * @param fhirTenantId the actual FHIR tenant id
+	 * @param fhirDataSourceIdHeader The header used by FHIR to identify the datasource
+	 * @param fhirDataSourceId the actual FHIR datasource name
+	 * @param httpHeaders HttpHeaders which contain the AUTHORIZATION header which contains either username/password or OAuth token
+	 * @return IGenericClient A client that can be used to make calls to the FHIR server
+	 * 
+	 * Convenience method to get a FHIR client
+	 */
+	public static IGenericClient getFHIRClient(String fhirEndpoint, String fhirTenantIdHeader, String fhirTenantId, String fhirDataSourceIdHeader, String fhirDataSourceId, HttpHeaders httpHeaders) throws IllegalArgumentException {
+		// FHIR credentials are passed using HTTP basic authentication and are base 64 encoded
+		// parse the username/password and handle any errors. authParts contains the username
+		// in the first element and password in the second
+		// OR
+		// An OAuth Bearer token could be passed instead of username/password, if so
+		// authParts just contains the OAuth bearer token.
+		String[] authParts = FHIRRestUtils.parseAuthenticationHeaderInfo(httpHeaders);
+		
+		if(authParts.length == 1) {
+			//If only 1 entry, then it is the OAuth token
+			return FHIRRestUtils.getFHIRClient(fhirEndpoint, authParts[0], fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId);
+		} else {
+			//If 2 entries, it is username/password
+			return FHIRRestUtils.getFHIRClient(fhirEndpoint, authParts[0], authParts[1], fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId);
+		}
+	}
+	
 	
 	/**
 	 * @param fhirEndpoint The REST endpoint for the FHIR server
@@ -43,7 +72,7 @@ public class FHIRRestUtils {
 	 * @param fhirTenantId the actual FHIR tenant id
 	 * @param fhirDataSourceIdHeader The header used by FHIR to identify the datasource
 	 * @param fhirDataSourceId the actual FHIR datasource name
-	 * @return IGenericClient A client that cna be used to make calls to the FHIR server
+	 * @return IGenericClient A client that can be used to make calls to the FHIR server
 	 * 
 	 * Convenience method to get a FHIR client
 	 */
@@ -74,7 +103,43 @@ public class FHIRRestUtils {
 	}
 	
 	/**
-	 * @param measureClient A client that cna be used to make calls to the FHIR server
+	 * @param fhirEndpoint The REST endpoint for the FHIR server
+	 * @param bearerToken OAuth token value
+	 * @param fhirTenantIdHeader the header used by FHIR to identify the tenant
+	 * @param fhirTenantId the actual FHIR tenant id
+	 * @param fhirDataSourceIdHeader The header used by FHIR to identify the datasource
+	 * @param fhirDataSourceId the actual FHIR datasource name
+	 * @return IGenericClient A client that can be used to make calls to the FHIR server
+	 * 
+	 * Convenience method to get a FHIR client
+	 */
+	public static IGenericClient getFHIRClient(String fhirEndpoint, String bearerToken, String fhirTenantIdHeader, String fhirTenantId, String fhirDataSourceIdHeader, String fhirDataSourceId) {
+		IBMFhirServerConfig config = new IBMFhirServerConfig();
+		config.setEndpoint(fhirEndpoint);
+		config.setToken(bearerToken);
+
+		if(fhirTenantIdHeader == null || fhirTenantIdHeader.trim().isEmpty()) {
+			fhirTenantIdHeader = IBMFhirServerConfig.DEFAULT_TENANT_ID_HEADER;
+		}
+		config.setTenantIdHeader(fhirTenantIdHeader);
+		config.setTenantId(fhirTenantId);
+
+		if(fhirDataSourceIdHeader == null || fhirDataSourceIdHeader.trim().isEmpty()) {
+			fhirDataSourceIdHeader = IBMFhirServerConfig.DEFAULT_DATASOURCE_ID_HEADER;
+		}
+		config.setDataSourceIdHeader(fhirDataSourceIdHeader);
+		config.setDataSourceId(fhirDataSourceId);
+
+		FhirContext ctx = FhirContext.forR4();
+		DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(ctx);
+		
+		IGenericClient fhirClient = builder.createFhirClient(config);
+		
+		return fhirClient;
+	}
+	
+	/**
+	 * @param measureClient A client that can be used to make calls to the FHIR server
 	 * @param identifier Identifier object which describes the measure
 	 * @param measureVersion The version of the measure we want to retrieve
 	 * @return A list containing parameter info for all the parameters 
@@ -107,7 +172,7 @@ public class FHIRRestUtils {
 	}
 	
 	/**
-	 * @param measureClient A client that cna be used to make calls to the FHIR server
+	 * @param measureClient A client that can be used to make calls to the FHIR server
 	 * @param measure A measure resource object we want to get the parameters for
 	 * @return A list containing parameter info for all the parameters
 	 * 
@@ -174,6 +239,11 @@ public class FHIRRestUtils {
 		String authString = headers.get(0);
 		if(authString == null || authString.trim().isEmpty()) {
 			throw new IllegalArgumentException("No data in HTTP authorization header. FHIR server credentials must be passed using HTTP Basic Authentication");
+		}
+		
+		//If OAuth authentication is being used, parse the bearer token value from the headers and return it
+		if(authString.startsWith("Bearer ")) {
+			return new String[] {authString.substring("Bearer ".length())};
 		}
 		//HTTP basic authentication headers are passed in as a base64 encoded string so we need to decode it
 		String decodedAuthStr = FHIRRestUtils.decodeAuthenticationString(authString);
