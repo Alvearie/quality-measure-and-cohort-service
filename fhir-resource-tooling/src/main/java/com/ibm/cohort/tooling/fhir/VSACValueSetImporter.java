@@ -97,9 +97,11 @@ public class VSACValueSetImporter {
 						valueSet.setTitle(value);
 						break;
 					case "oid":
-						valueSet.setId(value);
-						String url = "http://cts.nlm.nih.gov/fhir/ValueSet/" + value;
-						valueSet.setUrl(url);
+						if(valueSet.getUrl() != null) {
+							valueSet.setId(value);
+							String url = "http://cts.nlm.nih.gov/fhir/ValueSet/" + value;
+							valueSet.setUrl(url);
+						}
 						break;
 					case "definition version":
 						valueSet.setVersion(value);
