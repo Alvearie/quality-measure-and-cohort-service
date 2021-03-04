@@ -48,8 +48,7 @@ public class RestFhirLibraryResolutionProvider extends RestFhirResourceResolutio
 			return resolveLibraryByIdRaw(libraryId);
 		});
 		if( library != null ) {
-			cacheByUrl.computeIfAbsent(getUrlCacheKey(library), key -> library);
-			cacheByNameVersion.computeIfAbsent(getCacheKey(library), key -> library);
+			cacheByNameVersion.computeIfAbsent(getCacheKey(library), k -> library);
 		}
 		return library;
 	}
@@ -70,29 +69,21 @@ public class RestFhirLibraryResolutionProvider extends RestFhirResourceResolutio
 		Library library = cacheByNameVersion.computeIfAbsent(cacheKey, k -> {
 			return resolveLibraryByNameRaw(libraryName, libraryVersion);
 		});
-		if( library != null ) {
-			cacheById.computeIfAbsent(library.getId(), key -> library);
-			cacheByUrl.computeIfAbsent(getUrlCacheKey(library), key -> library);
-		}
 		return library;
 	}
 	
 	public Library resolveLibraryByNameRaw(String libraryName, String libraryVersion) {
 		IQuery<IBaseBundle> query = libraryClient.search().forResource(Library.class)
-					.where(Library.NAME.matches().value(libraryName));
+					.where(Library.NAME.matchesExactly().value(libraryName));
 		return (Library) queryWithVersion( query, Library.VERSION, libraryVersion);
 	}
 
 	@Override
 	public Library resolveLibraryByCanonicalUrl(String libraryUrl) {
-		Library library = cacheByUrl.computeIfAbsent(libraryUrl, cacheKey -> {
+				
+		return cacheByUrl.computeIfAbsent(libraryUrl, cacheKey -> {
 			return resolveLibraryByCanonicalUrlRaw(libraryUrl);
 		});
-		if( library != null ) {
-			cacheById.computeIfAbsent(library.getId(), key -> library);
-			cacheByNameVersion.computeIfAbsent(getCacheKey(library), key -> library);
-		}
-		return library;
 	}
 	
 	public Library resolveLibraryByCanonicalUrlRaw(String libraryUrl) {
@@ -113,10 +104,6 @@ public class RestFhirLibraryResolutionProvider extends RestFhirResourceResolutio
 		cacheById.clear();
 		cacheByNameVersion.clear();
 		cacheByUrl.clear();
-	}
-	
-	protected String getUrlCacheKey(Library library) {
-		return CanonicalHelper.toCanonicalUrl(library);
 	}
 
 	protected String getCacheKey(Library library) {

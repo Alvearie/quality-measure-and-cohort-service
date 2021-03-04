@@ -87,7 +87,7 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 		
 		Library library = getLibrary("Test", DEFAULT_VERSION, "cql/basic/test.cql");
 		library.setVersion("1.0.0");
-		MappingBuilder mapping = get(urlMatching("/Library\\?name=[^&]+&version=.+"));
+		MappingBuilder mapping = get(urlMatching("/Library\\?name%3Aexact=[^&]+&version=.+"));
 		mockFhirResourceRetrieval( mapping, makeBundle(library) );
 		
 		Library actual = provider.resolveLibraryByName(library.getId(), library.getVersion());
@@ -112,7 +112,7 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 		
 		Library library = getLibrary("Test", DEFAULT_VERSION, "cql/basic/test.cql");
 		library.setVersion("1.0.0");
-		MappingBuilder mapping = get(urlMatching("/Library\\?name=[^&]+&version=.+"));
+		MappingBuilder mapping = get(urlMatching("/Library\\?name%3Aexact=[^&]+&version=.+"));
 		mockFhirResourceRetrieval( mapping, makeBundle(library) );
 		
 		Library actual = provider.resolveLibraryByName(library.getId(), library.getVersion());
@@ -145,19 +145,6 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 		
 		provider.resolveLibraryByCanonicalUrl(TEST_URL);
 		verify(1, getRequestedFor(urlMatching("/Library\\?url=.*")));
-	}
-	
-	@Test
-	public void resolveLibraryByCanonicalUrlThenNameVersion___returns_cached_data() throws Exception {
-		Library library = getLibrary("Test", DEFAULT_VERSION, "cql/basic/test.cql");
-		library.setUrl(TEST_URL);
-
-		Library actual = runTest(TEST_URL, makeBundle( library ));
-		assertNotNull(actual);
-		assertEquals(library.getUrl(), actual.getUrl());
-		
-		provider.resolveLibraryByName(library.getName(), library.getVersion());
-		verify(1, getRequestedFor(urlMatching("/Library\\?.*")));
 	}
 
 	@Test
