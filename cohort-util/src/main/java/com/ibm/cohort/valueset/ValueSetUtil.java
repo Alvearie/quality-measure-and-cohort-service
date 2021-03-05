@@ -113,7 +113,6 @@ public class ValueSetUtil {
 					.returnBundle(Bundle.class).execute();
 			if (bundle.getEntry().size() > 0) {
 				valueSetArtifact.setId(bundle.getEntryFirstRep().getResource().getIdElement().getIdPart());
-				//todo check if there's something else we want to return here
 				if (!continueIFExists) {
 					return;
 				}
