@@ -113,9 +113,14 @@ public class ValueSetUtil {
 					.returnBundle(Bundle.class).execute();
 			if (bundle.getEntry().size() > 0) {
 				valueSetArtifact.setId(bundle.getEntryFirstRep().getResource().getIdElement().getIdPart());
-				//todo check if there's something else we want to return here
 				if (!continueIFExists) {
-					return;
+					break;
+				}
+				else {
+					MethodOutcome outcome = client.update().resource(client.getFhirContext().newJsonParser().encodeResourceToString(valueSetArtifact.getResource())).execute();
+					if (outcome.getCreated()) {
+						valueSetArtifact.setId(outcome.getId().getIdPart());
+					}
 				}
 			} else {
 				MethodOutcome outcome = client.create().resource(client.getFhirContext().newJsonParser().encodeResourceToString(valueSetArtifact.getResource())).execute();

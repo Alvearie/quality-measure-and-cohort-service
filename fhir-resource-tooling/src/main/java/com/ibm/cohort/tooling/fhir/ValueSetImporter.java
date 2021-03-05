@@ -34,6 +34,9 @@ public class ValueSetImporter {
 				"--measure-server"}, description = "Path to JSON configuration data for the FHIR server connection that will be used to retrieve measure and library resources.", required = true)
 		File measureServerConfigFile;
 
+		@Parameter(names = {"--override-existing-value-sets"}, description = "Will force insertion of valuesets, even if they already exist")
+		boolean overrideValueSets;
+
 		@Parameter(names = {"-h", "--help"}, description = "Show this help", help = true)
 		boolean isDisplayHelp;
 
@@ -65,7 +68,7 @@ public class ValueSetImporter {
 					valueSetArtifacts.add(ValueSetUtil.createArtifact(is));
 				}
 			}
-			ValueSetUtil.importArtifacts(client, valueSetArtifacts);
+			ValueSetUtil.importArtifacts(client, valueSetArtifacts, arguments.overrideValueSets);
 		}
 	}
 
