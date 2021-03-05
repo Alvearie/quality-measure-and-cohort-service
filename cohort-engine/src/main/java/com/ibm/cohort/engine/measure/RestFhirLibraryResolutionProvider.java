@@ -74,7 +74,7 @@ public class RestFhirLibraryResolutionProvider extends RestFhirResourceResolutio
 	
 	public Library resolveLibraryByNameRaw(String libraryName, String libraryVersion) {
 		IQuery<IBaseBundle> query = libraryClient.search().forResource(Library.class)
-					.where(Library.NAME.matches().value(libraryName));
+					.where(Library.NAME.matchesExactly().value(libraryName));
 		return (Library) queryWithVersion( query, Library.VERSION, libraryVersion);
 	}
 

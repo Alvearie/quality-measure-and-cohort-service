@@ -70,7 +70,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 
 		// These ensure that the cache is working
 		verify(1, getRequestedFor(urlMatching("/Library\\?url=http.*")));
-		verify(1, getRequestedFor(urlEqualTo("/Library?name=" + library.getName() + "&version=1.0.0")));
+		verify(1, getRequestedFor(urlEqualTo("/Library?name%3Aexact=" + library.getName() + "&version=1.0.0")));
 	}
 
 	@Test

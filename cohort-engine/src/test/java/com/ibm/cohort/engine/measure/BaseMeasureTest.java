@@ -107,8 +107,8 @@ public class BaseMeasureTest extends BaseFhirTest {
 		}
 		
 		mockFhirResourceRetrieval("/Library?url=" + url, bundle );
-		mockFhirResourceRetrieval("/Library?name=" + library.getName(), bundle);
-		mockFhirResourceRetrieval("/Library?name=" + library.getName() + "&version=" + library.getVersion(), bundle);
+		mockFhirResourceRetrieval("/Library?name%3Aexact=" + library.getName(), bundle);
+		mockFhirResourceRetrieval("/Library?name%3Aexact=" + library.getName() + "&version=" + library.getVersion(), bundle);
 		return library;
 	}
 	
