@@ -13,7 +13,7 @@ public class MeasureIdentifier {
 	@JsonProperty("system")
 	private String system;
 
-	@JsonProperty("valueset")
+	@JsonProperty("value")
 	private String value;
 
 	public String getSystem() {
@@ -26,7 +26,7 @@ public class MeasureIdentifier {
 
 	public void validate() {
 		if (isEmpty(value)) {
-			throw new IllegalArgumentException("Invalid measure parameter file: A measure identifier must have a valueset.");
+			throw new IllegalArgumentException("Invalid measure parameter file: A measure identifier must have a value.");
 		}
 	}
 }

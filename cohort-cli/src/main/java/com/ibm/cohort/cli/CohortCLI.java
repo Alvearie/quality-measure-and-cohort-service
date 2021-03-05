@@ -71,7 +71,7 @@ public class CohortCLI extends BaseCLI {
 		private List<String> contextIds;
 
 		@Parameter(names = { "-p",
-				"--parameters" }, description = "Parameter valueset(s) in format name:type:valueset where valueset can contain additional parameterized elements separated by comma. Multiple parameters must be specified as multiple -p options", splitter = NoSplittingSplitter.class, required = false)
+				"--parameters" }, description = "Parameter value(s) in format name:type:value where value can contain additional parameterized elements separated by comma. Multiple parameters must be specified as multiple -p options", splitter = NoSplittingSplitter.class, required = false)
 		private List<String> parameters;
 
 		@Parameter(names = { "-s",

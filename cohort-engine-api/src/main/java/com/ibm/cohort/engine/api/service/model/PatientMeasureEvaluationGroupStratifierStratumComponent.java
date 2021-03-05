@@ -35,15 +35,15 @@ public class PatientMeasureEvaluationGroupStratifierStratumComponent {
 	}
 
 	/*
-	 * The stratum component valueset, e.g. male
+	 * The stratum component value, e.g. male
 	 */
 	public PatientMeasureEvaluationGroupStratifierStratumComponent value(String value) {
 		this.value = value;
 		return this;
 	}
 
-	@ApiModelProperty(value = "The stratum component valueset, e.g. male")
-	@JsonProperty("valueset")
+	@ApiModelProperty(value = "The stratum component value, e.g. male")
+	@JsonProperty("value")
 	public String getValue() {
 		return value;
 	}
@@ -76,7 +76,7 @@ public class PatientMeasureEvaluationGroupStratifierStratumComponent {
 		sb.append("class PatientMeasureEvaluationGroupStratifierStratumComponent {\n");
 
 		sb.append("    code: ").append(toIndentedString(code)).append("\n");
-		sb.append("    valueset: ").append(toIndentedString(value)).append("\n");
+		sb.append("    value: ").append(toIndentedString(value)).append("\n");
 		sb.append("}");
 		return sb.toString();
 	}

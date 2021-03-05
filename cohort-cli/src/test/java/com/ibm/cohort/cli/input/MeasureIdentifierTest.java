@@ -8,13 +8,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class MeasureIdentifierTest {
 	@Test
 	public void testIdentifierWithValue_executionSucceeds() throws Exception {
-		MeasureIdentifier measureIdentifier = createMeasureIdentifier("{\"valueset\":\"12345\"}");
+		MeasureIdentifier measureIdentifier = createMeasureIdentifier("{\"value\":\"12345\"}");
 		measureIdentifier.validate();
 	}
 
 	@Test
 	public void testIdentifierWithValueAndSystem_executionSucceeds() throws Exception {
-		MeasureIdentifier measureIdentifier = createMeasureIdentifier("{\"valueset\":\"12345\",\"system\":\"system1\"}");
+		MeasureIdentifier measureIdentifier = createMeasureIdentifier("{\"value\":\"12345\",\"system\":\"system1\"}");
 		measureIdentifier.validate();
 	}
 

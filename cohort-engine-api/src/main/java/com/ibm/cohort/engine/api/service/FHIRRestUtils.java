@@ -258,7 +258,7 @@ public class FHIRRestUtils {
 	
 	/**
 	 * @param authString a base64 encoded HTTP basic authentication header string
-	 * @return decoded string valueset
+	 * @return decoded string value
 	 */
 	public static String decodeAuthenticationString(String authString) {
 		String decodedAuth = "";

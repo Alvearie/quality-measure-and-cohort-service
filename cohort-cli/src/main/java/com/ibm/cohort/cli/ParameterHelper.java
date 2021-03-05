@@ -146,8 +146,8 @@ public class ParameterHelper {
 	/**
 	 * Decode command-line encoded parameter
 	 * 
-	 * @param value encoded parameter valueset
-	 * @return decoded parameter valueset
+	 * @param value encoded parameter value
+	 * @return decoded parameter value
 	 */
 	public static Object resolveCodeParameter(String value) {
 		Object typedValue;
@@ -160,8 +160,8 @@ public class ParameterHelper {
 	/**
 	 * Decode command-line encoded parameter
 	 * 
-	 * @param value encoded parameter valueset
-	 * @return decoded parameter valueset
+	 * @param value encoded parameter value
+	 * @return decoded parameter value
 	 */
 	public static Object resolveDateTimeParameter(String value) {
 		Object typedValue;
@@ -172,8 +172,8 @@ public class ParameterHelper {
 	/**
 	 * Decode command-line encoded parameter
 	 * 
-	 * @param value encoded parameter valueset
-	 * @return decoded parameter valueset
+	 * @param value encoded parameter value
+	 * @return decoded parameter value
 	 */
 	public static Object resolveQuantityParameter(String value) {
 		Object typedValue;

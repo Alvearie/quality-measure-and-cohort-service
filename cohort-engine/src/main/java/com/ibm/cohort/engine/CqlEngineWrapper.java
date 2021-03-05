@@ -183,7 +183,7 @@ public class CqlEngineWrapper {
 	 *                       provided, all defines in the library will be executed.
 	 * @param contextIds     list of contexts (generally patient IDs) for which the
 	 *                       specified <code>expressions</code> will be executed. At
-	 *                       least one valueset is required.
+	 *                       least one value is required.
 	 * @param callback       callback function to be evaluated once per context per
 	 *                       executed define (required).             
 	 */
@@ -330,7 +330,7 @@ public class CqlEngineWrapper {
 	 *                       provided, all defines in the library will be executed.
 	 * @param contextIds     list of contexts (generally patient IDs) for which the
 	 *                       specified <code>expressions</code> will be executed. At
-	 *                       least one valueset is required.
+	 *                       least one value is required.
 	 * @param callback       callback function to be evaluated once per context per
 	 *                       executed define
 	 */
@@ -388,7 +388,7 @@ public class CqlEngineWrapper {
 	 *                       provided, all defines in the library will be executed.
 	 * @param contextIds     list of contexts (generally patient IDs) for which the
 	 *                       specified <code>expressions</code> will be executed. At
-	 *                       least one valueset is required.
+	 *                       least one value is required.
 	 * @param callback       callback function for receiving engine execution events
 	 */
 	public void evaluate(String libraryName, String libraryVersion, Map<String, Object> parameters,
@@ -411,7 +411,7 @@ public class CqlEngineWrapper {
 	 *                       provided, all defines in the library will be executed.
 	 * @param contextIds     list of contexts (generally patient IDs) for which the
 	 *                       specified <code>expressions</code> will be executed. At
-	 *                       least one valueset is required.
+	 *                       least one value is required.
 	 * @param callback       callback function to be evaluated once per context per
 	 *                       executed define
 	 */

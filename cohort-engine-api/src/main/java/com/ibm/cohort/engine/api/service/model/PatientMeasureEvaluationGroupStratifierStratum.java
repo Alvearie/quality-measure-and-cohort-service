@@ -21,15 +21,15 @@ public class PatientMeasureEvaluationGroupStratifierStratum {
 	private PatientMeasureEvaluationQuantity measureScore = null;
 
 	/*
-	 * The stratum valueset, e.g. male
+	 * The stratum value, e.g. male
 	 */
 	public PatientMeasureEvaluationGroupStratifierStratum value(String value) {
 		this.value = value;
 		return this;
 	}
 
-	@ApiModelProperty(value = "The stratum valueset, e.g. male")
-	@JsonProperty("valueset")
+	@ApiModelProperty(value = "The stratum value, e.g. male")
+	@JsonProperty("value")
 	public String getValue() {
 		return value;
 	}
@@ -116,7 +116,7 @@ public class PatientMeasureEvaluationGroupStratifierStratum {
 		StringBuilder sb = new StringBuilder();
 		sb.append("class PatientMeasureEvaluationGroupStratifierStratum {\n");
 
-		sb.append("    valueset: ").append(toIndentedString(value)).append("\n");
+		sb.append("    value: ").append(toIndentedString(value)).append("\n");
 		sb.append("    component: ").append(toIndentedString(component)).append("\n");
 		sb.append("    population: ").append(toIndentedString(population)).append("\n");
 		sb.append("    measureScore: ").append(toIndentedString(measureScore)).append("\n");
