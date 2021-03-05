@@ -35,6 +35,7 @@ import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.RelatedArtifact;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Type;
@@ -447,8 +448,21 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		return new RelatedArtifact().setType(RelatedArtifact.RelatedArtifactType.DEPENDSON).setResource( library.getUrl() + "|" + library.getVersion() );
 	}
 	
+	private Library setupDefineReturnLibrary() throws Exception {
+		Library fhirHelpers = mockLibraryRetrieval("FHIRHelpers", DEFAULT_VERSION, "cql/fhir-measure/FHIRHelpers.cql");
+		Library library2 = mockLibraryRetrieval("TestAdultMales2", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males2.cql");
+		Library library3 = mockLibraryRetrieval("TestAdultMales3", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males3.cql");
+		Library library = mockLibraryRetrieval("TestAdultMales", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males.cql");
+
+		library.addRelatedArtifact(asRelation(fhirHelpers));
+		library.addRelatedArtifact(asRelation(library2));
+		library.addRelatedArtifact(asRelation(library3));
+		
+		return library;
+	}
+	
 	@Test
-	public void in_populations_evaluated_resources_returned() throws Exception {
+	public void in_populations_defines_returned() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
 		mockFhirResourceRetrieval("/metadata", metadata);
 
@@ -474,15 +488,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		patient.setMaritalStatus(maritalStatus);
 		
 		mockFhirResourceRetrieval(patient);
-
-		Library fhirHelpers = mockLibraryRetrieval("FHIRHelpers", DEFAULT_VERSION, "cql/fhir-measure/FHIRHelpers.cql");
-		Library library2 = mockLibraryRetrieval("TestAdultMales2", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males2.cql");
-		Library library3 = mockLibraryRetrieval("TestAdultMales3", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males3.cql");
-		Library library = mockLibraryRetrieval("TestAdultMales", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males.cql");
-
-		library.addRelatedArtifact(asRelation(fhirHelpers));
-		library.addRelatedArtifact(asRelation(library2));
-		library.addRelatedArtifact(asRelation(library3));
+		Library library = setupDefineReturnLibrary();
 		
 		expressionsByPopulationType.clear();
 		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
@@ -492,41 +498,65 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
 		mockFhirResourceRetrieval(measure);
 
-//		long ms = System.currentTimeMillis();
 		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(true, true));
-		
-		for(Extension extension : report.getExtension()) {
-			System.out.println(extension.getExtensionByUrl(CDMMeasureEvaluation.EVIDENCE_TEXT_URL).getValue());
-			List<Extension> values = extension.getExtensionsByUrl(CDMMeasureEvaluation.EVIDENCE_VALUE_URL);
-			
-			for(Extension value : values) {
-				System.out.println("\t" + value.getValue());
-			}
-			
-		}
-//		System.out.println("Duration: " + (System.currentTimeMillis() - ms));
-//		
-//		List<Long> durationWith = new ArrayList<>();
-//		for(int i = 0; i < 100; i++) {
-//			ms = System.currentTimeMillis();
-//			report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(true, true));
-//			durationWith.add(System.currentTimeMillis() - ms);
-//		}
-//		
-//		
-//		List<Long> durationWithout = new ArrayList<>();
-//		for(int i = 0; i < 100; i++) {
-//			ms = System.currentTimeMillis();
-//			report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null);
-//			durationWithout.add(System.currentTimeMillis() - ms);
-//		}
-//		
-//		System.out.println("Average duration with evidence: " + durationWith.stream().mapToDouble(a -> a).average());
-//		System.out.println("Average duration without evidence: " + durationWithout.stream().mapToDouble(a -> a).average());
 		
 		assertNotNull(report);
 		
 		assertFalse(report.getEvaluatedResource().isEmpty());
+		
+		List<Extension> returnedExtensions = report.getExtensionsByUrl(CDMMeasureEvaluation.EVIDENCE_URL);
+		assertFalse(returnedExtensions.isEmpty());
+		assertEquals(30, returnedExtensions.size());
+	}
+	
+	@Test
+	public void in_populations_evaluated_define_only_returned() throws Exception {
+		CapabilityStatement metadata = getCapabilityStatement();
+		mockFhirResourceRetrieval("/metadata", metadata);
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = setupDefineReturnLibrary();
+		
+		expressionsByPopulationType.clear();
+		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
+		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOR, DENOMINATOR);
+		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
+
+		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
+		mockFhirResourceRetrieval(measure);
+
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(false, true));
+		assertNotNull(report);
+		
+		assertTrue(report.getEvaluatedResource().isEmpty());
+		assertFalse(report.getExtensionsByUrl(CDMMeasureEvaluation.EVIDENCE_URL).isEmpty());
+	}
+	
+	@Test
+	public void in_populations_evaluated_resources_returned() throws Exception {
+		CapabilityStatement metadata = getCapabilityStatement();
+		mockFhirResourceRetrieval("/metadata", metadata);
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = setupDefineReturnLibrary();
+		
+		expressionsByPopulationType.clear();
+		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
+		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOR, DENOMINATOR);
+		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
+
+		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
+		mockFhirResourceRetrieval(measure);
+
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(true, false));
+		assertNotNull(report);
+		
+		assertFalse(report.getEvaluatedResource().isEmpty());
+		assertEquals(null, report.getExtensionByUrl(CDMMeasureEvaluation.EVIDENCE_URL));
 	}
 	
 	@Test
@@ -537,12 +567,8 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
 
-		Library library2 = mockLibraryRetrieval("TestAdultMales2", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males2.cql");
-		Library library3 = mockLibraryRetrieval("TestAdultMales3", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males3.cql");
-		Library library = mockLibraryRetrieval("TestAdultMales", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males.cql");
-		library.addRelatedArtifact(asRelation(library2));
+		Library library = setupDefineReturnLibrary();
 		
-		library.addRelatedArtifact(asRelation(library3));
 		expressionsByPopulationType.clear();
 		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
 		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOR, DENOMINATOR);
@@ -555,5 +581,6 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		assertNotNull(report);
 		
 		assertTrue(report.getEvaluatedResource().isEmpty());
+		assertEquals(null, report.getExtensionByUrl(CDMMeasureEvaluation.EVIDENCE_URL));
 	}
 }

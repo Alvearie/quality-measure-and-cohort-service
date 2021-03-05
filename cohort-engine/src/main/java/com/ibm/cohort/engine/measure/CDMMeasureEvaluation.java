@@ -233,13 +233,6 @@ public class CDMMeasureEvaluation {
 	 *         true/false when list result and count > 0.
 	 */
 	private Boolean evaluateCriteria(Context context, String expression) {
-		// TODO: Determine why the OSS implementation clears the expression cache after
-		// each evaluation. That seems to be generally a bad thing unless
-		// the population components are coming from different libraries with
-		// potentially overlapping define names, but we _know_ that isn't happening
-		// because we are following the Davinci spec where there is only one Library
-		// entry point.
-
 		Object result = context.resolveExpressionRef(expression).evaluate(context);
 		if (result == null) {
 			result = Collections.emptyList();
