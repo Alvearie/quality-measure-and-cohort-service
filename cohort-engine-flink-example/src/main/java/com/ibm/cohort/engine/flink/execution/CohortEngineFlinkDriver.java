@@ -33,6 +33,8 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.hl7.fhir.r4.model.MeasureReport;
 import org.opencds.cqf.common.evaluation.EvaluationProviderFactory;
 
+import javax.cache.configuration.MutableConfiguration;
+
 public class CohortEngineFlinkDriver implements Serializable {
 
 	private static final long serialVersionUID = 1966474691011266880L;
@@ -173,7 +175,8 @@ public class CohortEngineFlinkDriver implements Serializable {
 		FhirClientBuilder builder = factory.newFhirClientBuilder(getFhirContext());
 		IGenericClient genericClient = builder.createFhirClient(fhirServerInfo.toIbmServerConfig());
 
-		RetrieveCacheContext retrieveCacheContext = new TransientRetrieveCacheContext();
+		// TODO: Actually configure the cache
+		RetrieveCacheContext retrieveCacheContext = new TransientRetrieveCacheContext(new MutableConfiguration<>());
 		EvaluationProviderFactory providerFactory = new ProviderFactory(genericClient, genericClient, retrieveCacheContext);
 
 		return new MeasureEvaluator(providerFactory, genericClient);

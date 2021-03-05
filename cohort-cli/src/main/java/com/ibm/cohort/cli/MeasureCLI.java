@@ -40,6 +40,8 @@ import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
+import javax.cache.configuration.MutableConfiguration;
+
 public class MeasureCLI extends BaseCLI {
 
 	private static enum ReportFormat { TEXT, JSON }
@@ -154,7 +156,8 @@ public class MeasureCLI extends BaseCLI {
 				measureContexts = MeasureContextProvider.getMeasureContexts(arguments.resourceId,  arguments.parameters);
 			}
 
-			RetrieveCacheContext retrieveCacheContext = new TransientRetrieveCacheContext();
+			// TODO: Actually configure the cache
+			RetrieveCacheContext retrieveCacheContext = new TransientRetrieveCacheContext(new MutableConfiguration<>());
 			EvaluationProviderFactory factory = new ProviderFactory(dataServerClient, terminologyServerClient, retrieveCacheContext);
 			evaluator = new MeasureEvaluator(factory, measureProvider, libraryProvider);
 
@@ -164,9 +167,6 @@ public class MeasureCLI extends BaseCLI {
 				retrieveCacheContext.newCache(contextId);
 				// Reports only returned for measures where patient is in initial population
 				List<MeasureReport> reports = evaluator.evaluatePatientMeasures(contextId, measureContexts, new MeasureEvidenceOptions(arguments.includeEvaluatedResources, arguments.includeDefineResults));
-
-				// TODO: Remove before merging
-				out.println("CACHE STATS: " + retrieveCacheContext.getCurrentCache().stats());
 				retrieveCacheContext.cleanupCache();
 
 				for (MeasureReport report : reports) {

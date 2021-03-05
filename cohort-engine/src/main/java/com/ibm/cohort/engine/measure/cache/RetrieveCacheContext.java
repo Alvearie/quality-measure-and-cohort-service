@@ -6,7 +6,7 @@
 
 package com.ibm.cohort.engine.measure.cache;
 
-import com.github.benmanes.caffeine.cache.Cache;
+import javax.cache.Cache;
 
 public interface RetrieveCacheContext {
 
