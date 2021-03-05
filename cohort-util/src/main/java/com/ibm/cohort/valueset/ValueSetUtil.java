@@ -19,6 +19,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.ValueSet;
 
 import ca.uhn.fhir.rest.api.MethodOutcome;
@@ -79,6 +80,7 @@ public class ValueSetUtil {
 		}
 		ValueSet valueSet = new ValueSet();
 		boolean inCodesSection = false;
+		valueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
 		HashMap<String, List<ValueSet.ConceptReferenceComponent>> codeSystemToCodes = new HashMap<>();
 		String url = "http://cts.nlm.nih.gov/fhir/ValueSet/";
 		String identifier = null;
