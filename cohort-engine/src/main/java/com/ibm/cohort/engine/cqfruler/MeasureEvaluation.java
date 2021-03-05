@@ -36,7 +36,6 @@ import org.opencds.cqf.cql.engine.runtime.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.r4.builder.MeasureReportBuilder;
 
 public class MeasureEvaluation {
@@ -52,10 +51,10 @@ public class MeasureEvaluation {
     }
 
     public MeasureReport evaluatePatientMeasure(Measure measure, Context context, String patientId) {
-    	return evaluatePatientMeasure(measure, context, patientId, new MeasureEvidenceOptions());
+    	return evaluatePatientMeasure(measure, context, patientId, false);
     }
     
-    public MeasureReport evaluatePatientMeasure(Measure measure, Context context, String patientId, MeasureEvidenceOptions evidenceOptions) {
+    public MeasureReport evaluatePatientMeasure(Measure measure, Context context, String patientId, boolean includeEvaluatedResources) {
         logger.info("Generating individual report");
 
         if (patientId == null) {
@@ -72,12 +71,12 @@ public class MeasureEvaluation {
         boolean isSingle = true;
         return evaluate(measure, context,
                 patient == null ? Collections.emptyList() : Collections.singletonList(patient),
-                MeasureReport.MeasureReportType.INDIVIDUAL, isSingle, evidenceOptions.isIncludeEvaluatedResources());
+                MeasureReport.MeasureReportType.INDIVIDUAL, isSingle, includeEvaluatedResources);
     }
 
     @SuppressWarnings("unchecked")
     private Iterable<Resource> evaluateCriteria(Context context, Patient patient,
-            Measure.MeasureGroupPopulationComponent pop, boolean includeEvidence) {
+            Measure.MeasureGroupPopulationComponent pop) {
         if (pop == null || !pop.hasCriteria()) {
             return Collections.emptyList();
         }
@@ -105,12 +104,11 @@ public class MeasureEvaluation {
     private boolean evaluatePopulationCriteria(Context context, Patient patient,
             Measure.MeasureGroupPopulationComponent criteria, Map<String, Resource> population,
             Map<String, Patient> populationPatients, Measure.MeasureGroupPopulationComponent exclusionCriteria,
-            Map<String, Resource> exclusionPopulation, Map<String, Patient> exclusionPatients,
-            boolean includeEvidence) {
+            Map<String, Resource> exclusionPopulation, Map<String, Patient> exclusionPatients) {
         
     	boolean inPopulation = false;
         if (criteria != null) {
-            for (Resource resource : evaluateCriteria(context, patient, criteria, includeEvidence)) {
+            for (Resource resource : evaluateCriteria(context, patient, criteria)) {
                 inPopulation = true;
                 population.put(resource.getIdElement().getIdPart(), resource);
             }
@@ -119,7 +117,7 @@ public class MeasureEvaluation {
         if (inPopulation) {
             // Are they in the exclusion?
             if (exclusionCriteria != null) {
-                for (Resource resource : evaluateCriteria(context, patient, exclusionCriteria, includeEvidence)) {
+                for (Resource resource : evaluateCriteria(context, patient, exclusionCriteria)) {
                     inPopulation = false;
                     exclusionPopulation.put(resource.getIdElement().getIdPart(), resource);
                     population.remove(resource.getIdElement().getIdPart());
@@ -165,7 +163,7 @@ public class MeasureEvaluation {
     }
 
     private MeasureReport evaluate(Measure measure, Context context, List<Patient> patients,
-            MeasureReport.MeasureReportType type, boolean isSingle, boolean includeEvidence) {
+            MeasureReport.MeasureReportType type, boolean isSingle, boolean includeEvaluatedResources) {
         MeasureReportBuilder reportBuilder = new MeasureReportBuilder();
         reportBuilder.buildStatus("complete");
         reportBuilder.buildType(type);
@@ -308,36 +306,36 @@ public class MeasureEvaluation {
                         // Are they in the initial population?
                         boolean inInitialPopulation = evaluatePopulationCriteria(context, patient,
                                 initialPopulationCriteria, initialPopulation, initialPopulationPatients, null, null,
-                                null, includeEvidence);
+                                null);
                         populateResourceMap(context, MeasurePopulationType.INITIALPOPULATION, resources,
-                                codeToResourceMap, includeEvidence);
+                                codeToResourceMap, includeEvaluatedResources);
 
                         if (inInitialPopulation) {
                             // Are they in the denominator?
                             boolean inDenominator = evaluatePopulationCriteria(context, patient, denominatorCriteria,
                                     denominator, denominatorPatients, denominatorExclusionCriteria,
-                                    denominatorExclusion, denominatorExclusionPatients, includeEvidence);
+                                    denominatorExclusion, denominatorExclusionPatients);
                             populateResourceMap(context, MeasurePopulationType.DENOMINATOR, resources,
-                                    codeToResourceMap, includeEvidence);
+                                    codeToResourceMap, includeEvaluatedResources);
 
                             if (inDenominator) {
                                 // Are they in the numerator?
                                 boolean inNumerator = evaluatePopulationCriteria(context, patient, numeratorCriteria,
                                         numerator, numeratorPatients, numeratorExclusionCriteria, numeratorExclusion,
-                                        numeratorExclusionPatients, includeEvidence);
+                                        numeratorExclusionPatients);
                                 populateResourceMap(context, MeasurePopulationType.NUMERATOR, resources,
-                                        codeToResourceMap, includeEvidence);
+                                        codeToResourceMap, includeEvaluatedResources);
 
                                 if (!inNumerator && inDenominator && (denominatorExceptionCriteria != null)) {
                                     // Are they in the denominator exception?
                                     boolean inException = false;
                                     for (Resource resource : evaluateCriteria(context, patient,
-                                            denominatorExceptionCriteria, includeEvidence)) {
+                                            denominatorExceptionCriteria)) {
                                         inException = true;
                                         denominatorException.put(resource.getIdElement().getIdPart(), resource);
                                         denominator.remove(resource.getIdElement().getIdPart());
                                         populateResourceMap(context, MeasurePopulationType.DENOMINATOREXCEPTION,
-                                                resources, codeToResourceMap, includeEvidence);
+                                                resources, codeToResourceMap, includeEvaluatedResources);
                                     }
                                     if (inException) {
                                         if (denominatorExceptionPatients != null) {
@@ -369,16 +367,16 @@ public class MeasureEvaluation {
                         // Are they in the initial population?
                         boolean inInitialPopulation = evaluatePopulationCriteria(context, patient,
                                 initialPopulationCriteria, initialPopulation, initialPopulationPatients, null, null,
-                                null, includeEvidence);
+                                null);
                         populateResourceMap(context, MeasurePopulationType.INITIALPOPULATION, resources,
-                                codeToResourceMap, includeEvidence);
+                                codeToResourceMap, includeEvaluatedResources);
 
                         if (inInitialPopulation) {
                             // Are they in the measure population?
                             boolean inMeasurePopulation = evaluatePopulationCriteria(context, patient,
                                     measurePopulationCriteria, measurePopulation, measurePopulationPatients,
                                     measurePopulationExclusionCriteria, measurePopulationExclusion,
-                                    measurePopulationExclusionPatients, includeEvidence);
+                                    measurePopulationExclusionPatients);
 
                             if (inMeasurePopulation) {
                                 for (Resource resource : measurePopulation.values()) {
@@ -400,9 +398,9 @@ public class MeasureEvaluation {
                     for (Patient patient : patients) {
                         evaluatePopulationCriteria(context, patient,
                                 initialPopulationCriteria, initialPopulation, initialPopulationPatients, null, null,
-                                null, includeEvidence);
+                                null);
                         populateResourceMap(context, MeasurePopulationType.INITIALPOPULATION, resources,
-                                codeToResourceMap, includeEvidence);
+                                codeToResourceMap, includeEvaluatedResources);
                         MeasureSupplementalDataEvaluation.populateSDEAccumulators(measure, context, patient, sdeAccumulators, sde);
                     }
 
@@ -470,12 +468,12 @@ public class MeasureEvaluation {
     }
 
     private void populateResourceMap(Context context, MeasurePopulationType type, Map<String, Resource> resources,
-            Map<String, Set<String>> codeToResourceMap, boolean includeEvidence) {
+            Map<String, Set<String>> codeToResourceMap, boolean includeEvaluatedResources) {
         if (context.getEvaluatedResources().isEmpty()) {
             return;
         }
 
-        if(!includeEvidence) {
+        if(!includeEvaluatedResources) {
         	return;
         }
         
