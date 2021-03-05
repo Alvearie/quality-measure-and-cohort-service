@@ -47,7 +47,7 @@ public class ValueSetImporter {
 	static void runWithArgs(String[] args, PrintStream out) throws IOException {
 		ValueSetImporterArguments arguments = new ValueSetImporterArguments();
 		Console console = new DefaultConsole(out);
-		JCommander jc = JCommander.newBuilder().programName("value-set-set-importer").console(console).addObject(arguments)
+		JCommander jc = JCommander.newBuilder().programName("value-set-importer").console(console).addObject(arguments)
 				.build();
 		jc.parse(args);
 
