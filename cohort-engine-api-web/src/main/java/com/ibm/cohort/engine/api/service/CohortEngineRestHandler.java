@@ -5,6 +5,7 @@
  */
 package com.ibm.cohort.engine.api.service;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -294,7 +295,7 @@ public class CohortEngineRestHandler {
 								@ApiParam(value = CohortEngineRestHandler.FHIR_TENANT_HEADER_DESC, required = false, defaultValue = IBMFhirServerConfig.DEFAULT_TENANT_ID_HEADER) @QueryParam("fhir_server_tenant_id_header") String fhirTenantIdHeader,
 								@ApiParam(value = CohortEngineRestHandler.FHIR_DS_HEADER_DESC, required = false, defaultValue = IBMFhirServerConfig.DEFAULT_DATASOURCE_ID_HEADER) @QueryParam("fhir_data_source_id_header") String fhirDataSourceIdHeader,
 								@ApiParam(value = CohortEngineRestHandler.FHIR_DS_ID_DESC, required = false) @QueryParam("fhir_data_source_id") String fhirDataSourceId
-								){
+								) throws IOException {
 		//todo parameters
 //		Response errorResponse = ServiceBaseUtility.apiSetup(version, logger, methodName);
 //		if(errorResponse != null) {
@@ -302,9 +303,10 @@ public class CohortEngineRestHandler {
 //		}
 
 		String[] authParts = FHIRRestUtils.parseAuthenticationHeaderInfo(httpHeaders);
-		IGenericClient fhirClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, authParts[0], authParts[1], fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId);
-		ValueSetUtil.isValidXsd();
+//		IGenericClient fhirClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, authParts[0], authParts[1], fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId);
+		ValueSetUtil.isValidXsd(null);
 
+		return null;
 	}
 }
 

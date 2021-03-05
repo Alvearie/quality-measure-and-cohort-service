@@ -39,7 +39,7 @@ public class ParameterHelper {
 			if (m.matches()) {
 				String name = m.group("name");
 				String type = m.group("type");
-				String value = m.group("valueset");
+				String value = m.group("value");
 				String subType = null;
 				String start = null;
 				String end = null;
