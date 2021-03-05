@@ -115,7 +115,7 @@ public class ValueSetUtil {
 				valueSetArtifact.setId(bundle.getEntryFirstRep().getResource().getIdElement().getIdPart());
 				if (continueIFExists)  {
 					MethodOutcome outcome = client.update().resource(client.getFhirContext().newJsonParser().encodeResourceToString(valueSetArtifact.getResource())).execute();
-					if (outcome.getCreated()) {
+					if (outcome != null && outcome.getCreated()) {
 						valueSetArtifact.setId(outcome.getId().getIdPart());
 					}
 				}
