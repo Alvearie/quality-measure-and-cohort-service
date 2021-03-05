@@ -80,6 +80,8 @@ public class ValueSetUtil {
 		ValueSet valueSet = new ValueSet();
 		boolean inCodesSection = false;
 		HashMap<String, List<ValueSet.ConceptReferenceComponent>> codeSystemToCodes = new HashMap<>();
+		String url = "http://cts.nlm.nih.gov/fhir/ValueSet/";
+		String identifier = null;
 		for (Row currentRow : informationSheet) {
 			String code = currentRow.getCell(0) == null ? "" : currentRow.getCell(0).getStringCellValue();
 			if (!code.equals("") && currentRow.getCell(1) != null && !inCodesSection ) {
@@ -89,11 +91,18 @@ public class ValueSetUtil {
 						valueSet.setName(value);
 						valueSet.setTitle(value);
 						break;
-					case "oid":
+					case "id":
 						valueSet.setId(value);
-						String url = "http://cts.nlm.nih.gov/fhir/ValueSet/" + value;
-						valueSet.setUrl(url);
+						identifier = value;
 						break;
+					case "oid":
+						if(valueSet.getId() == null) {
+							valueSet.setId(value);
+							identifier = value;
+						}
+						break;
+					case "url":
+						url = value.endsWith("/") ? value : value + "/";
 					case "definition version":
 						valueSet.setVersion(value);
 						break;
@@ -117,7 +126,10 @@ public class ValueSetUtil {
 			}
 
 		}
-
+		if(identifier == null || identifier.equals("")){
+			throw new RuntimeException("There must be an Identifier specified! Please populate the ID field");
+		}
+		valueSet.setUrl(url + identifier);
 		ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
 
 		for (Map.Entry<String, List<ValueSet.ConceptReferenceComponent>> singleInclude : codeSystemToCodes.entrySet()) {
