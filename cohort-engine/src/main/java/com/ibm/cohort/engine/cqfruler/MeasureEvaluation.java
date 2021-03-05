@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2020, 2020
+ * (C) Copyright IBM Corp. 2020, 2021
  *
  * SPDX-License-Identifier: Apache-2.0
  * 
@@ -8,12 +8,10 @@
 
 package com.ibm.cohort.engine.cqfruler;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -21,7 +19,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.cqframework.cql.elm.execution.ExpressionDef;
-import org.cqframework.cql.elm.execution.VersionedIdentifier;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.ListResource;
 import org.hl7.fhir.r4.model.ListResource.ListEntryComponent;
@@ -63,7 +60,6 @@ public class MeasureEvaluation {
 
         if (patientId == null) {
             throw new IllegalArgumentException("Must provide patient id");
-        	//return evaluatePopulationMeasure(measure, context);
         }
 
         Iterable<Object> patientRetrieve = provider.retrieve("Patient", "id", patientId, "Patient", null, null, null,
@@ -79,77 +75,6 @@ public class MeasureEvaluation {
                 MeasureReport.MeasureReportType.INDIVIDUAL, isSingle, evidenceOptions.isIncludeEvaluatedResources());
     }
 
-//    public MeasureReport evaluateSubjectListMeasure(Measure measure, Context context, String practitionerRef) {
-//        logger.info("Generating patient-list report");
-//
-//        List<Patient> patients = practitionerRef == null ? getAllPatients() : getPractitionerPatients(practitionerRef);
-//        boolean isSingle = false;
-//        return evaluate(measure, context, patients, MeasureReport.MeasureReportType.SUBJECTLIST, isSingle, false);
-//    }
-
-//    private List<Patient> getPractitionerPatients(String practitionerRef) {
-//        SearchParameterMap map = new SearchParameterMap();
-//        map.add("general-practitioner", new ReferenceParam(
-//                practitionerRef.startsWith("Practitioner/") ? practitionerRef : "Practitioner/" + practitionerRef));
-//
-//        List<Patient> patients = new ArrayList<>();
-//        IBundleProvider patientProvider = registry.getResourceDao("Patient").search(map);
-//        List<IBaseResource> patientList = patientProvider.getResources(0, patientProvider.size());
-//        patientList.forEach(x -> patients.add((Patient) x));
-//        return patients;
-//    }
-//
-//    private List<Patient> getAllPatients() {
-//        List<Patient> patients = new ArrayList<>();
-//        IBundleProvider patientProvider = registry.getResourceDao("Patient").search(new SearchParameterMap());
-//        List<IBaseResource> patientList = patientProvider.getResources(0, patientProvider.size());
-//        patientList.forEach(x -> patients.add((Patient) x));
-//        return patients;
-//    }
-
-//    public MeasureReport evaluatePopulationMeasure(Measure measure, Context context) {
-//        logger.info("Generating summary report");
-//
-//        boolean isSingle = false;
-//        return evaluate(measure, context, getAllPatients(), MeasureReport.MeasureReportType.SUMMARY, isSingle, false);
-//    }
-
-//    private void clearExpressionCache(Context context) {
-//        // Hack to clear expression cache
-//        // See cqf-ruler github issue #153
-//        try {
-//            Field privateField = Context.class.getDeclaredField("expressions");
-//            privateField.setAccessible(true);
-//            @SuppressWarnings("unchecked")
-//			LinkedHashMap<String, Object> expressions = (LinkedHashMap<String, Object>) privateField.get(context);
-//            expressions.clear();
-//
-//        } catch (Exception e) {
-//            logger.warn("Error resetting expression cache", e);
-//        }
-//    }
-    
-    private void getExpressionCache(Context context) {
-    	// Hack to clear return cache
-        // See cqf-ruler github issue #153
-        try {
-            Field privateField = Context.class.getDeclaredField("expressions");
-            privateField.setAccessible(true);
-            @SuppressWarnings("unchecked")
-			LinkedHashMap<VersionedIdentifier, LinkedHashMap<String, Object>> expressions = (LinkedHashMap<VersionedIdentifier, LinkedHashMap<String, Object>>) privateField.get(context);
-      
-            for(Entry<VersionedIdentifier, LinkedHashMap<String, Object>> e : expressions.entrySet()) {
-            	for(Entry<String, Object> e2 : e.getValue().entrySet()) {
-//            		System.out.println(e.getKey() + " " + e2.getKey() + " " + e2.getValue());
-            		logger.warn(e.getKey() + " " + e2.getKey() + " " + e2.getValue());
-            	}
-            }
-
-        } catch (Exception e) {
-            logger.warn("Error resetting expression cache", e);
-        }
-    }
-
     @SuppressWarnings("unchecked")
     private Iterable<Resource> evaluateCriteria(Context context, Patient patient,
             Measure.MeasureGroupPopulationComponent pop, boolean includeEvidence) {
@@ -159,53 +84,8 @@ public class MeasureEvaluation {
 
         context.setContextValue("Patient", patient.getIdElement().getIdPart());
 
-//        clearExpressionCache(context);
-
         ExpressionDef populationExpressionDef = context.resolveExpressionRef(pop.getCriteria().getExpression());
         Object result = populationExpressionDef.evaluate(context);
-        
-//        System.out.println(populationExpressionDef.getName());
-        logger.warn(populationExpressionDef.getName());
-        
-        DefineContext defineContext = (DefineContext) context;
-        
-        if(includeEvidence) {
-	        for(Entry<VersionedIdentifier, Map<String, Object>> e : defineContext.getEntriesInCache()) {
-	        	for(Entry<String, Object> e2 : e.getValue().entrySet()) {
-	//        		System.out.println(e.getKey() + " " + e2.getKey() + " " + e2.getValue());
-	        		logger.warn(e.getKey() + " " + e2.getKey() + " " + e2.getValue());
-	        	}
-	        }
-        }
-        
-        getExpressionCache(context);
-        
-//        Map<String, VersionedIdentifier> includeLibraries = new HashMap<>();
-//        
-//        for(IncludeDef def : context.getCurrentLibrary().getIncludes().getDef()) {
-//        	System.out.println(def.getMediaType() + " " + def.getPath() +  " " + def.getVersion());
-//        	
-//        	VersionedIdentifier vi = new VersionedIdentifier();
-//        	vi.setId(def.getPath());
-//        	vi.setVersion(def.getVersion());
-//        	
-//        	includeLibraries.put(def.getPath(), vi);
-//        	
-//        }
-//        
-//        
-//        ExpressionRef expressionRef = (ExpressionRef) populationExpressionDef.getExpression();
-//        //If the above isn't an expression ref, it will fail.  but we want to parse it to get to expression refs...
-//        VersionedIdentifier libraryId = expressionRef.getLibraryName() == null ? context.getCurrentLibrary().getIdentifier() : includeLibraries.get(expressionRef.getLibraryName());
-//        System.out.println(expressionRef.getName() + " " + context.getExpressionResultFromCache(libraryId, expressionRef.getName()));
-//        
-//        
-//        for(ExpressionDef def : context.getCurrentLibrary().getStatements().getDef()) {
-//        	//look for expressionRef to get library name
-//        	
-//        	
-//        	System.out.println(def.getName() + " " + context.getExpressionResultFromCache(context.getCurrentLibrary().getIdentifier(), def.getName()));
-//        }
         
         if (result == null) {
             return Collections.emptyList();
@@ -221,11 +101,6 @@ public class MeasureEvaluation {
 
         return (Iterable<Resource>) result;
     }
-    
-//    private Iterable<Resource> evaluateCriteria(Context context, Patient patient,
-//            Measure.MeasureGroupPopulationComponent pop) {
-//    	return evaluateCriteria(context, patient, pop, false);
-//    }
 
     private boolean evaluatePopulationCriteria(Context context, Patient patient,
             Measure.MeasureGroupPopulationComponent criteria, Map<String, Resource> population,
@@ -533,6 +408,7 @@ public class MeasureEvaluation {
 
                     break;
                 }
+                
             }
 
             // Add population reports for each group

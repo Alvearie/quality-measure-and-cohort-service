@@ -2,6 +2,8 @@
  * (C) Copyright IBM Copr. 2020, 2021
  *
  * SPDX-License-Identifier: Apache-2.0
+ * 
+ * Originated from org.opencds.cqf.r4.evaluation.MeasureEvaluation
  */
 
 package com.ibm.cohort.engine.cqfruler;
@@ -32,7 +34,6 @@ public class ObservationMeasureEvaluation {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ObservationMeasureEvaluation.class);
 
-	//TODO don't duplicate this method
 	private static void clearExpressionCache(Context context) {
         // Hack to clear expression cache
         // See cqf-ruler github issue #153

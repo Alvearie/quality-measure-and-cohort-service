@@ -2,6 +2,8 @@
  * (C) Copyright IBM Copr. 2020, 2021
  *
  * SPDX-License-Identifier: Apache-2.0
+ * 
+ * Originated from org.opencds.cqf.r4.evaluation.MeasureEvaluation
  */
 
 package com.ibm.cohort.engine.cqfruler;
