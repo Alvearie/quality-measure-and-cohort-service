@@ -67,7 +67,7 @@ public class FHIRRestUtilsTest {
 	String testMeasureDef = "{\r\n" + "  \"resourceType\": \"Measure\",\r\n"
 			+ "  \"id\": \"wh-cohort-Over-the-Hill-Female-1.0.0-identifier\",\r\n" + "  \"identifier\": [\r\n"
 			+ "    {\r\n" + "      \"use\": \"official\",\r\n" + "      \"system\": \"http://fakesystem.org\",\r\n"
-			+ "      \"value\": \"999\"\r\n" + "    }\r\n" + "  ],\r\n" + "  \"version\": \"1.0.0\",\r\n"
+			+ "      \"valueset\": \"999\"\r\n" + "    }\r\n" + "  ],\r\n" + "  \"version\": \"1.0.0\",\r\n"
 			+ "  \"name\": \"Over-the-Hill-Female\",\r\n" + "  \"status\": \"active\",\r\n"
 			+ "  \"experimental\": true,\r\n" + "  \"publisher\": \"IBM WH Cohorting Test\",\r\n"
 			+ "  \"description\": \"Over-the-Hill-Female\",\r\n" + "  \"library\": [\r\n"

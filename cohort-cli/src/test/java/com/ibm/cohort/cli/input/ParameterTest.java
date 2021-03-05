@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ParameterTest {
 	@Test
 	public void testValidNonIntervalParameter_validationSucceedsWithoutException() throws Exception {
-		Parameter parameter = createParameter("{\"name\":\"p1\",\"type\":\"integer\",\"value\":\"1\"}");
+		Parameter parameter = createParameter("{\"name\":\"p1\",\"type\":\"integer\",\"valueset\":\"1\"}");
 		parameter.validate();
 	}
 
@@ -25,13 +25,13 @@ public class ParameterTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testInvalidParameter_missingName_throwsException() throws Exception {
-		Parameter parameter = createParameter("{\"type\":\"integer\",\"value\":\"1\"}");
+		Parameter parameter = createParameter("{\"type\":\"integer\",\"valueset\":\"1\"}");
 		parameter.validate();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testInvalidParameter_missingType_throwsException() throws Exception {
-		Parameter parameter = createParameter("{\"name\":\"p1\",\"value\":\"1\"}");
+		Parameter parameter = createParameter("{\"name\":\"p1\",\"valueset\":\"1\"}");
 		parameter.validate();
 	}
 

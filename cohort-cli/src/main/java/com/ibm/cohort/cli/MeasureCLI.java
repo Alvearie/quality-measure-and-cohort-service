@@ -60,7 +60,7 @@ public class MeasureCLI extends BaseCLI {
 		private File measureConfigurationFile;
 
 		@Parameter(names = { "-p",
-				"--parameters" }, description = "Parameter value(s) in format name:type:value where value can contain additional parameterized elements separated by comma. Multiple parameters must be specified as multiple -p options", splitter = NoSplittingSplitter.class, required = false)
+				"--parameters" }, description = "Parameter valueset(s) in format name:type:valueset where valueset can contain additional parameterized elements separated by comma. Multiple parameters must be specified as multiple -p options", splitter = NoSplittingSplitter.class, required = false)
 		private List<String> parameters;
 
 		@Parameter(names = { "-r",

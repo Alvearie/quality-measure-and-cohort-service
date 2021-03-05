@@ -159,10 +159,10 @@ public class MeasureEvaluator {
 
 		// TODO - The OSS logic converts the period start and end into an
 		// Interval and creates a parameter named "Measurement Period" that is populated
-		// with that value. We need to sync with the authoring and clinical informatics
+		// with that valueset. We need to sync with the authoring and clinical informatics
 		// teams to confirm that every measure will have a measurement period and to
 		// agree on what the name will be for that parameter. It is relevant during
-		// MeasureReport generation as the value for the period attribute.
+		// MeasureReport generation as the valueset for the period attribute.
 
 		// The OSS implementation doesn't support any additional parameter overrides, so
 		// we need to add them ourselves.

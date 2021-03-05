@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -33,6 +34,7 @@ import com.ibm.cohort.engine.api.service.model.MeasureParameterInfoList;
 import com.ibm.cohort.engine.api.service.model.MeasuresEvaluation;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
 import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
+import com.ibm.cohort.valueset.ValueSetUtil;
 import com.ibm.watson.common.service.base.ServiceBaseConstants;
 import com.ibm.watson.common.service.base.ServiceBaseUtility;
 
@@ -65,20 +67,20 @@ public class CohortEngineRestHandler {
 			+ "https://localhost:9443/fhir-server/api/v4";
 	private static final String FHIR_TENANT_HEADER_DESC = "IBM FHIR Server uses HTTP headers to control which underlying tenant contains "
 			+ "the data being retrieved. The default header name used to identify the tenant can be changed by the user as needed for their "
-			+ "execution environment. If no value is provided, the value in the base configuration files (X-FHIR-TENANT-ID) is used.";
+			+ "execution environment. If no valueset is provided, the valueset in the base configuration files (X-FHIR-TENANT-ID) is used.";
 	private static final String FHIR_TENANT_ID_DESC = "The id of the tenant used to store the measure/library information in the FHIR server. ";
 	private static final String FHIR_DS_HEADER_DESC = "IBM FHIR Server uses HTTP headers to control which underlying datasource contains "
 			+ "the data being retrieved. The default header can be changed by the user as needed for their "
-			+ "execution environment. If no value is provided, the value in the base configuration files (X-FHIR-DSID) is used.";
+			+ "execution environment. If no valueset is provided, the valueset in the base configuration files (X-FHIR-DSID) is used.";
 	private static final String FHIR_DS_ID_DESC = "The id of the underlying datasource used by the FHIR server to contain the data.";
 	private static final String MEASURE_IDENTIFIER_VALUE_DESC = "Used to identify the FHIR measure resource you would like the parameter information "
 			+ "for using the Measure.Identifier.Value field.";
 	private static final String MEASURE_ID_DESC = "FHIR measure resource id for the measure you would like the parameter information "
 			+ "for using the Measure.id field.";
 	private static final String MEASURE_IDENTIFIER_SYSTEM_DESC = "The system name used to provide a namespace for the measure identifier values. For "
-			+ "example, if using social security numbers for the identifier values, one would use http://hl7.org/fhir/sid/us-ssn as the system value.";
+			+ "example, if using social security numbers for the identifier values, one would use http://hl7.org/fhir/sid/us-ssn as the system valueset.";
 	private static final String MEASURE_VERSION_DESC = " The version of the measure to retrieve as represented by the FHIR resource Measure.version "
-			+ "field. If a value is not provided, the underlying code will atempt to resolve the most recent version assuming a "
+			+ "field. If a valueset is not provided, the underlying code will atempt to resolve the most recent version assuming a "
 			+ "<Major>.<Minor>.<Patch> format (ie if versions 1.0.0 and 2.0.0 both exist, the code will return the 2.0.0 version)";
 	private static final String MEASURE_API_NOTES = "Retrieves the parameter information for libraries linked to by a measure";
 
@@ -279,5 +281,30 @@ public class CohortEngineRestHandler {
 		}
 	}
 
+	//todo put the stuff here ok?
+	@PUT
+	@Path("/fhir/valueset/{value_set_id}")
+	//todo this produces isn't real
+	@Produces({ "application/json" })
+	//todo add notes, response
+	@ApiOperation(value = "Put ValueSet", authorizations = {@Authorization(value = "BasicAuth") })
+	public Response putValueSet(@Context HttpHeaders httpHeaders,
+								@ApiParam(value = CohortEngineRestHandler.FHIR_ENDPOINT_DESC, required = true, defaultValue = CohortEngineRestHandler.DEFAULT_FHIR_URL) @QueryParam("fhir_server_rest_endpoint") String fhirEndpoint,
+								@ApiParam(value = CohortEngineRestHandler.FHIR_TENANT_ID_DESC, required = true, defaultValue = "default") @QueryParam("fhir_server_tenant_id") String fhirTenantId,
+								@ApiParam(value = CohortEngineRestHandler.FHIR_TENANT_HEADER_DESC, required = false, defaultValue = IBMFhirServerConfig.DEFAULT_TENANT_ID_HEADER) @QueryParam("fhir_server_tenant_id_header") String fhirTenantIdHeader,
+								@ApiParam(value = CohortEngineRestHandler.FHIR_DS_HEADER_DESC, required = false, defaultValue = IBMFhirServerConfig.DEFAULT_DATASOURCE_ID_HEADER) @QueryParam("fhir_data_source_id_header") String fhirDataSourceIdHeader,
+								@ApiParam(value = CohortEngineRestHandler.FHIR_DS_ID_DESC, required = false) @QueryParam("fhir_data_source_id") String fhirDataSourceId
+								){
+		//todo parameters
+//		Response errorResponse = ServiceBaseUtility.apiSetup(version, logger, methodName);
+//		if(errorResponse != null) {
+//			return errorResponse;
+//		}
+
+		String[] authParts = FHIRRestUtils.parseAuthenticationHeaderInfo(httpHeaders);
+		IGenericClient fhirClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, authParts[0], authParts[1], fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId);
+		ValueSetUtil.isValidXsd();
+
+	}
 }
 

@@ -39,7 +39,7 @@ public class ParameterHelper {
 			if (m.matches()) {
 				String name = m.group("name");
 				String type = m.group("type");
-				String value = m.group("value");
+				String value = m.group("valueset");
 				String subType = null;
 				String start = null;
 				String end = null;
@@ -146,8 +146,8 @@ public class ParameterHelper {
 	/**
 	 * Decode command-line encoded parameter
 	 * 
-	 * @param value encoded parameter value
-	 * @return decoded parameter value
+	 * @param value encoded parameter valueset
+	 * @return decoded parameter valueset
 	 */
 	public static Object resolveCodeParameter(String value) {
 		Object typedValue;
@@ -160,8 +160,8 @@ public class ParameterHelper {
 	/**
 	 * Decode command-line encoded parameter
 	 * 
-	 * @param value encoded parameter value
-	 * @return decoded parameter value
+	 * @param value encoded parameter valueset
+	 * @return decoded parameter valueset
 	 */
 	public static Object resolveDateTimeParameter(String value) {
 		Object typedValue;
@@ -172,8 +172,8 @@ public class ParameterHelper {
 	/**
 	 * Decode command-line encoded parameter
 	 * 
-	 * @param value encoded parameter value
-	 * @return decoded parameter value
+	 * @param value encoded parameter valueset
+	 * @return decoded parameter valueset
 	 */
 	public static Object resolveQuantityParameter(String value) {
 		Object typedValue;

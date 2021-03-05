@@ -38,19 +38,19 @@ public class MeasureConfigurationTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testValidAndInvalidParameters_throwsException() throws Exception {
-		MeasureConfiguration measureConfiguration = createMeasureIdWithParameters("{\"measureId\":\"1234\",\"parameters\":[{\"name\":\"p1\",\"type\":\"integer\",\"value\":\"1\"},{\"name\":\"p2\"}]}");
+		MeasureConfiguration measureConfiguration = createMeasureIdWithParameters("{\"measureId\":\"1234\",\"parameters\":[{\"name\":\"p1\",\"type\":\"integer\",\"valueset\":\"1\"},{\"name\":\"p2\"}]}");
 		measureConfiguration.validate();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testIdAndIdentifier_throwsException() throws Exception {
-		MeasureConfiguration measureConfiguration = createMeasureIdWithParameters("{\"measureId\":\"1234\",\"identifier\":{\"value\":\"identifier1\"}}");
+		MeasureConfiguration measureConfiguration = createMeasureIdWithParameters("{\"measureId\":\"1234\",\"identifier\":{\"valueset\":\"identifier1\"}}");
 		measureConfiguration.validate();
 	}
 
 	@Test
 	public void testWithIdentifierValueOnly_executionSucceeds() throws Exception {
-		MeasureConfiguration measureConfiguration = createMeasureIdWithParameters("{\"identifier\":{\"value\":\"identifier1\"}}");
+		MeasureConfiguration measureConfiguration = createMeasureIdWithParameters("{\"identifier\":{\"valueset\":\"identifier1\"}}");
 		measureConfiguration.validate();
 	}
 

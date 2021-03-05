@@ -40,8 +40,8 @@ import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 import org.opencds.cqf.cql.engine.terminology.ValueSetInfo;
 
 /**
- * Validate that engine parameters of all types can be set both with value or
- * using CQL-defined default value. This was raised as an important topic
+ * Validate that engine parameters of all types can be set both with valueset or
+ * using CQL-defined default valueset. This was raised as an important topic
  * given our need to support parameterized-overrides and because early
  * testing of the CQL Engine demonstrated some buggy behavior (fixed in 1.5.1).
  */

@@ -620,7 +620,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 	}
 	
 	private String createParameterString(String name, String type, String value) {
-		return "{\"name\":\"" + name + "\",\"type\":\"" + type + "\",\"value\":\"" + value +"\"}";
+		return "{\"name\":\"" + name + "\",\"type\":\"" + type + "\",\"valueset\":\"" + value +"\"}";
 	}
 	
 	private File createTmpConfigurationsFileFromContents(String contents) throws IOException {

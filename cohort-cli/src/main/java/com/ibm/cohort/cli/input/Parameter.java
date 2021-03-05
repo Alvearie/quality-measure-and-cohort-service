@@ -16,7 +16,7 @@ public class Parameter {
 	@JsonProperty("type")
 	private String type;
 
-	@JsonProperty("value")
+	@JsonProperty("valueset")
 	private String value;
 
 	@JsonProperty("subtype")
@@ -57,14 +57,14 @@ public class Parameter {
 		if (isEmpty(name) || isEmpty(type)) {
 			throw new IllegalArgumentException("Invalid measure parameter file: Must provide \"name\" and \"type\" for each measure parameter.");
 		}
-		// When dealing with an interval, require subtype, start and end. Otherwise require a value
+		// When dealing with an interval, require subtype, start and end. Otherwise require a valueset
 		if (type.equals("interval")) {
 			if (isEmpty(subtype) || isEmpty(start) || isEmpty(end)) {
 				throw new IllegalArgumentException("Invalid measure parameter file: Must provide \"subtype\", \"start\",  and \"end\" for each measure parameter with type \"interval\".");
 			}
 		}
 		else if (isEmpty(value)) {
-			throw new IllegalArgumentException("Invalid measure parameter file: Must provide \"value\" for each non-interval parameter.");
+			throw new IllegalArgumentException("Invalid measure parameter file: Must provide \"valueset\" for each non-interval parameter.");
 		}
 	}
 }

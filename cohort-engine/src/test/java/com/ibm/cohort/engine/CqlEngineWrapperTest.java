@@ -358,7 +358,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		wrapper.evaluateWithEngineWrapper("Test", null, parameters, null, Arrays.asList("123"), new ProxyingEvaluationResultCallback((p, e, r) -> {
 			count.incrementAndGet();
 			if (e.equals("ParamMaxAge")) {
-				assertEquals("Unexpected value for expression result", "40", r);
+				assertEquals("Unexpected valueset for expression result", "40", r);
 				found.set(true);
 			}
 		}));
@@ -381,7 +381,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		wrapper.evaluateExpressionByExpression("Test", null, parameters, null, Arrays.asList("123"), new ProxyingEvaluationResultCallback((p, e, r) -> {
 			count.incrementAndGet();
 			if (e.equals("ParamMaxAge")) {
-				assertEquals("Unexpected value for expression result", "40", r);
+				assertEquals("Unexpected valueset for expression result", "40", r);
 				found.set(true);
 			}
 		}));
@@ -404,7 +404,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 				(p, e, r) -> {
 					count.incrementAndGet();
 					if (e.equals("MeetsInclusionCriteria")) {
-						assertEquals("Unexpected value for expression result", Boolean.TRUE, r);
+						assertEquals("Unexpected valueset for expression result", Boolean.TRUE, r);
 						found.set(true);
 					}
 				});
@@ -509,7 +509,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 						assertEquals(null, r);
 					} else if( e.equals( "AreEquivalent") ) {
 						// you can use the *convert* function to change the
-						// units of a quantity to a known value
+						// units of a quantity to a known valueset
 						assertEquals(Boolean.TRUE, r); 
 					} else if( e.equals( "UpConvert") ) {
 						// Or, the safest thing to do is convert the left and right

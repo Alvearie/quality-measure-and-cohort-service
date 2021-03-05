@@ -47,7 +47,7 @@ public class MeasureConfiguration {
 		boolean identifierSpecified = (identifier != null && !isEmpty(identifier.getValue()));
 		
 		if (measureIdSpecified == identifierSpecified) {
-			throw new IllegalArgumentException("Invalid measure parameter file: Exactly one of id or identifier with a value must be provided for each measure.");
+			throw new IllegalArgumentException("Invalid measure parameter file: Exactly one of id or identifier with a valueset must be provided for each measure.");
 		}
 
 		if (identifier !=  null) {

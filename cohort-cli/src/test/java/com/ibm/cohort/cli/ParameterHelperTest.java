@@ -26,7 +26,7 @@ public class ParameterHelperTest {
 		assertEquals(1, params.size());
 		Integer p = (Integer) params.get("test");
 		assertNotNull("Parameter with expected name not found", p);
-		assertEquals("Unexpected value", 40, p.intValue());
+		assertEquals("Unexpected valueset", 40, p.intValue());
 	}
 
 	@Test
@@ -35,7 +35,7 @@ public class ParameterHelperTest {
 		assertEquals(1, params.size());
 		BigDecimal p = (BigDecimal) params.get("test");
 		assertNotNull("Parameter with expected name not found", p);
-		assertEquals("Unexpected value", 40, p.intValue());
+		assertEquals("Unexpected valueset", 40, p.intValue());
 	}
 
 	@Test
@@ -44,7 +44,7 @@ public class ParameterHelperTest {
 		assertEquals(1, params.size());
 		Boolean p = (Boolean) params.get("test");
 		assertNotNull("Parameter with expected name not found", p);
-		assertEquals("Unexpected value", true, p.booleanValue());
+		assertEquals("Unexpected valueset", true, p.booleanValue());
 	}
 
 	@Test
@@ -54,7 +54,7 @@ public class ParameterHelperTest {
 		assertEquals(1, params.size());
 		String p = (String) params.get("test");
 		assertNotNull("Parameter with expected name not found", p);
-		assertEquals("Unexpected value", "I have the:delimiter", p);
+		assertEquals("Unexpected valueset", "I have the:delimiter", p);
 	}
 
 	@Test
@@ -64,12 +64,12 @@ public class ParameterHelperTest {
 		assertEquals(1, params.size());
 		DateTime p = (DateTime) params.get("test");
 		assertNotNull("Parameter with expected name not found", p);
-		assertEquals("Unexpected value", 2020, p.getDateTime().getYear());
-		assertEquals("Unexpected value", 9, p.getDateTime().getMonthValue());
-		assertEquals("Unexpected value", 27, p.getDateTime().getDayOfMonth());
-		assertEquals("Unexpected value", 12, p.getDateTime().getHour());
-		assertEquals("Unexpected value", 13, p.getDateTime().getMinute());
-		assertEquals("Unexpected value", 14, p.getDateTime().getSecond());
+		assertEquals("Unexpected valueset", 2020, p.getDateTime().getYear());
+		assertEquals("Unexpected valueset", 9, p.getDateTime().getMonthValue());
+		assertEquals("Unexpected valueset", 27, p.getDateTime().getDayOfMonth());
+		assertEquals("Unexpected valueset", 12, p.getDateTime().getHour());
+		assertEquals("Unexpected valueset", 13, p.getDateTime().getMinute());
+		assertEquals("Unexpected valueset", 14, p.getDateTime().getSecond());
 	}
 
 	@Test
@@ -78,9 +78,9 @@ public class ParameterHelperTest {
 		assertEquals(1, params.size());
 		Time p = (Time) params.get("test");
 		assertNotNull("Parameter with expected name not found", p);
-		assertEquals("Unexpected value", 12, p.getTime().getHour());
-		assertEquals("Unexpected value", 13, p.getTime().getMinute());
-		assertEquals("Unexpected value", 14, p.getTime().getSecond());
+		assertEquals("Unexpected valueset", 12, p.getTime().getHour());
+		assertEquals("Unexpected valueset", 13, p.getTime().getMinute());
+		assertEquals("Unexpected valueset", 14, p.getTime().getSecond());
 	}
 
 	@Test
@@ -89,8 +89,8 @@ public class ParameterHelperTest {
 		assertEquals(1, params.size());
 		Quantity p = (Quantity) params.get("test");
 		assertNotNull("Parameter with expected name not found", p);
-		assertEquals("Unexpected value", "100", p.getValue().toString());
-		assertEquals("Unexpected value", "mg/mL", p.getUnit().toString());
+		assertEquals("Unexpected valueset", "100", p.getValue().toString());
+		assertEquals("Unexpected valueset", "mg/mL", p.getUnit().toString());
 	}
 
 	@Test
@@ -99,9 +99,9 @@ public class ParameterHelperTest {
 		assertEquals(1, params.size());
 		Code p = (Code) params.get("test");
 		assertNotNull("Parameter with expected name not found", p);
-		assertEquals("Unexpected value", "1.2.3", p.getCode());
-		assertEquals("Unexpected value", "SNOMEDCT", p.getSystem());
-		assertEquals("Unexpected value", "Hernia", p.getDisplay());
+		assertEquals("Unexpected valueset", "1.2.3", p.getCode());
+		assertEquals("Unexpected valueset", "SNOMEDCT", p.getSystem());
+		assertEquals("Unexpected valueset", "Hernia", p.getDisplay());
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
