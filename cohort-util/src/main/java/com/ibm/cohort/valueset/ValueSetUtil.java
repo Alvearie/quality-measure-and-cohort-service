@@ -27,52 +27,6 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 public class ValueSetUtil {
 
-	//todo do we want more clear markings of what exactly is invalid, or do we want the boolean valid/not valid?
-	//todo consider checking that values match across sheets? more likely focus entirely on sheet 2
-	public static boolean isValidXsd(InputStream is) throws IOException {
-		XSSFWorkbook wb = new XSSFWorkbook(is);
-		int mainSheetIndex = wb.getSheetIndex("Value Set Info");
-		if (mainSheetIndex < 0) {
-			return false;
-		}
-		XSSFSheet mainSheet = wb.getSheetAt(mainSheetIndex);
-
-		for (Row currentRow : mainSheet) {
-			if (currentRow.getCell(0) != null && currentRow.getCell(1) != null) {
-				switch (currentRow.getCell(0).getStringCellValue().toLowerCase()) {
-					//todo check if any of these need extra validation
-					case "valueset set name":
-					case "oid":
-					case "definition version":
-						if (currentRow.getCell(1) == null || currentRow.getCell(1).getStringCellValue().isEmpty()) {
-							return false;
-						}
-						break;
-					default:
-						break;
-				}
-			}
-		}
-
-		XSSFSheet expansionSheet = wb.getSheetAt(wb.getSheetIndex("Expansion List"));
-		boolean inCodesSection = false;
-		for (Row currentRow : expansionSheet) {
-			String code = currentRow.getCell(0) == null ? "" : currentRow.getCell(0).getStringCellValue();
-			if (inCodesSection) {
-				if (code.equals("")
-						|| currentRow.getCell(1).getStringCellValue() == null
-						|| currentRow.getCell(2).getStringCellValue() == null) {
-					return false;
-				}
-			}
-			if (code.toLowerCase().equals("code")) {
-				inCodesSection = true;
-			}
-		}
-
-		return true;
-	}
-
 	public static ValueSetArtifact createArtifact(InputStream is) throws IOException {
 		XSSFSheet informationSheet;
 		try (XSSFWorkbook wb = new XSSFWorkbook(is)) {
