@@ -7,7 +7,9 @@ package com.ibm.cohort.cli;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipFile;
 
 import com.ibm.cohort.engine.measure.ProviderFactory;
@@ -39,6 +41,8 @@ import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
+import org.opencds.cqf.cql.engine.data.DataProvider;
+import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import javax.cache.configuration.MutableConfiguration;
 
@@ -158,8 +162,14 @@ public class MeasureCLI extends BaseCLI {
 
 			// TODO: Actually configure the cache
 			RetrieveCacheContext retrieveCacheContext = new TransientRetrieveCacheContext(new MutableConfiguration<>());
+			// TODO: Replace EvaluationProviderFactory with something more sane
+			// All the parameters are currently useless.
 			EvaluationProviderFactory factory = new ProviderFactory(dataServerClient, terminologyServerClient, retrieveCacheContext);
-			evaluator = new MeasureEvaluator(factory, measureProvider, libraryProvider);
+			TerminologyProvider terminologyProvider = factory.createTerminologyProvider(null,null,null,null,null);
+			Map<String, DataProvider> dataProviders = new HashMap<>();
+			dataProviders.put("http://hl7.org/fhir", factory.createDataProvider(null, null));
+
+			evaluator = new MeasureEvaluator(measureProvider, libraryProvider, terminologyProvider, dataProviders);
 
 			for( String contextId : arguments.contextIds ) {
 				out.println("Evaluating: " + contextId);
