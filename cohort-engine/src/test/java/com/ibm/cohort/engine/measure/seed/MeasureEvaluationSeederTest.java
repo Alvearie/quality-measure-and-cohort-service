@@ -27,33 +27,31 @@ public class MeasureEvaluationSeederTest {
     private MeasureEvaluationSeeder seeder;
     private Library library;
     private Context context;
-    private Map<Triple<String, String, String>, DataProvider> dataProviders;
-    private Triple<String, String, String> usingDef;
+    private Map<String, DataProvider> dataProviders;
+    private String modelUri = "fakeUri";
 
     @Mock
     private DataProvider dataProvider;
 
     @Before
     public void setup() {
-       seeder = Mockito.spy(new MeasureEvaluationSeeder(null, new DefaultLibraryLoader(), null));
+       seeder = Mockito.spy(new MeasureEvaluationSeeder(null, dataProviders, new DefaultLibraryLoader(), null));
        library = new Library();
        context = Mockito.spy(new Context(library));
        doReturn(context).when(seeder).createDefaultContext(any());
 
        dataProviders = new HashMap<>();
-       usingDef = Triple.of("one", "two", "tree");
-       dataProviders.put(usingDef, dataProvider);
+       dataProviders.put(modelUri, dataProvider);
     }
 
     @Test
     public void createContextDisabled() {
         seeder.disableDebugLogging();
-        seeder.withTerminologyProvider("source", "user", "password");
 
         Context context = seeder.createContext(
                 library,
-                new HashMap<>(),
-                null,
+                modelUri,
+                dataProviders.get(modelUri),
                 seeder.createMeasurePeriod("2020-01-01", "2021-01-01"),
                 "productLine");
 
@@ -64,18 +62,17 @@ public class MeasureEvaluationSeederTest {
     @Test
     public void createContextFullyEnabled() {
         seeder.enableExpressionCaching();
-        seeder.withTerminologyProvider("source", "user", "password");
 
         String productLine = "productLine";
         Context context = seeder.createContext(
                 library,
-                dataProviders,
-                null,
+                modelUri,
+                dataProviders.get(modelUri),
                 seeder.createMeasurePeriod("2020-01-01", "2021-01-01"),
                 productLine);
 
         verify(context).registerTerminologyProvider(any());
-        verify(context).registerDataProvider(usingDef.getRight(), dataProvider);
+        verify(context).registerDataProvider(modelUri, dataProvider);
         verify(context).setParameter(null, "Product Line", productLine);
         Assert.assertTrue(context.isExpressionCachingEnabled());
         Assert.assertTrue(context.getDebugMap().getIsLoggingEnabled());
