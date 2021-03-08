@@ -8,6 +8,8 @@
 
 package com.ibm.cohort.valueset;
 
+
+//taken from cqf-tooling's CodeSystemLookupDictionary.java
 public class CodeSystemLookup {
 	public static  String getUrlFromName(String name) {
 		switch (name) {
