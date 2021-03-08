@@ -37,6 +37,9 @@ public class ValueSetImporter {
 		@Parameter(names = {"--override-existing-value-sets"}, description = "Will force insertion of valuesets, even if they already exist")
 		boolean overrideValueSets;
 
+		@Parameter(names = {"-c, --code-system-mappings"}, description = "Custom code system mappings")
+		String filename;
+
 		@Parameter(names = {"-h", "--help"}, description = "Show this help", help = true)
 		boolean isDisplayHelp;
 
