@@ -24,7 +24,7 @@ import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 
-import com.ibm.cohort.engine.cqfruler.DefineContext;
+import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.cqfruler.MeasureEvaluation;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceHelper;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
@@ -154,8 +154,8 @@ public class CDMMeasureEvaluation {
 			// no customizations needed
 		}
 		
-		if(context instanceof DefineContext) {
-			DefineContext defineContext = (DefineContext) context;
+		if(context instanceof CDMContext) {
+			CDMContext defineContext = (CDMContext) context;
 			
 			// Grab the define results from the expression cache
 			if(evidenceOptions.isIncludeDefineEvaluation()) {
@@ -168,7 +168,7 @@ public class CDMMeasureEvaluation {
 		return report;
 	}
 	
-	protected static void addDefineEvaluationToReport(MeasureReport report, DefineContext defineContext) {
+	protected static void addDefineEvaluationToReport(MeasureReport report, CDMContext defineContext) {
 		for(Entry<VersionedIdentifier, Map<String, Object>> libraryCache : defineContext.getEntriesInCache()) {
 			for(Entry<String, Object> defineResult : libraryCache.getValue().entrySet()) {
 				

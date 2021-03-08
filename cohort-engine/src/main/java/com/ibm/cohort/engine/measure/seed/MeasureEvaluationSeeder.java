@@ -23,7 +23,7 @@ import org.opencds.cqf.cql.engine.runtime.Interval;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.ibm.cohort.engine.cqfruler.DefineContext;
+import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.measure.LibraryHelper;
 
 public class MeasureEvaluationSeeder {
@@ -143,7 +143,7 @@ public class MeasureEvaluationSeeder {
 
 	@VisibleForTesting
 	protected Context createDefaultContext(org.cqframework.cql.elm.execution.Library library) {
-		return new DefineContext(library);
+		return new CDMContext(library);
 	}
 
 	@VisibleForTesting

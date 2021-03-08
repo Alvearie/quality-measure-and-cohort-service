@@ -27,7 +27,7 @@ import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Type;
 import org.junit.Test;
 
-import com.ibm.cohort.engine.cqfruler.DefineContext;
+import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceHelper;
 
 public class CDMMeasureEvaluationTest {
@@ -35,7 +35,7 @@ public class CDMMeasureEvaluationTest {
 	public void testDefinesOnMeasureReport() {
 		MeasureReport report = new MeasureReport();
 		Library library = new Library();
-		DefineContext defineContext = new DefineContext(library);
+		CDMContext defineContext = new CDMContext(library);
 		
 		VersionedIdentifier libraryId1 = new VersionedIdentifier();
 		libraryId1.setId("LibraryName1");

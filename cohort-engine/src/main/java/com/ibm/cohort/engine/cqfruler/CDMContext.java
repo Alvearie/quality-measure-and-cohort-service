@@ -22,7 +22,7 @@ import org.opencds.cqf.cql.engine.execution.Context;
  * As this is expected to cleared between measure executions per patient, storing all of the define results shouldn't break the bank on memory.
  *
  */
-public class DefineContext extends Context {
+public class CDMContext extends Context {
 
     private Map<VersionedIdentifier, Map<String, Object>> expressions = new LinkedHashMap<VersionedIdentifier, Map<String, Object>>(10, 0.9f, true) {
 		private static final long serialVersionUID = 2837966863351097165L;
@@ -52,10 +52,8 @@ public class DefineContext extends Context {
 
 	@Override
 	public Object getExpressionResultFromCache(VersionedIdentifier libraryId, String name) {
-        if (!this.expressions.containsKey(libraryId)) {
-            this.expressions.put(libraryId, constructNoEvictLibraryExpressionHashMap());
-        }
-
+		this.expressions.computeIfAbsent(libraryId, x -> constructNoEvictLibraryExpressionHashMap());
+		
         return this.expressions.get(libraryId).get(name);
     }
 	
@@ -63,7 +61,7 @@ public class DefineContext extends Context {
 		expressions.clear();
 	}
 
-	public DefineContext(Library library) {
+	public CDMContext(Library library) {
 		super(library);
 	}
 	
