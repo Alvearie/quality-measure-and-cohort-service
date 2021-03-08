@@ -12,7 +12,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -34,6 +33,7 @@ import org.opencds.cqf.cql.engine.model.ModelResolver;
 import org.opencds.cqf.cql.engine.retrieve.RetrieveProvider;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
+import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
@@ -217,7 +217,7 @@ public class CqlEngineWrapper {
 		for (String contextId : contextIds) {
 			callback.onContextBegin(contextId);
 
-			Context context = new Context(library);
+			Context context = new CDMContext(library);
 			for (Map.Entry<String, DataProvider> e : dataProviders.entrySet()) {
 				context.registerDataProvider(e.getKey(), e.getValue());
 			}
