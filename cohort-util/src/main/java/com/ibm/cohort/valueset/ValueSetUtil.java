@@ -114,11 +114,7 @@ public class ValueSetUtil {
 			if (bundle.getEntry().size() > 0) {
 				valueSetArtifact.setId(bundle.getEntryFirstRep().getResource().getIdElement().getIdPart());
 				if (continueIFExists)  {
-					MethodOutcome outcome = client
-							.create()
-							.resource(client.getFhirContext().newJsonParser().encodeResourceToString(valueSetArtifact.getResource()))
-							.conditionalByUrl(valueSetArtifact.getUrl())
-							.execute();
+					MethodOutcome outcome = client.update().resource(client.getFhirContext().newJsonParser().encodeResourceToString(valueSetArtifact.getResource())).execute();
 					valueSetArtifact.setId(outcome.getId().getIdPart());
 				}
 			} else {
