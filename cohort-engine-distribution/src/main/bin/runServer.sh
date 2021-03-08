@@ -5,7 +5,7 @@
 #
 #!/bin/sh
 # start server here, match name from DockerFile
-#SERVER_NAME=myServer
+SERVER_NAME=cohortServer
 /opt/ibm/wlp/bin/server start $SERVER_NAME
 # TODO restart server to get SSL working until we preload certs/keys from secrets in cloud?
 #/opt/ibm/wlp/bin/server stop $SERVER_NAME

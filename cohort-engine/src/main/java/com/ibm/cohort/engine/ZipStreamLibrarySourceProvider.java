@@ -15,6 +15,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.hl7.elm.r1.VersionedIdentifier;
 
 /**
@@ -25,24 +26,39 @@ import org.hl7.elm.r1.VersionedIdentifier;
  */
 public class ZipStreamLibrarySourceProvider extends MultiFormatLibrarySourceProvider {
 
-	public ZipStreamLibrarySourceProvider(ZipInputStream zipInputStream) throws Exception {
-		this(zipInputStream, new DefaultFilenameToVersionedIdentifierStrategy());
+	public ZipStreamLibrarySourceProvider(ZipInputStream zipInputStream, String... searchPaths) throws Exception {
+		this(zipInputStream, new DefaultFilenameToVersionedIdentifierStrategy(), searchPaths);
 	}
 
 	public ZipStreamLibrarySourceProvider(ZipInputStream zipInputStream,
-			FilenameToVersionedIdentifierStrategy idStrategy) throws Exception {
+			FilenameToVersionedIdentifierStrategy idStrategy, String... searchPaths) throws Exception {
 
 		ZipEntry ze;
 		while ((ze = zipInputStream.getNextEntry()) != null) {
 			if (!ze.isDirectory()) {
-				LibraryFormat format = LibraryFormat.forString(ze.getName());
-				if( format != null ) {
-					VersionedIdentifier id = idStrategy.filenameToVersionedIdentifier(ze.getName());
-	
-					ByteArrayOutputStream baos = new ByteArrayOutputStream();
-					IOUtils.copy(zipInputStream, baos);
-					Map<LibraryFormat, InputStream> formats = sources.computeIfAbsent(id, key -> new HashMap<>());
-					formats.put(format, new ByteArrayInputStream(baos.toByteArray()));
+				boolean filter = false;
+				if( ! ArrayUtils.isEmpty(searchPaths) ) {
+					String prefix = "";
+					
+					int ch;
+					if( (ch=ze.getName().lastIndexOf("/")) != -1 ) {
+						prefix = ze.getName().substring(0, ch);
+					}
+					filter = ! ArrayUtils.contains(searchPaths, prefix);
+				} else { 
+					filter = false;
+				}
+				
+				if( ! filter ) {
+					LibraryFormat format = LibraryFormat.forString(ze.getName());
+					if( format != null ) {
+						VersionedIdentifier id = idStrategy.filenameToVersionedIdentifier(ze.getName());
+		
+						ByteArrayOutputStream baos = new ByteArrayOutputStream();
+						IOUtils.copy(zipInputStream, baos);
+						Map<LibraryFormat, InputStream> formats = sources.computeIfAbsent(id, key -> new HashMap<>());
+						formats.put(format, new ByteArrayInputStream(baos.toByteArray()));
+					}
 				}
 			}
 		}

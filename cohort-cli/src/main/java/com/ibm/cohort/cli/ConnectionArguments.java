@@ -19,6 +19,6 @@ public class ConnectionArguments {
 	File terminologyServerConfigFile;
 
 	@Parameter(names = { "-m",
-			"--measure-server" }, description = "Path to JSON configuration data for the FHIR server connection that will be used to retrieve measure and library resources.", required = false)
+			"--measure-server" }, description = "Path to configuration data for the FHIR knowledge assets. This will be either a JSON configuration file containing FHIR server connection details or the path to a file containing the FHIR resources of interest.", required = false)
 	File measureServerConfigFile;
 }

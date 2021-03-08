@@ -107,9 +107,24 @@ public class BaseMeasureTest extends BaseFhirTest {
 		}
 		
 		mockFhirResourceRetrieval("/Library?url=" + url, bundle );
-		mockFhirResourceRetrieval("/Library?name=" + library.getName() + "&_sort=-date", bundle);
-		mockFhirResourceRetrieval("/Library?name=" + library.getName() + "&version=1.0.0&_sort=-date", bundle);
+		mockFhirResourceRetrieval("/Library?name%3Aexact=" + library.getName(), bundle);
+		mockFhirResourceRetrieval("/Library?name%3Aexact=" + library.getName() + "&version=" + library.getVersion(), bundle);
 		return library;
+	}
+	
+	protected Measure mockMeasureRetrieval(Measure measure) throws Exception {
+		mockFhirResourceRetrieval(measure);
+		
+		Bundle bundle = getBundle(measure);
+		
+		String url = URLEncoder.encode( measure.getUrl(), StandardCharsets.UTF_8.toString() );
+		
+		mockFhirResourceRetrieval("/Measure?url=" + url, bundle );
+		mockFhirResourceRetrieval("/Measure?url=" + url + "&version=" + measure.getVersion(), bundle );
+		mockFhirResourceRetrieval("/Measure?name=" + measure.getName() + "&_sort=-date", bundle);
+		mockFhirResourceRetrieval("/Measure?name=" + measure.getName() + "&version=" + measure.getVersion() + "&_sort=-date", bundle);
+
+		return measure;
 	}
 
 	protected Bundle getBundle(Resource... resources) {
@@ -122,7 +137,7 @@ public class BaseMeasureTest extends BaseFhirTest {
 		return bundle;
 	}
 
-	public Measure getCohortMeasure(String measureName, Library library, String expression) {
+	public Measure getCohortMeasure(String measureName, Library library, String expression) throws Exception {
 		Measure measure = getTemplateMeasure(measureName, library, MeasureScoring.COHORT);
 
 		Measure.MeasureGroupComponent group = new Measure.MeasureGroupComponent();
@@ -133,7 +148,7 @@ public class BaseMeasureTest extends BaseFhirTest {
 	}
 
 	public Measure getProportionMeasure(String measureName, Library library,
-			Map<MeasurePopulationType, String> expressionsByPopType) {
+			Map<MeasurePopulationType, String> expressionsByPopType) throws Exception {
 		Measure measure = getTemplateMeasure(measureName, library, MeasureScoring.PROPORTION);
 
 		Measure.MeasureGroupComponent group = new Measure.MeasureGroupComponent();
@@ -144,7 +159,7 @@ public class BaseMeasureTest extends BaseFhirTest {
 	}
 
 	public Measure getCareGapMeasure(String measureName, Library library,
-			Map<MeasurePopulationType, String> expressionsByPopType, String... careGapExpressions) {
+			Map<MeasurePopulationType, String> expressionsByPopType, String... careGapExpressions) throws Exception {
 		Measure measure = getProportionMeasure(measureName, library, expressionsByPopType);
 
 		assertNotNull(careGapExpressions);
@@ -170,10 +185,12 @@ public class BaseMeasureTest extends BaseFhirTest {
 		}
 	}
 
-	public Measure getTemplateMeasure(String measureName, Library library, MeasureScoring scoring) {
+	public Measure getTemplateMeasure(String measureName, Library library, MeasureScoring scoring) throws Exception{
 		Measure measure = new Measure();
 		measure.setId(measureName);
 		measure.setName(measureName);
+		measure.setVersion("1.0.0");
+		measure.setUrl("http://ibm.com/health/Measure/" + URLEncoder.encode(measureName, "UTF-8"));
 		measure.setDate(new Date());
 		measure.setLibrary(Arrays.asList(asCanonical(library)));
 		measure.setScoring(new CodeableConcept().addCoding(new Coding().setCode(scoring.toCode())));
