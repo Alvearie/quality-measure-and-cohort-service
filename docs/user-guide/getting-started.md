@@ -539,10 +539,12 @@ $> java -jar fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar -m local-fhir-confi
 
 Requests are processed as FHIR bundles and the contents of the request and response bundles are written to an output path specified by the ``-o`` option. If no ``-o`` option is provided then the output is written to the current working directory. Users are responsible for creating the directory used in the -o option prior to executing the importer. The directory will not be created for you.
 
-### VSAC Spreadsheet
+### VSAC Spreadsheet 
 In order to use this tool, you will need to download spreadsheets from the VSAC website. Start at the VSAC authority website [here](https://vsac.nlm.nih.gov/). Navigate to the Search Value Sets tab to look for specific value sets, and select Export Value Set Results on relevent sets.
 <br>To load value set resources downloaded from the NIH website (spreadsheets, not zip files) into a target FHIR server, use the following invocation:
 
 ```
 $> java -cp fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar com.ibm.cohort.tooling.fhir.VSACValueSetImporter -m local-fhir-config.json <list_of_spreadsheet_valuesets>
 ```
+
+To see an existing template one can use to build one's own value sets from scratch, please check out our [template](https://github.com/Alvearie/quality-measure-and-cohort-service/tree/main/docs/user-guide/value_set_template.xlsx).
