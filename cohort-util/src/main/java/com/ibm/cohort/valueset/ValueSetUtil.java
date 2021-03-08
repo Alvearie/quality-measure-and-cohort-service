@@ -70,7 +70,7 @@ public class ValueSetUtil {
 			}
 			else if (inCodesSection) {
 				String display = currentRow.getCell(1).getStringCellValue();
-				String codeSystem = currentRow.getCell(2).getStringCellValue();
+				String codeSystem = CodeSystemLookup.getUrlFromName(currentRow.getCell(2).getStringCellValue());
 				ValueSet.ConceptReferenceComponent concept = new ValueSet.ConceptReferenceComponent();
 				concept.setCode(code);
 				concept.setDisplay(display);
