@@ -179,7 +179,7 @@ public class MeasureEvaluator {
 		IMeasureEvaluationSeed seed = seeder.create(measure, periodStart, periodEnd, "ProductLine");
 
 		measure.getExtension().stream()
-				.filter(this::isParameterExtension)
+				.filter(MeasureEvaluator::isParameterExtension)
 				.forEach(measureDefault ->
 						         seed.getContext().setParameter(
 								         null,
@@ -211,7 +211,7 @@ public class MeasureEvaluator {
 				.orElseThrow(() -> new UnsupportedFhirTypeException(type));
 	}
 
-    private boolean isParameterExtension(Extension extension) {
+    public static boolean isParameterExtension(Extension extension) {
         return PARAMETER_EXTENSION_URL.equals(extension.getUrl());
     }
 }

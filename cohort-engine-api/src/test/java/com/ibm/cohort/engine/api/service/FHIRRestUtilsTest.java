@@ -5,6 +5,8 @@
  */
 package com.ibm.cohort.engine.api.service;
 
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -73,6 +75,34 @@ public class FHIRRestUtilsTest {
 			+ "  \"description\": \"Over-the-Hill-Female\",\r\n" + "  \"library\": [\r\n"
 			+ "    \"http://ibm.com/fhir/wh-cohort/Library/wh-cohort-Over-the-Hill-Female-1.0.0\"\r\n" + "  ]\r\n"
 			+ "}";
+
+	String testMeasureWithDefaultDef = "{\n" +
+			"  \"resourceType\": \"Measure\",\n" +
+			"  \"id\": \"wh-cohort-Over-the-Hill-Female-1.0.0-identifier\",\n" +
+			"  \"identifier\": [\n" +
+			"    {\n" +
+			"      \"use\": \"official\",\n" +
+			"      \"system\": \"http://fakesystem.org\",\n" +
+			"      \"value\": \"999\"\n" +
+			"    }\n" +
+			"  ],\n" +
+			"  \"version\": \"1.0.0\",\n" +
+			"  \"name\": \"Over-the-Hill-Female\",\n" +
+			"  \"status\": \"active\",\n" +
+			"  \"experimental\": true,\n" +
+			"  \"publisher\": \"IBM WH Cohorting Test\",\n" +
+			"  \"description\": \"Over-the-Hill-Female\",\n" +
+			"  \"library\": [\n" +
+			"    \"http://ibm.com/fhir/wh-cohort/Library/wh-cohort-Over-the-Hill-Female-1.0.0\"\n" +
+			"  ],\n" +
+			"  \"extension\": [\n" +
+			"    {\n" +
+			"      \"id\": \"defaultExample\",\n" +
+			"      \"url\": \"http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-parameter\",\n" +
+			"      \"valueString\": \"42\"\n" +
+			"    }\n" +
+			"  ]\n" +
+			"}\n";
 
 	String testLibraryDef = "{\r\n" + "  \"resourceType\": \"Library\",\r\n"
 			+ "  \"id\": \"wh-cohort-Over-the-Hill-Female-1.0.0\",\r\n"
@@ -258,6 +288,42 @@ public class FHIRRestUtilsTest {
 		assertEquals("0", parmInfo.getMin().toString());
 		assertEquals("Period", parmInfo.getType());
 
+	}
+
+	@PrepareForTest({ FHIRRestUtils.class, RestFhirLibraryResolutionProvider.class,
+			RestFhirMeasureResolutionProvider.class })
+	@Test
+	public void testGetParametersWithDefaultsForMeasureId() throws Exception {
+		RestFhirLibraryResolutionProvider mockLibraryResolutionProvider = Mockito
+				.mock(RestFhirLibraryResolutionProvider.class);
+		PowerMockito.whenNew(RestFhirLibraryResolutionProvider.class).withAnyArguments()
+				.thenReturn(mockLibraryResolutionProvider);
+		RestFhirMeasureResolutionProvider mockMeasureResolutionProvider = Mockito
+				.mock(RestFhirMeasureResolutionProvider.class);
+		PowerMockito.whenNew(RestFhirMeasureResolutionProvider.class).withAnyArguments()
+				.thenReturn(mockMeasureResolutionProvider);
+		when(mockLibraryResolutionProvider.resolveLibraryByCanonicalUrl(ArgumentMatchers.any()))
+				.thenReturn(createLibrary(testLibraryDef));
+
+		when(mockMeasureResolutionProvider.resolveMeasureById(ArgumentMatchers.any()))
+				.thenReturn(createMeasure(testMeasureWithDefaultDef));
+
+		List<MeasureParameterInfo> parameterInfoList = FHIRRestUtils.getParametersForMeasureId(null, "measureId");
+
+		MeasureParameterInfo expectedParamInfo = new MeasureParameterInfo();
+		expectedParamInfo.setname("Measurement Period");
+		expectedParamInfo.setUse("In");
+		expectedParamInfo.setMax("1");
+		expectedParamInfo.setMin(0);
+		expectedParamInfo.setType("Period");
+		expectedParamInfo.setDocumentation(null);
+
+		MeasureParameterInfo otherExpectedParamInfo = new MeasureParameterInfo();
+		otherExpectedParamInfo.setname("defaultExample");
+		otherExpectedParamInfo.setType("string");
+		otherExpectedParamInfo.setDocumentation("Defaults to: 42");
+
+		assertThat(parameterInfoList, containsInAnyOrder(expectedParamInfo, otherExpectedParamInfo));
 	}
 
 	/**

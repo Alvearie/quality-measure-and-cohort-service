@@ -7,19 +7,25 @@ package com.ibm.cohort.engine.api.service;
 
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.ws.rs.core.HttpHeaders;
 
 import org.hl7.fhir.r4.model.CanonicalType;
+import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.ParameterDefinition;
 import org.hl7.fhir.r4.model.ParameterDefinition.ParameterUse;
+import org.hl7.fhir.r4.model.Type;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
+import com.ibm.cohort.engine.measure.MeasureEvaluator;
 import com.ibm.cohort.engine.measure.RestFhirLibraryResolutionProvider;
 import com.ibm.cohort.engine.measure.RestFhirMeasureResolutionProvider;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
@@ -168,7 +174,12 @@ public class FHIRRestUtils {
 		RestFhirMeasureResolutionProvider msp = new RestFhirMeasureResolutionProvider(measureClient);
 		Measure measure = msp.resolveMeasureById(measureId);
 
-		return FHIRRestUtils.getLibraryParmsForMeasure(measureClient, measure);
+		List<MeasureParameterInfo> libraryParameters = FHIRRestUtils.getLibraryParmsForMeasure(measureClient, measure);
+		List<MeasureParameterInfo> measureParameters = getMeasureParamsForMeasure(measure);
+
+		return Stream.of(libraryParameters, measureParameters)
+				.flatMap(Collection::stream)
+				.collect(Collectors.toList());
 	}
 	
 	/**
@@ -225,7 +236,24 @@ public class FHIRRestUtils {
 		}
 		return parameterInfoList;
 	}
-	
+
+	private static List<MeasureParameterInfo> getMeasureParamsForMeasure(Measure measure) {
+		return measure.getExtension().stream()
+				.filter(MeasureEvaluator::isParameterExtension)
+				.map(FHIRRestUtils::toMeasureParameterInfo)
+				.collect(Collectors.toList());
+	}
+
+	private static MeasureParameterInfo toMeasureParameterInfo(Extension extension) {
+		MeasureParameterInfo paramInfo = new MeasureParameterInfo();
+		Type paramValue = extension.getValue();
+		paramInfo.setname(extension.getId());
+		paramInfo.setType(paramValue.fhirType());
+		paramInfo.setDocumentation("Defaults to: " + paramValue);
+
+		return paramInfo;
+	}
+
 	/**
 	 * @param httpHeaders The HttpHeaders from the request we want to parse
 	 * @return String[] containing username as first element and password as second
