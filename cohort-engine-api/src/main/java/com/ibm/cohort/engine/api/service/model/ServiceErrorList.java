@@ -23,7 +23,6 @@ import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel(description = "Object representing an HTTP response with errors")
 
-@Generated
 public class ServiceErrorList   {
   
   private List<ServiceError> errors = new ArrayList<ServiceError>();

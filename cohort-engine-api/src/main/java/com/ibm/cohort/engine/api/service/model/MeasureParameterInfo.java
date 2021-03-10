@@ -11,7 +11,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.annotations.ApiModelProperty;
 
-@Generated
 public class MeasureParameterInfo {
 
 	private String name = null;

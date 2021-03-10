@@ -201,5 +201,26 @@
 			<artifactId>powermock-module-junit4-rule-agent</artifactId>
 			<scope>test</scope>
 		</dependency>
+		
+		<dependency>
+		    <groupId>com.ibm.websphere.appserver.api</groupId>
+		    <artifactId>com.ibm.websphere.appserver.api.jaxrs20</artifactId>
+		    <version>1.0.39</version>
+		    <scope>provided</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.github.tomakehurst</groupId>
+			<artifactId>wiremock-jre8</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-engine</artifactId>
+			<version>${project.version}</version>
+			<classifier>tests</classifier>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>

@@ -17,19 +17,25 @@ import static org.junit.Assert.fail;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Condition;
+import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.Period;
 import org.hl7.fhir.r4.model.Reference;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -521,4 +527,36 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		assertEquals(3, resultCount.get());
 	}
 	
+	@Test
+	public void testNumberOfFunctionCalls() throws Exception {
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1983-12-02");
+
+		List<Encounter> encounters = new ArrayList<>();
+		for( int i=0; i<4; i++ ) {
+			Calendar c = Calendar.getInstance();
+			c.set(1999, 12, 31, 0, 0, 0);
+			
+			c.add(Calendar.YEAR, i * -1);
+			Date start = c.getTime();
+			
+			c.add(Calendar.DAY_OF_MONTH, 1);
+			Date end = c.getTime();
+			
+			Encounter e = new Encounter();
+			e.setSubject(new Reference(patient.getId()));
+			e.setPeriod(new Period().setStart(start).setEnd(end));
+			encounters.add( e );
+		}
+		
+		Bundle b = makeBundle(encounters);
+		mockFhirResourceRetrieval(get(urlMatching("/Encounter.*")), b);
+
+		final AtomicInteger resultCount = new AtomicInteger(0);
+		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/function-evals/FunctionEval-1.0.0.cql", "cql/condition/FHIRHelpers.cql");
+		wrapper.evaluate("FunctionEval", "1.0.0", /* parameters= */null, new HashSet<>(Arrays.asList("AdultEncounters")),
+				Arrays.asList(patient.getId()), (p, e, r) -> {
+					resultCount.incrementAndGet();
+				});
+		assertEquals(1, resultCount.get());
+	}
 }

@@ -271,6 +271,10 @@ public class BaseFhirTest {
 		return getFhirServerConfig().getEndpoint() + localUrl + "/" + newId + "/_history/" + version;
 	}
 	
+	protected Bundle makeBundle(List<? extends Resource> resources) {
+		return makeBundle( resources.toArray(new Resource[resources.size()]));
+	}
+	
 	protected Bundle makeBundle(Resource... resources) {		
 		Bundle bundle = new Bundle();
 		bundle.setType(Bundle.BundleType.SEARCHSET);

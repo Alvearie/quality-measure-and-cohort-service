@@ -6,18 +6,33 @@
 package com.ibm.cohort.engine.api.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.activation.DataHandler;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
+import org.hl7.fhir.r4.model.Expression;
+import org.hl7.fhir.r4.model.Library;
+import org.hl7.fhir.r4.model.Measure;
+import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.codesystems.MeasureScoring;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -34,21 +49,28 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ibm.cohort.engine.api.service.model.EvaluateMeasuresStatus;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
-import com.ibm.cohort.engine.api.service.model.MeasuresEvaluation;
+import com.ibm.cohort.engine.helpers.CanonicalHelper;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
+import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import com.ibm.watson.common.service.base.ServiceBaseUtility;
 import com.ibm.watson.common.service.base.security.Tenant;
 import com.ibm.watson.common.service.base.security.TenantManager;
+import com.ibm.websphere.jaxrs20.multipart.IAttachment;
+import com.ibm.websphere.jaxrs20.multipart.IMultipartBody;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 /**
  * Junit class to test the CohortEngineRestHandler.
  */
 
-public class CohortEngineRestHandlerTest {
+public class CohortEngineRestHandlerTest extends BaseFhirTest {
 	// Need to add below to get jacoco to work with powermockito
 	@Rule
 	public PowerMockRule rule = new PowerMockRule();
@@ -57,7 +79,6 @@ public class CohortEngineRestHandlerTest {
 	}
 
 	private static final Logger logger = LoggerFactory.getLogger(CohortEngineRestHandlerTest.class.getName());
-	EvaluateMeasuresStatus evaluateMeasuresStatus;
 	String version;
 	String methodName;
 	HttpServletRequest requestContext;
@@ -78,8 +99,6 @@ public class CohortEngineRestHandlerTest {
 	private static Response mockResponse;
 	@Mock
 	private static ResponseBuilder mockResponseBuilder;
-	@Mock
-	private static EvaluateMeasuresStatus mockEvaluateMeasuresStatus;
 	@InjectMocks
 	private static CohortEngineRestHandler restHandler;
 
@@ -120,7 +139,7 @@ public class CohortEngineRestHandlerTest {
 	}
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
+	public static void setUpHandlerBeforeClass() throws Exception {
 		restHandler = new CohortEngineRestHandler();
 	}
 
@@ -130,77 +149,89 @@ public class CohortEngineRestHandlerTest {
 
 	@PrepareForTest({ Response.class, TenantManager.class, ServiceBaseUtility.class })
 	@Test
-	public void testEvaluateMeasuresStub() throws Exception {
+	public void testEvaluateMeasures() throws Exception {
 		prepMocks();
+		
+		Response myResponse = PowerMockito.mock(Response.class);
+		
 		PowerMockito.mockStatic(ServiceBaseUtility.class);
 		PowerMockito.mockStatic(Response.class);
 		PowerMockito.mockStatic(ResponseBuilder.class);
 		PowerMockito.when(ServiceBaseUtility.apiSetup(version, logger, methodName)).thenReturn(null);
-		PowerMockito.when(Response.status(Response.Status.ACCEPTED)).thenReturn(mockResponseBuilder);
-		PowerMockito.when(mockResponseBuilder.entity(Mockito.anyString())).thenReturn(mockResponseBuilder);
+		PowerMockito.when(Response.status(Response.Status.OK)).thenReturn(mockResponseBuilder);
+		PowerMockito.when(mockResponseBuilder.entity(Mockito.any(Object.class))).thenReturn(mockResponseBuilder);
 		PowerMockito.when(mockResponseBuilder.header(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(mockResponseBuilder);
+		PowerMockito.when(mockResponseBuilder.build())
+				.thenReturn(myResponse);
 		when(mockResponseBuilder.build()).thenReturn(mockResponse);
-		Response loadResponse = restHandler.evaluateMeasures(mockRequestContext, "version", new MeasuresEvaluation());
-		assertEquals(mockResponse, loadResponse);
-
+		
+		assertNotNull( mockResponseBuilder );
+		
+		Library library = new Library();
+		library.setId("libraryId");
+		library.setName("test_library");
+		library.setVersion("1.0.0");
+		library.setUrl("http://ibm.com/health/Library/test_library");
+		library.addContent().setContentType("text/cql").setData("library test_library version '1.0.0'\nparameter AgeOfMaturation default 18\nusing FHIR version '4.0.0'\ncontext Patient\ndefine Adult: AgeInYears() >= \"AgeOfMaturation\"".getBytes());
+		
+		Measure measure = new Measure();
+		measure.setId("measureId");
+		measure.setName("test_measure");
+		measure.setVersion("1.0.0");
+		measure.setUrl("http://ibm.com/health/Measure/test_measure");
+		measure.setScoring(new CodeableConcept().addCoding(new Coding().setCode(MeasureScoring.COHORT.toCode())));
+		measure.addLibrary(CanonicalHelper.toCanonicalUrl(library));
+		measure.addGroup().addPopulation().setCode(new CodeableConcept().addCoding(new Coding().setSystem("").setCode("cohort"))).setCriteria(new Expression().setExpression("Adult"));
+		
+		Patient patient = getPatient("patientId", AdministrativeGender.MALE, 40);
+		
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval(patient);
+		
+		FhirServerConfig clientConfig = getFhirServerConfig();
+		
+		MeasureEvaluation evaluationRequest = new MeasureEvaluation();
+		evaluationRequest.setDataServerConfig(clientConfig);
+		evaluationRequest.setPatientId(patient.getId());
+		evaluationRequest.setMeasureId(measure.getId());
+		//evaluationRequest.setEvidenceOptions(evidenceOptions);
+		
+		File tempFile = new File("target/test_measure_v1_0_0.zip");
+		try {
+			FhirContext fhirContext = FhirContext.forR4();
+			IParser parser = fhirContext.newJsonParser().setPrettyPrint(true);
+			
+			TestHelper.createMeasureArtifact(tempFile, parser, measure, library);
+			
+			// Create the metadata part of the request
+			ObjectMapper om = new ObjectMapper();
+			String json = om.writeValueAsString(evaluationRequest);
+			ByteArrayInputStream jsonIs = new ByteArrayInputStream(json.getBytes());
+			IAttachment rootPart = mock(IAttachment.class);
+			DataHandler jsonHandler = mock(DataHandler.class);
+			when( jsonHandler.getInputStream() ).thenReturn(jsonIs);
+			when( rootPart.getDataHandler() ).thenReturn(jsonHandler);
+			
+			// Create the ZIP part of the request
+			IAttachment measurePart = mock(IAttachment.class);
+			ByteArrayInputStream zipIs = new ByteArrayInputStream( Files.readAllBytes(Paths.get(tempFile.getAbsolutePath())) );
+			DataHandler zipHandler = mock(DataHandler.class);
+			when( zipHandler.getInputStream() ).thenReturn(zipIs);
+			when( measurePart.getDataHandler() ).thenReturn( zipHandler );
+			
+			// Assemble them together into a reasonable facsimile of the real request
+			IMultipartBody body = mock(IMultipartBody.class);
+			when( body.getAttachment(CohortEngineRestHandler.ROOT_PART) ).thenReturn(rootPart);
+			when( body.getAttachment(CohortEngineRestHandler.MEASURE_PART) ).thenReturn(measurePart);
+			
+			Response loadResponse = restHandler.evaluateMeasures(mockRequestContext, "version", body);
+			assertEquals(mockResponse, loadResponse);
+		} finally {
+			tempFile.delete();
+		}
 	}
 
-	/**
-	 * Test the successful building of a response.
-	 */
-
-	@PrepareForTest({ Response.class, TenantManager.class, ServiceBaseUtility.class, EvaluateMeasuresStatus.class })
-	@Test
-	public void testGetEvaluateMeasuresStatusStub() throws Exception {
-		prepMocks();
-		PowerMockito.mockStatic(ServiceBaseUtility.class);
-		PowerMockito.mockStatic(Response.class);
-		PowerMockito.mockStatic(ResponseBuilder.class);
-		PowerMockito.mockStatic(EvaluateMeasuresStatus.class);
-		PowerMockito.when(ServiceBaseUtility.apiSetup(version, logger, methodName)).thenReturn(null);
-		PowerMockito.when(Response.ok(ArgumentMatchers.any())).thenReturn(mockResponseBuilder);
-		when(mockResponseBuilder.build()).thenReturn(mockResponse);
-		Response loadResponse = restHandler.getEvaluateMeasuresStatus("version", "12345");
-		assertEquals(mockResponse, loadResponse);
-	}
-
-	/**
-	 * Test the successful building of a response.
-	 */
-
-	@PrepareForTest({ Response.class, TenantManager.class, ServiceBaseUtility.class, EvaluateMeasuresStatus.class })
-	@Test
-	public void testGetEvaluateMeasuresResultsStub() throws Exception {
-		prepMocks();
-		PowerMockito.mockStatic(ServiceBaseUtility.class);
-		PowerMockito.mockStatic(Response.class);
-		PowerMockito.mockStatic(ResponseBuilder.class);
-		PowerMockito.mockStatic(EvaluateMeasuresStatus.class);
-		PowerMockito.when(ServiceBaseUtility.apiSetup(version, logger, methodName)).thenReturn(null);
-		PowerMockito.when(Response.ok(ArgumentMatchers.any())).thenReturn(mockResponseBuilder);
-		when(mockResponseBuilder.build()).thenReturn(mockResponse);
-		Response loadResponse = restHandler.getEvaluateMeasuresResults("version", "12345");
-		assertEquals(mockResponse, loadResponse);
-	}
-
-	/**
-	 * Test the successful building of a response.
-	 */
-
-	@PrepareForTest({ Response.class, TenantManager.class, ServiceBaseUtility.class })
-	@Test
-	public void testDeleteEvaluationStub() throws Exception {
-		prepMocks();
-		PowerMockito.mockStatic(ServiceBaseUtility.class);
-		PowerMockito.mockStatic(Response.class);
-		PowerMockito.mockStatic(ResponseBuilder.class);
-		PowerMockito.when(ServiceBaseUtility.apiSetup(version, logger, methodName)).thenReturn(null);
-		PowerMockito.when(Response.ok(ArgumentMatchers.any())).thenReturn(mockResponseBuilder);
-		when(mockResponseBuilder.build()).thenReturn(mockResponse);
-		Response loadResponse = restHandler.deleteEvaluation("version", "12345");
-		assertEquals(mockResponse, loadResponse);
-	}
 
 	/**
 	 * Test the successful building of a response.
