@@ -339,8 +339,6 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 
 		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());
 		assertNotNull(report);
-
-		assertTrue(!report.getEvaluatedResource().isEmpty());
 	}
 
 	@Test(expected = InvalidOperatorArgument.class)
