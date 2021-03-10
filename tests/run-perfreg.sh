@@ -3,51 +3,52 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-set -x
+# Helper to run bzt on the pod specifying a test yaml file to be executed
+runTest() {
+  echo "Running test" ${1}
+  kubectl -n ${CLUSTER_NAMESPACE} exec ${POD_NAME} -- bash -c "export TRUSTSTORE_PASSWORD=${TRUSTSTORE_PASSWORD} && bzt ${1}"
+}
 
-passing=0
-failing=0
-output=""
+# Replace jar, server details, and filename in scenarios yaml files
+populateTaurusYaml() {
+  yamlfile=$1
+  
+  sed -i \
+  -e "/JAR/s|:.*$|: \"${SHADED_JAR}\"|" \
+  -e "/MEASURE_FHIR_SERVER_DETAILS/s|:.*$|: \"${DEFAULT_TENANT}\"|" \
+  -e "/DATA_FHIR_SERVER_DETAILS/s|:.*$|: \"${TESTFVT_TENANT}\"|" ${yamlfile}
+}
 
-#podname=$(kubectl get pods --namespace "${CLUSTER_NAMESPACE}" | grep -i "${APP_NAME}-${GIT_BRANCH}-${CHART_NAME}" | grep Running | cut -d " " -f 1 | head -n1)
-podname=$(kubectl get pods --namespace "${CLUSTER_NAMESPACE}" | grep -i "${APP_NAME}" | grep Running | cut -d " " -f 1 | head -n1)
+. tests/setupEnvironmentVariables.sh
 
-echo "### serviceState ###"
-test1=$(kubectl exec --namespace="${CLUSTER_NAMESPACE}" $podname -- curl http://localhost:9080/services/cohort/api/v1/status?liveness_check=false)
-if echo "$test1" | grep -q '"serviceState":"OK"';then
- echo "[PASS] serviceState"
-  passing=$((passing+1))
-  output="$output\n<testcase classname=\"bash\" name=\"serviceState\" time=\"0\"/>"
-else
-  failing=$((failing+1))
-  output="$output\n<testcase classname=\"bash\" name=\"serviceState\" time=\"0\"><failure>fail</failure><expected>OK</expected><actual>$test1</actual></testcase>"
+POD_NAME=engine-cohort-perfreg-test
+
+bash tests/create-taurus-pod.sh ${POD_NAME}
+
+populateTaurusYaml ${SCENARIOS_DIR}/performance/performanceRegression.yaml
+kubectl -n ${CLUSTER_NAMESPACE} cp ${SCENARIOS_DIR}/performance/performanceRegression.yaml ${POD_NAME}:/bzt-configs/tests/scenarios/performance/
+
+runTest "/bzt-configs/tests/scenarios/performance/performanceRegression.yaml"
+
+PERF_REG_RESULTS="${OUTPUT_DIR}/perf-reg-results"
+echo "Copying test results xml files to ${PERF_REG_RESULTS}"
+mkdir ${PERF_REG_RESULTS}
+kubectl -n ${CLUSTER_NAMESPACE} cp "${POD_NAME}:/bzt-configs/tests/results" "${PERF_REG_RESULTS}"
+
+# First Check to see if python3 is available for use with xmlCombiner.py script. If not first install python3.8 using yum. 
+pythonVersion=$(python3 --version 2>/dev/null)
+pythonBinary=python3
+if [ -z "${pythonVersion}" ]
+then
+  echo "Python check output: '${pythonVersion}'"
+  echo "Missing python3, installing..."
+  sudo yum -y install python38
+  which python3.8
+  python3.8 --version
+  pythonBinary=python3.8
+else 
+  echo "Found 'python3' binary"
 fi
 
-echo
-echo "----------------"
-echo "Final Results"
-echo "----------------"
-echo "PASSING: $passing"
-echo "FAILING: $failing"
-total=$(($passing + $failing))
-
-
-echo "----------------"
-echo "Writing to xunit output"
-echo "----------------"
-
-date=`date`
-header="<testsuite name=\"FVT tests\" tests=\"$total\" failures=\"$failing\" errors=\"$failing\" skipped=\"0\" timestamp=\"${date}\" time=\"0\">"
-footer="</testsuite>"
-
-filename="perfreg.xml"
-cat << EOF > $filename
-$header
-$output
-$footer
-EOF
-
-
-if [ $failing -gt 0 ]; then
-  exit 1
-fi
+$pythonBinary ${TEST_DIR}/scripts/xmlCombiner.py ${PERF_REG_RESULTS}/*.xml
+mv combinedResults.xml perfreg.xml
