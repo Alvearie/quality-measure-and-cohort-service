@@ -10,11 +10,11 @@ import javax.cache.Cache;
 
 public interface RetrieveCacheContext {
 
-	Cache<CacheKey, Iterable<Object>> newCache(String patientId);
+	Cache<CacheKey, Iterable<Object>> newCache(String contextId);
 
 	Cache<CacheKey, Iterable<Object>> getCurrentCache();
 
 	// TODO: Is this where the cache would be persisted to a datastore???
-	void cleanupCache();
+	void cleanupCache(String contextId);
 
 }

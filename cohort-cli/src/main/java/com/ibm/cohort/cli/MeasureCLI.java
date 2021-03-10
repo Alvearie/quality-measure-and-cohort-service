@@ -166,8 +166,9 @@ public class MeasureCLI extends BaseCLI {
 				measureContexts = MeasureContextProvider.getMeasureContexts(arguments.resourceId,  arguments.parameters);
 			}
 
-			// TODO: Actually configure the cache
 			CaffeineConfiguration<CacheKey, Iterable<Object>> cacheConfig = new CaffeineConfiguration<>();
+			// TODO: Make cache size configurable??
+			// What other options are there???
 			cacheConfig.setMaximumSize(OptionalLong.of(1_000L));
 
 			RetrieveCacheContext retrieveCacheContext = new TransientRetrieveCacheContext(cacheConfig);
@@ -182,7 +183,7 @@ public class MeasureCLI extends BaseCLI {
 				retrieveCacheContext.newCache(contextId);
 				// Reports only returned for measures where patient is in initial population
 				List<MeasureReport> reports = evaluator.evaluatePatientMeasures(contextId, measureContexts, new MeasureEvidenceOptions(arguments.includeEvaluatedResources, arguments.includeDefineResults));
-				retrieveCacheContext.cleanupCache();
+				retrieveCacheContext.cleanupCache(contextId);
 
 				for (MeasureReport report : reports) {
 					if (arguments.reportFormat == ReportFormat.TEXT) {
