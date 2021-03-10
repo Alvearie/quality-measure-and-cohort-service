@@ -6,7 +6,6 @@
 
 package com.ibm.cohort.engine.measure.cache;
 
-
 import javax.cache.Cache;
 import javax.cache.CacheManager;
 import javax.cache.Caching;
@@ -23,13 +22,8 @@ public class TransientRetrieveCacheContext implements RetrieveCacheContext {
 	}
 
 	@Override
-	public Cache<CacheKey, Iterable<Object>> newCache(String patientId) {
-		CachingProvider cachingProvider = Caching.getCachingProvider();
-		CacheManager cacheManager = cachingProvider.getCacheManager();
-
-		// TODO: Name cache after patient?  Cleanup would have to know about the patinet id as well (not a problem).
-		// TODO: Are the caches global?  Will different cache contexts attempt to alter the same cache if the same name is used?
-		currentCache = cacheManager.createCache("asdf", config);
+	public Cache<CacheKey, Iterable<Object>> newCache(String contextId) {
+		currentCache = getCacheManager().createCache(getCacheId(contextId), config);
 
 		// TODO: Only create a new cache if the passed in patientId doesn't match the last used patient id?
 		// This would allow for multiple one off evaluation calls using the same patient id.
@@ -50,9 +44,17 @@ public class TransientRetrieveCacheContext implements RetrieveCacheContext {
 	}
 
 	@Override
-	public void cleanupCache() {
-		// TODO: Implement the proper JCache cleanup procedures
-		this.currentCache = null;
+	public void cleanupCache(String contextId) {
+		this.currentCache.close();
+		getCacheManager().destroyCache(getCacheId(contextId));
 	}
 
+	private String getCacheId(String contextId) {
+		return "context-" + contextId;
+	}
+
+	private CacheManager getCacheManager() {
+		CachingProvider cachingProvider = Caching.getCachingProvider();
+		return cachingProvider.getCacheManager();
+	}
 }

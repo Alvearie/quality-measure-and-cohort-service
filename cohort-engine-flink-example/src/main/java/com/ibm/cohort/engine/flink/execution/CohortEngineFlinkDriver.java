@@ -7,11 +7,13 @@
 package com.ibm.cohort.engine.flink.execution;
 
 import java.io.Serializable;
+import java.util.OptionalLong;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
 import com.ibm.cohort.engine.flink.KafkaCommon;
 import com.ibm.cohort.engine.flink.KafkaInfo;
 import com.ibm.cohort.engine.flink.MeasureExecution;
@@ -19,6 +21,7 @@ import com.ibm.cohort.engine.measure.FHIRClientContext;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.MeasureEvaluator;
 import com.ibm.cohort.engine.measure.R4MeasureEvaluatorBuilder;
+import com.ibm.cohort.engine.measure.cache.CacheKey;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.TransientRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
@@ -175,8 +178,11 @@ public class CohortEngineFlinkDriver implements Serializable {
 		FhirClientBuilder builder = factory.newFhirClientBuilder(getFhirContext());
 		IGenericClient genericClient = builder.createFhirClient(fhirServerInfo.toIbmServerConfig());
 
-		// TODO: Actually configure the cache
-		RetrieveCacheContext retrieveCacheContext = new TransientRetrieveCacheContext(new MutableConfiguration<>());
+		CaffeineConfiguration<CacheKey, Iterable<Object>> cacheConfig = new CaffeineConfiguration<>();
+		// TODO: Make cache size configurable??
+		// What other options are there???
+		cacheConfig.setMaximumSize(OptionalLong.of(1_000L));
+		RetrieveCacheContext retrieveCacheContext = new TransientRetrieveCacheContext(cacheConfig);
 
 		FHIRClientContext clientContext = new FHIRClientContext.Builder()
 				.withDefaultClient(genericClient)
