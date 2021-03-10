@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 
 import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
@@ -166,8 +167,8 @@ public class BaseMeasureTest extends BaseFhirTest {
 		for (String expression : careGapExpressions) {
 			Measure.MeasureGroupPopulationComponent pop = new Measure.MeasureGroupPopulationComponent();
 			pop.setId(expression);
-			pop.setCode(new CodeableConcept(new Coding(CDMMeasureEvaluation.CDM_CODE_SYSTEM_MEASURE_POPULATION_TYPE,
-					CDMMeasureEvaluation.CARE_GAP, "Care Gap")));
+			pop.setCode(new CodeableConcept(new Coding(CDMConstants.CDM_CODE_SYSTEM_MEASURE_POPULATION_TYPE,
+					CDMConstants.CARE_GAP, "Care Gap")));
 			pop.setCriteria(new Expression().setLanguage("text/cql+identifier").setExpression(expression));
 			measure.getGroupFirstRep().addPopulation(pop);
 		}

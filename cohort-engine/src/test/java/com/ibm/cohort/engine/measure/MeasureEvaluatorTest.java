@@ -45,6 +45,7 @@ import org.opencds.cqf.cql.engine.exception.InvalidOperatorArgument;
 
 import com.google.common.collect.Lists;
 import com.ibm.cohort.engine.LibraryFormat;
+import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
 
@@ -431,9 +432,9 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 
 		assertEquals(2, careGapPopulations.size());
 		for (MeasureReport.MeasureReportGroupPopulationComponent pop : careGapPopulations) {
-			assertEquals(CDMMeasureEvaluation.CDM_CODE_SYSTEM_MEASURE_POPULATION_TYPE,
+			assertEquals(CDMConstants.CDM_CODE_SYSTEM_MEASURE_POPULATION_TYPE,
 					pop.getCode().getCodingFirstRep().getSystem());
-			assertEquals(CDMMeasureEvaluation.CARE_GAP, pop.getCode().getCodingFirstRep().getCode());
+			assertEquals(CDMConstants.CARE_GAP, pop.getCode().getCodingFirstRep().getCode());
 			assertTrue(pop.getId().startsWith("CareGap")); // this is part of the test fixture and may not match
 															// production behavior
 			assertEquals(pop.getId(), expectations.get(pop.getId()).intValue(), pop.getCount());
@@ -501,7 +502,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		
 		assertFalse(report.getEvaluatedResource().isEmpty());
 		
-		List<Extension> returnedExtensions = report.getExtensionsByUrl(CDMMeasureEvaluation.EVIDENCE_URL);
+		List<Extension> returnedExtensions = report.getExtensionsByUrl(CDMConstants.EVIDENCE_URL);
 		assertFalse(returnedExtensions.isEmpty());
 		assertEquals(30, returnedExtensions.size());
 	}
@@ -528,7 +529,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		assertNotNull(report);
 		
 		assertTrue(report.getEvaluatedResource().isEmpty());
-		assertFalse(report.getExtensionsByUrl(CDMMeasureEvaluation.EVIDENCE_URL).isEmpty());
+		assertFalse(report.getExtensionsByUrl(CDMConstants.EVIDENCE_URL).isEmpty());
 	}
 	
 	@Test
@@ -553,7 +554,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		assertNotNull(report);
 		
 		assertFalse(report.getEvaluatedResource().isEmpty());
-		assertEquals(null, report.getExtensionByUrl(CDMMeasureEvaluation.EVIDENCE_URL));
+		assertEquals(null, report.getExtensionByUrl(CDMConstants.EVIDENCE_URL));
 	}
 	
 	@Test
@@ -578,6 +579,6 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		assertNotNull(report);
 		
 		assertTrue(report.getEvaluatedResource().isEmpty());
-		assertEquals(null, report.getExtensionByUrl(CDMMeasureEvaluation.EVIDENCE_URL));
+		assertEquals(null, report.getExtensionByUrl(CDMConstants.EVIDENCE_URL));
 	}
 }

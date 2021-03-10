@@ -27,6 +27,7 @@ import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Type;
 import org.junit.Test;
 
+import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceHelper;
 
@@ -85,10 +86,10 @@ public class CDMMeasureEvaluationTest {
 			for(Entry<String, Object> defineResult : expectedLibraryResults.getValue().entrySet()) {
 				Extension extension = report.getExtension().get(index++);
 				
-				assertEquals(MeasureEvidenceHelper.createEvidenceKey(expectedLibraryResults.getKey(), defineResult.getKey()), extension.getExtensionByUrl(CDMMeasureEvaluation.EVIDENCE_TEXT_URL).getValue().primitiveValue());
+				assertEquals(MeasureEvidenceHelper.createEvidenceKey(expectedLibraryResults.getKey(), defineResult.getKey()), extension.getExtensionByUrl(CDMConstants.EVIDENCE_TEXT_URL).getValue().primitiveValue());
 				
 				//hack because Type does not return equals for 2 identical objects :(
-				Type returnType = extension.getExtensionByUrl(CDMMeasureEvaluation.EVIDENCE_VALUE_URL).getValue();
+				Type returnType = extension.getExtensionByUrl(CDMConstants.EVIDENCE_VALUE_URL).getValue();
 				
 				if(defineResult.getValue() instanceof Boolean) {
 					assertTrue(returnType.isBooleanPrimitive());

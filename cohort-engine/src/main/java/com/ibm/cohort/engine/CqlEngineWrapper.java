@@ -33,6 +33,7 @@ import org.opencds.cqf.cql.engine.model.ModelResolver;
 import org.opencds.cqf.cql.engine.retrieve.RetrieveProvider;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
+import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
@@ -49,7 +50,7 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 public class CqlEngineWrapper {
 
 	public static final List<String> SUPPORTED_MODELS = Arrays.asList("http://hl7.org/fhir",
-			"http://hl7.org/fhir/us/core", "http://hl7.org/fhir/us/qicore", "http://ibm.com/fhir/cdm");
+			"http://hl7.org/fhir/us/core", "http://hl7.org/fhir/us/qicore", CDMConstants.BASE_URL);
 
 	/*
 	 * Wrap the ModelResolver around a static ThreadLocal to prevent

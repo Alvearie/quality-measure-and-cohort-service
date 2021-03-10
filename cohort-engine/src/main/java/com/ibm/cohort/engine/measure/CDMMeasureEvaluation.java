@@ -24,6 +24,7 @@ import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 
+import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.cqfruler.MeasureEvaluation;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceHelper;
@@ -35,18 +36,6 @@ import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
  */
 public class CDMMeasureEvaluation {
 
-	public static final String CARE_GAP = "care-gap";
-	public static final String CDM_CODE_SYSTEM_MEASURE_POPULATION_TYPE = "http://ibm.com/fhir/cdm/CodeSystem/measure-population-type";
-	
-	public static final String EVIDENCE = "measure-report-evidence";
-	public static final String EVIDENCE_URL = "http://ibm.com/fhir/cdm/StructureDefinition/measure-report-evidence";
-	
-	public static final String EVIDENCE_TEXT = "measure-report-evidence-text";
-	public static final String EVIDENCE_TEXT_URL = "http://ibm.com/fhir/cdm/StructureDefinition/measure-report-evidence-text";
-	
-	public static final String EVIDENCE_VALUE = "measure-report-evidence-value";
-	public static final String EVIDENCE_VALUE_URL = "http://ibm.com/fhir/cdm/StructureDefinition/measure-report-evidence-value";
-	
 	/**
 	 * Helper for collecting and indexing the various standard population types from
 	 * base FHIR and their count values so that they can easily be referenced in the
@@ -135,7 +124,7 @@ public class CDMMeasureEvaluation {
 				boolean evaluateCareGaps = isEligibleForCareGapEvaluation(reportGroup);
 
 				for (Measure.MeasureGroupPopulationComponent pop : group.getPopulation()) {
-					if (pop.getCode().hasCoding(CDM_CODE_SYSTEM_MEASURE_POPULATION_TYPE, CARE_GAP)) {
+					if (pop.getCode().hasCoding(CDMConstants.CDM_CODE_SYSTEM_MEASURE_POPULATION_TYPE, CDMConstants.CARE_GAP)) {
 						Boolean result = Boolean.FALSE;
 						if (evaluateCareGaps) {
 							result = evaluateCriteria(context, pop.getCriteria().getExpression());
@@ -177,19 +166,19 @@ public class CDMMeasureEvaluation {
 				if (!values.isEmpty()) {
 					
 					Extension evidence = new Extension();
-					evidence.setUrl(EVIDENCE_URL);
+					evidence.setUrl(CDMConstants.EVIDENCE_URL);
 					
 					StringType key = new StringType(MeasureEvidenceHelper.createEvidenceKey(libraryCache.getKey(), defineResult.getKey()));
 					
 					Extension textExtension = new Extension();
-					textExtension.setUrl(EVIDENCE_TEXT_URL);
+					textExtension.setUrl(CDMConstants.EVIDENCE_TEXT_URL);
 					textExtension.setValue(key);
 					
 					evidence.addExtension(textExtension);
 					
 					for(Type value : values) {
 						Extension valueExtension = new Extension();
-						valueExtension.setUrl(EVIDENCE_VALUE_URL);
+						valueExtension.setUrl(CDMConstants.EVIDENCE_VALUE_URL);
 						valueExtension.setValue(value);
 						evidence.addExtension(valueExtension);
 					}
