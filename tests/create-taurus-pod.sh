@@ -6,7 +6,6 @@
 
 #!/bin/bash
 
-#set hard coded Pod name to make it simpler to find
 POD_NAME=$1
 echo "Creating test pod: ${POD_NAME}"
 
