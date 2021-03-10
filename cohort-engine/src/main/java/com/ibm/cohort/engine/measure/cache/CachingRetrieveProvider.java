@@ -41,7 +41,8 @@ public class CachingRetrieveProvider implements RetrieveProvider {
 			String dateHighPath,
 			Interval dateRange
 	) {
-		Iterable<Object> retVal = null;
+		Iterable<Object> retVal;
+
 		// TODO: Ignore all caching if date range logic is provided or if contextValue is not a String???
 		if (contextValue.getClass() != String.class || datePath != null || dateLowPath != null || dateHighPath != null || dateRange != null) {
 			// TODO: Make trace before PR
@@ -54,7 +55,18 @@ public class CachingRetrieveProvider implements RetrieveProvider {
 			LOG.info("Attempting cache");
 			CacheKey key = CacheKey.create(context, contextPath, (String)contextValue, dataType, templateId, codePath, codes, valueSet);
 			// TODO: Get working with JCache
-//			retVal = cache.get(key, x -> baseProvider.retrieve(context, contextPath, contextValue, dataType, templateId, codePath, codes, valueSet, datePath, dateLowPath, dateHighPath, dateRange));
+			if (cache.containsKey(key)) {
+				// TODO: Make trace before PR
+				LOG.info("Cache hit");
+				retVal = cache.get(key);
+			}
+			else {
+				// TODO: Make trace before PR
+				LOG.info("Cache miss");
+				retVal = baseProvider.retrieve(context, contextPath, contextValue, dataType, templateId, codePath, codes, valueSet, null, null, null, null);
+				cache.put(key, retVal);
+			}
+
 		}
 		return retVal;
 	}
