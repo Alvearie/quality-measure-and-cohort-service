@@ -156,10 +156,10 @@ public class DefaultVT extends ServiceVTBase {
 		TestHelper.createMeasureArtifact(baos, parser, measure, library);
 		
 		FhirServerConfig clientConfig = new FhirServerConfig();
-		clientConfig.setEndpoint("https://fhir-dev.wh-cohort.dev.watson-health.ibm.com/fhir-server/api/v4");
-		clientConfig.setUser("fhiruser");
-		clientConfig.setPassword("q6UEXjADvd!RKH6@KNL.");
-		clientConfig.setHeaders(Collections.singletonMap("X-FHIR-TENANT-ID", "test-fvt"));
+		clientConfig.setEndpoint("PUTURLHERE");
+		clientConfig.setUser("PUTUSERHERE");
+		clientConfig.setPassword("PUTPASSWORDHERE");
+		clientConfig.setHeaders(Collections.singletonMap("X-FHIR-TENANT-ID", "PUTTENANTHERE"));
 		clientConfig.setLogInfo(Arrays.asList(LogInfo.REQUEST_SUMMARY));
 		
 		MeasureEvaluation evaluationRequest = new MeasureEvaluation();
