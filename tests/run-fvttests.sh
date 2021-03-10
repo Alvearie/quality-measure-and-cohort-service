@@ -13,7 +13,7 @@ runTest() {
 }
 
 # Replace jar, server details, and filename in scenarios yaml files
-fixupTaurusYaml() {
+populateTaurusYaml() {
   yamlfile=$1
   xmlfile=$2
   
@@ -37,16 +37,16 @@ MEASURECLI_XMLFILE="/bzt-configs/tests/results/measureCLITests.xml"
 
 # Update yaml scenarios specific to FVT testing
 # breastCancerTestScenarios
-fixupTaurusYaml ${SCENARIOS_DIR}/breastCancerTestScenarios.yaml ${BREAST_XMLFILE}
+populateTaurusYaml ${SCENARIOS_DIR}/breastCancerTestScenarios.yaml ${BREAST_XMLFILE}
 
 # coloRectalCancerTestScenarios
-fixupTaurusYaml ${SCENARIOS_DIR}/coloRectalCancerTestScenarios.yaml ${COLORECTAL_XMLFILE}
+populateTaurusYaml ${SCENARIOS_DIR}/coloRectalCancerTestScenarios.yaml ${COLORECTAL_XMLFILE}
 
 # lungCancerTestScenarios
-fixupTaurusYaml ${SCENARIOS_DIR}/lungCancerTestScenarios.yaml ${LUNG_XMLFILE}
+populateTaurusYaml ${SCENARIOS_DIR}/lungCancerTestScenarios.yaml ${LUNG_XMLFILE}
 
 # measureCLIExample-separate-measure-server.yaml and accompanying json file
-fixupTaurusYaml ${SCENARIOS_DIR}/measureCLIExample-separate-measure-server.yaml ${MEASURECLI_XMLFILE}
+populateTaurusYaml ${SCENARIOS_DIR}/measureCLIExample-separate-measure-server.yaml ${MEASURECLI_XMLFILE}
 sed -i "s|\"cohort-cli/config/local-ibm-fhir.json\"|\"${DEFAULT_TENANT}\"|g" ${TEST_DIR}/src/main/resources/measureCLIExample-separate-measure-server.json
 
 # Copy scenarios into the pod
