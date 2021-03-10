@@ -7,8 +7,6 @@
 package com.ibm.cohort.engine.flink.execution;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
@@ -17,12 +15,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.flink.KafkaCommon;
 import com.ibm.cohort.engine.flink.KafkaInfo;
 import com.ibm.cohort.engine.flink.MeasureExecution;
+import com.ibm.cohort.engine.measure.FHIRClientContext;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.MeasureEvaluator;
-import com.ibm.cohort.engine.measure.MeasureResolutionProvider;
-import com.ibm.cohort.engine.measure.ProviderFactory;
-import com.ibm.cohort.engine.measure.RestFhirLibraryResolutionProvider;
-import com.ibm.cohort.engine.measure.RestFhirMeasureResolutionProvider;
+import com.ibm.cohort.engine.measure.R4MeasureEvaluatorBuilder;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.TransientRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
@@ -35,13 +31,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
-import org.hl7.fhir.r4.model.Library;
-import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
-import org.opencds.cqf.common.evaluation.EvaluationProviderFactory;
-import org.opencds.cqf.common.providers.LibraryResolutionProvider;
-import org.opencds.cqf.cql.engine.data.DataProvider;
-import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import javax.cache.configuration.MutableConfiguration;
 
@@ -188,15 +178,13 @@ public class CohortEngineFlinkDriver implements Serializable {
 		// TODO: Actually configure the cache
 		RetrieveCacheContext retrieveCacheContext = new TransientRetrieveCacheContext(new MutableConfiguration<>());
 
-		// TODO: Clean up with some helper something or another
-		EvaluationProviderFactory providerFactory = new ProviderFactory(genericClient, genericClient, retrieveCacheContext);
-		MeasureResolutionProvider<Measure> measureProvider = new RestFhirMeasureResolutionProvider(genericClient);
-		LibraryResolutionProvider<Library> libraryProvider = new RestFhirLibraryResolutionProvider(genericClient);
-		TerminologyProvider terminologyProvider = providerFactory.createTerminologyProvider(null,null,null,null,null);
-		Map<String, DataProvider> dataProviders = new HashMap<>();
-		dataProviders.put("http://hl7.org/fhir", providerFactory.createDataProvider(null, null));
-
-		return new MeasureEvaluator(measureProvider, libraryProvider, terminologyProvider, dataProviders);
+		FHIRClientContext clientContext = new FHIRClientContext.Builder()
+				.withDefaultClient(genericClient)
+				.build();
+		return new R4MeasureEvaluatorBuilder()
+				.withClientContext(clientContext)
+				.withRetrieveCacheContext(retrieveCacheContext)
+				.build();
 	}
 
 	private MeasureExecution deserializeMeasureExecution(String input) throws Exception {

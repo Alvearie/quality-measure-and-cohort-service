@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.zip.ZipFile;
 
 import com.ibm.cohort.engine.measure.ProviderFactory;
+import com.ibm.cohort.engine.measure.R4DataProviderFactory;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
@@ -42,6 +43,7 @@ import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import org.opencds.cqf.cql.engine.data.DataProvider;
+import org.opencds.cqf.cql.engine.fhir.terminology.R4FhirTerminologyProvider;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import javax.cache.configuration.MutableConfiguration;
@@ -162,12 +164,8 @@ public class MeasureCLI extends BaseCLI {
 
 			// TODO: Actually configure the cache
 			RetrieveCacheContext retrieveCacheContext = new TransientRetrieveCacheContext(new MutableConfiguration<>());
-			// TODO: Replace EvaluationProviderFactory with something more sane
-			// All the parameters are currently useless.
-			EvaluationProviderFactory factory = new ProviderFactory(dataServerClient, terminologyServerClient, retrieveCacheContext);
-			TerminologyProvider terminologyProvider = factory.createTerminologyProvider(null,null,null,null,null);
-			Map<String, DataProvider> dataProviders = new HashMap<>();
-			dataProviders.put("http://hl7.org/fhir", factory.createDataProvider(null, null));
+			TerminologyProvider terminologyProvider = new R4FhirTerminologyProvider(terminologyServerClient);
+			Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataServerClient, terminologyProvider, retrieveCacheContext);
 
 			evaluator = new MeasureEvaluator(measureProvider, libraryProvider, terminologyProvider, dataProviders);
 
