@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import ca.uhn.fhir.parser.IParser;
 
@@ -26,6 +27,16 @@ public class ZipResourceResolutionProvider extends ResourceResolutionProvider {
 			
 			if( isFileAllowed(entry.getName(), searchPaths) ) {
 				processResource(entry.getName(), zipFile.getInputStream(entry), parser);
+			}
+		}	
+	}
+	
+	public ZipResourceResolutionProvider(ZipInputStream zis, IParser parser, String... searchPaths) throws IOException {
+		
+		ZipEntry entry;
+		while( (entry = zis.getNextEntry()) != null ) {
+			if( isFileAllowed(entry.getName(), searchPaths) ) {
+				processResource(entry.getName(), zis, parser);
 			}
 		}	
 	}

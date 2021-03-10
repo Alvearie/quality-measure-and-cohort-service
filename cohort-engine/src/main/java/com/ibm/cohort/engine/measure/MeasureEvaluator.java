@@ -34,6 +34,7 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
  * Provide an interface for doing quality measure evaluation against a FHIR R4
  * server.
  */
+@SuppressWarnings("rawtypes")
 public class MeasureEvaluator {
 	protected static final String PARAMETER_EXTENSION_URL = "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-parameter";
 

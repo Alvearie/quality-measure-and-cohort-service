@@ -520,5 +520,4 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 				});
 		assertEquals(3, resultCount.get());
 	}
-	
 }

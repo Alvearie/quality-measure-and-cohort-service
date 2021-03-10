@@ -19,8 +19,24 @@ import static org.custommonkey.xmlunit.XMLAssert.assertXpathsEqual;
 import static org.custommonkey.xmlunit.XMLAssert.assertXpathsNotEqual;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.http.HttpStatus;
 import org.custommonkey.xmlunit.Diff;
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.Expression;
+import org.hl7.fhir.r4.model.Library;
+import org.hl7.fhir.r4.model.Measure;
+import org.hl7.fhir.r4.model.Period;
+import org.hl7.fhir.r4.model.codesystems.MeasureScoring;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -29,15 +45,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ibm.cohort.engine.api.service.ServiceBuildConstants;
+import com.ibm.cohort.engine.api.service.TestHelper;
+import com.ibm.cohort.engine.api.service.model.DateParameter;
+import com.ibm.cohort.engine.api.service.model.IntervalParameter;
+import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
+import com.ibm.cohort.engine.api.service.model.Parameter;
+import com.ibm.cohort.engine.helpers.CanonicalHelper;
+import com.ibm.cohort.fhir.client.config.FhirServerConfig;
+import com.ibm.cohort.fhir.client.config.FhirServerConfig.LogInfo;
 import com.ibm.watson.common.service.base.utilities.BVT;
 import com.ibm.watson.common.service.base.utilities.DVT;
 import com.ibm.watson.common.service.base.utilities.ServiceAPIGlobalSpec;
 import com.ibm.watson.common.service.base.utilities.UNDERCONSTRUCTION;
 import com.ibm.watson.common.service.base.vt.ServiceVTBase;
 import com.jayway.restassured.http.ContentType;
+import com.jayway.restassured.response.Headers;
 import com.jayway.restassured.response.ValidatableResponse;
 import com.jayway.restassured.specification.RequestSpecification;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.parser.IParser;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 
@@ -69,6 +96,18 @@ public class DefaultVT extends ServiceVTBase {
 	public static void setUp() throws Exception {
 		// Instantiate service location
 		instantiateServiceLocation();
+		
+		if( System.getProperty("test.host") == null ) {
+			System.setProperty("test.host", "localhost");
+		}
+		
+		if(  System.getProperty("test.httpPort") == null ) { 
+			System.setProperty("test.httpPort", "9080");
+		}
+		
+		if( System.getProperty("test.contextRoot") == null ) {
+			System.setProperty("test.contextRoot", "services/cohort");
+		}
 	}
 
 	@AfterClass
@@ -83,47 +122,69 @@ public class DefaultVT extends ServiceVTBase {
 	 * Test the create evaluation status stub
 	 *
 	 */
-	public void testCreateEvaluation() {
+	public void testCreateEvaluation() throws Exception {
 		final String RESOURCE = getUrlBase() + CohortServiceAPISpec.CREATE_DELETE_EVALUATION_PATH;
-		RequestSpecification request =
-			buildBaseRequest(HEADER_CONSUMES_JSON_STANDARD_JSON).
-			queryParam("version", ServiceBuildConstants.DATE).body(getJsonFromFile(ServiceAPIGlobalSpec.INP_FOLDER_TYPE,"create_evaluation_inp.json"));
-
-		ValidatableResponse vr = runSuccessValidation(request.post(RESOURCE,getServiceVersion()).then(), ContentType.JSON, HttpStatus.SC_ACCEPTED);
-		assertJsonEquals(getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"create_evaluation_exp.json"),vr.extract().asString());
-		assertJsonStructureEquals(getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"create_evaluation_exp.json"),vr.extract().asString());
-	}
-
-	@Category(DVT.class) // to tag a specific test to be part of DVT (deployment verification test)
-	@Test
-	/**
-	 * Test the get evaluation status stub
-	 *
-	 */
-	public void testGetEvaluationStatus() {
-		final String RESOURCE = getUrlBase() + CohortServiceAPISpec.GET_EVALUATION_STATUS_PATH+"/12345";
-		RequestSpecification request =
-			buildBaseRequest(HEADER_CONSUMES_JSON_STANDARD_JSON).
-			queryParam("version", ServiceBuildConstants.DATE);
-
-		ValidatableResponse vr = runSuccessValidation(request.get(RESOURCE,getServiceVersion()).then(), ContentType.JSON, HttpStatus.SC_OK);
-		assertJsonEquals(getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"get_evaluation_status_exp.json"),vr.extract().asString());
-		assertJsonStructureEquals(getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"get_evaluation_status_exp.json"),vr.extract().asString());
-	}
-
-	@Category(DVT.class) // to tag a specific test to be part of DVT (deployment verification test)
-	@Test
-	/**
-	 * Test the delete evaluation status stub
-	 *
-	 */
-	public void testDeleteEvaluation() {
-		final String RESOURCE = getUrlBase() + CohortServiceAPISpec.CREATE_DELETE_EVALUATION_PATH+"/12345";
-		RequestSpecification request =
-			buildBaseRequest(HEADER_CONSUMES_JSON_STANDARD_JSON).
-			queryParam("version", ServiceBuildConstants.DATE);
-
-		ValidatableResponse vr = runSuccessValidation(request.delete(RESOURCE,getServiceVersion()).then(), ContentType.JSON, HttpStatus.SC_OK);
+		
+		Calendar c = Calendar.getInstance();
+		c.set(2019, 07, 04, 0, 0, 0);
+		Date startDate = c.getTime();
+		
+		c.add( Calendar.YEAR, +1);
+		Date endDate = c.getTime();
+		
+		FhirContext fhirContext = FhirContext.forR4();
+		IParser parser = fhirContext.newJsonParser().setPrettyPrint(true);
+		
+		Library library = new Library();
+		library.setId("libraryId");
+		library.setName("test_library");
+		library.setVersion("1.0.0");
+		library.setUrl("http://ibm.com/health/Library/test_library");
+		library.addContent().setContentType("text/cql").setData("library test_library version '1.0.0'\nparameter AgeOfMaturation default 18\nusing FHIR version '4.0.0'\ncontext Patient\ndefine Adult: AgeInYears() >= \"AgeOfMaturation\"".getBytes());
+		
+		Measure measure = new Measure();
+		measure.setId("measureId");
+		measure.setName("test_measure");
+		measure.setVersion("1.0.0");
+		measure.setUrl("http://ibm.com/health/Measure/test_measure");
+		measure.setScoring(new CodeableConcept().addCoding(new Coding().setCode(MeasureScoring.COHORT.toCode())));
+		measure.setEffectivePeriod(new Period().setStart(startDate).setEnd(endDate));
+		measure.addLibrary(CanonicalHelper.toCanonicalUrl(library));
+		measure.addGroup().addPopulation().setCode(new CodeableConcept().addCoding(new Coding().setSystem("http://hl7.org/fhir/measure-population").setCode("initial-population"))).setCriteria(new Expression().setExpression("Adult"));
+		
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		TestHelper.createMeasureArtifact(baos, parser, measure, library);
+		
+		FhirServerConfig clientConfig = new FhirServerConfig();
+		clientConfig.setEndpoint("PUTURLHERE");
+		clientConfig.setUser("PUTUSERHERE");
+		clientConfig.setPassword("PUTPASSWORDHERE");
+		clientConfig.setHeaders(Collections.singletonMap("X-FHIR-TENANT-ID", "PUTTENANTHERE"));
+		clientConfig.setLogInfo(Arrays.asList(LogInfo.REQUEST_SUMMARY));
+		
+		MeasureEvaluation evaluationRequest = new MeasureEvaluation();
+		evaluationRequest.setDataServerConfig(clientConfig);
+		evaluationRequest.setPatientId("eb068c3f-3954-50c6-0c67-2b82d29865f0");
+		evaluationRequest.setMeasureId(measure.getId());
+		
+		Parameter measurementPeriod =  new IntervalParameter("Measurement Period"
+				, new DateParameter("start", "2019-07-04")
+				, true
+				, new DateParameter("end", "2020-07-04")
+				, false);
+		Map<String,Parameter> parameterOverrides = new HashMap<>();
+		parameterOverrides.put(measurementPeriod.getName(), measurementPeriod);
+		
+		RequestSpecification request = buildBaseRequest(new Headers())
+				.queryParam("version", ServiceBuildConstants.DATE)
+				.multiPart("rootPart", evaluationRequest, "application/json")
+				.multiPart("measure", "test_measure_v1_0_0.zip", new ByteArrayInputStream(baos.toByteArray()));
+		
+		ValidatableResponse response = request.post(RESOURCE,getServiceVersion()).then();
+		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
+		
+		
+		
 		assertJsonEquals(getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"create_evaluation_exp.json"),vr.extract().asString());
 		assertJsonStructureEquals(getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"create_evaluation_exp.json"),vr.extract().asString());
 	}
