@@ -7,14 +7,12 @@ package com.ibm.cohort.cli;
 
 import java.io.File;
 import java.io.PrintStream;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalLong;
 import java.util.zip.ZipFile;
 
 import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
-import com.ibm.cohort.engine.measure.ProviderFactory;
 import com.ibm.cohort.engine.measure.R4DataProviderFactory;
 import com.ibm.cohort.engine.measure.cache.CacheKey;
 import org.hl7.fhir.r4.model.Library;
@@ -22,7 +20,6 @@ import org.hl7.fhir.r4.model.Measure;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.TransientRetrieveCacheContext;
 import org.hl7.fhir.r4.model.MeasureReport;
-import org.opencds.cqf.common.evaluation.EvaluationProviderFactory;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 
 import com.beust.jcommander.JCommander;
@@ -48,9 +45,6 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.fhir.terminology.R4FhirTerminologyProvider;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
-
-import javax.cache.configuration.CompleteConfiguration;
-import javax.cache.configuration.MutableConfiguration;
 
 public class MeasureCLI extends BaseCLI {
 

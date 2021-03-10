@@ -54,7 +54,6 @@ public class CachingRetrieveProvider implements RetrieveProvider {
 			// TODO: Make trace before PR
 			LOG.info("Attempting cache");
 			CacheKey key = CacheKey.create(context, contextPath, (String)contextValue, dataType, templateId, codePath, codes, valueSet);
-			// TODO: Get working with JCache
 			if (cache.containsKey(key)) {
 				// TODO: Make trace before PR
 				LOG.info("Cache hit");
