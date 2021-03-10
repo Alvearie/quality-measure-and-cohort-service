@@ -28,6 +28,7 @@ public class TransientRetrieveCacheContext implements RetrieveCacheContext {
 		CacheManager cacheManager = cachingProvider.getCacheManager();
 
 		// TODO: Name cache after patient?  Cleanup would have to know about the patinet id as well (not a problem).
+		// TODO: Are the caches global?  Will different cache contexts attempt to alter the same cache if the same name is used?
 		currentCache = cacheManager.createCache("asdf", config);
 
 		// TODO: Only create a new cache if the passed in patientId doesn't match the last used patient id?

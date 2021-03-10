@@ -10,10 +10,13 @@ import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalLong;
 import java.util.zip.ZipFile;
 
+import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
 import com.ibm.cohort.engine.measure.ProviderFactory;
 import com.ibm.cohort.engine.measure.R4DataProviderFactory;
+import com.ibm.cohort.engine.measure.cache.CacheKey;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
@@ -46,6 +49,7 @@ import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.fhir.terminology.R4FhirTerminologyProvider;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
+import javax.cache.configuration.CompleteConfiguration;
 import javax.cache.configuration.MutableConfiguration;
 
 public class MeasureCLI extends BaseCLI {
@@ -163,7 +167,10 @@ public class MeasureCLI extends BaseCLI {
 			}
 
 			// TODO: Actually configure the cache
-			RetrieveCacheContext retrieveCacheContext = new TransientRetrieveCacheContext(new MutableConfiguration<>());
+			CaffeineConfiguration<CacheKey, Iterable<Object>> cacheConfig = new CaffeineConfiguration<>();
+			cacheConfig.setMaximumSize(OptionalLong.of(1_000L));
+
+			RetrieveCacheContext retrieveCacheContext = new TransientRetrieveCacheContext(cacheConfig);
 			TerminologyProvider terminologyProvider = new R4FhirTerminologyProvider(terminologyServerClient);
 			Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataServerClient, terminologyProvider, retrieveCacheContext);
 
