@@ -36,8 +36,6 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.hl7.fhir.r4.model.MeasureReport;
 
-import javax.cache.configuration.MutableConfiguration;
-
 public class CohortEngineFlinkDriver implements Serializable {
 
 	private static final long serialVersionUID = 1966474691011266880L;
