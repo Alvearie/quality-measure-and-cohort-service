@@ -60,4 +60,4 @@ echo "Making createTrustStore.sh script executable inside of the pod environment
 kubectl -n ${CLUSTER_NAMESPACE} exec ${POD_NAME} -- chmod +x /bzt-configs/tests/createTrustStore.sh
 
 echo "Generating trustStore.pkcs12 object"  
-kubectl -n ${CLUSTER_NAMESPACE} exec ${POD_NAME} -- bash -c "export TRUSTSTORE_PASSWORD=${TRUSTSTORE_PASSWORD} TRUSTSTORE=${TRUSTSTORE} CLUSTER_NAMESPACE=${CLUSTER_NAMESPACE} && /bzt-configs/tests/createTrustStore.sh"
+kubectl -n ${CLUSTER_NAMESPACE} exec ${POD_NAME} -- bash -c "export TRUSTSTORE_PASSWORD=${TRUSTSTORE_PASSWORD} TRUSTSTORE=${TRUSTSTORE} CLUSTER_NAMESPACE=${CLUSTER_NAMESPACE} FHIR_CLUSTER_NAMESPACE=${FHIR_CLUSTER_NAMESPACE} && /bzt-configs/tests/createTrustStore.sh"

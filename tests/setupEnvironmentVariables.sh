@@ -24,5 +24,15 @@ export OUTPUT_DIR=tests/output
 export DEFAULT_TENANT="tests/src/main/resources/config/fhirconfig-default-tenant.json"
 export TESTFVT_TENANT="tests/src/main/resources/config/fhirconfig-testfvt-tenant.json"
 
-export FHIR_ENDPOINT="https://fhir-internal.${CLUSTER_NAMESPACE}.svc:9443/fhir-server/api/v4"
+# check if FHIR_CLUSTER_NAMESPACE has been set in the toolchain
+# properties and use it if it is there, otherwise assume fhir will be
+# running in the same namespace
+if [ -z "$FHIR_CLUSTER_NAMESPACE ]
+then
+	FHIR_CLUSTER_NAMESPACE=${CLUSTER_NAMESPACE}
+else
+	FHIR_CLUSTER_NAMESPACE=${FHIR_CLUSTER_NAMESPACE}
+
+export FHIR_CLUSTER_NAMESPACE
+export FHIR_ENDPOINT="https://fhir-internal.${FHIR_CLUSTER_NAMESPACE}.svc:9443/fhir-server/api/v4"
 export SHADED_JAR="/bzt-configs/tests/src/main/resources/libraries/cohort-cli-shaded.jar"

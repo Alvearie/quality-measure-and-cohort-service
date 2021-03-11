@@ -13,31 +13,17 @@ FROM ibmjava:8-sdk AS builder
 
 WORKDIR /app
 ENV COHORT_DIST_SOLUTION=/app/cohortSolutionDistribution \
-    COHORT_TEST_SOLUTION=/app/cohortTestDistribution \
     ALVEARIE_HOME=/opt/alvearie
-ENV ANT_HOME=$ALVEARIE_HOME/ant
 
 # We assume that a maven build has been completed and the docker build
 # is happening from the base diretory of the maven project.
 COPY --chown=1001:0 cohort-engine-distribution/target/solution /app/cohort-engine-distribution/target/solution
-COPY --chown=1001:0 cohort-engine-distribution/target/test /app/cohort-engine-distribution/target/test
 
 # Using a builder image to avoid having to bundle the zip files into the
 # final docker image to reduce image size. Unzip in the builder image and
 # then later copy the unzipped artifacts to the final image.
 RUN mkdir -p $COHORT_DIST_SOLUTION && \
-    mkdir -p $COHORT_TEST_SOLUTION && \
-    tar -xzf /app/cohort-engine-distribution/target/solution/*.tar.gz -C $COHORT_DIST_SOLUTION && \
-    tar -xzf /app/cohort-engine-distribution/target/test/*.tar.gz -C $COHORT_TEST_SOLUTION
-
-# Install packages (including ant for toolchain testcases)
-RUN set -x && \
-    wget -nv -O /tmp/ant.tar.gz http://mirror.cc.columbia.edu/pub/software/apache//ant/binaries/apache-ant-1.9.15-bin.tar.gz && \
-    mkdir -p $ANT_HOME && \
-    tar -xzf /tmp/ant.tar.gz --strip-components=1 -C $ANT_HOME && \
-    # remove unnecessary stuff to make the image smaller \
-    rm -rf $ANT_HOME/manual && \
-    rm /tmp/ant.tar.gz
+    tar -xzf /app/cohort-engine-distribution/target/solution/*.tar.gz -C $COHORT_DIST_SOLUTION 
 
 ####################
 # Multi-stage build. New build stage that uses the Liberty UBI as the base image.
@@ -69,11 +55,8 @@ ENV WLP_HOME=/opt/ibm/wlp \
     SERVER_NAME=cohortServer \
     ALVEARIE_HOME=/opt/alvearie \
     COHORT_DIST_SOLUTION=/app/cohortSolutionDistribution \
-    COHORT_TEST_SOLUTION=/app/cohortTestDistribution \
     JAVA_HOME=/opt/ibm/java
-ENV ALVEARIE_TEST_HOME=$ALVEARIE_HOME/cohortTestResources \
-    COHORT_ENGINE_HOME=$ALVEARIE_HOME/cohortEngine \
-    ANT_HOME=$ALVEARIE_HOME/ant
+ENV COHORT_ENGINE_HOME=$ALVEARIE_HOME/cohortEngine 
 
 # create server instance
 RUN $WLP_HOME/bin/server create $SERVER_NAME && \
@@ -87,7 +70,6 @@ USER root
 RUN microdnf update -y && rm -rf /var/cache/yum && \
     microdnf install -y --nodocs vim openssl && \
     microdnf clean all && \
-    mkdir -p $ALVEARIE_TEST_HOME && \
     ln -sfn $WLP_HOME/usr/servers/$SERVER_NAME /config
 
 #Copy in war files, config files, etc. to final image
@@ -98,16 +80,9 @@ COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/server.xml /config/
 COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/jvm.options /config/
 # copy the cohort engine uber jar (aka shaded jar)
 COPY --from=builder $COHORT_DIST_SOLUTION/solution/jars/*.jar $COHORT_ENGINE_HOME/
-# copy the files needed to run the test suite
-COPY --from=builder $COHORT_TEST_SOLUTION/ $ALVEARIE_TEST_HOME/
-COPY --from=builder $COHORT_DIST_SOLUTION/solution/jars/*.jar $COHORT_ENGINE_HOME/
-# workaround for docker bug https://github.com/moby/moby/issues/37965
-RUN true
-COPY --from=builder $ANT_HOME $ANT_HOME
 
-# Add ant to the path so that our test executions
-# can find it
-ENV PATH="$JAVA_HOME/jre/bin:${PATH}:$ANT_HOME/bin"
+# Setup path
+ENV PATH="$JAVA_HOME/jre/bin:${PATH}"
 
 # Copy our startup script into the installed Liberty bin
 COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/*.sh $WLP_HOME/bin/
@@ -118,8 +93,6 @@ USER root
 # Grant write access to apps folder and startup script
 RUN chown -R --from=root whuser $WLP_HOME && \
 	chmod -R u+rwx $WLP_HOME && \
-	chown -R --from=root whuser $ALVEARIE_TEST_HOME && \
-    chmod -R u+rwx $ALVEARIE_TEST_HOME && \
     chown -R --from=root whuser $COHORT_ENGINE_HOME && \
     chmod -R u+rwx $COHORT_ENGINE_HOME
 
