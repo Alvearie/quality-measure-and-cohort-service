@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
+import org.opencds.cqf.cql.engine.runtime.Interval;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,7 +21,7 @@ public class ParameterTest {
 		Parameter bool = new BooleanParameter("MyDecimal", true);
 		Parameter str = new StringParameter("MyDecimal", "StringValueHere");
 		Parameter date = new DateParameter("MyDate", "2020-07-04");
-		Parameter datetime = new DatetimeParameter("MyDatetime", "2020-07-04T23:00:00");
+		Parameter datetime = new DatetimeParameter("MyDatetime", "2020-07-04T23:00:00-05:00");
 		Parameter time = new TimeParameter("MyTime", "@T23:00:00");
 
 		QuantityParameter quantity = new QuantityParameter("MyQuantity", "10", "mg/mL");
@@ -35,6 +36,7 @@ public class ParameterTest {
 		
 		ObjectMapper mapper = new ObjectMapper();
 		String serialized = mapper.writeValueAsString(parameters);
+		System.out.println(serialized);
 		assertFalse( serialized.contains("com.ibm") );
 		
 		List<Parameter> deserialized = mapper.readValue(serialized, new TypeReference<List<Parameter>>(){});
@@ -50,5 +52,19 @@ public class ParameterTest {
 		for( Parameter param : deserialized ) {
 			assertNotNull( param.toCqlType() );
 		}
+	}
+	
+	@Test
+	public void datetime_interval_with_non_inclusive_end___ends_just_before_value() {
+		IntervalParameter parameter = new IntervalParameter(
+				"Interval",
+				new DatetimeParameter("Start", "2020-03-14T00:00:00-05:00"),
+				true,
+				new DatetimeParameter("End", "2021-03-14T00:00:00-05:00"),
+				false
+				);
+		
+		Interval interval = (Interval) parameter.toCqlType();
+		assertEquals("2021-03-13T23:59:59.999", interval.getEnd().toString());
 	}
 }

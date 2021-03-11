@@ -5,6 +5,8 @@ import java.time.OffsetDateTime;
 import org.opencds.cqf.cql.engine.runtime.DateTime;
 
 public class DatetimeParameter extends SimpleParameter {
+	public static final String DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZZZ";
+	
 	public DatetimeParameter() {
 		setType(ParameterType.DATETIME);
 	}
@@ -16,6 +18,6 @@ public class DatetimeParameter extends SimpleParameter {
 	
 	@Override
 	public Object toCqlType() {
-		return new DateTime(getValue().replace("@", ""), OffsetDateTime.now().getOffset());
+		return new DateTime( OffsetDateTime.parse(getValue().replace("@","")) );
 	}
 }

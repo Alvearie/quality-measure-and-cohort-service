@@ -5,7 +5,10 @@
  */
 package com.ibm.cohort.engine.measure;
 
+import java.util.Map;
+
 import org.apache.commons.lang3.tuple.Pair;
+import org.hl7.fhir.r4.model.Measure;
 
 /**
  * Provide the ability for user's to customize the logic used
@@ -20,5 +23,5 @@ public interface MeasurementPeriodStrategy {
 	 * the pair is the end.
 	 * @return measurement period as strings
 	 */
-	public Pair<String,String> getMeasurementPeriod();
+	public Pair<String,String> getMeasurementPeriod(Measure measure, Map<String,Object> parameterOverrides);
 }

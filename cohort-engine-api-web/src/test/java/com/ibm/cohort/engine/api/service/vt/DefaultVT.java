@@ -17,13 +17,16 @@ import static org.custommonkey.xmlunit.XMLAssert.assertXpathValuesEqual;
 import static org.custommonkey.xmlunit.XMLAssert.assertXpathValuesNotEqual;
 import static org.custommonkey.xmlunit.XMLAssert.assertXpathsEqual;
 import static org.custommonkey.xmlunit.XMLAssert.assertXpathsNotEqual;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +38,7 @@ import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Expression;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
+import org.hl7.fhir.r4.model.MeasureReport;
 import org.hl7.fhir.r4.model.Period;
 import org.hl7.fhir.r4.model.codesystems.MeasureScoring;
 import org.junit.AfterClass;
@@ -45,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.io.Files;
 import com.ibm.cohort.engine.api.service.CohortEngineRestHandler;
 import com.ibm.cohort.engine.api.service.ServiceBuildConstants;
 import com.ibm.cohort.engine.api.service.TestHelper;
@@ -53,6 +58,7 @@ import com.ibm.cohort.engine.api.service.model.IntervalParameter;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.Parameter;
 import com.ibm.cohort.engine.helpers.CanonicalHelper;
+import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import com.ibm.watson.common.service.base.utilities.BVT;
 import com.ibm.watson.common.service.base.utilities.DVT;
@@ -145,7 +151,7 @@ public class DefaultVT extends ServiceVTBase {
 	 * Test the create evaluation status stub
 	 *
 	 */
-	public void testCreateEvaluation() throws Exception {
+	public void testMeasureEvaluation() throws Exception {
 		final String RESOURCE = getUrlBase() + CohortServiceAPISpec.CREATE_DELETE_EVALUATION_PATH;
 		
 		Calendar c = Calendar.getInstance();
@@ -178,17 +184,20 @@ public class DefaultVT extends ServiceVTBase {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		TestHelper.createMeasureArtifact(baos, parser, measure, library);
 		
+		Files.write( baos.toByteArray(), new File("c:/Dev/cdt-config/test_measure_v1_0_0.zip"));
+		
 		MeasureEvaluation requestData = new MeasureEvaluation();
 		requestData.setDataServerConfig(dataServerConfig);
 		requestData.setTerminologyServerConfig(termServerConfig);
 		requestData.setPatientId("eb068c3f-3954-50c6-0c67-2b82d29865f0");
 		requestData.setMeasureId(measure.getId());
+		requestData.setEvidenceOptions(new MeasureEvidenceOptions(false,false));
 		
 		Parameter measurementPeriod =  new IntervalParameter("Measurement Period"
 				, new DateParameter("start", "2019-07-04")
 				, true
 				, new DateParameter("end", "2020-07-04")
-				, false);
+				, true);
 		Map<String,Parameter> parameterOverrides = new HashMap<>();
 		parameterOverrides.put(measurementPeriod.getName(), measurementPeriod);
 		requestData.setParameterOverrides(parameterOverrides);
@@ -203,9 +212,29 @@ public class DefaultVT extends ServiceVTBase {
 		
 		ValidatableResponse response = request.post(RESOURCE,getServiceVersion()).then();
 		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
-
-		assertJsonEquals(getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"create_evaluation_exp.json"),vr.extract().asString());
-		assertJsonStructureEquals(getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"create_evaluation_exp.json"),vr.extract().asString());
+		
+		String expected = getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"measure_evaluation_exp.json");
+		String actual = vr.extract().asString();
+		
+		MeasureReport expectedReport = parser.parseResource(MeasureReport.class, expected);
+		MeasureReport actualReport = parser.parseResource(MeasureReport.class, actual);
+		
+		// The order is not guaranteed and the Measure ID changes between runs
+		assertEquals( expectedReport.getEvaluatedResource().size(), actualReport.getEvaluatedResource().size() );
+		expectedReport.setEvaluatedResource(Collections.emptyList());
+		actualReport.setEvaluatedResource(Collections.emptyList());
+		
+		// The period has the timezone encoded, so we can't use a point-in-time
+		// snapshot to evaluate equality. The point-in-time might have a different
+		// timezone offset than the actual value. This will ignore timezone.
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		assertEquals( sdf.format(expectedReport.getPeriod().getStart()), sdf.format(actualReport.getPeriod().getStart()));
+		assertEquals( sdf.format(expectedReport.getPeriod().getEnd()), sdf.format(actualReport.getPeriod().getEnd()));
+		expectedReport.setPeriod(null);
+		actualReport.setPeriod(null);
+		
+		// The remainder should match naturally
+		assertJsonEquals(parser.encodeResourceToString(expectedReport),parser.encodeResourceToString(actualReport));
 	}
 
 	@Test

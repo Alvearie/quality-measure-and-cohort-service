@@ -7,11 +7,16 @@ package com.ibm.cohort.engine.measure;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Map;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hl7.fhir.r4.model.Measure;
+import org.opencds.cqf.cql.engine.runtime.DateTime;
+import org.opencds.cqf.cql.engine.runtime.Interval;
 
 /**
  * Provide a very basic implementation of a measurement period determination
@@ -30,11 +35,13 @@ import org.apache.commons.lang3.tuple.Pair;
  */
 public class DefaultMeasurementPeriodStrategy implements MeasurementPeriodStrategy {
 
+	public static final String DEFAULT_MEASUREMENT_PERIOD_PARAMETER = "Measurement Period";
 	public static final String TARGET_DATE_FORMAT = "yyyy-MM-dd";
 
 	private static final int DEFAULT_AMOUNT = -1;
 	private static final int DEFAULT_UNIT = Calendar.YEAR;
 
+	private String measurementPeriodParameter = DEFAULT_MEASUREMENT_PERIOD_PARAMETER;
 	private int unit;
 	private int amount;
 
@@ -59,14 +66,35 @@ public class DefaultMeasurementPeriodStrategy implements MeasurementPeriodStrate
 		this.unit = unit;
 		this.amount = amount;
 	}
+	
+	/**
+	 * Set the parameter name of the measurement period parameter. This is
+	 * optional and will default to <code>DEFAULT_MEASUREMENT_PERIOD_PARAMETER</code>
+	 * if not provided;
+	 * 
+	 * @param name parameter name
+	 */
+	public DefaultMeasurementPeriodStrategy setMeasurementPeriodParameter(String name) {
+		this.measurementPeriodParameter = name;
+		return this;
+	}
+	
+	/**
+	 * Get the parameter name of the measurement period parameter.
+	 * @return parameter name
+	 */
+	public String getMeasurementPeriodParameter() {
+		return this.measurementPeriodParameter;
+	}
 
 	/**
 	 * Allow the user to provide the "now" date as needed.
 	 * 
 	 * @param date the "now" date for the system timezone.
 	 */
-	public void setNow(Date date) {
+	public DefaultMeasurementPeriodStrategy setNow(Date date) {
 		this.now = date;
+		return this;
 	}
 
 	/**
@@ -85,7 +113,51 @@ public class DefaultMeasurementPeriodStrategy implements MeasurementPeriodStrate
 	}
 
 	@Override
-	public Pair<String, String> getMeasurementPeriod() {
+	public Pair<String, String> getMeasurementPeriod(Measure measure, Map<String,Object> parameterOverrides) {
+		Pair<String,String> result = null;
+		
+		if( parameterOverrides != null ) { 
+			Object measurementPeriod = parameterOverrides.get(measurementPeriodParameter);
+			if( measurementPeriod != null ) {
+				result = intervalToPair((Interval)measurementPeriod);
+			}
+		}
+		
+		if( result == null ) {
+			result = calculateMeasurementPeriod();
+		}
+		return result;
+	}
+
+	protected Pair<String, String> intervalToPair(Interval interval) {
+		String start = null;
+		String end = null; 
+		
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern(TARGET_DATE_FORMAT);
+		if( interval.getStart() instanceof DateTime ) {
+			DateTime dtStart = (DateTime) interval.getStart();
+			start = dtStart.getDateTime().format(dtf);
+			
+			DateTime dtEnd = (DateTime) interval.getEnd();
+			end = dtEnd.getDateTime().format(dtf);
+		} else if( interval.getStart() instanceof org.opencds.cqf.cql.engine.runtime.Date ) {
+			org.opencds.cqf.cql.engine.runtime.Date dStart = (org.opencds.cqf.cql.engine.runtime.Date) interval.getStart();
+			start = dStart.getDate().format(dtf);
+			
+			org.opencds.cqf.cql.engine.runtime.Date dEnd = (org.opencds.cqf.cql.engine.runtime.Date) interval.getEnd();
+			end = dEnd.getDate().format(dtf);
+		} else if( interval.getStart() instanceof java.util.Date ) {
+			DateFormat df = new SimpleDateFormat(TARGET_DATE_FORMAT);
+			start = df.format((java.util.Date) interval.getStart());
+			end = df.format((java.util.Date) interval.getEnd());
+		} else {
+			throw new IllegalArgumentException(String.format("Unexpected interval data type '%s'", interval.getStart().getClass()));
+		}
+		
+		return new ImmutablePair<String,String>( start, end );
+	}
+
+	protected Pair<String, String> calculateMeasurementPeriod() {
 		Calendar end = Calendar.getInstance();
 		end.setTime(getNow());
 
