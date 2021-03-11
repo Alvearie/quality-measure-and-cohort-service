@@ -59,7 +59,6 @@ public class MeasureEvaluator {
 		return this.measurementPeriodStrategy;
 	}
 
-	
 	/**
 	 * Evaluates measures for a given patient
 	 * 
