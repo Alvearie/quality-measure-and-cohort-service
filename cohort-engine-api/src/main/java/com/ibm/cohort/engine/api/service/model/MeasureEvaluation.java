@@ -5,7 +5,6 @@
  */
 package com.ibm.cohort.engine.api.service.model;
 
-import java.io.File;
 import java.util.Map;
 
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
@@ -15,7 +14,6 @@ import io.swagger.annotations.ApiModelProperty;
 
 public class MeasureEvaluation {
 
-	private File measureBundle;	
 	private FhirServerConfig dataServerConfig;
 	private FhirServerConfig terminologyServerConfig;
 	private String patientId;
@@ -23,15 +21,6 @@ public class MeasureEvaluation {
 
 	private Map<String,Parameter> parameterOverrides;
 	private MeasureEvidenceOptions evidenceOptions;
-
-	@ApiModelProperty(required = true)
-	public File getMeasureBundle() {
-		return measureBundle;
-	}
-
-	public void setMeasureBundle(File measureBundle) {
-		this.measureBundle = measureBundle;
-	}
 
 	@ApiModelProperty(required = true)
 	public FhirServerConfig getDataServerConfig() {

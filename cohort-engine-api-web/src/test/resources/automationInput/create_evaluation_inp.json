@@ -1,33 +1,34 @@
 {
-  "patientsTenantId": "string",
-  "patientsServerUrl": "string",
-  "patientServerConnectionProperties": [
-    "string"
-  ],
-  "measureTenantId": "string",
-  "measureServerUrl": "string",
-  "measureServerConnectionProperties": [
-    "string"
-  ],
-  "resultsValidTil": 0,
-  "MeasureEvaluations": [
-    {
-      "patientIds": [
-        "string"
-      ],
-      "versionedMeasures": [
-        {
-          "measureId": "string",
-          "measureVersion": "string",
-          "measureParameters": [
-            "string"
-          ],
-          "measureProperties": [
-            "string"
-          ],
-          "persistResults": true
-        }
-      ]
-    }
-  ]
+	"dataServerConfig": {
+		"@class": "com.ibm.cohort.fhir.client.config.FhirServerConfig",
+		"endpoint": "PUTURLHERE",
+		"user": "PUTUSERHERE",
+		"password": "PUTPASSWORDHERE",
+		"headers": {
+			"X-FHIR-TENANT-ID": "PUTTENANTHERE"
+		},
+		"logInfo": ["REQUEST_SUMMARY"]
+	},
+	"terminologyServerConfig": null,
+	"patientId": "eb068c3f-3954-50c6-0c67-2b82d29865f0",
+	"measureId": "measureId",
+	"parameterOverrides": {
+		"Measurement Period": {
+			"name": "Measurement Period",
+			"type": "interval",
+			"start": {
+				"name": "start",
+				"type": "date",
+				"value": "2019-07-04"
+			},
+			"startInclusive": true,
+			"end": {
+				"name": "end",
+				"type": "date",
+				"value": "2020-07-04"
+			},
+			"endInclusive": false
+		}
+	},
+	"evidenceOptions": null
 }
