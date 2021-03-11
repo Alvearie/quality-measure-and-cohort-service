@@ -1,0 +1,125 @@
+{
+  "title": "Yearly Colonoscopy",
+  "subtitle": "Over age 65",
+  "status": "active",
+  "scoring": {
+    "coding": [
+      {
+        "code": "proportion"
+      }
+    ]
+  },
+  "improvementNotation": {
+    "coding": [
+      {
+        "code": "increase",
+        "system": "http://terminology.hl7.org/CodeSystem/measure-improvement-notation"
+      }
+    ]
+  },
+  "description": "This measure captures statistics for yearly colonoscopy for those over 65",
+  "purpose": "Quality of care evaluation and to drive notices to patients that are due for the test",
+  "group": [
+    {
+      "population": [
+        {
+          "criteria": {
+            "language": "text/cql",
+            "expression": "initpop_define"
+          },
+          "description": "jdjdjd",
+          "code": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/measure-population",
+                "code": "initial-population"
+              }
+            ]
+          },
+          "id": "initpop"
+        },
+        {
+          "criteria": {
+            "language": "text/cql",
+            "expression": "denom_define"
+          },
+          "code": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/measure-population",
+                "code": "denominator"
+              }
+            ]
+          },
+          "id": "denom"
+        },
+        {
+          "criteria": {
+            "language": "text/cql",
+            "expression": "hadthetest_define"
+          },
+          "code": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/measure-population",
+                "code": "numerator"
+              }
+            ]
+          },
+          "id": "hadthetest"
+        },
+        {
+          "criteria": {
+            "language": "text/cql",
+            "expression": "ContactThisGroup_define"
+          },
+          "code": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/measure-population",
+                "code": "care-gap"
+              }
+            ]
+          },
+          "id": "ContactThisGroup"
+        }
+      ]
+    }
+  ],
+  "type": [
+    {
+      "coding": [
+        {
+          "code": "process",
+          "system": "http://terminology.hl7.org/CodeSystem/measure-type"
+        }
+      ]
+    }
+  ],
+  "library": [
+    "http://ibm.com/health/Library/MeasureYearlyColonoscopyOver65_PrimaryGenerated|1.1.1"
+  ],
+  "author": [
+    {
+      "telecom": [
+        {
+          "period": {}
+        }
+      ]
+    }
+  ],
+  "topic": [
+    {
+      "coding": [
+        {
+          "code": "treatment",
+          "system": "http://terminology.hl7.org/CodeSystem/definition-topic"
+        }
+      ]
+    }
+  ],
+  "name": "MeasureYearlyColonoscopyOver65",
+  "version": "1.1.1",
+  "resourceType": "Measure",
+  "url": "http://ibm.com/health/Measure/MeasureYearlyColonoscopyOver65"
+}
