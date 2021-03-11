@@ -8,28 +8,20 @@ package com.ibm.cohort.engine.measure;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
-import org.hl7.fhir.r4.model.Type;
-import org.opencds.cqf.common.evaluation.EvaluationProviderFactory;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
-import org.opencds.cqf.cql.engine.fhir.model.FhirModelResolver;
-import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
 
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
-import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
 import com.ibm.cohort.engine.measure.seed.IMeasureEvaluationSeed;
 import com.ibm.cohort.engine.measure.seed.MeasureEvaluationSeeder;
 
-import ca.uhn.fhir.rest.client.api.IGenericClient;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 /**
@@ -37,27 +29,23 @@ import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
  * server.
  */
 public class MeasureEvaluator {
-	protected static final String PARAMETER_EXTENSION_URL = "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-parameter";
 
 	private final MeasureResolutionProvider<Measure> measureProvider;
 	private final LibraryResolutionProvider<Library> libraryProvider;
 	private final TerminologyProvider terminologyProvider;
 	private final Map<String, DataProvider> dataProviders;
-	private FhirModelResolver fhirModelResolver;
 	private MeasurementPeriodStrategy measurementPeriodStrategy;
 
 	public MeasureEvaluator(
 			MeasureResolutionProvider<Measure> measureProvider,
 			LibraryResolutionProvider<Library> libraryProvider,
 			TerminologyProvider terminologyProvider,
-			Map<String, DataProvider> dataProviders,
-			FhirModelResolver fhirModelResolver
+			Map<String, DataProvider> dataProviders
 	) {
 		this.measureProvider = measureProvider;
 		this.libraryProvider = libraryProvider;
 		this.terminologyProvider = terminologyProvider;
 		this.dataProviders = dataProviders;
-		this.fhirModelResolver = fhirModelResolver;
 	}
 
 	public void setMeasurementPeriodStrategy(MeasurementPeriodStrategy strategy) {
@@ -155,14 +143,6 @@ public class MeasureEvaluator {
 		// configuration of our FHIR server.
 		IMeasureEvaluationSeed seed = seeder.create(measure, periodStart, periodEnd, "ProductLine");
 
-		measure.getExtension().stream()
-				.filter(this::isParameterExtension)
-				.forEach(measureDefault ->
-						         seed.getContext().setParameter(
-								         null,
-								         measureDefault.getId(),
-								         toCqlObject(measureDefault.getValue())));
-
 		// TODO - The OSS logic converts the period start and end into an
 		// Interval and creates a parameter named "Measurement Period" that is populated
 		// with that value. We need to sync with the authoring and clinical informatics
@@ -182,13 +162,4 @@ public class MeasureEvaluator {
 		return evaluation.evaluatePatientMeasure(measure, seed.getContext(), patientId);
 	}
 
-	private Object toCqlObject(Type type) {
-		return Optional.ofNullable(type)
-				.map((fhirType) -> fhirModelResolver.resolvePath(fhirType, "value"))
-				.orElseThrow(() -> new UnsupportedFhirTypeException(type));
-	}
-
-    private boolean isParameterExtension(Extension extension) {
-        return PARAMETER_EXTENSION_URL.equals(extension.getUrl());
-    }
 }
