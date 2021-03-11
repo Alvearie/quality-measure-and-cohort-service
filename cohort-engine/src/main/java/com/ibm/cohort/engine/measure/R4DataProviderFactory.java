@@ -30,7 +30,6 @@ public class R4DataProviderFactory {
 			TerminologyProvider terminologyProvider,
 			RetrieveCacheContext cacheContext
 	) {
-		// TODO: We no longer need the threadlocal...right??
 		ModelResolver modelResolver = new R4FhirModelResolver();
 
 		SearchParameterResolver resolver = new SearchParameterResolver(client.getFhirContext());

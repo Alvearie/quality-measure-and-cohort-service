@@ -30,7 +30,6 @@ import com.ibm.cohort.engine.measure.LibraryHelper;
 
 public class MeasureEvaluationSeeder {
 
-	// TODO: Tests need this...tests not in this class
 	public static final String PARAMETER_EXTENSION_URL = "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-parameter";
 
 	private final TerminologyProvider terminologyProvider;
