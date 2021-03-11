@@ -96,7 +96,7 @@ public class CohortEngineRestHandler {
 
 	public static final String DELAY_DEFAULT = "3";
 	
-	public static final String ROOT_PART = "rootPart";
+	public static final String REQUEST_DATA_PART = "requestData";
 	public static final String MEASURE_PART = "measure";
 
 	static {
@@ -122,14 +122,14 @@ public class CohortEngineRestHandler {
 			@ApiResponse(code = 500, message = "evaluation failed", response = Exception.class) })
 	public Response evaluateMeasures(@Context HttpServletRequest request,
 			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
-			@ApiParam(value = "Multipart form request containing measure evaluation metadata and a measure bundle") IMultipartBody multipartBody) {		
+			@ApiParam(value = "Multipart form request containing measure evaluation metadata (rootPart) and a measure ZIP artifact (measure)") IMultipartBody multipartBody) {		
 		
 		ResponseBuilder responseBuilder = null;
 		
 		try {
-			IAttachment metadataAttachment = multipartBody.getAttachment(ROOT_PART);
+			IAttachment metadataAttachment = multipartBody.getAttachment(REQUEST_DATA_PART);
 			if( metadataAttachment == null ) {
-				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", ROOT_PART));
+				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", REQUEST_DATA_PART));
 			}
 
 			IAttachment measureAttachment = multipartBody.getAttachment(MEASURE_PART);

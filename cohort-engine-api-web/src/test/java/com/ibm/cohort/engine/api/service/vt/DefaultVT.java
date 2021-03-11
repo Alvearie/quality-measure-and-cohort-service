@@ -18,12 +18,12 @@ import static org.custommonkey.xmlunit.XMLAssert.assertXpathValuesNotEqual;
 import static org.custommonkey.xmlunit.XMLAssert.assertXpathsEqual;
 import static org.custommonkey.xmlunit.XMLAssert.assertXpathsNotEqual;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.Arrays;
+import java.io.File;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,6 +44,8 @@ import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.cohort.engine.api.service.CohortEngineRestHandler;
 import com.ibm.cohort.engine.api.service.ServiceBuildConstants;
 import com.ibm.cohort.engine.api.service.TestHelper;
 import com.ibm.cohort.engine.api.service.model.DateParameter;
@@ -52,7 +54,6 @@ import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.Parameter;
 import com.ibm.cohort.engine.helpers.CanonicalHelper;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
-import com.ibm.cohort.fhir.client.config.FhirServerConfig.LogInfo;
 import com.ibm.watson.common.service.base.utilities.BVT;
 import com.ibm.watson.common.service.base.utilities.DVT;
 import com.ibm.watson.common.service.base.utilities.ServiceAPIGlobalSpec;
@@ -92,6 +93,9 @@ import net.javacrumbs.jsonunit.core.Option;
 public class DefaultVT extends ServiceVTBase {
 	private static final Logger logger = LoggerFactory.getLogger(DefaultVT.class.getName());
 
+	private static FhirServerConfig dataServerConfig;
+	private static FhirServerConfig termServerConfig;
+	
 	@BeforeClass
 	public static void setUp() throws Exception {
 		// Instantiate service location
@@ -108,6 +112,25 @@ public class DefaultVT extends ServiceVTBase {
 		if( System.getProperty("test.contextRoot") == null ) {
 			System.setProperty("test.contextRoot", "services/cohort");
 		}
+		
+		ObjectMapper om = new ObjectMapper();
+		
+		String dataClientConfigPath = System.getProperty("test.dataConfig");
+		if( dataClientConfigPath != null ) {
+			File dataClientConfigFile = new File(dataClientConfigPath);
+			dataServerConfig = om.readValue(dataClientConfigFile, FhirServerConfig.class);
+		} else { 
+			fail("Missing required system property 'test.dataConfig'");
+		}
+		
+		String termClientConfigPath = System.getProperty("test.terminologyConfig");
+		if( termClientConfigPath != null ) {
+			File termClientConfigFile = new File(termClientConfigPath);
+			termServerConfig = om.readValue(termClientConfigFile, FhirServerConfig.class);
+		} else {
+			termServerConfig = dataServerConfig;
+		}
+		
 	}
 
 	@AfterClass
@@ -155,17 +178,11 @@ public class DefaultVT extends ServiceVTBase {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		TestHelper.createMeasureArtifact(baos, parser, measure, library);
 		
-		FhirServerConfig clientConfig = new FhirServerConfig();
-		clientConfig.setEndpoint("PUTURLHERE");
-		clientConfig.setUser("PUTUSERHERE");
-		clientConfig.setPassword("PUTPASSWORDHERE");
-		clientConfig.setHeaders(Collections.singletonMap("X-FHIR-TENANT-ID", "PUTTENANTHERE"));
-		clientConfig.setLogInfo(Arrays.asList(LogInfo.REQUEST_SUMMARY));
-		
-		MeasureEvaluation evaluationRequest = new MeasureEvaluation();
-		evaluationRequest.setDataServerConfig(clientConfig);
-		evaluationRequest.setPatientId("eb068c3f-3954-50c6-0c67-2b82d29865f0");
-		evaluationRequest.setMeasureId(measure.getId());
+		MeasureEvaluation requestData = new MeasureEvaluation();
+		requestData.setDataServerConfig(dataServerConfig);
+		requestData.setTerminologyServerConfig(termServerConfig);
+		requestData.setPatientId("eb068c3f-3954-50c6-0c67-2b82d29865f0");
+		requestData.setMeasureId(measure.getId());
 		
 		Parameter measurementPeriod =  new IntervalParameter("Measurement Period"
 				, new DateParameter("start", "2019-07-04")
@@ -174,17 +191,19 @@ public class DefaultVT extends ServiceVTBase {
 				, false);
 		Map<String,Parameter> parameterOverrides = new HashMap<>();
 		parameterOverrides.put(measurementPeriod.getName(), measurementPeriod);
+		requestData.setParameterOverrides(parameterOverrides);
+		
+		ObjectMapper om = new ObjectMapper();
+		System.out.println( om.writeValueAsString(requestData) );
 		
 		RequestSpecification request = buildBaseRequest(new Headers())
 				.queryParam("version", ServiceBuildConstants.DATE)
-				.multiPart("rootPart", evaluationRequest, "application/json")
-				.multiPart("measure", "test_measure_v1_0_0.zip", new ByteArrayInputStream(baos.toByteArray()));
+				.multiPart(CohortEngineRestHandler.REQUEST_DATA_PART, requestData, "application/json")
+				.multiPart(CohortEngineRestHandler.MEASURE_PART, "test_measure_v1_0_0.zip", new ByteArrayInputStream(baos.toByteArray()));
 		
 		ValidatableResponse response = request.post(RESOURCE,getServiceVersion()).then();
 		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
-		
-		
-		
+
 		assertJsonEquals(getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"create_evaluation_exp.json"),vr.extract().asString());
 		assertJsonStructureEquals(getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"create_evaluation_exp.json"),vr.extract().asString());
 	}

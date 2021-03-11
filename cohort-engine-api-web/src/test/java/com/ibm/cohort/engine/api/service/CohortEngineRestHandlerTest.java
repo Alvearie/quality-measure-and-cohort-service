@@ -222,7 +222,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 			
 			// Assemble them together into a reasonable facsimile of the real request
 			IMultipartBody body = mock(IMultipartBody.class);
-			when( body.getAttachment(CohortEngineRestHandler.ROOT_PART) ).thenReturn(rootPart);
+			when( body.getAttachment(CohortEngineRestHandler.REQUEST_DATA_PART) ).thenReturn(rootPart);
 			when( body.getAttachment(CohortEngineRestHandler.MEASURE_PART) ).thenReturn(measurePart);
 			
 			Response loadResponse = restHandler.evaluateMeasures(mockRequestContext, "version", body);
