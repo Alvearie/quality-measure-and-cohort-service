@@ -14,7 +14,6 @@ public interface RetrieveCacheContext {
 
 	Cache<CacheKey, Iterable<Object>> getCurrentCache();
 
-	// TODO: Is this where the cache would be persisted to a datastore???
 	void cleanupCache(String contextId);
 
 }
