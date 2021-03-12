@@ -23,7 +23,7 @@ COPY --chown=1001:0 cohort-engine-distribution/target/solution /app/cohort-engin
 # final docker image to reduce image size. Unzip in the builder image and
 # then later copy the unzipped artifacts to the final image.
 RUN mkdir -p $COHORT_DIST_SOLUTION && \
-    tar -xzf /app/cohort-engine-distribution/target/solution/*.tar.gz -C $COHORT_DIST_SOLUTION 
+    tar -xzf /app/cohort-engine-distribution/target/solution/*.tar.gz -C $COHORT_DIST_SOLUTION
 
 ####################
 # Multi-stage build. New build stage that uses the Liberty UBI as the base image.
@@ -56,7 +56,7 @@ ENV WLP_HOME=/opt/ibm/wlp \
     ALVEARIE_HOME=/opt/alvearie \
     COHORT_DIST_SOLUTION=/app/cohortSolutionDistribution \
     JAVA_HOME=/opt/ibm/java
-ENV COHORT_ENGINE_HOME=$ALVEARIE_HOME/cohortEngine 
+ENV COHORT_ENGINE_HOME=$ALVEARIE_HOME/cohortEngine
 
 # create server instance
 RUN $WLP_HOME/bin/server create $SERVER_NAME && \
@@ -92,7 +92,7 @@ USER root
 
 # Grant write access to apps folder and startup script
 RUN chown -R --from=root whuser $WLP_HOME && \
-	chmod -R u+rwx $WLP_HOME && \
+    chmod -R u+rwx $WLP_HOME && \
     chown -R --from=root whuser $COHORT_ENGINE_HOME && \
     chmod -R u+rwx $COHORT_ENGINE_HOME
 
