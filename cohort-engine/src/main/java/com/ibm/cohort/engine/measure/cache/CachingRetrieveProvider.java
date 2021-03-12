@@ -48,17 +48,18 @@ public class CachingRetrieveProvider implements RetrieveProvider {
 			retVal = baseProvider.retrieve(context, contextPath, contextValue, dataType, templateId, codePath, codes, valueSet, datePath, dateLowPath, dateHighPath, dateRange);
 		}
 		else {
-			Cache<CacheKey, Iterable<Object>> cache = retrieveCacheContext.getCurrentCache();
+			Cache<CacheKey, Iterable<Object>> cache = retrieveCacheContext.getCache((String)contextValue);
 			LOG.trace("Attempting cache");
 			CacheKey key = CacheKey.create(context, contextPath, (String)contextValue, dataType, templateId, codePath, codes, valueSet);
-			if (cache.containsKey(key)) {
-				LOG.trace("Cache hit");
-				retVal = cache.get(key);
-			}
-			else {
+
+			retVal = cache.get(key);
+			if (retVal == null) {
 				LOG.trace("Cache miss");
 				retVal = baseProvider.retrieve(context, contextPath, contextValue, dataType, templateId, codePath, codes, valueSet, null, null, null, null);
 				cache.put(key, retVal);
+			}
+			else {
+				LOG.trace("Cache hit");
 			}
 
 		}

@@ -7,54 +7,38 @@
 package com.ibm.cohort.engine.measure.cache;
 
 import javax.cache.Cache;
-import javax.cache.CacheManager;
 import javax.cache.Caching;
 import javax.cache.configuration.CompleteConfiguration;
-import javax.cache.spi.CachingProvider;
+import java.io.IOException;
+import java.util.UUID;
 
 public class TransientRetrieveCacheContext implements RetrieveCacheContext {
 
-	private final CompleteConfiguration<CacheKey, Iterable<Object>> config;
-	private Cache<CacheKey, Iterable<Object>> currentCache;
+	private static final String CACHE_ID_PREFIX = "transient-retrieve-cache-";
+
+	private final Cache<CacheKey, Iterable<Object>> currentCache;
+
+	private String currentContextId;
 
 	public TransientRetrieveCacheContext(CompleteConfiguration<CacheKey, Iterable<Object>> config) {
-		this.config = config;
+		String uuid = UUID.randomUUID().toString();
+		String cacheId = CACHE_ID_PREFIX + uuid;
+		currentCache = Caching.getCachingProvider().getCacheManager().createCache(cacheId, config);
 	}
 
 	@Override
-	public Cache<CacheKey, Iterable<Object>> newCache(String contextId) {
-		currentCache = getCacheManager().createCache(getCacheId(contextId), config);
+	public Cache<CacheKey, Iterable<Object>> getCache(String contextId) {
+		if (!contextId.equals(currentContextId)) {
+			currentCache.clear();
+			currentContextId = contextId;
+		}
 
-		// TODO: Only create a new cache if the passed in patientId doesn't match the last used patient id?
-		// This would allow for multiple one off evaluation calls using the same patient id.
-		// Would have to store the "current" patient id.
-		//
-		// This pattern would introduce a risk with storing the cache.
-		// User's would have to know to "cleanup" and persist the cache when using a new patient id.
-		// The usecases get complex.
-		//
-		// We could also add a "close" method or something to ensure the "last" patient is handled correctly.
-		// Devs like closing closeables.
 		return currentCache;
 	}
 
 	@Override
-	public Cache<CacheKey, Iterable<Object>> getCurrentCache() {
-		return this.currentCache;
+	public void close() throws IOException {
+		currentCache.close();
 	}
 
-	@Override
-	public void cleanupCache(String contextId) {
-		this.currentCache.close();
-		getCacheManager().destroyCache(getCacheId(contextId));
-	}
-
-	private String getCacheId(String contextId) {
-		return "context-" + contextId;
-	}
-
-	private CacheManager getCacheManager() {
-		CachingProvider cachingProvider = Caching.getCachingProvider();
-		return cachingProvider.getCacheManager();
-	}
 }

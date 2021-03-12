@@ -164,40 +164,39 @@ public class MeasureCLI extends BaseCLI {
 			// TODO: Make cache size configurable??
 			// What other options are there???
 			cacheConfig.setMaximumSize(OptionalLong.of(1_000L));
+			cacheConfig.setStatisticsEnabled(true);
 
-			RetrieveCacheContext retrieveCacheContext = new TransientRetrieveCacheContext(cacheConfig);
 			TerminologyProvider terminologyProvider = new R4FhirTerminologyProvider(terminologyServerClient);
-			Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataServerClient, terminologyProvider, retrieveCacheContext);
+			try(RetrieveCacheContext retrieveCacheContext = new TransientRetrieveCacheContext(cacheConfig)) {
+				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataServerClient, terminologyProvider, retrieveCacheContext);
 
-			evaluator = new MeasureEvaluator(measureProvider, libraryProvider, terminologyProvider, dataProviders);
+				evaluator = new MeasureEvaluator(measureProvider, libraryProvider, terminologyProvider, dataProviders);
 
-			for( String contextId : arguments.contextIds ) {
-				out.println("Evaluating: " + contextId);
-				// TODO: Create new cache for new patient...should this be in here or within `MeasureEvaulator.evaluatePatientMeasures()`???
-				retrieveCacheContext.newCache(contextId);
-				// Reports only returned for measures where patient is in initial population
-				List<MeasureReport> reports = evaluator.evaluatePatientMeasures(contextId, measureContexts, new MeasureEvidenceOptions(arguments.includeEvaluatedResources, arguments.includeDefineResults));
-				retrieveCacheContext.cleanupCache(contextId);
+				for (String contextId : arguments.contextIds) {
+					out.println("Evaluating: " + contextId);
+					// Reports only returned for measures where patient is in initial population
+					List<MeasureReport> reports = evaluator.evaluatePatientMeasures(contextId, measureContexts, new MeasureEvidenceOptions(arguments.includeEvaluatedResources, arguments.includeDefineResults));
 
-				for (MeasureReport report : reports) {
-					if (arguments.reportFormat == ReportFormat.TEXT) {
-						out.println("Result for " + report.getMeasure());
-						for (MeasureReport.MeasureReportGroupComponent group : report.getGroup()) {
-							for (MeasureReport.MeasureReportGroupPopulationComponent pop : group.getPopulation()) {
-								String popCode = pop.getCode().getCodingFirstRep().getCode();
-								if (pop.getId() != null) {
-									popCode += "(" + pop.getId() + ")";
+					for (MeasureReport report : reports) {
+						if (arguments.reportFormat == ReportFormat.TEXT) {
+							out.println("Result for " + report.getMeasure());
+							for (MeasureReport.MeasureReportGroupComponent group : report.getGroup()) {
+								for (MeasureReport.MeasureReportGroupPopulationComponent pop : group.getPopulation()) {
+									String popCode = pop.getCode().getCodingFirstRep().getCode();
+									if (pop.getId() != null) {
+										popCode += "(" + pop.getId() + ")";
+									}
+									out.println(String.format("Population: %s = %d", popCode, pop.getCount()));
 								}
-								out.println(String.format("Population: %s = %d", popCode, pop.getCount()));
 							}
+						} else {
+							out.println(parser.encodeResourceToString(report));
 						}
-					} else {
-						out.println(parser.encodeResourceToString(report));
+						out.println("---");
 					}
-					out.println("---");
-				}
-				if (reports.isEmpty()) {
-					out.println("---");
+					if (reports.isEmpty()) {
+						out.println("---");
+					}
 				}
 			}
 		}

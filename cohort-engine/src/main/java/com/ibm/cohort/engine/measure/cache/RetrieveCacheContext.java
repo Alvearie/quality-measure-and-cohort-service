@@ -7,13 +7,10 @@
 package com.ibm.cohort.engine.measure.cache;
 
 import javax.cache.Cache;
+import java.io.Closeable;
 
-public interface RetrieveCacheContext {
+public interface RetrieveCacheContext extends Closeable {
 
-	Cache<CacheKey, Iterable<Object>> newCache(String contextId);
-
-	Cache<CacheKey, Iterable<Object>> getCurrentCache();
-
-	void cleanupCache(String contextId);
+	Cache<CacheKey, Iterable<Object>> getCache(String contextId);
 
 }
