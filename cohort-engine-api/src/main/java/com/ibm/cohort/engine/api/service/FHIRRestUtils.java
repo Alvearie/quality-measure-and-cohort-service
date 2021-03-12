@@ -150,8 +150,9 @@ public class FHIRRestUtils {
 	 * measure version using semantic versioning
 	 */
 	public static List<MeasureParameterInfo> getParametersForMeasureIdentifier(IGenericClient measureClient, Identifier identifier, String measureVersion) {
-		RestFhirMeasureResolutionProvider msp = new RestFhirMeasureResolutionProvider(measureClient);
-		Measure measure = msp.resolveMeasureByIdentifier(identifier, measureVersion);
+		Measure measure = Optional.of(new RestFhirMeasureResolutionProvider(measureClient))
+				.map(provider -> provider.resolveMeasureByIdentifier(identifier, measureVersion))
+				.orElseThrow(() -> new ResourceNotFoundException("Measure resource not found for identifier: " + identifier + ", version: " + measureVersion));
 
 		return getParameters(measure);
 	}
