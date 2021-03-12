@@ -23,6 +23,7 @@ import com.ibm.watson.service.base.model.ServiceError;
 
 import ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException;
 import ca.uhn.fhir.rest.server.exceptions.AuthenticationException;
+import ca.uhn.fhir.rest.server.exceptions.BaseServerResponseException;
 
 @Provider
 public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
@@ -80,6 +81,11 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 			else if (ex instanceof IllegalArgumentException){
 				serviceErrorCode = Status.BAD_REQUEST.getStatusCode();
 				serviceErrorListCode = serviceErrorCode;
+			}
+			else if (ex instanceof BaseServerResponseException) {
+				serviceErrorCode = ((BaseServerResponseException) ex).getStatusCode();
+				serviceErrorListCode = serviceErrorCode;
+				description = ex.getMessage();
 			}
 			//catch everything else and return a 500
 			else {

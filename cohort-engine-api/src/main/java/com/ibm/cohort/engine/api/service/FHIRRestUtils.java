@@ -27,6 +27,7 @@ import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
+import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 
 /**
  * A set of methods that can be re-used across REST calls
@@ -165,8 +166,9 @@ public class FHIRRestUtils {
 	 * Objects describe the parameters for libraries linked to by the FHIR Measure resource id
 	 */
 	public static List<MeasureParameterInfo> getParametersForMeasureId(IGenericClient measureClient, String measureId) {
-		RestFhirMeasureResolutionProvider msp = new RestFhirMeasureResolutionProvider(measureClient);
-		Measure measure = msp.resolveMeasureById(measureId);
+		Measure measure = Optional.of(new RestFhirMeasureResolutionProvider(measureClient))
+				.map(provider -> provider.resolveMeasureById(measureId))
+				.orElseThrow(() -> new ResourceNotFoundException("Measure resource not found for id: " + measureId));
 
 		return FHIRRestUtils.getLibraryParmsForMeasure(measureClient, measure);
 	}
