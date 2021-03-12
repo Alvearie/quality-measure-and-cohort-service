@@ -13,7 +13,7 @@ Class: `com.ibm.cohort.engine.flink.input.InputProducer`
 
 The Input Producer does exactly what's written on the tin.
 It produces specified number of random input records to a specified Kafka topic given a set of measure and patient IDs.
-Each input record is a random patient paired with a random measure.
+Each input record is a random patient paired with every measure from the provided file.
 
 The RNG is seeded to ensure consistent data.
 
@@ -29,9 +29,10 @@ Cohort Engine Flink Driver
 --------------------------
 Class: `com.ibm.cohort.engine.flink.execution.CohortEngineFlinkDriver`
 
-The CQL Engine Flink Driver spins up a Flink job that will consume a specified Kafka topic for measure-patient tuples,
-and generate FHIR MeasureReports.
-The MeasureReports can either written to an output Kafka topic, the console, or dropped entirely.
+The CQL Engine Flink Driver spins up a Flink job that will consume measure evaluation records from the specified
+Kafka topic and generate FHIR MeasureReports.
+Each measure evaluation record contains a single patient id and multiple measure ids.
+The MeasureReports can either be written to an output Kafka topic, the console, or dropped entirely.
 
 This driver can be run locally, and submitted to a Flink cluster using the shaded jar generated during project
 compilation.

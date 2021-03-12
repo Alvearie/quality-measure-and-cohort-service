@@ -21,6 +21,7 @@ public class TransientRetrieveCacheContext implements RetrieveCacheContext {
 	private String currentContextId;
 
 	public TransientRetrieveCacheContext(CompleteConfiguration<CacheKey, Iterable<Object>> config) {
+		// Create a unique cacheId to prevent conflicts with other caches in the same JVM.
 		String uuid = UUID.randomUUID().toString();
 		String cacheId = CACHE_ID_PREFIX + uuid;
 		currentCache = Caching.getCachingProvider().getCacheManager().createCache(cacheId, config);
@@ -29,11 +30,19 @@ public class TransientRetrieveCacheContext implements RetrieveCacheContext {
 	@Override
 	public Cache<CacheKey, Iterable<Object>> getCache(String contextId) {
 		if (!contextId.equals(currentContextId)) {
-			currentCache.clear();
+			if (currentContextId != null) {
+				flushCache();
+			}
 			currentContextId = contextId;
 		}
 
 		return currentCache;
+	}
+
+	@Override
+	public void flushCache() {
+		currentCache.clear();
+		currentContextId = null;
 	}
 
 	@Override

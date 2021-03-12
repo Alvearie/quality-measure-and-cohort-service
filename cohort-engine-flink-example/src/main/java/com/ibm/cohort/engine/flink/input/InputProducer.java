@@ -56,10 +56,9 @@ public class InputProducer {
 
 		try (KafkaProducer<String, String> producer = new KafkaProducer<>(properties)) {
 			for (int i = 0; i < numRecords; i++) {
-				String measureId = measureIds.get(random.nextInt(measureIds.size()));
 				String patientId = patientIds.get(random.nextInt(patientIds.size()));
 
-				MeasureExecution measureExecution = new MeasureExecution(measureId, patientId);
+				MeasureExecution measureExecution = new MeasureExecution(measureIds, patientId);
 				String rawJson = objectMapper.writeValueAsString(measureExecution);
 				ProducerRecord<String, String> record = new ProducerRecord<>(kafkaInfo.getTopic(), rawJson);
 				producer.send(record);

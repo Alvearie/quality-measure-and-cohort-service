@@ -10,6 +10,7 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalLong;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipFile;
 
 import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
@@ -164,6 +165,7 @@ public class MeasureCLI extends BaseCLI {
 			// TODO: Make cache size configurable??
 			// What other options are there???
 			cacheConfig.setMaximumSize(OptionalLong.of(1_000L));
+			cacheConfig.setExpireAfterWrite(OptionalLong.of(TimeUnit.MINUTES.toNanos(5L)));
 			cacheConfig.setStatisticsEnabled(true);
 
 			TerminologyProvider terminologyProvider = new R4FhirTerminologyProvider(terminologyServerClient);
