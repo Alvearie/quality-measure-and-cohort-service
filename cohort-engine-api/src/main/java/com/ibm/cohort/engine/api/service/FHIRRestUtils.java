@@ -7,15 +7,19 @@ package com.ibm.cohort.engine.api.service;
 
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.core.HttpHeaders;
 
+import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.ParameterDefinition;
 import org.hl7.fhir.r4.model.ParameterDefinition.ParameterUse;
 
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
+import com.ibm.cohort.engine.measure.MeasureEvaluator;
 import com.ibm.cohort.engine.measure.RestFhirMeasureResolutionProvider;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
@@ -149,6 +153,7 @@ public class FHIRRestUtils {
 		RestFhirMeasureResolutionProvider msp = new RestFhirMeasureResolutionProvider(measureClient);
 		Measure measure = msp.resolveMeasureByIdentifier(identifier, measureVersion);
 
+		return getParameters(measure);
 	}
 	
 	/**
@@ -164,11 +169,37 @@ public class FHIRRestUtils {
 				.map(provider -> provider.resolveMeasureById(measureId))
 				.orElseThrow(() -> new ResourceNotFoundException("Measure resource not found for id: " + measureId));
 
+		return getParameters(measure);
 	}
 
+	private static List<MeasureParameterInfo> getParameters(Measure measure) {
+		return measure.getExtension().stream()
+				.filter(MeasureEvaluator::isMeasureParameter)
+				.map(Extension::getValue)
+				.map(ParameterDefinition.class::cast) // enforced as part of IG
+				.map(FHIRRestUtils::toMeasureParameterInfo)
+				.collect(Collectors.toList());
+	}
 
+	private static MeasureParameterInfo toMeasureParameterInfo(ParameterDefinition parameterDefinition) {
+		MeasureParameterInfo retVal = new MeasureParameterInfo();
+		retVal.name(parameterDefinition.getName())
+				.type(parameterDefinition.getType())
+				.min(parameterDefinition.getMin())
+				.max(parameterDefinition.getMax())
+				.documentation(parameterDefinition.getDocumentation());
 
+		Optional.ofNullable(parameterDefinition.getUse())
+				.map(ParameterUse::getDisplay)
+				.ifPresent(retVal::setUse);
 
+		parameterDefinition.getExtension().stream()
+				.filter(MeasureEvaluator::isDefaultValue).findFirst() // only zero or one per IG
+				.map(Extension::getValue)
+				.map(Object::toString)
+				.ifPresent(retVal::setDefaultValue);
+
+		return retVal;
 	}
 	
 	/**
