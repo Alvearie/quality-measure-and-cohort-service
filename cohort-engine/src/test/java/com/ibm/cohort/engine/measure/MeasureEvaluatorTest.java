@@ -30,6 +30,7 @@ import org.hl7.fhir.r4.model.IntegerType;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
+import org.hl7.fhir.r4.model.ParameterDefinition;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.RelatedArtifact;
 import org.hl7.fhir.r4.model.StringType;
@@ -374,20 +375,12 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
 
 		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
-		Extension parameterExtension = new Extension();
-		parameterExtension.setUrl(MeasureEvaluator.PARAMETER_EXTENSION_URL);
-		parameterExtension.setId("SomeAge");
 
-		Type age = new IntegerType(20);
-		parameterExtension.setValue(age);
-
-		measure.addExtension(parameterExtension);
+		measure.addExtension(createMeasureParameter("SomeAge", new IntegerType(20)));
 		mockFhirResourceRetrieval(measure);
 
 		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());
 		assertNotNull(report);
-
-		assertTrue(!report.getEvaluatedResource().isEmpty());
 	}
 
 	@Test(expected = InvalidOperatorArgument.class)
@@ -407,14 +400,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 
 		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
 
-		Extension parameterExtension = new Extension();
-		parameterExtension.setUrl(MeasureEvaluator.PARAMETER_EXTENSION_URL);
-		parameterExtension.setId("SomeAge");
-		Type age = new StringType("invalid");
-
-		parameterExtension.setValue(age);
-
-		measure.addExtension(parameterExtension);
+		measure.addExtension(createMeasureParameter("SomeAge", new StringType("invalid")));
 		mockFhirResourceRetrieval(measure);
 
 		evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());
@@ -437,16 +423,10 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 
 		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
 
-		Extension parameterExtension = new Extension();
-		parameterExtension.setUrl(MeasureEvaluator.PARAMETER_EXTENSION_URL);
-		parameterExtension.setId("SomeAge");
-
 		Address unsupportedType = new Address();
 		unsupportedType.setCity("Cleaveland");
 
-		parameterExtension.setValue(unsupportedType);
-
-		measure.addExtension(parameterExtension);
+		measure.addExtension(createMeasureParameter("SomeAge", unsupportedType));
 		mockFhirResourceRetrieval(measure);
 
 		evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());
@@ -491,5 +471,21 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	
 	protected RelatedArtifact asRelation(Library library) {
 		return new RelatedArtifact().setType(RelatedArtifact.RelatedArtifactType.DEPENDSON).setResource( library.getUrl() + "|" + library.getVersion() );
+	}
+
+	private Extension createMeasureParameter(String name, Type defaultValue) {
+		Extension measureParameter = new Extension();
+		measureParameter.setUrl(MeasureEvaluator.MEASURE_PARAMETER_URL);
+
+		ParameterDefinition parameterDefinition = new ParameterDefinition();
+		parameterDefinition.setName(name);
+		measureParameter.setValue(parameterDefinition);
+
+		Extension defaultValueExtension = new Extension();
+		defaultValueExtension.setUrl(MeasureEvaluator.PARAMETER_DEFAULT_URL);
+		defaultValueExtension.setValue(defaultValue);
+		parameterDefinition.addExtension(defaultValueExtension);
+
+		return measureParameter;
 	}
 }
