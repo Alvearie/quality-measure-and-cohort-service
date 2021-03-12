@@ -91,6 +91,7 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 			else {
 				serviceErrorCode = Status.INTERNAL_SERVER_ERROR.getStatusCode();
 				serviceErrorListCode = serviceErrorCode;
+				description = ex.getMessage();
 			}
 			
 			if(reason.isEmpty()) {
