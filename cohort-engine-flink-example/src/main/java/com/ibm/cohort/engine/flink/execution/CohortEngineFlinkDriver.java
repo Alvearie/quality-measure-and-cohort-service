@@ -7,7 +7,10 @@
 package com.ibm.cohort.engine.flink.execution;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.OptionalLong;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
@@ -36,6 +39,7 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.hl7.fhir.r4.model.MeasureReport;
 
+// TODO: Test that this actually works after the list change
 public class CohortEngineFlinkDriver implements Serializable {
 
 	private static final long serialVersionUID = 1966474691011266880L;
@@ -85,6 +89,7 @@ public class CohortEngineFlinkDriver implements Serializable {
 	private transient MeasureEvaluator evaluator;
 	private transient FhirContext fhirContext;
 	private transient ObjectMapper objectMapper;
+	private transient RetrieveCacheContext cacheContext;
 
 	public CohortEngineFlinkDriver(FHIRServerInfo fhirServerInfo) {
 		this.fhirServerInfo = fhirServerInfo;
@@ -116,7 +121,8 @@ public class CohortEngineFlinkDriver implements Serializable {
 
 		stream = stream
 				.map(this::deserializeMeasureExecution)
-				.map(this::evaluate);
+				.map(this::evaluate)
+				.flatMap((measureReports, collector) -> measureReports.forEach(collector::collect));
 
 		if (printOutputToConsole) {
 			stream.print();
@@ -134,19 +140,25 @@ public class CohortEngineFlinkDriver implements Serializable {
 		env.execute(jobName);
 	}
 
-	private String evaluate(MeasureExecution execution) {
+	private List<String> evaluate(MeasureExecution execution) {
 		MeasureEvaluator evaluator = getEvaluator();
 
-		MeasureReport result = evaluator.evaluatePatientMeasure(
-				new MeasureContext(execution.getMeasureId()),
+		List<MeasureContext> measureContexts = execution.getMeasureIds().stream()
+				.map(MeasureContext::new)
+				.collect(Collectors.toList());
+
+		List<MeasureReport> result = evaluator.evaluatePatientMeasures(
 				execution.getPatientId(),
+				measureContexts,
 				NO_EVIDENCE_OPTIONS
 		);
 
 		FhirContext fhirContext = getFhirContext();
 		IParser jsonParser = fhirContext.newJsonParser();
 
-		return jsonParser.encodeResourceToString(result);
+		return result.stream()
+				.map(jsonParser::encodeResourceToString)
+				.collect(Collectors.toList());
 	}
 
 	private ObjectMapper getObjectMapper() {
@@ -170,30 +182,40 @@ public class CohortEngineFlinkDriver implements Serializable {
 		return evaluator;
 	}
 
+	private RetrieveCacheContext getCacheContext() {
+		if (cacheContext == null) {
+			cacheContext = createCacheContext();
+		}
+		return cacheContext;
+	}
+
 	private MeasureEvaluator createEvaluator() {
 		FhirClientBuilderFactory factory = new DefaultFhirClientBuilderFactory();
 
 		FhirClientBuilder builder = factory.newFhirClientBuilder(getFhirContext());
 		IGenericClient genericClient = builder.createFhirClient(fhirServerInfo.toIbmServerConfig());
 
-		CaffeineConfiguration<CacheKey, Iterable<Object>> cacheConfig = new CaffeineConfiguration<>();
-		// TODO: Make cache size configurable??
-		// What other options are there???
-		cacheConfig.setMaximumSize(OptionalLong.of(1_000L));
-		RetrieveCacheContext retrieveCacheContext = new TransientRetrieveCacheContext(cacheConfig);
-
 		FHIRClientContext clientContext = new FHIRClientContext.Builder()
 				.withDefaultClient(genericClient)
 				.build();
 		return new R4MeasureEvaluatorBuilder()
 				.withClientContext(clientContext)
-				.withRetrieveCacheContext(retrieveCacheContext)
+				.withRetrieveCacheContext(getCacheContext())
 				.build();
 	}
 
 	private MeasureExecution deserializeMeasureExecution(String input) throws Exception {
 		ObjectMapper mapper = getObjectMapper();
 		return mapper.readValue(input, MeasureExecution.class);
+	}
+
+	private RetrieveCacheContext createCacheContext() {
+		CaffeineConfiguration<CacheKey, Iterable<Object>> cacheConfig = new CaffeineConfiguration<>();
+		// TODO: Make cache size configurable??
+		// What other options are there???
+		cacheConfig.setMaximumSize(OptionalLong.of(1_000L));
+		cacheConfig.setExpireAfterWrite(OptionalLong.of(TimeUnit.MINUTES.toNanos(5L)));
+		return new TransientRetrieveCacheContext(cacheConfig);
 	}
 
 }

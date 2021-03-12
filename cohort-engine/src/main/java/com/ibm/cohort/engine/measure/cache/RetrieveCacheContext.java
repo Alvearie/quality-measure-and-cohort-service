@@ -13,4 +13,6 @@ public interface RetrieveCacheContext extends Closeable {
 
 	Cache<CacheKey, Iterable<Object>> getCache(String contextId);
 
+	void flushCache();
+
 }
