@@ -7,7 +7,6 @@ package com.ibm.cohort.tooling.fhir;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
@@ -25,7 +24,7 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.UUID;
 
 import org.hl7.fhir.r4.model.Bundle;
@@ -36,7 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.BaseFhirTest;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
-public class VSACValueSetImporterTest extends BaseFhirTest {
+public class ValueSetImporterTest extends BaseFhirTest {
 
 	private final String defaultInputFile = "src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx";
 	private final String valueSetIdentifier = "2.16.840.1.113762.1.4.1114.7";
@@ -44,7 +43,7 @@ public class VSACValueSetImporterTest extends BaseFhirTest {
 	@Test
 	public void testImportAllNewResources() throws IOException {
 		FhirServerConfig fhirConfig = getFhirServerConfig();
-		fhirConfig.setLogInfo(Arrays.asList(FhirServerConfig.LogInfo.REQUEST_SUMMARY));
+		fhirConfig.setLogInfo(Collections.singletonList(FhirServerConfig.LogInfo.REQUEST_SUMMARY));
 
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 
@@ -63,7 +62,7 @@ public class VSACValueSetImporterTest extends BaseFhirTest {
 	@Test
 	public void testImportAllNewResourcesWithComments() throws IOException {
 		FhirServerConfig fhirConfig = getFhirServerConfig();
-		fhirConfig.setLogInfo(Arrays.asList(FhirServerConfig.LogInfo.REQUEST_SUMMARY));
+		fhirConfig.setLogInfo(Collections.singletonList(FhirServerConfig.LogInfo.REQUEST_SUMMARY));
 
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 
@@ -82,7 +81,7 @@ public class VSACValueSetImporterTest extends BaseFhirTest {
 	@Test
 	public void testImportAllExistingResources() throws IOException {
 		FhirServerConfig fhirConfig = getFhirServerConfig();
-		fhirConfig.setLogInfo(Arrays.asList(FhirServerConfig.LogInfo.REQUEST_SUMMARY));
+		fhirConfig.setLogInfo(Collections.singletonList(FhirServerConfig.LogInfo.REQUEST_SUMMARY));
 
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 
@@ -112,7 +111,7 @@ public class VSACValueSetImporterTest extends BaseFhirTest {
 		return getFhirServerConfig().getEndpoint() + localUrl + "/" + newId + "/_history/" + version;
 	}
 
-	protected void runTest(FhirServerConfig fhirConfig, String pathString) throws IOException {
+	private void runTest(FhirServerConfig fhirConfig, String pathString) throws IOException {
 		Path tmpFile = Files.createTempFile(Paths.get("target"), "fhir-stub", ".json");
 		try {
 			ObjectMapper om = new ObjectMapper();
@@ -122,7 +121,7 @@ public class VSACValueSetImporterTest extends BaseFhirTest {
 
 			OutputStream baos = new ByteArrayOutputStream();
 			PrintStream out = new PrintStream(baos);
-			VSACValueSetImporter.runWithArgs( new String[] { "-m", tmpFile.toString(), pathString }, out);
+			ValueSetImporter.runWithArgs( new String[] { "-m", tmpFile.toString(), pathString }, out);
 		} finally {
 			Files.delete( tmpFile );
 		}
