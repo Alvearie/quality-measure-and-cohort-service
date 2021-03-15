@@ -58,6 +58,6 @@ The Flink job will run indefinitely until manually canceled.
 * `--readFromStart` (optional): Start streaming input records from the beginning of the Kafka topic (Default: `false`).
 
 * `--enableCache` (optional): Enable the retrieve cache (Default: `false`).
-* `--cacheMaxSize` (optional): The maximum size the retrieve cache can grow before evictions begin (Default: `1000`).
-* `--cacheExpireOnWrite` (optional): The amount of time after last write (in seconds) before a retrieve cache entry is evicted (Default: `300`).
+* `--cacheMaxSize <ARG>` (optional): The maximum size the retrieve cache can grow before evictions begin (Default: `1000`).
+* `--cacheExpireOnWrite <ARG>` (optional): The amount of seconds after last write before a retrieve cache entry is evicted (Default: `300`).
 * `--cacheEnableStatistics` (optional): Enable retrieve cache statistic recording via JMX (Default: `false`).
