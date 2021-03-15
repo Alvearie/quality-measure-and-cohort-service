@@ -6,7 +6,9 @@
             "params": null,
             "targets": ["eb068c3f-3954-50c6-0c67-2b82d29865f0", "01268c61-8f89-6d50-4414-9e50d367804d", "6b6120d0-36b9-d2d5-639d-b77033cf5cee", "768202e4-b073-98e7-f3ab-2b7f467fea0b"],
             "response": "Evaluating: eb068c3f-3954-50c6-0c67-2b82d29865f0\nResult for Measure/wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0\nPopulation: initial-population = 1\n---\nEvaluating: 01268c61-8f89-6d50-4414-9e50d367804d\nResult for Measure/wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0\nPopulation: initial-population = 0\n---\nEvaluating: 6b6120d0-36b9-d2d5-639d-b77033cf5cee\nResult for Measure/wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0\nPopulation: initial-population = 1\n---\nEvaluating: 768202e4-b073-98e7-f3ab-2b7f467fea0b\nResult for Measure/wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0\nPopulation: initial-population = 0\n---",
-            "measureServer": "cohort-cli/config/local-ibm-fhir.json"
+            "measureServer": "cohort-cli/config/local-ibm-fhir.json",
+            "filters": null,
+            "regEx": false
         }, 
         "Over the Hill measure" : {
             "jsonMeasureConfigurationFile": null,
@@ -14,7 +16,9 @@
             "params": null,
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
             "response": "Evaluating: a1637d9d-8de4-b8b8-be2e-94118c7f4d71\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0\nPopulation: initial-population = 1\n---",
-            "measureServer": "cohort-cli/config/local-ibm-fhir.json"
+            "measureServer": "cohort-cli/config/local-ibm-fhir.json",
+            "filters": null,
+            "regEx": false
         },
         "Colorectal and over the hill measures" : {
             "jsonMeasureConfigurationFile": "tests/src/main/resources/measure-parameters/colorectal-screening-and-over-the-hill.json",
@@ -22,7 +26,9 @@
             "params": null,
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71", "01268c61-8f89-6d50-4414-9e50d367804d"],
             "response": "Evaluating: a1637d9d-8de4-b8b8-be2e-94118c7f4d71\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0\nPopulation: initial-population = 1\n---\nResult for Measure/wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0\nPopulation: initial-population = 1\n---\nEvaluating: 01268c61-8f89-6d50-4414-9e50d367804d\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0\nPopulation: initial-population = 1\n---\nResult for Measure/wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0\nPopulation: initial-population = 0\n---",
-            "measureServer": "cohort-cli/config/local-ibm-fhir.json"
+            "measureServer": "cohort-cli/config/local-ibm-fhir.json",
+            "filters": null,
+            "regEx": false
         },
         "Over the Hill parameters test" : {
             "jsonMeasureConfigurationFile": "tests/src/main/resources/measure-parameters/over-the-hill-with-parameters.json",
@@ -30,7 +36,9 @@
             "params": null,
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
             "response": "Evaluating: a1637d9d-8de4-b8b8-be2e-94118c7f4d71\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0\nPopulation: initial-population = 1\n---\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0\nPopulation: initial-population = 1\n---\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0\nPopulation: initial-population = 0\n---",
-            "measureServer": "cohort-cli/config/local-ibm-fhir.json"
+            "measureServer": "cohort-cli/config/local-ibm-fhir.json",
+            "filters": null,
+            "regEx": false
         },
         "Over the Hill parameters test - illegalArgumentException received when both -j and -r args not provided" : {
             "jsonMeasureConfigurationFile": null,
@@ -39,6 +47,7 @@
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
             "response": "Exception in thread \"main\" java.lang.IllegalArgumentException: Must specify exactly one of -r or -j options",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
+            "filters": null,
             "regEx": true
         },
         "Over the Hill parameters test - illegalArgumentException received when -j specified with path to file that does not exist" : {
@@ -48,6 +57,7 @@
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
             "response": "Exception in thread \"main\" java.io.FileNotFoundException: tests/src/main/resources/measure-parameters (Is a directory)*",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
+            "filters": null,
             "regEx": true
         },
         "Over the Hill parameters test - Unexpected fields in json object" : {
@@ -57,6 +67,7 @@
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
             "response": "Exception in thread \"main\" com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException: Unrecognized field \"starttime\"",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
+            "filters": null,
             "regEx": true
         },
         "Over the Hill parameters test - Empty measureConfigurations object" : {
@@ -66,6 +77,7 @@
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
             "response": "Exception in thread \"main\" java.lang.IllegalArgumentException: Invalid measure parameter file: Exactly one of id or identifier with a value must be provided for each measure.",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
+            "filters": null,
             "regEx": true
         },
         "Empty measureId entry in measureConfigurations list" : {
@@ -75,6 +87,7 @@
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71", "01268c61-8f89-6d50-4414-9e50d367804d"],
             "response": "Exception in thread \"main\" java.lang.IllegalArgumentException: Invalid measure parameter file: Exactly one of id or identifier with a value must be provided for each measure.",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
+            "filters": null,
             "regEx": true
         },
         "Over the Hill parameters test - Interval parameter missing a required field" : {
@@ -84,6 +97,7 @@
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
             "response": "Exception in thread \"main\" java.lang.IllegalArgumentException: Invalid measure parameter file: Must provide \"subtype\", \"start\",  and \"end\" for each measure parameter with type \"interval\".",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
+            "filters": null,
             "regEx": true
         },
         "Over the Hill parameters test - Unsupported type parameter" : {
@@ -93,6 +107,7 @@
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
             "response": "Exception in thread \"main\" java.lang.IllegalArgumentException: Unsupported interval type timeperiod",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
+            "filters": null,
             "regEx": true
         },
         "Over the Hill parameters test - Incompatible type value" : {
@@ -102,6 +117,7 @@
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
             "response": "Exception in thread \"main\" java.time.format.DateTimeParseException: Text '2020/01/01T00:00:00.0:00.000Z' could not be parsed at index 4",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
+            "filters": null,
             "regEx": true
         },
         "Identifier Test": {
@@ -111,6 +127,7 @@
             "targets": ["47c883bb-160a-7117-c5df-9344041ef048"],
             "response": "Evaluating: 47c883bb-160a-7117-c5df-9344041ef048\nResult for Measure/identifier-test-measure-2\nPopulation: initial-population = 0\n---\nResult for Measure/identifier-test-measure-1\nPopulation: initial-population = 1\n---\nResult for Measure/identifier-test-measure-2\nPopulation: initial-population = 0\n---\nResult for Measure/identifier-test-measure-2\nPopulation: initial-population = 1\n---",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
+            "filters": null,
             "regEx": false
         },
         "Identifier Test - Identifier and id for single message": {
@@ -120,7 +137,38 @@
             "targets": ["47c883bb-160a-7117-c5df-9344041ef048"],
             "response": "Exception in thread \"main\" java.lang.IllegalArgumentException: Invalid measure parameter file: Exactly one of id or identifier with a value must be provided for each measure.",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
+            "filters": null,
             "regEx": true
+        },
+        "MeasureYearlyColonoscopyOver65 measure evaluation using canonical url as resoure identifier": {
+            "jsonMeasureConfigurationFile": null,
+            "resource": "http://ibm.com/health/Measure/MeasureYearlyColonoscopyOver65|1.1.1",
+            "params": null,
+            "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
+            "response": "Evaluating: a1637d9d-8de4-b8b8-be2e-94118c7f4d71\nResult for Measure/dx9ay2fEA2Qi1OrTkCSPpXGUqCT-nJj2yI0-gFk6dk0\nPopulation: initial-population = 1\nPopulation: numerator = 0\nPopulation: denominator = 0\n---",
+            "measureServer": "cohort-cli/config/local-ibm-fhir.json",
+            "filters": null,
+            "regEx": false
+        },
+        "Measure evaluation test - MeasureCLI directly evaluating measure fhir resources in authoring tool exported zip file": {
+            "jsonMeasureConfigurationFile": null,
+            "resource": "http://ibm.com/health/Measure/MeasureYearlyColonoscopyOver65|1.1.1",
+            "params": null,
+            "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
+            "response": "Evaluating: a1637d9d-8de4-b8b8-be2e-94118c7f4d71\nResult for Measure/MeasureYearlyColonoscopyOver65-1.1.1\nPopulation: initial-population = 1\nPopulation: numerator = 0\nPopulation: denominator = 0\n---",
+            "measureServer": "tests/src/main/resources/cql/measure-zip/measure_yearly_colonoscopy_over65_v1_1_1.zip",
+            "filters": ["fhirResources", "fhirResources/libraries"],
+            "regEx": false
+        },
+        "Measure evaluation test - MeasureCLI directly evaluating measure fhir resources unzipped from authoring tool exported zip file into folders in the file system": {
+            "jsonMeasureConfigurationFile": null,
+            "resource": "http://ibm.com/health/Measure/MeasureYearlyColonoscopyOver65|1.1.1",
+            "params": null,
+            "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
+            "response": "Evaluating: a1637d9d-8de4-b8b8-be2e-94118c7f4d71\nResult for Measure/MeasureYearlyColonoscopyOver65-1.1.1\nPopulation: initial-population = 1\nPopulation: numerator = 0\nPopulation: denominator = 0\n---",
+            "measureServer": "tests/src/main/resources/cql/measure-folders/measure_yearly_colonoscopy_over65_v1_1_1/",
+            "filters": ["fhirResources", "fhirResources/libraries"],
+            "regEx": false
         }
     }
 }
