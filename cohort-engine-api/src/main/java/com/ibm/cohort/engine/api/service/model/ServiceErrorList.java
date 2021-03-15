@@ -49,7 +49,7 @@ public class ServiceErrorList   {
 
   /**
  * @param errors A list of input errors
- * @return
+ * @return a ServiceErrorList object
  */
 public ServiceErrorList errors(List<ServiceError> errors) {
     this.errors = errors;
@@ -69,7 +69,7 @@ public ServiceErrorList errors(List<ServiceError> errors) {
 
   /**
  * @param trace error message correlation identifier
- * @return
+ * @return a ServiceErrorList object
  */
 public ServiceErrorList trace(String trace) {
     this.trace = trace;
@@ -88,7 +88,7 @@ public ServiceErrorList trace(String trace) {
 
   /**
  * @param statusCode response code
- * @return
+ * @return a ServiceErrorList object
  */
 public ServiceErrorList statusCode(Integer statusCode) {
     this.statusCode = statusCode;

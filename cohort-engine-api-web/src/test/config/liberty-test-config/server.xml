@@ -7,7 +7,7 @@
         <feature>localConnector-1.0</feature>
     	<feature>jaxrs-2.1</feature>
         <feature>servlet-4.0</feature>
-		<feature>ssl-1.0</feature>
+		<feature>transportSecurity-1.0</feature>
 	</featureManager>
 
 	<ssl id="defaultSSLConfig" sslProtocol="TLSv1.2" />

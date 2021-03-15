@@ -10,7 +10,9 @@ import org.hl7.fhir.r4.model.Type;
 
 public class UnsupportedFhirTypeException extends RuntimeException {
 
-    private final Type type;
+	private static final long serialVersionUID = -8667460433830276020L;
+	
+	private final Type type;
 
     public UnsupportedFhirTypeException(Type type) {
         this.type = type;
