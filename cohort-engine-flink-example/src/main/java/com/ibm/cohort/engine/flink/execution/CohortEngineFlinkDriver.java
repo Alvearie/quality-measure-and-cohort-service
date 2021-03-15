@@ -219,8 +219,6 @@ public class CohortEngineFlinkDriver implements Serializable {
 
 	private RetrieveCacheContext createCacheContext() {
 		CaffeineConfiguration<CacheKey, Iterable<Object>> cacheConfig = new CaffeineConfiguration<>();
-		// TODO: Make cache size configurable??
-		// What other options are there???
 		cacheConfig.setMaximumSize(OptionalLong.of(cacheConfiguration.getMaxSize()));
 		cacheConfig.setExpireAfterWrite(OptionalLong.of(TimeUnit.SECONDS.toNanos(cacheConfiguration.getExpireOnWrite())));
 		cacheConfig.setStatisticsEnabled(cacheConfiguration.isEnableStatistics());

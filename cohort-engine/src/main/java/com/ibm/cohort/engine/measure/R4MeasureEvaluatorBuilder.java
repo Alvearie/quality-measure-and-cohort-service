@@ -33,8 +33,7 @@ public class R4MeasureEvaluatorBuilder {
 
 	public MeasureEvaluator build() {
 		if (clientContext == null) {
-			// TODO: Throw real error
-			throw new RuntimeException("Client context not set");
+			throw new IllegalArgumentException("Client context not provided");
 		}
 
 		TerminologyProvider terminologyProvider = new R4FhirTerminologyProvider(clientContext.getTerminologyClient());
