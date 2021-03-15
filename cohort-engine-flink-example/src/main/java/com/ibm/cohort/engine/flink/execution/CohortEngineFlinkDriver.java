@@ -37,9 +37,9 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
+import org.apache.flink.util.Collector;
 import org.hl7.fhir.r4.model.MeasureReport;
 
-// TODO: Test that this actually works after the list change
 public class CohortEngineFlinkDriver implements Serializable {
 
 	private static final long serialVersionUID = 1966474691011266880L;
@@ -72,13 +72,17 @@ public class CohortEngineFlinkDriver implements Serializable {
 			);
 		}
 
+		boolean enableCache = params.has("enableCache");
 		CacheConfiguration cacheConfiguration = new CacheConfiguration(
 				params.getInt("cacheMaxSize", 1_000),
 				params.getInt("cacheExpireOnWrite", 300),
-				params.getBoolean("cacheEnableStatistics", false)
+				params.has("cacheEnableStatistics")
 		);
 
-		CohortEngineFlinkDriver example = new CohortEngineFlinkDriver(fhirServerInfo, cacheConfiguration);
+		CohortEngineFlinkDriver example = new CohortEngineFlinkDriver(
+				fhirServerInfo,
+				enableCache ? cacheConfiguration : null
+		);
 		example.run(
 				params.get("jobName", "cohort-engine"),
 				params.getRequired("kafkaGroupId"),
@@ -130,7 +134,8 @@ public class CohortEngineFlinkDriver implements Serializable {
 		stream = stream
 				.map(this::deserializeMeasureExecution)
 				.map(this::evaluate)
-				.flatMap((measureReports, collector) -> measureReports.forEach(collector::collect));
+				.flatMap((List<String> measureReports, Collector<String> collector) -> measureReports.forEach(collector::collect))
+				.returns(String.class);
 
 		if (printOutputToConsole) {
 			stream.print();
@@ -200,16 +205,17 @@ public class CohortEngineFlinkDriver implements Serializable {
 	private MeasureEvaluator createEvaluator() {
 		FhirClientBuilderFactory factory = new DefaultFhirClientBuilderFactory();
 
-		FhirClientBuilder builder = factory.newFhirClientBuilder(getFhirContext());
-		IGenericClient genericClient = builder.createFhirClient(fhirServerInfo.toIbmServerConfig());
+		FhirClientBuilder clientBuilder = factory.newFhirClientBuilder(getFhirContext());
+		IGenericClient genericClient = clientBuilder.createFhirClient(fhirServerInfo.toIbmServerConfig());
 
 		FHIRClientContext clientContext = new FHIRClientContext.Builder()
 				.withDefaultClient(genericClient)
 				.build();
-		return new R4MeasureEvaluatorBuilder()
-				.withClientContext(clientContext)
-				.withRetrieveCacheContext(getCacheContext())
-				.build();
+		R4MeasureEvaluatorBuilder evalBuilder = new R4MeasureEvaluatorBuilder().withClientContext(clientContext);
+		if (cacheConfiguration != null) {
+			evalBuilder.withRetrieveCacheContext(getCacheContext());
+		}
+		return evalBuilder.build();
 	}
 
 	private MeasureExecution deserializeMeasureExecution(String input) throws Exception {
