@@ -90,6 +90,9 @@ public class MeasureCLI extends BaseCLI {
 				"--define-return-option" }, description = "Specify define return option for evaluated define statements on measure report. Defaults to NONE. To view returned results, must specify -f JSON.")
 		private DefineReturnOptions defineReturnOption = DefineReturnOptions.NONE;
 
+		@Parameter(names = { "--enable-cache" }, description = "Enable the use of the retrieve cache.")
+		private boolean enableCache = false;
+
 		@Parameter(names = { "--max-cache-size" }, description = "The maximum size the retrieve cache can grow before evictions begin.")
 		private int maxCacheSize = 1_000;
 
@@ -128,41 +131,41 @@ public class MeasureCLI extends BaseCLI {
 
 			readDataServerConfiguration(arguments);
 			readTerminologyServerConfiguration(arguments);
-			
+
 			FhirClientBuilder builder = getFhirClientBuilder();
-			
+
 			IGenericClient dataServerClient = builder.createFhirClient(dataServerConfig);
 			IGenericClient terminologyServerClient = builder.createFhirClient(terminologyServerConfig);
-			
+
 			LibraryResolutionProvider<Library> libraryProvider;
 			MeasureResolutionProvider<Measure> measureProvider;
 
 			IParser parser = getFhirContext().newJsonParser().setPrettyPrint(true);
 			String [] filters = (arguments.filters != null) ? arguments.filters.toArray(new String[arguments.filters.size()]) : null;
-			
+
 			if( arguments.measureServerConfigFile != null && FileHelpers.isZip(arguments.measureServerConfigFile)) {
 				ZipFile zipFile = new ZipFile( arguments.measureServerConfigFile );
-				
+
 				ResourceResolutionProvider resourceProvider = new ZipResourceResolutionProvider(zipFile, parser, filters);
-				
+
 				libraryProvider = resourceProvider;
 				measureProvider = resourceProvider;
-				
+
 			} else if( arguments.measureServerConfigFile != null && arguments.measureServerConfigFile.isDirectory() ) {
-				
+
 				ResourceResolutionProvider resourceProvider = new DirectoryResourceResolutionProvider(arguments.measureServerConfigFile, parser, filters);
-				
+
 				libraryProvider = resourceProvider;
 				measureProvider = resourceProvider;
-				
+
 			} else {
 				readMeasureServerConfiguration( arguments );
 				IGenericClient measureServerClient = builder.createFhirClient(measureServerConfig);
-				
+
 				libraryProvider = new RestFhirLibraryResolutionProvider( measureServerClient );
 				measureProvider = new RestFhirMeasureResolutionProvider( measureServerClient );
 			}
-			
+
 			List<MeasureContext> measureContexts;
 
 			if (arguments.measureConfigurationFile != null) {
@@ -177,7 +180,7 @@ public class MeasureCLI extends BaseCLI {
 			cacheConfig.setStatisticsEnabled(arguments.enableCacheStatistics);
 
 			TerminologyProvider terminologyProvider = new R4FhirTerminologyProvider(terminologyServerClient);
-			try(RetrieveCacheContext retrieveCacheContext = new TransientRetrieveCacheContext(cacheConfig)) {
+			try (RetrieveCacheContext retrieveCacheContext = arguments.enableCache ? new TransientRetrieveCacheContext(cacheConfig) : null) {
 				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataServerClient, terminologyProvider, retrieveCacheContext);
 
 				evaluator = new MeasureEvaluator(measureProvider, libraryProvider, terminologyProvider, dataProviders);
@@ -212,7 +215,7 @@ public class MeasureCLI extends BaseCLI {
 		}
 		return evaluator;
 	}
-	
+
 	public static void main(String[] args) throws Exception {
 		MeasureCLI cli = new MeasureCLI();
 		cli.runWithArgs( args, System.out );
