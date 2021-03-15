@@ -1,4 +1,9 @@
-package com.ibm.cohort.engine.api.service.model;
+/*
+ * (C) Copyright IBM Corp. 2021, 2021
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+package com.ibm.cohort.engine.parameter;
 
 import org.opencds.cqf.cql.engine.runtime.Date;
 
@@ -6,9 +11,8 @@ public class DateParameter extends SimpleParameter {
 	public DateParameter() {
 		setType(ParameterType.DATE);
 	}
-	public DateParameter(String name, String value) {
+	public DateParameter(String value) {
 		this();
-		setName(name);
 		setValue(value);
 	}
 	

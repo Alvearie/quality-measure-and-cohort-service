@@ -131,8 +131,8 @@ public class CohortEngineFlinkDriver implements Serializable {
 		MeasureEvaluator evaluator = getEvaluator();
 
 		MeasureReport result = evaluator.evaluatePatientMeasure(
-				new MeasureContext(execution.getMeasureId()),
 				execution.getPatientId(),
+				new MeasureContext(execution.getMeasureId()),
 				NO_EVIDENCE_OPTIONS
 		);
 

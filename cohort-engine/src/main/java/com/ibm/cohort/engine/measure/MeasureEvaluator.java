@@ -12,7 +12,6 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hl7.fhir.r4.model.Extension;
-import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
@@ -27,6 +26,7 @@ import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
 import com.ibm.cohort.engine.measure.seed.IMeasureEvaluationSeed;
 import com.ibm.cohort.engine.measure.seed.MeasureEvaluationSeeder;
+import com.ibm.cohort.engine.parameter.Parameter;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
@@ -115,7 +115,7 @@ public class MeasureEvaluator {
 		List<MeasureReport> measureReports = new ArrayList<>();
 		MeasureReport measureReport;
 		for (MeasureContext measureContext: measureContexts) {
-			measureReport = evaluatePatientMeasure(measureContext, patientId, evidenceOptions);
+			measureReport = evaluatePatientMeasure(patientId, measureContext, evidenceOptions);
 			measureReports.add(measureReport);
 		}
 		return measureReports;
@@ -132,7 +132,7 @@ public class MeasureEvaluator {
 		return evaluatePatientMeasures(patientId, measureContexts, new MeasureEvidenceOptions());
 	}
 
-	public MeasureReport evaluatePatientMeasure(MeasureContext context, String patientId, MeasureEvidenceOptions evidenceOptions) {
+	public MeasureReport evaluatePatientMeasure(String patientId, MeasureContext context, MeasureEvidenceOptions evidenceOptions) {
 		MeasureReport measureReport = null;
 
 		if (context.getMeasureId() != null) {
@@ -144,22 +144,23 @@ public class MeasureEvaluator {
 		return measureReport;
 	}
 
-	public MeasureReport evaluatePatientMeasure(String measureId, String patientId, Map<String, Object> parameters, MeasureEvidenceOptions evidenceOptions) {
+	public MeasureReport evaluatePatientMeasure(String measureId, String patientId, Map<String, Parameter> parameters, MeasureEvidenceOptions evidenceOptions) {
 		Measure measure = MeasureHelper.loadMeasure(measureId, getMeasureResolutionProvider());
 		return evaluatePatientMeasure(measure, patientId, parameters, evidenceOptions);
 	}
 	
-	public MeasureReport evaluatePatientMeasure(String measureId, String patientId, Map<String, Object> parameters) {
+	public MeasureReport evaluatePatientMeasure(String measureId, String patientId, Map<String, Parameter> parameters) {
 		Measure measure = MeasureHelper.loadMeasure(measureId, getMeasureResolutionProvider());
 		return evaluatePatientMeasure(measure, patientId, parameters, new MeasureEvidenceOptions());
 	}
 
-	public MeasureReport evaluatePatientMeasure(Identifier identifier, String version, String patientId, Map<String, Object> parameters, MeasureEvidenceOptions evidenceOptions) {
+	public MeasureReport evaluatePatientMeasure(Identifier identifier, String version, String patientId, Map<String, Parameter> parameters, MeasureEvidenceOptions evidenceOptions) {
+		
 		Measure measure =  MeasureHelper.loadMeasure(identifier,  version, getMeasureResolutionProvider());
 		return evaluatePatientMeasure(measure, patientId, parameters, evidenceOptions);
 	}
 
-	public MeasureReport evaluatePatientMeasure(Measure measure, String patientId, Map<String, Object> parameters, MeasureEvidenceOptions evidenceOptions) {
+	public MeasureReport evaluatePatientMeasure(Measure measure, String patientId, Map<String, Parameter> parameters, MeasureEvidenceOptions evidenceOptions) {
 		Pair<String, String> period = getMeasurementPeriodStrategy().getMeasurementPeriod(measure, parameters);
 		return evaluatePatientMeasure(measure, patientId, period.getLeft(), period.getRight(), parameters, evidenceOptions);
 	}
@@ -192,7 +193,7 @@ public class MeasureEvaluator {
 	 * @return FHIR MeasureReport
 	 */
 	public MeasureReport evaluatePatientMeasure(Measure measure, String patientId, String periodStart, String periodEnd,
-			Map<String, Object> parameters, MeasureEvidenceOptions evidenceOptions) {
+			Map<String, Parameter> parameters, MeasureEvidenceOptions evidenceOptions) {
 		LibraryResolutionProvider<Library> libraryResolutionProvider = getLibraryResolutionProvider();
 		LibraryLoader libraryLoader = LibraryHelper.createLibraryLoader(libraryResolutionProvider);
 
@@ -211,8 +212,8 @@ public class MeasureEvaluator {
 								         toCqlObject(measureDefault.getValue())));
 
 		if (parameters != null) {
-			for (Map.Entry<String, Object> entry : parameters.entrySet()) {
-				seed.getContext().setParameter(null, entry.getKey(), entry.getValue());
+			for (Map.Entry<String, Parameter> entry : parameters.entrySet()) {
+				seed.getContext().setParameter(null, entry.getKey(), entry.getValue().toCqlType());
 			}
 		}
 

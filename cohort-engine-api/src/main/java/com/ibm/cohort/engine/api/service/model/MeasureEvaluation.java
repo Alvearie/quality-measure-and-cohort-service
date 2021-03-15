@@ -5,21 +5,24 @@
  */
 package com.ibm.cohort.engine.api.service.model;
 
-import java.util.Map;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+@ApiModel
 public class MeasureEvaluation {
 
 	private FhirServerConfig dataServerConfig;
 	private FhirServerConfig terminologyServerConfig;
 	private String patientId;
-	private String measureId;
-
-	private Map<String,Parameter> parameterOverrides;
+	private MeasureContext measureContext;
 	private MeasureEvidenceOptions evidenceOptions;
 
 	@ApiModelProperty(required = true)
@@ -49,24 +52,15 @@ public class MeasureEvaluation {
 		this.patientId = patientId;
 	}
 
-	@ApiModelProperty(required = true)
-	public String getMeasureId() {
-		return measureId;
+	@ApiModelProperty(required=true)
+	public MeasureContext getMeasureContext() {
+		return measureContext;
 	}
 
-	public void setMeasureId(String measureId) {
-		this.measureId = measureId;
+	public void setMeasureContext(MeasureContext measureContext) {
+		this.measureContext = measureContext;
 	}
-
-	@ApiModelProperty(required = false)
-	public Map<String, Parameter> getParameterOverrides() {
-		return parameterOverrides;
-	}
-
-	public void setParameterOverrides(Map<String, Parameter> parameterOverrides) {
-		this.parameterOverrides = parameterOverrides;
-	}
-
+	
 	@ApiModelProperty(required = false)
 	public MeasureEvidenceOptions getEvidenceOptions() {
 		return evidenceOptions;
@@ -74,5 +68,20 @@ public class MeasureEvaluation {
 
 	public void setEvidenceOptions(MeasureEvidenceOptions evidenceOptions) {
 		this.evidenceOptions = evidenceOptions;
+	}
+	
+	@Override
+	public int hashCode() {
+		return HashCodeBuilder.reflectionHashCode(this);
+	}
+	
+	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this);
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		return EqualsBuilder.reflectionEquals(this, o);
 	}
 }

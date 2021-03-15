@@ -201,7 +201,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 
 		File tmpMeasureConfigurationsFile = createTmpConfigurationsFileFromContents(
 				"{\"measureConfigurations\":[{\"measureId\":\"" + measure.getUrl() + "\"}," + 
-						"{\"measureId\":\"" + measure.getId() + "\",\"parameters\":[" + createParameterString("p1", "integer", "10")+ "]}]}");
+						"{\"measureId\":\"" + measure.getId() + "\",\"parameters\":{\"p1\": {\"type\":\"integer\", \"value\":10}}" + "}]}");
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream out = new PrintStream(baos);
@@ -617,10 +617,6 @@ public class MeasureCLITest extends BaseMeasureTest {
 	
 	private File createTmpConfigurationsFileForSingleMeasure(String measureId) throws IOException {
 		return createTmpConfigurationsFileFromContents("{\"measureConfigurations\":[{\"measureId\":\"" + measureId + "\"}]}");
-	}
-	
-	private String createParameterString(String name, String type, String value) {
-		return "{\"name\":\"" + name + "\",\"type\":\"" + type + "\",\"value\":\"" + value +"\"}";
 	}
 	
 	private File createTmpConfigurationsFileFromContents(String contents) throws IOException {

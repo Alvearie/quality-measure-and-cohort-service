@@ -1,4 +1,4 @@
-package com.ibm.cohort.engine.api.service.model;
+package com.ibm.cohort.engine.parameter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -16,21 +16,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ParameterTest {
 	@Test
 	public void when_serialize_deserialize___properties_remain_the_same() throws Exception {
-		Parameter integer = new IntegerParameter("MyInteger", 10);
-		Parameter decimal = new DecimalParameter("MyDecimal", "+100.99e10");
-		Parameter bool = new BooleanParameter("MyDecimal", true);
-		Parameter str = new StringParameter("MyDecimal", "StringValueHere");
-		Parameter date = new DateParameter("MyDate", "2020-07-04");
-		Parameter datetime = new DatetimeParameter("MyDatetime", "2020-07-04T23:00:00-05:00");
-		Parameter time = new TimeParameter("MyTime", "@T23:00:00");
+		Parameter integer = new IntegerParameter(10);
+		Parameter decimal = new DecimalParameter("+100.99e10");
+		Parameter bool = new BooleanParameter(true);
+		Parameter str = new StringParameter("StringValueHere");
+		Parameter date = new DateParameter("2020-07-04");
+		Parameter datetime = new DatetimeParameter("2020-07-04T23:00:00-05:00");
+		Parameter time = new TimeParameter("@T23:00:00");
 
-		QuantityParameter quantity = new QuantityParameter("MyQuantity", "10", "mg/mL");
-		QuantityParameter denominator = new QuantityParameter("denominator", "100", "mg/mL");
-		Parameter ratio = new RatioParameter("MyRatio", quantity, denominator);
-		Parameter end = new IntegerParameter("end", 1000);
-		Parameter interval = new IntervalParameter("MyInterval", integer, true, end, false);
-		CodeParameter code = new CodeParameter("MyCode", "http://hl7.org/terminology/blob", "1234", "Blob", "1.0.0");
-		Parameter concept = new ConceptParameter("MyConcept", "MyConcept", code);
+		QuantityParameter quantity = new QuantityParameter("10", "mg/mL");
+		QuantityParameter denominator = new QuantityParameter("100", "mg/mL");
+		Parameter ratio = new RatioParameter(quantity, denominator);
+		Parameter end = new IntegerParameter(1000);
+		Parameter interval = new IntervalParameter(integer, true, end, false);
+		CodeParameter code = new CodeParameter("http://hl7.org/terminology/blob", "1234", "Blob", "1.0.0");
+		Parameter concept = new ConceptParameter("MyConcept", code);
 		
 		List<Parameter> parameters = Arrays.asList(integer, decimal, bool, str, date, datetime, time, quantity, denominator, ratio, interval, code, concept);
 		
@@ -57,10 +57,9 @@ public class ParameterTest {
 	@Test
 	public void datetime_interval_with_non_inclusive_end___ends_just_before_value() {
 		IntervalParameter parameter = new IntervalParameter(
-				"Interval",
-				new DatetimeParameter("Start", "2020-03-14T00:00:00-05:00"),
+				new DatetimeParameter("2020-03-14T00:00:00-05:00"),
 				true,
-				new DatetimeParameter("End", "2021-03-14T00:00:00-05:00"),
+				new DatetimeParameter("2021-03-14T00:00:00-05:00"),
 				false
 				);
 		

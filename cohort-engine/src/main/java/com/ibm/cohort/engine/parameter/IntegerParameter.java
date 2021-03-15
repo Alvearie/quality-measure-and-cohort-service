@@ -1,4 +1,9 @@
-package com.ibm.cohort.engine.api.service.model;
+/*
+ * (C) Copyright IBM Corp. 2021, 2021
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+package com.ibm.cohort.engine.parameter;
 
 public class IntegerParameter extends Parameter {
 	private int value;
@@ -7,9 +12,8 @@ public class IntegerParameter extends Parameter {
 		setType(ParameterType.INTEGER);
 	}
 	
-	public IntegerParameter(String name, int value) { 
+	public IntegerParameter(int value) { 
 		this();
-		setName(name);
 		setValue(value);
 	}
 

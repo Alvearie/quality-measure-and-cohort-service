@@ -5,12 +5,11 @@
  */
 package com.ibm.cohort.engine.api.service;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.zip.ZipInputStream;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -31,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
-import com.ibm.cohort.engine.api.service.model.Parameter;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfoList;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
@@ -40,6 +38,7 @@ import com.ibm.cohort.engine.measure.ZipResourceResolutionProvider;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
+import com.ibm.watson.common.service.base.DarkFeatureSwaggerFilter;
 import com.ibm.watson.common.service.base.ServiceBaseConstants;
 import com.ibm.watson.common.service.base.ServiceBaseUtility;
 import com.ibm.websphere.jaxrs20.multipart.IAttachment;
@@ -48,12 +47,16 @@ import com.ibm.websphere.jaxrs20.multipart.IMultipartBody;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.Authorization;
 import io.swagger.annotations.BasicAuthDefinition;
+import io.swagger.annotations.Extension;
+import io.swagger.annotations.ExtensionProperty;
 import io.swagger.annotations.SecurityDefinition;
 import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
@@ -70,6 +73,9 @@ import io.swagger.annotations.Tag;
 tags={@Tag(name = "FHIR Measures", description = "IBM Cohort Engine FHIR Measure Information"),
 						@Tag(name = "measures", description = "IBM Cohort Engine Measure Evaluation")})
 public class CohortEngineRestHandler {
+	private static final String MEASURE_PART_DESC = "ZIP archive containing the FHIR Measure and Library resources used in the evaluation.";
+	private static final String REQUEST_DATA_PART_DESC = "Metadata describing the evaluation to perform.";
+	private static final String EVALUATION_API_NOTES = "The body of the request is a multipart/form-data request with an application/json attachment named 'requestData' that describes the measure evaluation that will be performed and an application/zip attachment named 'measure' that contains the measure and library artifacts to be evaluated. Valueset resources required for Measure evaluation must be loaded to the FHIR server in advance of an evaluation request. ";
 	private static final Logger logger = LoggerFactory.getLogger(CohortEngineRestHandler.class.getName());
 	private static final String FHIR_ENDPOINT_DESC = "The REST endpoint of the FHIR server the measure/libraries are stored in. For example: "
 			+ "https://localhost:9443/fhir-server/api/v4";
@@ -114,15 +120,38 @@ public class CohortEngineRestHandler {
 
 	@POST
 	@Path("/evaluation")
-	//@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "Evaluates a measure bundle for a single patient", notes = "Valueset resources required for Measure evaluation must be loaded to the FHIR server in advance of an evaluation request.", response = String.class, tags = {
-			"measures" })
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "successful operation", response = MeasureReport.class),
-			@ApiResponse(code = 500, message = "evaluation failed", response = Exception.class) })
-	public Response evaluateMeasures(@Context HttpServletRequest request,
+	@ApiOperation(value = "Evaluates a measure bundle for a single patient"
+		, notes = EVALUATION_API_NOTES, response = String.class
+		, tags = {"measures" }
+		, extensions = {
+				@Extension(properties = {
+						@ExtensionProperty(
+								name = DarkFeatureSwaggerFilter.DARK_FEATURE_NAME
+								, value = CohortEngineRestConstants.DARK_LAUNCHED_MEASURE_EVALUATION)
+				})
+		}
+	)
+	@ApiImplicitParams({
+		// This is necessary for the dark launch feature
+		@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
+		// These are necessary to create a proper view of the request body that is all wrapped up in the Liberty IMultipartBody parameter
+		@ApiImplicitParam(name=REQUEST_DATA_PART, value=REQUEST_DATA_PART_DESC, dataTypeClass = MeasureEvaluation.class, required=true, paramType="form"),
+		@ApiImplicitParam(name=MEASURE_PART, value=MEASURE_PART_DESC, required=true, paramType="form", type="file" )
+	})
+	@ApiResponses(value = { 
+			@ApiResponse(code = 200, message = "Successful Operation"),
+			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class), 
+			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class) 
+	})
+	public Response evaluateMeasure(@Context HttpServletRequest request,
 			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
-			@ApiParam(value = "Multipart form request containing measure evaluation metadata (rootPart) and a measure ZIP artifact (measure)") IMultipartBody multipartBody) {		
+			@ApiParam(hidden = true, type="file") IMultipartBody multipartBody) {		
+		final String methodName = "evaluateMeasure";
+		
+		// Error out if feature is not enabled
+		ServiceBaseUtility.isDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_MEASURE_EVALUATION);
 		
 		ResponseBuilder responseBuilder = null;
 		
@@ -141,14 +170,6 @@ public class CohortEngineRestHandler {
 			ObjectMapper om = new ObjectMapper();
 			MeasureEvaluation evaluationRequest = om.readValue( metadataAttachment.getDataHandler().getInputStream(), MeasureEvaluation.class );
 			
-			Map<String,Object> typedParameters = null;
-			if( evaluationRequest.getParameterOverrides() != null ) {
-				typedParameters = new HashMap<>();
-				for( Map.Entry<String, Parameter> entry : evaluationRequest.getParameterOverrides().entrySet() ) {
-					typedParameters.put( entry.getKey(), entry.getValue().toCqlType());
-				}
-			}
-			
 			FhirClientBuilder clientBuilder = FhirClientBuilderFactory.newInstance().newFhirClientBuilder();
 			IGenericClient dataClient = clientBuilder.createFhirClient(evaluationRequest.getDataServerConfig());
 			IGenericClient terminologyClient = dataClient;
@@ -164,14 +185,20 @@ public class CohortEngineRestHandler {
 			MeasureEvaluator evaluator = new MeasureEvaluator(dataClient, terminologyClient);
 			evaluator.setLibraryResolutionProvider(provider);
 			evaluator.setMeasureResolutionProvider(provider);
-			MeasureReport report = evaluator.evaluatePatientMeasure(evaluationRequest.getMeasureId(), evaluationRequest.getPatientId(), typedParameters, evaluationRequest.getEvidenceOptions());
+			MeasureReport report = evaluator.evaluatePatientMeasure(evaluationRequest.getPatientId(), evaluationRequest.getMeasureContext(), evaluationRequest.getEvidenceOptions());
 			
 			// The default serializer gets into an infinite loop when trying to serialize MeasureReport, so we use the
 			// HAPI encoder instead.
 			responseBuilder = Response.status(Response.Status.OK).header("Content-Type", "application/json").entity(parser.encodeResourceToString(report));
-		} catch( Exception ex ) {
-			//responseBuilder = Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ex);
-			throw new RuntimeException(ex);
+		} catch (Throwable e) {
+			//map any exceptions caught into the proper REST error response objects
+			return new CohortServiceExceptionMapper().toResponse(e);
+		} finally {
+			// Perform api cleanup
+			Response errorResponse = ServiceBaseUtility.apiCleanup(logger, methodName);
+			if(errorResponse != null) {
+				return errorResponse;
+			}
 		}
 
 		return responseBuilder.build();

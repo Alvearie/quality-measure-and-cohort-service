@@ -13,10 +13,12 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.zip.ZipInputStream;
 
 import org.hl7.fhir.instance.model.api.IAnyResource;
@@ -147,7 +149,9 @@ public class CohortCLI extends BaseCLI {
 
 			Map<String, Object> parameters = null;
 			if (arguments.parameters != null) {
-				parameters = parseParameterArguments(arguments.parameters);
+				parameters = parseParameterArguments(arguments.parameters).entrySet().stream()
+						.map(entry -> new AbstractMap.SimpleEntry<String,Object>(entry.getKey(), entry.getValue().toCqlType()))
+						.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 			}
 			
 			wrapper.evaluate(arguments.libraryName, arguments.libraryVersion, parameters, arguments.expressions,

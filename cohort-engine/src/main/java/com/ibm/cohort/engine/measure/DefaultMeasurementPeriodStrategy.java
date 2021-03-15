@@ -7,7 +7,6 @@ package com.ibm.cohort.engine.measure;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
@@ -15,8 +14,11 @@ import java.util.Map;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hl7.fhir.r4.model.Measure;
-import org.opencds.cqf.cql.engine.runtime.DateTime;
-import org.opencds.cqf.cql.engine.runtime.Interval;
+
+import com.ibm.cohort.engine.parameter.DateParameter;
+import com.ibm.cohort.engine.parameter.DatetimeParameter;
+import com.ibm.cohort.engine.parameter.IntervalParameter;
+import com.ibm.cohort.engine.parameter.Parameter;
 
 /**
  * Provide a very basic implementation of a measurement period determination
@@ -73,6 +75,7 @@ public class DefaultMeasurementPeriodStrategy implements MeasurementPeriodStrate
 	 * if not provided;
 	 * 
 	 * @param name parameter name
+	 * @return this
 	 */
 	public DefaultMeasurementPeriodStrategy setMeasurementPeriodParameter(String name) {
 		this.measurementPeriodParameter = name;
@@ -91,6 +94,7 @@ public class DefaultMeasurementPeriodStrategy implements MeasurementPeriodStrate
 	 * Allow the user to provide the "now" date as needed.
 	 * 
 	 * @param date the "now" date for the system timezone.
+	 * @return this
 	 */
 	public DefaultMeasurementPeriodStrategy setNow(Date date) {
 		this.now = date;
@@ -113,13 +117,13 @@ public class DefaultMeasurementPeriodStrategy implements MeasurementPeriodStrate
 	}
 
 	@Override
-	public Pair<String, String> getMeasurementPeriod(Measure measure, Map<String,Object> parameterOverrides) {
+	public Pair<String, String> getMeasurementPeriod(Measure measure, Map<String,Parameter> parameterOverrides) {
 		Pair<String,String> result = null;
 		
 		if( parameterOverrides != null ) { 
 			Object measurementPeriod = parameterOverrides.get(measurementPeriodParameter);
 			if( measurementPeriod != null ) {
-				result = intervalToPair((Interval)measurementPeriod);
+				result = intervalToPair((IntervalParameter)measurementPeriod);
 			}
 		}
 		
@@ -129,27 +133,22 @@ public class DefaultMeasurementPeriodStrategy implements MeasurementPeriodStrate
 		return result;
 	}
 
-	protected Pair<String, String> intervalToPair(Interval interval) {
+	protected Pair<String, String> intervalToPair(IntervalParameter interval) {
 		String start = null;
 		String end = null; 
 		
-		DateTimeFormatter dtf = DateTimeFormatter.ofPattern(TARGET_DATE_FORMAT);
-		if( interval.getStart() instanceof DateTime ) {
-			DateTime dtStart = (DateTime) interval.getStart();
-			start = dtStart.getDateTime().format(dtf);
+		if( interval.getStart() instanceof DatetimeParameter ) {
+			DatetimeParameter dtStart = (DatetimeParameter) interval.getStart();
+			start = dtStart.getValue();
 			
-			DateTime dtEnd = (DateTime) interval.getEnd();
-			end = dtEnd.getDateTime().format(dtf);
-		} else if( interval.getStart() instanceof org.opencds.cqf.cql.engine.runtime.Date ) {
-			org.opencds.cqf.cql.engine.runtime.Date dStart = (org.opencds.cqf.cql.engine.runtime.Date) interval.getStart();
-			start = dStart.getDate().format(dtf);
+			DatetimeParameter dtEnd = (DatetimeParameter) interval.getEnd();
+			end = dtEnd.getValue();
+		} else if( interval.getStart() instanceof DateParameter ) {
+			DateParameter dStart = (DateParameter) interval.getStart();
+			start = dStart.getValue();
 			
-			org.opencds.cqf.cql.engine.runtime.Date dEnd = (org.opencds.cqf.cql.engine.runtime.Date) interval.getEnd();
-			end = dEnd.getDate().format(dtf);
-		} else if( interval.getStart() instanceof java.util.Date ) {
-			DateFormat df = new SimpleDateFormat(TARGET_DATE_FORMAT);
-			start = df.format((java.util.Date) interval.getStart());
-			end = df.format((java.util.Date) interval.getEnd());
+			DateParameter dEnd = (DateParameter) interval.getEnd();
+			end = dEnd.getValue();
 		} else {
 			throw new IllegalArgumentException(String.format("Unexpected interval data type '%s'", interval.getStart().getClass()));
 		}

@@ -1,4 +1,9 @@
-package com.ibm.cohort.engine.api.service.model;
+/*
+ * (C) Copyright IBM Corp. 2021, 2021
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+package com.ibm.cohort.engine.parameter;
 
 public abstract class SimpleParameter extends Parameter {
 	private String value;
@@ -7,9 +12,8 @@ public abstract class SimpleParameter extends Parameter {
 		setType(ParameterType.SIMPLE);
 	}
 	
-	public SimpleParameter(String name, String value) {
+	public SimpleParameter(String value) {
 		this();
-		setName(name);
 		setValue(value);
 	}
 	

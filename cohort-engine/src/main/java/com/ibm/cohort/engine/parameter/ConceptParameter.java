@@ -1,4 +1,9 @@
-package com.ibm.cohort.engine.api.service.model;
+/*
+ * (C) Copyright IBM Corp. 2021, 2021
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+package com.ibm.cohort.engine.parameter;
 
 import java.util.Arrays;
 import java.util.List;
@@ -16,9 +21,8 @@ public class ConceptParameter extends Parameter {
 		setType(ParameterType.CONCEPT);
 	}
 	
-	public ConceptParameter(String name, String display, CodeParameter ...codes) {
+	public ConceptParameter(String display, CodeParameter ...codes) {
 		this();
-		setName(name);
 		setDisplay(display);
 		if( codes != null ) {
 			setCodes( Arrays.asList(codes) );

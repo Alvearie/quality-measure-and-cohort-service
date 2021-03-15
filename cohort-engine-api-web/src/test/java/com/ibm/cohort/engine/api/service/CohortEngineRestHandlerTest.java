@@ -16,7 +16,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.activation.DataHandler;
 import javax.servlet.http.HttpServletRequest;
@@ -54,6 +56,10 @@ import com.ibm.cohort.engine.BaseFhirTest;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.helpers.CanonicalHelper;
+import com.ibm.cohort.engine.measure.MeasureContext;
+import com.ibm.cohort.engine.parameter.DateParameter;
+import com.ibm.cohort.engine.parameter.IntervalParameter;
+import com.ibm.cohort.engine.parameter.Parameter;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import com.ibm.watson.common.service.base.ServiceBaseUtility;
@@ -149,7 +155,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 
 	@PrepareForTest({ Response.class, TenantManager.class, ServiceBaseUtility.class })
 	@Test
-	public void testEvaluateMeasures() throws Exception {
+	public void testEvaluateMeasureSuccess() throws Exception {
 		prepMocks();
 		
 		Response myResponse = PowerMockito.mock(Response.class);
@@ -191,10 +197,19 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		
 		FhirServerConfig clientConfig = getFhirServerConfig();
 		
+		Map<String,Parameter> parameterOverrides = new HashMap<>();
+		parameterOverrides.put("Measurement Period", new IntervalParameter(
+				new DateParameter("2019-07-04")
+				, true
+				, new DateParameter("2020-07-04")
+				, true));
+		
+		MeasureContext measureContext = new MeasureContext(measure.getId(), parameterOverrides);
+		
 		MeasureEvaluation evaluationRequest = new MeasureEvaluation();
 		evaluationRequest.setDataServerConfig(clientConfig);
 		evaluationRequest.setPatientId(patient.getId());
-		evaluationRequest.setMeasureId(measure.getId());
+		evaluationRequest.setMeasureContext(measureContext);
 		//evaluationRequest.setEvidenceOptions(evidenceOptions);
 		
 		File tempFile = new File("target/test_measure_v1_0_0.zip");
@@ -225,7 +240,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 			when( body.getAttachment(CohortEngineRestHandler.REQUEST_DATA_PART) ).thenReturn(rootPart);
 			when( body.getAttachment(CohortEngineRestHandler.MEASURE_PART) ).thenReturn(measurePart);
 			
-			Response loadResponse = restHandler.evaluateMeasures(mockRequestContext, "version", body);
+			Response loadResponse = restHandler.evaluateMeasure(mockRequestContext, "version", body);
 			assertEquals(mockResponse, loadResponse);
 		} finally {
 			tempFile.delete();

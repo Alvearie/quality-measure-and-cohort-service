@@ -19,8 +19,10 @@ import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hl7.fhir.r4.model.Measure;
 import org.junit.Test;
-import org.opencds.cqf.cql.engine.runtime.DateTime;
-import org.opencds.cqf.cql.engine.runtime.Interval;
+
+import com.ibm.cohort.engine.parameter.DateParameter;
+import com.ibm.cohort.engine.parameter.IntervalParameter;
+import com.ibm.cohort.engine.parameter.Parameter;
 
 public class DefaultMeasurementPeriodStrategyTest {
 
@@ -92,7 +94,7 @@ public class DefaultMeasurementPeriodStrategyTest {
 		c.set(2020, Calendar.OCTOBER, 20);
 		
 		Measure measure = new Measure();
-		Map<String, Object> parameterOverrides = Collections.emptyMap();
+		Map<String, Parameter> parameterOverrides = Collections.emptyMap();
 
 		Pair<String, String> result = new DefaultMeasurementPeriodStrategy()
 				.setNow(c.getTime()).getMeasurementPeriod(measure, parameterOverrides);
@@ -108,7 +110,7 @@ public class DefaultMeasurementPeriodStrategyTest {
 		c.set(2020, Calendar.AUGUST, 15);
 		
 		Measure measure = new Measure();
-		Map<String, Object> parameterOverrides = null;
+		Map<String, Parameter> parameterOverrides = null;
 
 		Pair<String, String> result = new DefaultMeasurementPeriodStrategy()
 				.setNow(c.getTime()).getMeasurementPeriod(measure, parameterOverrides);
@@ -120,18 +122,9 @@ public class DefaultMeasurementPeriodStrategyTest {
 	@Test
 	public void parameter_not_null_datetime___value_used() {
 
-		Calendar c = Calendar.getInstance();
-		c.clear();
-		
-		c.set(2020, Calendar.MARCH, 14);
-		Date startDate = c.getTime();
-		c.add(Calendar.MONTH, 6);
-		Date endDate = c.getTime();
-		
 		Measure measure = new Measure();
-		Map<String, Object> parameterOverrides = Collections.singletonMap(DefaultMeasurementPeriodStrategy.DEFAULT_MEASUREMENT_PERIOD_PARAMETER,
-				new Interval(DateTime.fromJavaDate(startDate), true,
-						DateTime.fromJavaDate(endDate), true));
+		Map<String, Parameter> parameterOverrides = Collections.singletonMap(DefaultMeasurementPeriodStrategy.DEFAULT_MEASUREMENT_PERIOD_PARAMETER,
+				new IntervalParameter(new DateParameter("2020-03-14"), true, new DateParameter("2020-09-14"), true));
 
 		Pair<String, String> result = new DefaultMeasurementPeriodStrategy()
 				.getMeasurementPeriod(measure, parameterOverrides);
@@ -142,9 +135,8 @@ public class DefaultMeasurementPeriodStrategyTest {
 
 	private void runGetMeasurementPeriodTest(String parameterName, String start, String end) {
 		Measure measure = new Measure();
-		Map<String, Object> parameterOverrides = Collections.singletonMap(parameterName,
-				new Interval(new org.opencds.cqf.cql.engine.runtime.Date(start), true,
-						new org.opencds.cqf.cql.engine.runtime.Date(end), true));
+		Map<String, Parameter> parameterOverrides = Collections.singletonMap(parameterName,
+				new IntervalParameter(new DateParameter(start), true, new DateParameter(end), true));
 
 		Pair<String, String> result = new DefaultMeasurementPeriodStrategy()
 				.setMeasurementPeriodParameter(parameterName).getMeasurementPeriod(measure, parameterOverrides);

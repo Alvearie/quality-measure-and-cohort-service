@@ -12,12 +12,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.hl7.fhir.r4.model.Identifier;
-import org.opencds.cqf.r4.builders.IdentifierBuilder;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.cli.ParameterHelper;
+import com.ibm.cohort.engine.measure.Identifier;
 import com.ibm.cohort.engine.measure.MeasureContext;
+import com.ibm.cohort.engine.parameter.Parameter;
 
 public class MeasureContextProvider {
 	public static List<MeasureContext> getMeasureContexts(File input) throws IOException {
@@ -32,16 +31,14 @@ public class MeasureContextProvider {
 					MeasureIdentifier measureIdentifier = x.getIdentifier();
 					Identifier identifier = null;
 					if (measureIdentifier != null) {
-						identifier = new IdentifierBuilder().buildSystem(measureIdentifier.getSystem())
-								.buildValue(measureIdentifier.getValue())
-								.build();
+						identifier = new Identifier(measureIdentifier.getSystem(), measureIdentifier.getValue());
 					}
 					return new MeasureContext(x.getMeasureId(), x.getParameters(), identifier, x.getVersion());
 				}).collect(Collectors.toList());
 	}
 
 	public static List<MeasureContext> getMeasureContexts(String resourceId, List<String> parameters) {
-		Map<String, Object> parsedParameters = null;
+		Map<String, Parameter> parsedParameters = null;
 		if (parameters != null) {
 			parsedParameters = ParameterHelper.parseParameterArguments(parameters);
 		}

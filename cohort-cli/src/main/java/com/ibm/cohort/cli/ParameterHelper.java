@@ -5,8 +5,6 @@
  */
 package com.ibm.cohort.cli;
 
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
@@ -14,13 +12,16 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.opencds.cqf.cql.engine.runtime.Code;
-import org.opencds.cqf.cql.engine.runtime.DateTime;
-import org.opencds.cqf.cql.engine.runtime.Interval;
-import org.opencds.cqf.cql.engine.runtime.Quantity;
-import org.opencds.cqf.cql.engine.runtime.Time;
-
-import com.ibm.cohort.cli.input.Parameter;
+import com.ibm.cohort.engine.parameter.BooleanParameter;
+import com.ibm.cohort.engine.parameter.CodeParameter;
+import com.ibm.cohort.engine.parameter.DatetimeParameter;
+import com.ibm.cohort.engine.parameter.DecimalParameter;
+import com.ibm.cohort.engine.parameter.IntegerParameter;
+import com.ibm.cohort.engine.parameter.IntervalParameter;
+import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.cohort.engine.parameter.QuantityParameter;
+import com.ibm.cohort.engine.parameter.StringParameter;
+import com.ibm.cohort.engine.parameter.TimeParameter;
 
 public class ParameterHelper {
 	/**
@@ -30,8 +31,8 @@ public class ParameterHelper {
 	 * @param arguments list of CQL parameter values encoded as strings
 	 * @return decoded parameter values formatted for consumption by the CQL engine
 	 */
-	public static Map<String, Object> parseParameterArguments(List<String> arguments) {
-		Map<String, Object> result = new HashMap<>();
+	public static Map<String, Parameter> parseParameterArguments(List<String> arguments) {
+		Map<String, Parameter> result = new HashMap<>();
 
 		Pattern p = Pattern.compile("(?<name>[^:]+):(?<type>[^:]+):(?<value>.*)");
 		for (String arg : arguments) {
@@ -54,7 +55,7 @@ public class ParameterHelper {
 					start = parts[1];
 					end = parts[2];
 				}
-				Map.Entry<String, Object> stringObjectEntry = convertParameter(name, type, value, subType, start, end);
+				Map.Entry<String, Parameter> stringObjectEntry = convertParameter(name, type, value, subType, start, end);
 				result.put(stringObjectEntry.getKey(), stringObjectEntry.getValue());
 			}
 			else {
@@ -64,47 +65,27 @@ public class ParameterHelper {
 		return result;
 	}
 	
-	/**
-	 * Conversion routine for CQL parameter values stored as Parameter objects.
-	 *
-	 * @param parameters list of CQL parameter values as Parameter objects
-	 * @return decoded parameter values formatted for consumption by the CQL engine
-	 */
-	public static Map<String, Object> parseParameters(List<Parameter> parameters) {
-		Map<String, Object> result = new HashMap<>();
-
-		if (parameters != null) {
-			parameters.forEach(p -> {
-				Map.Entry<String, Object> stringObjectEntry = convertParameter(p.getName(), p.getType(), p.getValue(),
-																			   p.getSubtype(), p.getStart(), p.getEnd());
-				result.put(stringObjectEntry.getKey(), stringObjectEntry.getValue());
-			});
-		}
-		return result;
-	}
-	
-
-	private static Map.Entry<String, Object> convertParameter(String name, String type, String value,
+	private static Map.Entry<String, Parameter> convertParameter(String name, String type, String value,
 															  String subType, String start, String end) {
-		Object typedValue = null;
+		Parameter typedValue = null;
 		switch (type) {
 			case "integer":
-				typedValue = Integer.parseInt(value);
+				typedValue = new IntegerParameter( Integer.parseInt(value) );
 				break;
 			case "decimal":
-				typedValue = new BigDecimal(value);
+				typedValue = new DecimalParameter( value );
 				break;
 			case "boolean":
-				typedValue = Boolean.parseBoolean(value);
+				typedValue = new BooleanParameter( Boolean.parseBoolean(value) );
 				break;
 			case "string":
-				typedValue = value;
+				typedValue = new StringParameter( value );
 				break;
 			case "datetime":
 				typedValue = resolveDateTimeParameter(value);
 				break;
 			case "time":
-				typedValue = new Time(value);
+				typedValue = new TimeParameter(value);
 				break;
 			case "quantity":
 				typedValue = resolveQuantityParameter(value);
@@ -117,21 +98,21 @@ public class ParameterHelper {
 			case "interval":
 				switch (subType) {
 					case "integer":
-						typedValue = new Interval(Integer.parseInt(start), true, Integer.parseInt(end), true);
+						typedValue = new IntervalParameter(new IntegerParameter(Integer.parseInt(start)), true, new IntegerParameter(Integer.parseInt(end)), true);
 						break;
 					case "decimal":
-						typedValue = new Interval(new BigDecimal(start), true, new BigDecimal(end), true);
+						typedValue = new IntervalParameter(new DecimalParameter(start), true, new DecimalParameter(end), true);
 						break;
 					case "quantity":
-						typedValue = new Interval(resolveQuantityParameter(start), true, resolveQuantityParameter(end),
+						typedValue = new IntervalParameter(resolveQuantityParameter(start), true, resolveQuantityParameter(end),
 								true);
 						break;
 					case "datetime":
-						typedValue = new Interval(resolveDateTimeParameter(start), true, resolveDateTimeParameter(end),
+						typedValue = new IntervalParameter(resolveDateTimeParameter(start), true, resolveDateTimeParameter(end),
 								true);
 						break;
 					case "time":
-						typedValue = new Interval(new Time(start), true, new Time(end), true);
+						typedValue = new IntervalParameter(new TimeParameter(start), true, new TimeParameter(end), true);
 						break;
 					default:
 						throw new IllegalArgumentException(String.format("Unsupported interval type %s", subType));
@@ -140,7 +121,7 @@ public class ParameterHelper {
 			default:
 				throw new IllegalArgumentException(String.format("Parameter type %s not supported", type));
 		}
-		return new AbstractMap.SimpleEntry<>(name, typedValue);
+		return new AbstractMap.SimpleEntry<String,Parameter>(name, typedValue);
 	}
 
 	/**
@@ -149,11 +130,11 @@ public class ParameterHelper {
 	 * @param value encoded parameter value
 	 * @return decoded parameter value
 	 */
-	public static Object resolveCodeParameter(String value) {
-		Object typedValue;
+	public static CodeParameter resolveCodeParameter(String value) {
+		CodeParameter typedValue;
 		String[] parts;
 		parts = value.trim().split(":");
-		typedValue = new Code().withCode(parts[0]).withSystem(parts[1]).withDisplay(parts[2]);
+		typedValue = new CodeParameter().setValue(parts[0]).setSystem(parts[1]).setDisplay(parts[2]);
 		return typedValue;
 	}
 
@@ -163,9 +144,9 @@ public class ParameterHelper {
 	 * @param value encoded parameter value
 	 * @return decoded parameter value
 	 */
-	public static Object resolveDateTimeParameter(String value) {
-		Object typedValue;
-		typedValue = new DateTime(value.replace("@", ""), OffsetDateTime.now().getOffset());
+	public static DatetimeParameter resolveDateTimeParameter(String value) {
+		DatetimeParameter typedValue;
+		typedValue = new DatetimeParameter(value);
 		return typedValue;
 	}
 
@@ -175,11 +156,11 @@ public class ParameterHelper {
 	 * @param value encoded parameter value
 	 * @return decoded parameter value
 	 */
-	public static Object resolveQuantityParameter(String value) {
-		Object typedValue;
+	public static QuantityParameter resolveQuantityParameter(String value) {
+		QuantityParameter typedValue;
 		String[] parts;
 		parts = value.trim().split(":");
-		typedValue = new Quantity().withValue(new BigDecimal(parts[0])).withUnit(parts[1]);
+		typedValue = new QuantityParameter().setAmount(parts[0]).setUnit(parts[1]);
 		return typedValue;
 	}
 }

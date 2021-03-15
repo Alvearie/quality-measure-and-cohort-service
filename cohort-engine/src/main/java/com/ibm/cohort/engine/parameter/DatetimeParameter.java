@@ -1,4 +1,9 @@
-package com.ibm.cohort.engine.api.service.model;
+/*
+ * (C) Copyright IBM Corp. 2021, 2021
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+package com.ibm.cohort.engine.parameter;
 
 import java.time.OffsetDateTime;
 
@@ -10,9 +15,8 @@ public class DatetimeParameter extends SimpleParameter {
 	public DatetimeParameter() {
 		setType(ParameterType.DATETIME);
 	}
-	public DatetimeParameter(String name, String value) {
+	public DatetimeParameter(String value) {
 		this();
-		setName(name);
 		setValue(value);
 	}
 	

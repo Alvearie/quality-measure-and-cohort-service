@@ -1,4 +1,9 @@
-package com.ibm.cohort.engine.api.service.model;
+/*
+ * (C) Copyright IBM Corp. 2021, 2021
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+package com.ibm.cohort.engine.parameter;
 
 import org.opencds.cqf.cql.engine.runtime.Interval;
 
@@ -12,9 +17,8 @@ public class IntervalParameter extends Parameter {
 		setType(ParameterType.INTERVAL);
 	}
 	
-	public IntervalParameter( String name, Parameter start, boolean startInclusive, Parameter end, boolean endInclusive ) {
+	public IntervalParameter( Parameter start, boolean startInclusive, Parameter end, boolean endInclusive ) {
 		this();
-		setName(name);
 		setStart(start);
 		setStartInclusive(startInclusive);
 		setEnd(end);

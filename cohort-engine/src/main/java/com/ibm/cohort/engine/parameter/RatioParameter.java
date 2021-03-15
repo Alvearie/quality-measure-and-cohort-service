@@ -1,4 +1,9 @@
-package com.ibm.cohort.engine.api.service.model;
+/*
+ * (C) Copyright IBM Corp. 2021, 2021
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+package com.ibm.cohort.engine.parameter;
 
 import org.opencds.cqf.cql.engine.runtime.Quantity;
 import org.opencds.cqf.cql.engine.runtime.Ratio;
@@ -11,9 +16,8 @@ public class RatioParameter extends Parameter {
 		setType(ParameterType.RATIO);
 	}
 	
-	public RatioParameter(String name, QuantityParameter numerator, QuantityParameter denominator) {
+	public RatioParameter(QuantityParameter numerator, QuantityParameter denominator) {
 		this();
-		setName(name);
 		setNumerator( numerator );
 		setDenominator( denominator );
 	}

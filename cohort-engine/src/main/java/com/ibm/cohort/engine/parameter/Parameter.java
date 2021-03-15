@@ -1,4 +1,9 @@
-package com.ibm.cohort.engine.api.service.model;
+/*
+ * (C) Copyright IBM Corp. 2021, 2021
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+package com.ibm.cohort.engine.parameter;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -26,16 +31,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 	
 })
 public abstract class Parameter {
-	private String name;
 	private String type;
 	
-	public String getName() {
-		return name;
-	}
-	public Parameter setName(String name) {
-		this.name = name;
-		return this;
-	}
 	public String getType() {
 		return type;
 	}

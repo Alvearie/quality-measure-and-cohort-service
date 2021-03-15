@@ -5,7 +5,6 @@
  */
 package com.ibm.cohort.engine.measure;
 
-import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Measure;
 
 public class MeasureHelper {
@@ -37,7 +36,8 @@ public class MeasureHelper {
 	public static Measure loadMeasure(Identifier identifier, String version, MeasureResolutionProvider<Measure> provider) {
 		Measure result;
 
-		result = provider.resolveMeasureByIdentifier(identifier, version);
+		org.hl7.fhir.r4.model.Identifier fhirIdentfier = new org.hl7.fhir.r4.model.Identifier().setSystem(identifier.getSystem()).setValue(identifier.getValue());
+		result = provider.resolveMeasureByIdentifier(fhirIdentfier, version);
 
 		if ( result == null ) {
 			throw new IllegalArgumentException(String.format("Failed to resolve Measure resource with identifier:'%s', version:'%s'", identifier, version));

@@ -1,4 +1,9 @@
-package com.ibm.cohort.engine.api.service.model;
+/*
+ * (C) Copyright IBM Corp. 2021, 2021
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+package com.ibm.cohort.engine.parameter;
 
 import java.math.BigDecimal;
 
@@ -12,9 +17,8 @@ public class QuantityParameter extends Parameter {
 		setType(ParameterType.QUANTITY);
 	}
 	
-	public QuantityParameter(String name, String amount, String unit) {
+	public QuantityParameter(String amount, String unit) {
 		this();
-		setName(name);
 		setAmount(amount);
 		setUnit(unit);
 	}

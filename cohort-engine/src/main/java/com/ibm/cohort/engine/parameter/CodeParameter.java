@@ -1,4 +1,9 @@
-package com.ibm.cohort.engine.api.service.model;
+/*
+ * (C) Copyright IBM Corp. 2021, 2021
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+package com.ibm.cohort.engine.parameter;
 
 import org.opencds.cqf.cql.engine.runtime.Code;
 
@@ -12,9 +17,8 @@ public class CodeParameter extends Parameter {
 		setType(ParameterType.CODE);
 	}
 	
-	public CodeParameter(String name, String system, String value, String display, String version) {
+	public CodeParameter(String system, String value, String display, String version) {
 		this();
-		setName(name);
 		setSystem(system);
 		setValue(value);
 		setDisplay(display);
@@ -24,30 +28,34 @@ public class CodeParameter extends Parameter {
 	public String getSystem() {
 		return system;
 	}
-	public void setSystem(String system) {
+	public CodeParameter setSystem(String system) {
 		this.system = system;
+		return this;
 	}
 	public String getValue() {
 		return value;
 	}
-	public void setValue(String value) {
+	public CodeParameter setValue(String value) {
 		this.value = value;
+		return this;
 	}
 
 	public String getDisplay() {
 		return display;
 	}
 
-	public void setDisplay(String display) {
+	public CodeParameter setDisplay(String display) {
 		this.display = display;
+		return this;
 	}
 
 	public String getVersion() {
 		return version;
 	}
 
-	public void setVersion(String version) {
+	public CodeParameter setVersion(String version) {
 		this.version = version;
+		return this;
 	}
 	
 	@Override

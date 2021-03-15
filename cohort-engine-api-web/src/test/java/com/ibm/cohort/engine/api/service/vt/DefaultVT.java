@@ -25,23 +25,19 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.HttpStatus;
 import org.custommonkey.xmlunit.Diff;
-import org.hl7.fhir.r4.model.CodeableConcept;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.Expression;
+import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
-import org.hl7.fhir.r4.model.Period;
-import org.hl7.fhir.r4.model.codesystems.MeasureScoring;
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -49,16 +45,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.Files;
+import com.ibm.cohort.engine.api.service.CohortEngineRestConstants;
 import com.ibm.cohort.engine.api.service.CohortEngineRestHandler;
 import com.ibm.cohort.engine.api.service.ServiceBuildConstants;
 import com.ibm.cohort.engine.api.service.TestHelper;
-import com.ibm.cohort.engine.api.service.model.DateParameter;
-import com.ibm.cohort.engine.api.service.model.IntervalParameter;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
-import com.ibm.cohort.engine.api.service.model.Parameter;
-import com.ibm.cohort.engine.helpers.CanonicalHelper;
+import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
+import com.ibm.cohort.engine.parameter.DateParameter;
+import com.ibm.cohort.engine.parameter.IntervalParameter;
+import com.ibm.cohort.engine.parameter.Parameter;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import com.ibm.watson.common.service.base.utilities.BVT;
 import com.ibm.watson.common.service.base.utilities.DVT;
@@ -97,6 +93,8 @@ import net.javacrumbs.jsonunit.core.Option;
 
 @Category(BVT.class) 			// all classes must be tagged as BVT, otherwise will not be picked up by automation runs
 public class DefaultVT extends ServiceVTBase {
+	private static final String VALID_PATIENT_ID = "eb068c3f-3954-50c6-0c67-2b82d29865f0";
+
 	private static final Logger logger = LoggerFactory.getLogger(DefaultVT.class.getName());
 
 	private static FhirServerConfig dataServerConfig;
@@ -117,6 +115,10 @@ public class DefaultVT extends ServiceVTBase {
 		
 		if( System.getProperty("test.contextRoot") == null ) {
 			System.setProperty("test.contextRoot", "services/cohort");
+		}
+		
+		if( System.getProperty("test.enabledDarkFeatures") == null ) {
+			System.setProperty("test.enabledDarkFeatures", SERVICE_ENABLED_DARK_FEATURES_ALL);
 		}
 		
 		ObjectMapper om = new ObjectMapper();
@@ -148,59 +150,40 @@ public class DefaultVT extends ServiceVTBase {
 	@Category(DVT.class) // to tag a specific test to be part of DVT (deployment verification test)
 	@Test
 	/**
-	 * Test the create evaluation status stub
-	 *
+	 * Test a successful measure evaluation using Resource.id as the lookup key
 	 */
-	public void testMeasureEvaluation() throws Exception {
+	public void testMeasureEvaluationByMeasureID() throws Exception {
+		
+		// You want -Denabled.dark.features=all in your Liberty jvm.options
+		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_MEASURE_EVALUATION));
+		
 		final String RESOURCE = getUrlBase() + CohortServiceAPISpec.CREATE_DELETE_EVALUATION_PATH;
-		
-		Calendar c = Calendar.getInstance();
-		c.set(2019, 07, 04, 0, 0, 0);
-		Date startDate = c.getTime();
-		
-		c.add( Calendar.YEAR, +1);
-		Date endDate = c.getTime();
 		
 		FhirContext fhirContext = FhirContext.forR4();
 		IParser parser = fhirContext.newJsonParser().setPrettyPrint(true);
 		
-		Library library = new Library();
-		library.setId("libraryId");
-		library.setName("test_library");
-		library.setVersion("1.0.0");
-		library.setUrl("http://ibm.com/health/Library/test_library");
-		library.addContent().setContentType("text/cql").setData("library test_library version '1.0.0'\nparameter AgeOfMaturation default 18\nusing FHIR version '4.0.0'\ncontext Patient\ndefine Adult: AgeInYears() >= \"AgeOfMaturation\"".getBytes());
+		Library library = TestHelper.getTemplateLibrary();
 		
-		Measure measure = new Measure();
-		measure.setId("measureId");
-		measure.setName("test_measure");
-		measure.setVersion("1.0.0");
-		measure.setUrl("http://ibm.com/health/Measure/test_measure");
-		measure.setScoring(new CodeableConcept().addCoding(new Coding().setCode(MeasureScoring.COHORT.toCode())));
-		measure.setEffectivePeriod(new Period().setStart(startDate).setEnd(endDate));
-		measure.addLibrary(CanonicalHelper.toCanonicalUrl(library));
-		measure.addGroup().addPopulation().setCode(new CodeableConcept().addCoding(new Coding().setSystem("http://hl7.org/fhir/measure-population").setCode("initial-population"))).setCriteria(new Expression().setExpression("Adult"));
+		Measure measure = TestHelper.getTemplateMeasure(library);
 		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		TestHelper.createMeasureArtifact(baos, parser, measure, library);
 		
-		Files.write( baos.toByteArray(), new File("c:/Dev/cdt-config/test_measure_v1_0_0.zip"));
+		//Files.write( baos.toByteArray(), new File("target/test_measure_v1_0_0.zip"));
+		
+		Map<String,Parameter> parameterOverrides = new HashMap<>();
+		parameterOverrides.put("Measurement Period", new IntervalParameter(new DateParameter("2019-07-04")
+				, true
+				, new DateParameter( "2020-07-04")
+				, true));;
 		
 		MeasureEvaluation requestData = new MeasureEvaluation();
 		requestData.setDataServerConfig(dataServerConfig);
 		requestData.setTerminologyServerConfig(termServerConfig);
-		requestData.setPatientId("eb068c3f-3954-50c6-0c67-2b82d29865f0");
-		requestData.setMeasureId(measure.getId());
+		// This is a patient ID that is assumed to exist in the target FHIR server
+		requestData.setPatientId(VALID_PATIENT_ID);
+		requestData.setMeasureContext(new MeasureContext(measure.getId(), parameterOverrides));
 		requestData.setEvidenceOptions(new MeasureEvidenceOptions(false,false));
-		
-		Parameter measurementPeriod =  new IntervalParameter("Measurement Period"
-				, new DateParameter("start", "2019-07-04")
-				, true
-				, new DateParameter("end", "2020-07-04")
-				, true);
-		Map<String,Parameter> parameterOverrides = new HashMap<>();
-		parameterOverrides.put(measurementPeriod.getName(), measurementPeriod);
-		requestData.setParameterOverrides(parameterOverrides);
 		
 		ObjectMapper om = new ObjectMapper();
 		System.out.println( om.writeValueAsString(requestData) );
@@ -216,6 +199,67 @@ public class DefaultVT extends ServiceVTBase {
 		String expected = getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"measure_evaluation_exp.json");
 		String actual = vr.extract().asString();
 		
+		assertMeasureReportEquals(parser, expected, actual);
+	}
+	
+	@Category(DVT.class) // to tag a specific test to be part of DVT (deployment verification test)
+	@Test
+	/**
+	 * Test a successful measure evaluation using identifier and version as the lookup key
+	 */
+	public void testMeasureEvaluationByMeasureIdentifier() throws Exception {
+		
+		// You want -Denabled.dark.features=all in your Liberty jvm.options
+		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_MEASURE_EVALUATION));
+		
+		final String RESOURCE = getUrlBase() + CohortServiceAPISpec.CREATE_DELETE_EVALUATION_PATH;
+		
+		FhirContext fhirContext = FhirContext.forR4();
+		IParser parser = fhirContext.newJsonParser().setPrettyPrint(true);
+		
+		Library library = TestHelper.getTemplateLibrary();
+		
+		Identifier identifier = new Identifier().setValue("measure-identifier").setSystem("http://ibm.com/health/test");
+		Measure measure = TestHelper.getTemplateMeasure(library);
+		measure.setIdentifier(Arrays.asList(identifier));
+		
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		TestHelper.createMeasureArtifact(baos, parser, measure, library);
+		
+		//Files.write( baos.toByteArray(), new File("target/test_measure_v1_0_0.zip"));
+
+		Map<String,Parameter> parameterOverrides = new HashMap<>();
+		parameterOverrides.put("Measurement Period", new IntervalParameter(new DateParameter("2019-07-04")
+				, true
+				, new DateParameter( "2020-07-04")
+				, true));
+		
+		MeasureEvaluation requestData = new MeasureEvaluation();
+		requestData.setDataServerConfig(dataServerConfig);
+		requestData.setTerminologyServerConfig(termServerConfig);
+		// This is a patient ID that is assumed to exist in the target FHIR server
+		requestData.setPatientId(VALID_PATIENT_ID);
+		requestData.setMeasureContext(new MeasureContext(null, parameterOverrides, new com.ibm.cohort.engine.measure.Identifier(identifier.getSystem(), identifier.getValue()), measure.getVersion()));
+		requestData.setEvidenceOptions(new MeasureEvidenceOptions(false,false));
+		
+		ObjectMapper om = new ObjectMapper();
+		System.out.println( om.writeValueAsString(requestData) );
+		
+		RequestSpecification request = buildBaseRequest(new Headers())
+				.queryParam("version", ServiceBuildConstants.DATE)
+				.multiPart(CohortEngineRestHandler.REQUEST_DATA_PART, requestData, "application/json")
+				.multiPart(CohortEngineRestHandler.MEASURE_PART, "test_measure_v1_0_0.zip", new ByteArrayInputStream(baos.toByteArray()));
+		
+		ValidatableResponse response = request.post(RESOURCE,getServiceVersion()).then();
+		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
+		
+		String expected = getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"measure_evaluation_exp.json");
+		String actual = vr.extract().asString();
+		
+		assertMeasureReportEquals(parser, expected, actual);
+	}
+
+	private void assertMeasureReportEquals(IParser parser, String expected, String actual) {
 		MeasureReport expectedReport = parser.parseResource(MeasureReport.class, expected);
 		MeasureReport actualReport = parser.parseResource(MeasureReport.class, actual);
 		
@@ -224,7 +268,7 @@ public class DefaultVT extends ServiceVTBase {
 		expectedReport.setEvaluatedResource(Collections.emptyList());
 		actualReport.setEvaluatedResource(Collections.emptyList());
 		
-		// The period has the timezone encoded, so we can't use a point-in-time
+		// The period in the report has the timezone encoded, so we can't use a point-in-time
 		// snapshot to evaluate equality. The point-in-time might have a different
 		// timezone offset than the actual value. This will ignore timezone.
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
