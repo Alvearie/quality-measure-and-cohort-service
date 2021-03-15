@@ -16,7 +16,6 @@ import static org.junit.Assert.fail;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -33,10 +32,12 @@ import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Reference;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.opencds.cqf.cql.engine.runtime.DateTime;
-import org.opencds.cqf.cql.engine.runtime.Interval;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.ibm.cohort.engine.parameter.DatetimeParameter;
+import com.ibm.cohort.engine.parameter.IntegerParameter;
+import com.ibm.cohort.engine.parameter.IntervalParameter;
+import com.ibm.cohort.engine.parameter.Parameter;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
 public class CqlEngineWrapperTest extends BasePatientTest {
@@ -122,8 +123,8 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 
-		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("MaxAge", 40);
+		Map<String, Parameter> parameters = new HashMap<>();
+		parameters.put("MaxAge", new IntegerParameter(40));
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/parameters/test-with-params.xml");
 
@@ -142,8 +143,8 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 
-		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("MaxAge", 50);
+		Map<String, Parameter> parameters = new HashMap<>();
+		parameters.put("MaxAge", new IntegerParameter(50));
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/parameters/test-with-params.xml");
 
@@ -169,7 +170,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		patient.setGender(Enumerations.AdministrativeGender.FEMALE);
 		patient.setBirthDate(birthDate);
 
-		Map<String, Object> parameters = null;
+		Map<String, Parameter> parameters = null;
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/parameters/test-with-params.xml");
 
@@ -195,8 +196,8 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		patient.setGender(Enumerations.AdministrativeGender.FEMALE);
 		patient.setBirthDate(birthDate);
 
-		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("Unused", 100);
+		Map<String, Parameter> parameters = new HashMap<>();
+		parameters.put("Unused", new IntegerParameter(100));
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/parameters/test-with-params.xml");
 
@@ -288,12 +289,8 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig, "cql/condition/FHIRHelpers.xml",
 				"cql/condition/test-date-query.xml");
 		
-		Map<String,Object> parameters = new HashMap<>();
-		
-		ZoneOffset offset = ZoneOffset.of("-05:00");
-		DateTime start = new DateTime("1999-01-01", offset);
-		DateTime end = new DateTime("2001-01-01", offset);
-		parameters.put("MeasurementPeriod", new Interval( start, true, end, false ) );
+		Map<String,Parameter> parameters = new HashMap<>();
+		parameters.put("MeasurementPeriod", new IntervalParameter( new DatetimeParameter("1999-01-01T00:00:00-05:00"), true, new DatetimeParameter("2000-01-01T00:00:00-05:00"), false ) );
 
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluateWithEngineWrapper("Test", "1.0.0", parameters,
@@ -350,8 +347,8 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/parameters/test-with-params.xml");
 
-		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("MaxAge", 40);
+		Map<String, Parameter> parameters = new HashMap<>();
+		parameters.put("MaxAge", new IntegerParameter(40));
 
 		final AtomicBoolean found = new AtomicBoolean(false);
 		final AtomicInteger count = new AtomicInteger(0);
@@ -373,8 +370,8 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 
 		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/parameters/test-with-params.xml");
 
-		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("MaxAge", 40);
+		Map<String, Parameter> parameters = new HashMap<>();
+		parameters.put("MaxAge", new IntegerParameter(40));
 
 		final AtomicBoolean found = new AtomicBoolean(false);
 		final AtomicInteger count = new AtomicInteger(0);

@@ -22,6 +22,8 @@ import org.hl7.cql_annotations.r1.ErrorSeverity;
 import org.hl7.cql_annotations.r1.ObjectFactory;
 import org.w3c.dom.Element;
 
+import com.ibm.cohort.engine.parameter.Parameter;
+
 /**
  * Helper methods for dealing with ELM Library resources.
  */
@@ -101,7 +103,7 @@ public class LibraryUtils {
 	 * @param parameters parameter values, expected to include all non-default
 	 *                   parameters in the provided library
 	 */
-	public static void requireValuesForNonDefaultParameters(Library library, Map<String, Object> parameters) {
+	public static void requireValuesForNonDefaultParameters(Library library, Map<String, Parameter> parameters) {
 		List<String> missingParameters = new ArrayList<>();
 
 		if (library.getParameters() != null) {

@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.cohort.cli.input;
+package com.ibm.cohort.serialization;
 
 import java.io.IOException;
 
