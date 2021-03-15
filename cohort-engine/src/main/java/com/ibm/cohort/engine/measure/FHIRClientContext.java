@@ -77,8 +77,7 @@ public class FHIRClientContext {
 			IGenericClient retVal = client == null ? defaultClient : client;
 
 			if (retVal == null) {
-				// TODO: Throw a real error or something.
-				throw new RuntimeException("No valid client set");
+				throw new IllegalArgumentException("No valid client or configuration found");
 			}
 
 			return retVal;
