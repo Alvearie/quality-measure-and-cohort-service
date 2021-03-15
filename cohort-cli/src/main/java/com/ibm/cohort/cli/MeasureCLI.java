@@ -89,6 +89,15 @@ public class MeasureCLI extends BaseCLI {
 				"--include-define-results" }, description = "Include results for evaluated define statements on measure report. Defaults to false.")
 		private boolean includeDefineResults = false;
 
+		@Parameter(names = { "--max-cache-size" }, description = "The maximum size the retrieve cache can grow before evictions begin.")
+		private int maxCacheSize = 1_000;
+
+		@Parameter(names = { "--cache-expire-on-write" }, description = "The amount of time after last write (in seconds) before a retrieve cache entry is evicted.")
+		private int cacheExpireOnWrite = 300;
+
+		@Parameter(names = { "--enable-cache-statistics" }, description = "Enable retrieve cache statistic recording via JMX.")
+		private boolean enableCacheStatistics = false;
+
 		public void validate() {
 			boolean resourceSpecified = resourceId != null;
 			boolean measureConfigurationSpecified = measureConfigurationFile != null;
@@ -162,11 +171,9 @@ public class MeasureCLI extends BaseCLI {
 			}
 
 			CaffeineConfiguration<CacheKey, Iterable<Object>> cacheConfig = new CaffeineConfiguration<>();
-			// TODO: Make cache size configurable??
-			// What other options are there???
-			cacheConfig.setMaximumSize(OptionalLong.of(1_000L));
-			cacheConfig.setExpireAfterWrite(OptionalLong.of(TimeUnit.MINUTES.toNanos(5L)));
-			cacheConfig.setStatisticsEnabled(true);
+			cacheConfig.setMaximumSize(OptionalLong.of(arguments.maxCacheSize));
+			cacheConfig.setExpireAfterWrite(OptionalLong.of(TimeUnit.SECONDS.toNanos(arguments.cacheExpireOnWrite)));
+			cacheConfig.setStatisticsEnabled(arguments.enableCacheStatistics);
 
 			TerminologyProvider terminologyProvider = new R4FhirTerminologyProvider(terminologyServerClient);
 			try(RetrieveCacheContext retrieveCacheContext = new TransientRetrieveCacheContext(cacheConfig)) {

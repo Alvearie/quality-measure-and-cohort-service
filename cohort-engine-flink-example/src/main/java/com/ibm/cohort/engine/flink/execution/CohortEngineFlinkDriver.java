@@ -72,7 +72,13 @@ public class CohortEngineFlinkDriver implements Serializable {
 			);
 		}
 
-		CohortEngineFlinkDriver example = new CohortEngineFlinkDriver(fhirServerInfo);
+		CacheConfiguration cacheConfiguration = new CacheConfiguration(
+				params.getInt("cacheMaxSize", 1_000),
+				params.getInt("cacheExpireOnWrite", 300),
+				params.getBoolean("cacheEnableStatistics", false)
+		);
+
+		CohortEngineFlinkDriver example = new CohortEngineFlinkDriver(fhirServerInfo, cacheConfiguration);
 		example.run(
 				params.get("jobName", "cohort-engine"),
 				params.getRequired("kafkaGroupId"),
@@ -85,14 +91,16 @@ public class CohortEngineFlinkDriver implements Serializable {
 	}
 
 	private final FHIRServerInfo fhirServerInfo;
+	private final CacheConfiguration cacheConfiguration;
 
 	private transient MeasureEvaluator evaluator;
 	private transient FhirContext fhirContext;
 	private transient ObjectMapper objectMapper;
 	private transient RetrieveCacheContext cacheContext;
 
-	public CohortEngineFlinkDriver(FHIRServerInfo fhirServerInfo) {
+	public CohortEngineFlinkDriver(FHIRServerInfo fhirServerInfo, CacheConfiguration cacheConfiguration) {
 		this.fhirServerInfo = fhirServerInfo;
+		this.cacheConfiguration = cacheConfiguration;
 	}
 
 	private void run(
@@ -213,8 +221,9 @@ public class CohortEngineFlinkDriver implements Serializable {
 		CaffeineConfiguration<CacheKey, Iterable<Object>> cacheConfig = new CaffeineConfiguration<>();
 		// TODO: Make cache size configurable??
 		// What other options are there???
-		cacheConfig.setMaximumSize(OptionalLong.of(1_000L));
-		cacheConfig.setExpireAfterWrite(OptionalLong.of(TimeUnit.MINUTES.toNanos(5L)));
+		cacheConfig.setMaximumSize(OptionalLong.of(cacheConfiguration.getMaxSize()));
+		cacheConfig.setExpireAfterWrite(OptionalLong.of(TimeUnit.SECONDS.toNanos(cacheConfiguration.getExpireOnWrite())));
+		cacheConfig.setStatisticsEnabled(cacheConfiguration.isEnableStatistics());
 		return new TransientRetrieveCacheContext(cacheConfig);
 	}
 
