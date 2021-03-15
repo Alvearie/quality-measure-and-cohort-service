@@ -38,49 +38,12 @@
 							<outputDirectory>${project.build.directory}/solution/</outputDirectory>
 						</configuration>
 					</execution>
-					<execution>
-						<id>package-integration-test</id>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<phase>package</phase>
-						<configuration>
-							<attach>false</attach>
-							<descriptors>
-								<descriptor>src/main/assembly/vt.xml</descriptor>
-							</descriptors>
-							<outputDirectory>${project.build.directory}/test/</outputDirectory>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>expand-distro-fragments</id>
-						<goals>
-							<goal>unpack-dependencies</goal>
-						</goals>
-						<configuration>
-							<classifier>test-dependencies</classifier>
-							<type>zip</type>
-							<includeGroupIds>com.ibm.watson.health.services,com.ibm.cohort</includeGroupIds>
-						</configuration>
-					</execution>
-				</executions>
+				</executions> 
 			</plugin>
 		</plugins>
 	</build>
 
 	<dependencies>
-		<dependency>
-			<groupId>com.ibm.watson.health.services</groupId>
-			<artifactId>service-base-os</artifactId>
-			<classifier>tests</classifier>
-			<scope>test</scope>
-		</dependency>
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
 			<artifactId>cohort-engine-api-web</artifactId>
@@ -89,37 +52,9 @@
 		</dependency>
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-engine-api-web</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-engine-api-web</artifactId>
-			<version>${project.version}</version>
-			<classifier>test-dependencies</classifier>
-			<scope>test</scope>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.ibm.cohort</groupId>
 			<artifactId>cohort-engine</artifactId>
 			<version>${project.version}</version>
 			<type>jar</type>
-		</dependency>
-		<dependency>
-			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-cli</artifactId>
-			<version>${project.version}</version>
-			<classifier>shaded</classifier>
-		</dependency>
-		<dependency>
-			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-engine</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
-			<scope>test</scope>
 		</dependency>
 		<!-- Added so we can copy the shaded (aka uber) jar into the distribution zip -->
 		<dependency>
@@ -127,16 +62,6 @@
 			<artifactId>cohort-cli</artifactId>
 			<version>${project.version}</version>
 			<classifier>shaded</classifier>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.ant</groupId>
-			<artifactId>ant-junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.ant</groupId>
-			<artifactId>ant-junit4</artifactId>
-			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>
