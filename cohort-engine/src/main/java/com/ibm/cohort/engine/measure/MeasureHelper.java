@@ -20,10 +20,13 @@ public class MeasureHelper {
 	 */
 	public static Measure loadMeasure(String resourceID, MeasureResolutionProvider<Measure> provider ) {
 		Measure result = null;
-		if( resourceID.startsWith("Measure/") || ! resourceID.contains("/") ) {
-			result = provider.resolveMeasureById(resourceID.replace("Measure/", ""));
-		} else if( resourceID.contains("/Measure/") ) {
-			result = provider.resolveMeasureByCanonicalUrl(resourceID);
+		
+		if( resourceID != null ) {
+			if( resourceID.startsWith("Measure/") || ! resourceID.contains("/") ) {
+				result = provider.resolveMeasureById(resourceID.replace("Measure/", ""));
+			} else if( resourceID.contains("/Measure/") ) {
+				result = provider.resolveMeasureByCanonicalUrl(resourceID);
+			}
 		}
 		
 		if( result == null ) {

@@ -238,7 +238,18 @@ public abstract class ResourceResolutionProvider
 
 	@Override
 	public Measure resolveMeasureById(String resourceID) {
-		return (Measure) resourcesByIdByResourceType.get("Measure").get(resourceID);
+		return (Measure) getResourceByTypeAndId("Measure", resourceID);
+	}
+
+	private MetadataResource getResourceByTypeAndId(String resourceType, String resourceID) {
+		MetadataResource result = null;
+		if( resourceID != null ) {
+			Map<String,MetadataResource> resourcesById = resourcesByIdByResourceType.get(resourceType);
+			if( resourcesById != null ) {
+				result = resourcesById.get(resourceID);
+			}
+		}
+		return result;
 	}
 
 	@Override
@@ -291,7 +302,7 @@ public abstract class ResourceResolutionProvider
 
 	@Override
 	public Library resolveLibraryById(String libraryId) {
-		return (Library) resourcesByIdByResourceType.get("Library").get(libraryId);
+		return (Library) getResourceByTypeAndId("Library", libraryId);
 	}
 
 	@Override

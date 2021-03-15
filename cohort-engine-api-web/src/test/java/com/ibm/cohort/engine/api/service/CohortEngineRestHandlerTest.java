@@ -11,14 +11,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipOutputStream;
 
 import javax.activation.DataHandler;
 import javax.servlet.http.HttpServletRequest;
@@ -27,14 +28,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
-import org.hl7.fhir.r4.model.CodeableConcept;
-import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
-import org.hl7.fhir.r4.model.Expression;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.codesystems.MeasureScoring;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -55,7 +52,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.BaseFhirTest;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
-import com.ibm.cohort.engine.helpers.CanonicalHelper;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.parameter.DateParameter;
 import com.ibm.cohort.engine.parameter.IntervalParameter;
@@ -152,43 +148,19 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 	/**
 	 * Test the successful building of a response.
 	 */
-
 	@PrepareForTest({ Response.class, TenantManager.class, ServiceBaseUtility.class })
 	@Test
 	public void testEvaluateMeasureSuccess() throws Exception {
 		prepMocks();
 		
-		Response myResponse = PowerMockito.mock(Response.class);
-		
 		PowerMockito.mockStatic(ServiceBaseUtility.class);
-		PowerMockito.mockStatic(Response.class);
-		PowerMockito.mockStatic(ResponseBuilder.class);
 		PowerMockito.when(ServiceBaseUtility.apiSetup(version, logger, methodName)).thenReturn(null);
-		PowerMockito.when(Response.status(Response.Status.OK)).thenReturn(mockResponseBuilder);
-		PowerMockito.when(mockResponseBuilder.entity(Mockito.any(Object.class))).thenReturn(mockResponseBuilder);
-		PowerMockito.when(mockResponseBuilder.header(Mockito.anyString(), Mockito.anyString()))
-				.thenReturn(mockResponseBuilder);
-		PowerMockito.when(mockResponseBuilder.build())
-				.thenReturn(myResponse);
-		when(mockResponseBuilder.build()).thenReturn(mockResponse);
 		
-		assertNotNull( mockResponseBuilder );
+		mockResponseClasses();
 		
-		Library library = new Library();
-		library.setId("libraryId");
-		library.setName("test_library");
-		library.setVersion("1.0.0");
-		library.setUrl("http://ibm.com/health/Library/test_library");
-		library.addContent().setContentType("text/cql").setData("library test_library version '1.0.0'\nparameter AgeOfMaturation default 18\nusing FHIR version '4.0.0'\ncontext Patient\ndefine Adult: AgeInYears() >= \"AgeOfMaturation\"".getBytes());
+		Library library = TestHelper.getTemplateLibrary();
 		
-		Measure measure = new Measure();
-		measure.setId("measureId");
-		measure.setName("test_measure");
-		measure.setVersion("1.0.0");
-		measure.setUrl("http://ibm.com/health/Measure/test_measure");
-		measure.setScoring(new CodeableConcept().addCoding(new Coding().setCode(MeasureScoring.COHORT.toCode())));
-		measure.addLibrary(CanonicalHelper.toCanonicalUrl(library));
-		measure.addGroup().addPopulation().setCode(new CodeableConcept().addCoding(new Coding().setSystem("").setCode("cohort"))).setCriteria(new Expression().setExpression("Adult"));
+		Measure measure = TestHelper.getTemplateMeasure(library);
 		
 		Patient patient = getPatient("patientId", AdministrativeGender.MALE, 40);
 		
@@ -212,39 +184,98 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		evaluationRequest.setMeasureContext(measureContext);
 		//evaluationRequest.setEvidenceOptions(evidenceOptions);
 		
-		File tempFile = new File("target/test_measure_v1_0_0.zip");
-		try {
-			FhirContext fhirContext = FhirContext.forR4();
-			IParser parser = fhirContext.newJsonParser().setPrettyPrint(true);
-			
-			TestHelper.createMeasureArtifact(tempFile, parser, measure, library);
-			
-			// Create the metadata part of the request
-			ObjectMapper om = new ObjectMapper();
-			String json = om.writeValueAsString(evaluationRequest);
-			ByteArrayInputStream jsonIs = new ByteArrayInputStream(json.getBytes());
-			IAttachment rootPart = mock(IAttachment.class);
-			DataHandler jsonHandler = mock(DataHandler.class);
-			when( jsonHandler.getInputStream() ).thenReturn(jsonIs);
-			when( rootPart.getDataHandler() ).thenReturn(jsonHandler);
-			
-			// Create the ZIP part of the request
-			IAttachment measurePart = mock(IAttachment.class);
-			ByteArrayInputStream zipIs = new ByteArrayInputStream( Files.readAllBytes(Paths.get(tempFile.getAbsolutePath())) );
-			DataHandler zipHandler = mock(DataHandler.class);
-			when( zipHandler.getInputStream() ).thenReturn(zipIs);
-			when( measurePart.getDataHandler() ).thenReturn( zipHandler );
-			
-			// Assemble them together into a reasonable facsimile of the real request
-			IMultipartBody body = mock(IMultipartBody.class);
-			when( body.getAttachment(CohortEngineRestHandler.REQUEST_DATA_PART) ).thenReturn(rootPart);
-			when( body.getAttachment(CohortEngineRestHandler.MEASURE_PART) ).thenReturn(measurePart);
-			
-			Response loadResponse = restHandler.evaluateMeasure(mockRequestContext, "version", body);
-			assertEquals(mockResponse, loadResponse);
-		} finally {
-			tempFile.delete();
-		}
+		FhirContext fhirContext = FhirContext.forR4();
+		IParser parser = fhirContext.newJsonParser().setPrettyPrint(true);
+				
+		// Create the metadata part of the request
+		ObjectMapper om = new ObjectMapper();
+		String json = om.writeValueAsString(evaluationRequest);
+		ByteArrayInputStream jsonIs = new ByteArrayInputStream(json.getBytes());
+		IAttachment rootPart = mockAttachment(jsonIs);
+		
+		// Create the ZIP part of the request
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		TestHelper.createMeasureArtifact(baos, parser, measure, library);
+		ByteArrayInputStream zipIs = new ByteArrayInputStream( baos.toByteArray() );
+		IAttachment measurePart = mockAttachment(zipIs);
+		
+		// Assemble them together into a reasonable facsimile of the real request
+		IMultipartBody body = mock(IMultipartBody.class);
+		when( body.getAttachment(CohortEngineRestHandler.REQUEST_DATA_PART) ).thenReturn(rootPart);
+		when( body.getAttachment(CohortEngineRestHandler.MEASURE_PART) ).thenReturn(measurePart);
+		
+		Response loadResponse = restHandler.evaluateMeasure(mockRequestContext, "version", body);
+		assertEquals(mockResponse, loadResponse);
+		
+		PowerMockito.verifyStatic(Response.class, Mockito.times(1));
+		Response.status(Response.Status.OK);
+	}
+
+	private void mockResponseClasses() {
+		PowerMockito.mockStatic(Response.class);
+		PowerMockito.when(Response.status(Mockito.any(Response.Status.class))).thenReturn(mockResponseBuilder);
+		PowerMockito.when(Response.status(Mockito.anyInt())).thenReturn(mockResponseBuilder);
+		PowerMockito.when(mockResponseBuilder.entity(Mockito.any(Object.class))).thenReturn(mockResponseBuilder);
+		PowerMockito.when(mockResponseBuilder.header(Mockito.anyString(), Mockito.anyString())).thenReturn(mockResponseBuilder);
+		PowerMockito.when(mockResponseBuilder.type(Mockito.any(String.class))).thenReturn(mockResponseBuilder);
+		PowerMockito.when(mockResponseBuilder.build()).thenReturn(mockResponse);
+	}
+	
+	@PrepareForTest({ Response.class, TenantManager.class, ServiceBaseUtility.class })
+	@Test
+	public void testEvaluateMeasureMissingMeasureId() throws Exception {
+		prepMocks();
+		
+		PowerMockito.mockStatic(ServiceBaseUtility.class);
+		PowerMockito.when(ServiceBaseUtility.apiSetup(version, logger, methodName)).thenReturn(null);
+		
+		mockResponseClasses();
+		
+		Patient patient = getPatient("patientId", AdministrativeGender.MALE, 40);
+		
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval(patient);
+		
+		FhirServerConfig clientConfig = getFhirServerConfig();
+		
+		MeasureContext measureContext = new MeasureContext("unknown");
+		
+		MeasureEvaluation evaluationRequest = new MeasureEvaluation();
+		evaluationRequest.setDataServerConfig(clientConfig);
+		evaluationRequest.setPatientId(patient.getId());
+		evaluationRequest.setMeasureContext(measureContext);
+		//evaluationRequest.setEvidenceOptions(evidenceOptions);
+		
+		// Create the metadata part of the request
+		ObjectMapper om = new ObjectMapper();
+		String json = om.writeValueAsString(evaluationRequest);
+		ByteArrayInputStream jsonIs = new ByteArrayInputStream(json.getBytes());
+		IAttachment rootPart = mockAttachment(jsonIs);
+		
+		// Create the ZIP part of the request
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try ( ZipOutputStream zos = new ZipOutputStream(baos) ) { }
+		ByteArrayInputStream zipIs = new ByteArrayInputStream( baos.toByteArray() );
+		IAttachment measurePart = mockAttachment(zipIs);
+		
+		// Assemble them together into a reasonable facsimile of the real request
+		IMultipartBody body = mock(IMultipartBody.class);
+		when( body.getAttachment(CohortEngineRestHandler.REQUEST_DATA_PART) ).thenReturn(rootPart);
+		when( body.getAttachment(CohortEngineRestHandler.MEASURE_PART) ).thenReturn(measurePart);
+		
+		Response loadResponse = restHandler.evaluateMeasure(mockRequestContext, "version", body);
+		assertNotNull(loadResponse);
+		
+		PowerMockito.verifyStatic(Response.class);
+		Response.status(400);
+	}
+
+	private IAttachment mockAttachment(InputStream multipartData) throws IOException {
+		IAttachment measurePart = mock(IAttachment.class);
+		DataHandler zipHandler = mock(DataHandler.class);
+		when( zipHandler.getInputStream() ).thenReturn(multipartData);
+		when( measurePart.getDataHandler() ).thenReturn( zipHandler );
+		return measurePart;
 	}
 
 
