@@ -70,15 +70,6 @@ public class MeasureEvaluator {
 	public List<MeasureReport> evaluatePatientMeasures(String patientId, List<MeasureContext> measureContexts, MeasureEvidenceOptions evidenceOptions) {
 		List<MeasureReport> measureReports = new ArrayList<>();
 		MeasureReport measureReport;
-		// TODO: we can't currently interact with the cache context here.
-		// we could have it as a dependency.
-		//
-		// TODO: Having the cache context managed by the measure evaluator has its own issues.
-		// It works great for the singlepatient-manymeasure usecase, but what about the singlepatient-singlemeasure usecase?
-		// It definitely shouldn't create a new cache every single time since the user _might_ call with the same patient multiple times.
-		// These usecases might be complex enough that it's worth just supporting caching for the singlepatient-manymeasure case.
-		//
-		// See TransientRetrieveCacheContext for more thoughts.
 		for (MeasureContext measureContext: measureContexts) {
 			measureReport = evaluatePatientMeasure(measureContext, patientId, evidenceOptions);
 			measureReports.add(measureReport);
