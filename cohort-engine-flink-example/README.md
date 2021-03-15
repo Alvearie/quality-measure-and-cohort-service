@@ -51,12 +51,13 @@ The Flink job will run indefinitely until manually canceled.
 * `--fhirPassword <ARG>`: The password for authentication to the FHIR server.
 * `--fhirTenantId <ARG>`: The tenant on the FHIR server to query.
 
-* `--jobName <ARG>` (optional): The name of the submitted Flink Job.
-* `--printOutputToConsole` (optional): Log the MeasureReports to standard out.
-* `--rebalanceInput` (optional): Perform a `rebalance` operation after reading the input records from Kafka.
+* `--jobName <ARG>` (optional): The name of the submitted Flink Job (Default: `cohort-engine`).
+* `--printOutputToConsole` (optional): Log the MeasureReports to standard out (Default: `false`).
+* `--rebalanceInput` (optional): Perform a `rebalance` operation after reading the input records from Kafka (Default: `false`).
     * Useful if you want to scale your compute tasks separately from your Kafka topic partitions.
-* `--readFromStart` (optional): Start streaming input records from the beginning of the Kafka topic.
+* `--readFromStart` (optional): Start streaming input records from the beginning of the Kafka topic (Default: `false`).
 
-* `--cacheMaxSize` (optional): The maximum size the retrieve cache can grow before evictions begin.
-* `--cacheExpireOnWrite` (optional): The amount of time after last write (in seconds) before a retrieve cache entry is evicted.
-* `--cacheEnableStatistics` (optional): Enable retrieve cache statistic recording via JMX.
+* `--enableCache` (optional): Enable the retrieve cache (Default: `false`).
+* `--cacheMaxSize` (optional): The maximum size the retrieve cache can grow before evictions begin (Default: `1000`).
+* `--cacheExpireOnWrite` (optional): The amount of time after last write (in seconds) before a retrieve cache entry is evicted (Default: `300`).
+* `--cacheEnableStatistics` (optional): Enable retrieve cache statistic recording via JMX (Default: `false`).
