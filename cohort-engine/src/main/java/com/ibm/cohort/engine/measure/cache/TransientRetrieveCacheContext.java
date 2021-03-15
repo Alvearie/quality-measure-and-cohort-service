@@ -47,6 +47,7 @@ public class TransientRetrieveCacheContext implements RetrieveCacheContext {
 
 	@Override
 	public void close() throws IOException {
+		flushCache();
 		currentCache.close();
 	}
 

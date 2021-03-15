@@ -56,3 +56,7 @@ The Flink job will run indefinitely until manually canceled.
 * `--rebalanceInput` (optional): Perform a `rebalance` operation after reading the input records from Kafka.
     * Useful if you want to scale your compute tasks separately from your Kafka topic partitions.
 * `--readFromStart` (optional): Start streaming input records from the beginning of the Kafka topic.
+
+* `--cacheMaxSize` (optional): The maximum size the retrieve cache can grow before evictions begin.
+* `--cacheExpireOnWrite` (optional): The amount of time after last write (in seconds) before a retrieve cache entry is evicted.
+* `--cacheEnableStatistics` (optional): Enable retrieve cache statistic recording via JMX.
