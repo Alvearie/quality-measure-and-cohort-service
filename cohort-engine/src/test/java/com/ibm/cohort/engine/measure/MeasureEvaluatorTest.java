@@ -48,10 +48,6 @@ import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
 import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
-import org.opencds.cqf.common.providers.LibraryResolutionProvider;
-import org.opencds.cqf.cql.engine.data.DataProvider;
-import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
-
 
 public class MeasureEvaluatorTest extends BaseMeasureTest {
 

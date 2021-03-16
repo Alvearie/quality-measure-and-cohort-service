@@ -111,6 +111,13 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>jcache</artifactId>
+			<version>2.9.0</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>com.ibm.cohort</groupId>
 			<artifactId>cohort-util</artifactId>
 			<version>${project.version}</version>
