@@ -51,4 +51,13 @@ public final class CacheCode {
 		return Objects.hash(code, system, display, version);
 	}
 
+	@Override
+	public String toString() {
+		return "CacheCode{" +
+				"code='" + code + '\'' +
+				", system='" + system + '\'' +
+				", display='" + display + '\'' +
+				", version='" + version + '\'' +
+				'}';
+	}
 }

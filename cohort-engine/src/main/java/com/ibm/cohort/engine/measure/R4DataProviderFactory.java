@@ -23,7 +23,7 @@ import java.util.Map;
 
 public class R4DataProviderFactory {
 
-	private static final String FHIR_R4_URL = "http://hl7.org/fhir";
+	protected static final String FHIR_R4_URL = "http://hl7.org/fhir";
 
 	public static Map<String, DataProvider> createDataProviderMap(
 			IGenericClient client,

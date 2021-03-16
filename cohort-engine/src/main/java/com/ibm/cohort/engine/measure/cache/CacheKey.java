@@ -30,6 +30,7 @@ public class CacheKey {
 			Iterable<Code> codes,
 			String valueSet
 	) {
+		// POST PR TODO: Is a null list or empty list better for persistence?
 		List<CacheCode> cacheCodes = Collections.emptyList();
 		if (codes != null) {
 			cacheCodes = new ArrayList<>();
@@ -91,4 +92,17 @@ public class CacheKey {
 		return Objects.hash(context, contextPath, contextValue, dataType, templateId, codePath, codes, valueSet);
 	}
 
+	@Override
+	public String toString() {
+		return "CacheKey{" +
+				"context='" + context + '\'' +
+				", contextPath='" + contextPath + '\'' +
+				", contextValue='" + contextValue + '\'' +
+				", dataType='" + dataType + '\'' +
+				", templateId='" + templateId + '\'' +
+				", codePath='" + codePath + '\'' +
+				", codes=" + codes +
+				", valueSet='" + valueSet + '\'' +
+				'}';
+	}
 }
