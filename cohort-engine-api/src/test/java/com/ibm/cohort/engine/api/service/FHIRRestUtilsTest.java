@@ -5,6 +5,8 @@
  */
 package com.ibm.cohort.engine.api.service;
 
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -64,24 +66,46 @@ public class FHIRRestUtilsTest {
 
 	Identifier identifier;
 
-	String testMeasureDef = "{\r\n" + "  \"resourceType\": \"Measure\",\r\n"
-			+ "  \"id\": \"wh-cohort-Over-the-Hill-Female-1.0.0-identifier\",\r\n" + "  \"identifier\": [\r\n"
-			+ "    {\r\n" + "      \"use\": \"official\",\r\n" + "      \"system\": \"http://fakesystem.org\",\r\n"
-			+ "      \"value\": \"999\"\r\n" + "    }\r\n" + "  ],\r\n" + "  \"version\": \"1.0.0\",\r\n"
-			+ "  \"name\": \"Over-the-Hill-Female\",\r\n" + "  \"status\": \"active\",\r\n"
-			+ "  \"experimental\": true,\r\n" + "  \"publisher\": \"IBM WH Cohorting Test\",\r\n"
-			+ "  \"description\": \"Over-the-Hill-Female\",\r\n" + "  \"library\": [\r\n"
-			+ "    \"http://ibm.com/fhir/wh-cohort/Library/wh-cohort-Over-the-Hill-Female-1.0.0\"\r\n" + "  ]\r\n"
-			+ "}";
-
-	String testLibraryDef = "{\r\n" + "  \"resourceType\": \"Library\",\r\n"
-			+ "  \"id\": \"wh-cohort-Over-the-Hill-Female-1.0.0\",\r\n"
-			+ "  \"url\": \"http://ibm.com/fhir/wh-cohort/Library/wh-cohort-Over-the-Hill-Female-1.0.0\",\r\n"
-			+ "  \"version\": \"1.0.0\",\r\n" + "  \"name\": \"Over-the-Hill-Female\",\r\n"
-			+ "  \"publisher\": \"IBM WH Cohorting Test\",\r\n" + "  \"description\": \"Over-the-Hill-Female\",\r\n"
-			+ "  \"parameter\": [\r\n" + "    {\r\n" + "      \"name\": \"Measurement Period\",\r\n"
-			+ "      \"use\": \"in\",\r\n" + "      \"min\": 0,\r\n" + "      \"max\": \"1\",\r\n"
-			+ "      \"type\": \"Period\"\r\n" + "    }\r\n" + "  ]\r\n" + "}";
+	String testMeasureDef = "{\n" +
+			"  \"resourceType\": \"Measure\",\n" +
+			"  \"id\": \"wh-cohort-Over-the-Hill-Female-1.0.0-identifier\",\n" +
+			"  \"identifier\": [\n" +
+			"    {\n" +
+			"      \"use\": \"official\",\n" +
+			"      \"system\": \"http://fakesystem.org\",\n" +
+			"      \"value\": \"999\"\n" +
+			"    }\n" +
+			"  ],\n" +
+			"  \"version\": \"1.0.0\",\n" +
+			"  \"name\": \"Over-the-Hill-Female\",\n" +
+			"  \"status\": \"active\",\n" +
+			"  \"experimental\": true,\n" +
+			"  \"publisher\": \"IBM WH Cohorting Test\",\n" +
+			"  \"description\": \"Over-the-Hill-Female\",\n" +
+			"  \"library\": [\n" +
+			"    \"http://ibm.com/fhir/wh-cohort/Library/wh-cohort-Over-the-Hill-Female-1.0.0\"\n" +
+			"  ],\n" +
+			"  \"extension\": [\n" +
+			"    {\n" +
+			"      \"id\": \"measureParam\",\n" +
+			"      \"url\": \"http://ibm.com/fhir/cdm/StructureDefinition/measure-parameter\",\n" +
+			"      \"valueParameterDefinition\": {\n" +
+			"        \"name\": \"aName\",\n" +
+			"        \"use\": \"in\",\n" +
+			"        \"max\": \"1\",\n" +
+			"        \"min\": \"0\",\n" +
+			"        \"type\": \"String\",\n" +
+			"        \"extension\": [\n" +
+			"          {\n" +
+			"            \"id\": \"defaultExample\",\n" +
+			"            \"url\": \"http://ibm.com/fhir/cdm/StructureDefinition/default-value\",\n" +
+			"            \"valueString\": \"42\"\n" +
+			"          }\n" +
+			"        ]\n" +
+			"      }\n" +
+			"    }\n" +
+			"  ]\n" +
+			"}\n";
 
 	@Mock
 	private static DefaultFhirClientBuilder mockDefaultFhirClientBuilder;
@@ -207,30 +231,6 @@ public class FHIRRestUtilsTest {
 		FHIRRestUtils.parseAuthenticationHeaderInfo(mockHttpHeaders);
 	}
 
-	@PrepareForTest({ FHIRRestUtils.class, RestFhirLibraryResolutionProvider.class })
-	@Test
-	public void testGetLibraryParmsForMeasure() throws Exception {
-
-		RestFhirLibraryResolutionProvider mockLibraryResolutionProvider = Mockito
-				.mock(RestFhirLibraryResolutionProvider.class);
-		PowerMockito.whenNew(RestFhirLibraryResolutionProvider.class).withAnyArguments()
-				.thenReturn(mockLibraryResolutionProvider);
-		when(mockLibraryResolutionProvider.resolveLibraryByCanonicalUrl(ArgumentMatchers.any()))
-				.thenReturn(createLibrary(testLibraryDef));
-
-		Measure measure = createMeasure(testMeasureDef);
-		List<MeasureParameterInfo> parameterInfoList = FHIRRestUtils.getLibraryParmsForMeasure(ArgumentMatchers.any(),
-				measure);
-		assertEquals(1, parameterInfoList.size());
-		MeasureParameterInfo parmInfo = parameterInfoList.get(0);
-		assertEquals("Measurement Period", parmInfo.getName());
-		assertEquals("In", parmInfo.getUse());
-		assertEquals("1", parmInfo.getMax());
-		assertEquals("0", parmInfo.getMin().toString());
-		assertEquals("Period", parmInfo.getType());
-
-	}
-
 	@PrepareForTest({ FHIRRestUtils.class, RestFhirLibraryResolutionProvider.class,
 			RestFhirMeasureResolutionProvider.class })
 	@Test
@@ -244,20 +244,51 @@ public class FHIRRestUtilsTest {
 				.mock(RestFhirMeasureResolutionProvider.class);
 		PowerMockito.whenNew(RestFhirMeasureResolutionProvider.class).withAnyArguments()
 				.thenReturn(mockMeasureResolutionProvider);
-		when(mockLibraryResolutionProvider.resolveLibraryByCanonicalUrl(ArgumentMatchers.any()))
-				.thenReturn(createLibrary(testLibraryDef));
 
 		when(mockMeasureResolutionProvider.resolveMeasureById(ArgumentMatchers.any()))
 				.thenReturn(createMeasure(testMeasureDef));
 		List<MeasureParameterInfo> parameterInfoList = FHIRRestUtils.getParametersForMeasureId(null, "measureId");
-		assertEquals(1, parameterInfoList.size());
-		MeasureParameterInfo parmInfo = parameterInfoList.get(0);
-		assertEquals("Measurement Period", parmInfo.getName());
-		assertEquals("In", parmInfo.getUse());
-		assertEquals("1", parmInfo.getMax());
-		assertEquals("0", parmInfo.getMin().toString());
-		assertEquals("Period", parmInfo.getType());
 
+		MeasureParameterInfo expectedParamInfo = new MeasureParameterInfo();
+		expectedParamInfo.setname("aName");
+		expectedParamInfo.setUse("In");
+		expectedParamInfo.setMax("1");
+		expectedParamInfo.setMin(0);
+		expectedParamInfo.setType("String");
+		expectedParamInfo.setDocumentation(null);
+		expectedParamInfo.defaultValue("42");
+
+		assertThat(parameterInfoList, containsInAnyOrder(expectedParamInfo));
+	}
+
+	@PrepareForTest({ FHIRRestUtils.class, RestFhirLibraryResolutionProvider.class,
+			RestFhirMeasureResolutionProvider.class })
+	@Test
+	public void testGetParametersWithDefaultsForMeasureId() throws Exception {
+		RestFhirLibraryResolutionProvider mockLibraryResolutionProvider = Mockito
+				.mock(RestFhirLibraryResolutionProvider.class);
+		PowerMockito.whenNew(RestFhirLibraryResolutionProvider.class).withAnyArguments()
+				.thenReturn(mockLibraryResolutionProvider);
+		RestFhirMeasureResolutionProvider mockMeasureResolutionProvider = Mockito
+				.mock(RestFhirMeasureResolutionProvider.class);
+		PowerMockito.whenNew(RestFhirMeasureResolutionProvider.class).withAnyArguments()
+				.thenReturn(mockMeasureResolutionProvider);
+
+		when(mockMeasureResolutionProvider.resolveMeasureById(ArgumentMatchers.any()))
+				.thenReturn(createMeasure(testMeasureDef));
+
+		List<MeasureParameterInfo> parameterInfoList = FHIRRestUtils.getParametersForMeasureId(null, "measureId");
+
+		MeasureParameterInfo expectedParamInfo = new MeasureParameterInfo();
+		expectedParamInfo.setname("aName");
+		expectedParamInfo.setUse("In");
+		expectedParamInfo.setMax("1");
+		expectedParamInfo.setMin(0);
+		expectedParamInfo.setType("String");
+		expectedParamInfo.setDocumentation(null);
+		expectedParamInfo.defaultValue("42");
+
+		assertThat(parameterInfoList, containsInAnyOrder(expectedParamInfo));
 	}
 
 	/**
@@ -276,21 +307,22 @@ public class FHIRRestUtilsTest {
 				.mock(RestFhirMeasureResolutionProvider.class);
 		PowerMockito.whenNew(RestFhirMeasureResolutionProvider.class).withAnyArguments()
 				.thenReturn(mockMeasureResolutionProvider);
-		when(mockLibraryResolutionProvider.resolveLibraryByCanonicalUrl(ArgumentMatchers.any()))
-				.thenReturn(createLibrary(testLibraryDef));
 		when(mockMeasureResolutionProvider.resolveMeasureByIdentifier(ArgumentMatchers.any(), ArgumentMatchers.any()))
 				.thenReturn(createMeasure(testMeasureDef));
 
 		List<MeasureParameterInfo> parameterInfoList = FHIRRestUtils.getParametersForMeasureIdentifier(measureClient,
 				identifier, "");
-		assertEquals(1, parameterInfoList.size());
-		MeasureParameterInfo parmInfo = parameterInfoList.get(0);
-		assertEquals("Measurement Period", parmInfo.getName());
-		assertEquals("In", parmInfo.getUse());
-		assertEquals("1", parmInfo.getMax());
-		assertEquals("0", parmInfo.getMin().toString());
-		assertEquals("Period", parmInfo.getType());
 
+		MeasureParameterInfo expectedParamInfo = new MeasureParameterInfo();
+		expectedParamInfo.setname("aName");
+		expectedParamInfo.setUse("In");
+		expectedParamInfo.setMax("1");
+		expectedParamInfo.setMin(0);
+		expectedParamInfo.setType("String");
+		expectedParamInfo.setDocumentation(null);
+		expectedParamInfo.defaultValue("42");
+
+		assertThat(parameterInfoList, containsInAnyOrder(expectedParamInfo));
 	}
 
 	private Measure createMeasure(String inputString) throws JsonProcessingException {

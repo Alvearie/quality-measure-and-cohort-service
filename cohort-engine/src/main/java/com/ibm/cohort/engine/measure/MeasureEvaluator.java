@@ -16,9 +16,11 @@ import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
+import org.hl7.fhir.r4.model.ParameterDefinition;
 import org.hl7.fhir.r4.model.Type;
 import org.opencds.cqf.common.evaluation.EvaluationProviderFactory;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
+import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 import org.opencds.cqf.cql.engine.fhir.model.FhirModelResolver;
 import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
@@ -35,7 +37,8 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
  * server.
  */
 public class MeasureEvaluator {
-	protected static final String PARAMETER_EXTENSION_URL = "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-parameter";
+	protected static final String MEASURE_PARAMETER_URL = "http://ibm.com/fhir/cdm/StructureDefinition/measure-parameter";
+	protected static final String PARAMETER_DEFAULT_URL = "http://ibm.com/fhir/cdm/StructureDefinition/default-value";
 
 	private IGenericClient dataClient;
 	private IGenericClient terminologyClient;
@@ -178,13 +181,13 @@ public class MeasureEvaluator {
 		// configuration of our FHIR server.
 		IMeasureEvaluationSeed seed = seeder.create(measure, periodStart, periodEnd, "ProductLine");
 
+		// fhir path: Measure.extension[measureParameter][].valueParameterDefinition.extension[defaultValue]
 		measure.getExtension().stream()
-				.filter(this::isParameterExtension)
-				.forEach(measureDefault ->
-						         seed.getContext().setParameter(
-								         null,
-								         measureDefault.getId(),
-								         toCqlObject(measureDefault.getValue())));
+				.filter(MeasureEvaluator::isMeasureParameter)
+				.map(parameter -> fhirModelResolver.resolvePath(parameter, "valueParameterDefinition"))
+				.map(ParameterDefinition.class::cast)
+				.forEach(parameterDefinition -> setDefaultValue(seed.getContext(), parameterDefinition));
+
 
 		// TODO - The OSS logic converts the period start and end into an
 		// Interval and creates a parameter named "Measurement Period" that is populated
@@ -205,13 +208,27 @@ public class MeasureEvaluator {
 		return evaluation.evaluatePatientMeasure(measure, seed.getContext(), patientId);
 	}
 
+	private void setDefaultValue(Context context, ParameterDefinition parameterDefinition) {
+		parameterDefinition.getExtension().stream()
+				.filter(MeasureEvaluator::isDefaultValue)
+				.forEach(defaultValue ->
+						         context.setParameter(
+						         		null,
+							            parameterDefinition.getName(),
+							            toCqlObject(defaultValue.getValue())));
+	}
+
 	private Object toCqlObject(Type type) {
 		return Optional.ofNullable(type)
 				.map((fhirType) -> fhirModelResolver.resolvePath(fhirType, "value"))
 				.orElseThrow(() -> new UnsupportedFhirTypeException(type));
 	}
 
-    private boolean isParameterExtension(Extension extension) {
-        return PARAMETER_EXTENSION_URL.equals(extension.getUrl());
-    }
+	public static boolean isMeasureParameter(Extension extension) {
+		return MEASURE_PARAMETER_URL.equals(extension.getUrl());
+	}
+
+	public static boolean isDefaultValue(Extension extension) {
+		return PARAMETER_DEFAULT_URL.equals(extension.getUrl());
+	}
 }
