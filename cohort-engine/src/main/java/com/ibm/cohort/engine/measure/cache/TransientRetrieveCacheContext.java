@@ -16,7 +16,7 @@ public class TransientRetrieveCacheContext implements RetrieveCacheContext {
 
 	private static final String CACHE_ID_PREFIX = "transient-retrieve-cache-";
 
-	private final Cache<CacheKey, Iterable<Object>> currentCache;
+	private final Cache<CacheKey, Iterable<Object>> cache;
 
 	private String currentContextId;
 
@@ -24,7 +24,11 @@ public class TransientRetrieveCacheContext implements RetrieveCacheContext {
 		// Create a unique cacheId to prevent conflicts with other caches in the same JVM.
 		String uuid = UUID.randomUUID().toString();
 		String cacheId = CACHE_ID_PREFIX + uuid;
-		currentCache = Caching.getCachingProvider().getCacheManager().createCache(cacheId, config);
+		this.cache = Caching.getCachingProvider().getCacheManager().createCache(cacheId, config);
+	}
+
+	public TransientRetrieveCacheContext(Cache<CacheKey, Iterable<Object>> cache) {
+		this.cache = cache;
 	}
 
 	@Override
@@ -36,19 +40,19 @@ public class TransientRetrieveCacheContext implements RetrieveCacheContext {
 			currentContextId = contextId;
 		}
 
-		return currentCache;
+		return cache;
 	}
 
 	@Override
 	public void flushCache() {
-		currentCache.clear();
+		cache.clear();
 		currentContextId = null;
 	}
 
 	@Override
 	public void close() throws IOException {
 		flushCache();
-		currentCache.close();
+		cache.close();
 	}
 
 }

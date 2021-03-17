@@ -24,13 +24,13 @@ public class CacheKeyTest {
 	private static final String TEMPLATE_ID = "templateId";
 	private static final String CODE_PATH = "codePath";
 	private static final List<Code> CODES = Arrays.asList(
-			createCacheCode("code1"),
-			createCacheCode("code2"),
-			createCacheCode("code3")
+			createCode("code1"),
+			createCode("code2"),
+			createCode("code3")
 	);
 	private static final String VALUE_SET = "valueSet";
 
-	private static Code createCacheCode(String code) {
+	private static Code createCode(String code) {
 		return new Code()
 				.withCode(code)
 				.withSystem(code + "-system")

@@ -40,15 +40,15 @@ public class MeasureCLITest extends BaseMeasureTest {
 	@Test
 	public void testCohortMeasureSinglePatientJsonInput() throws Exception {
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
-		
+
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1592-14-03");
 		mockFhirResourceRetrieval(patient);
-		
+
 		Library library = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/test.cql");
-		
+
 		Measure measure = getCohortMeasure("Test", library, "Female");
 		mockFhirResourceRetrieval(measure);
-		
+
 		File tmpFile = new File("target/fhir-stub.json");
 		ObjectMapper om = new ObjectMapper();
 		try (Writer w = new FileWriter(tmpFile)) {
@@ -56,7 +56,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		}
 
 		File tmpMeasureConfigurationsFile = createTmpConfigurationsFileForSingleMeasure(measure.getId());
-		
+
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream out = new PrintStream(baos);
 		try {
@@ -64,13 +64,56 @@ public class MeasureCLITest extends BaseMeasureTest {
 			cli.runWithArgs(new String[] {
 					"-d", tmpFile.getAbsolutePath(),
 					"-j", tmpMeasureConfigurationsFile.getAbsolutePath(),
-					"-c", patient.getId() 
-			}, out);	
+					"-c", patient.getId()
+			}, out);
 		} finally {
 			tmpFile.delete();
 			tmpMeasureConfigurationsFile.delete();
 		}
-		
+
+		String output = new String(baos.toByteArray());
+		String[] lines = output.split(System.getProperty("line.separator"));
+		assertEquals( output, 4, lines.length );
+	}
+
+	@Test
+	public void testCohortMeasureSinglePatientJsonInputWithCacheOptions() throws Exception {
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1592-14-03");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/test.cql");
+
+		Measure measure = getCohortMeasure("Test", library, "Female");
+		mockFhirResourceRetrieval(measure);
+
+		File tmpFile = new File("target/fhir-stub.json");
+		ObjectMapper om = new ObjectMapper();
+		try (Writer w = new FileWriter(tmpFile)) {
+			w.write(om.writeValueAsString(getFhirServerConfig()));
+		}
+
+		File tmpMeasureConfigurationsFile = createTmpConfigurationsFileForSingleMeasure(measure.getId());
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream out = new PrintStream(baos);
+		try {
+			MeasureCLI cli = new MeasureCLI();
+			cli.runWithArgs(new String[] {
+					"-d", tmpFile.getAbsolutePath(),
+					"-j", tmpMeasureConfigurationsFile.getAbsolutePath(),
+					"-c", patient.getId(),
+					"--enable-cache",
+					"--max-cache-size", "500",
+					"--cache-expire-on-write", "100",
+					"--enable-cache-statistics"
+			}, out);
+		} finally {
+			tmpFile.delete();
+			tmpMeasureConfigurationsFile.delete();
+		}
+
 		String output = new String(baos.toByteArray());
 		String[] lines = output.split(System.getProperty("line.separator"));
 		assertEquals( output, 4, lines.length );
