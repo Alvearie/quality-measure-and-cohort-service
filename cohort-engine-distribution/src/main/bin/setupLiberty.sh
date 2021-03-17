@@ -6,6 +6,8 @@ LIBERTY_TRUST_STORE_LOC=${LIBERTY_INSTALL_ROOT}/wlp/output/$LIBERTY_SERVER_NAME/
 LIBERTY_KEY_STORE_NAME=cohortCDTKey.p12
 LIBERTY_TRUST_STORE_NAME=cohortCDTTrust.p12
 K8S_CERT_BUNDLE_LOC=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+#ENABLE_DARK_FEATURES should be passed in by Helm, see values.yaml and deployment.yaml for references
+ENABLE_DARK_FEATURES_STR=${ENABLE_DARK_FEATURES}
 
 # encodePasswordForLiberty
 # Return liberty encoded password
@@ -52,6 +54,7 @@ replaceToken $SERVER_XML_FILE LIBERTY_TRUST_STORE_NAME_TOKEN $LIBERTY_TRUST_STOR
 replaceToken $JVM_OPTIONS_FILE LIBERTY_STORE_PWD_TOKEN $LIBERTY_STORE_PWD
 replaceToken $JVM_OPTIONS_FILE LIBERTY_TRUST_STORE_LOC_TOKEN $LIBERTY_TRUST_STORE_LOC
 replaceToken $JVM_OPTIONS_FILE LIBERTY_TRUST_STORE_NAME_TOKEN $LIBERTY_TRUST_STORE_NAME
+replaceToken $JVM_OPTIONS_FILE ENABLE_DARK_FEATURES_TOKEN $ENABLE_DARK_FEATURES_STR
 
 # create truststore using K8s CA signed certificate and key in mounted secret
 mkdir -p ${LIBERTY_TRUST_STORE_LOC}

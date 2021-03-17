@@ -41,6 +41,9 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: ENABLE_DARK_FEATURES
+              value: {{ .Values.enableDarkFeatures }}
           ports:
           {{- range .Values.service.ports }}
           - containerPort: {{ . }}
@@ -48,6 +51,24 @@ spec:
           volumeMounts:
             - name: secret-tls
               mountPath: /secrets/tls
+          livenessProbe:
+            httpGet:
+              path: /services/cohort/api/v1/status?liveness_check=true
+              port: 9080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          startupProbe:
+            httpGet:
+              path: /services/cohort/api/v1/status?liveness_check=true
+              port: 9080
+            failureThreshold: 12
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /services/cohort/api/v1/status/health_check
+              port: 9080
+            initialDelaySeconds: 30
+            periodSeconds: 10
       nodeSelector:
         worker-type: application
 

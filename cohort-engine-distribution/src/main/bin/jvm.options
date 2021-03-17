@@ -19,4 +19,4 @@
 -Djavax.net.ssl.trustStorePassword=LIBERTY_STORE_PWD_TOKEN
 -Djavax.net.ssl.trustStoreType=PKCS12
 
--Denabled.dark.features=none
+-Denabled.dark.features=ENABLE_DARK_FEATURES_TOKEN
