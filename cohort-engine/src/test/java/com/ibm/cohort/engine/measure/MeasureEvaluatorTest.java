@@ -43,7 +43,6 @@ import org.junit.Test;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 import org.opencds.cqf.cql.engine.exception.InvalidOperatorArgument;
 
-import com.google.common.collect.Lists;
 import com.ibm.cohort.engine.LibraryFormat;
 import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
@@ -472,7 +471,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		name1.setFamily("Jones");
 		HumanName name2 = new HumanName();
 		name2.setFamily("Smith");
-		patient.setName(Lists.newArrayList(name1, name2));
+		patient.setName(Arrays.asList(name1, name2));
 		
 		// Add marital status to test codeable concept
 		CodeableConcept maritalStatus = new CodeableConcept();
@@ -481,7 +480,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		maritalCoding.setSystem("http://terminology.hl7.org/CodeSystem/v3-MaritalStatus");
 		maritalCoding.setDisplay("Married");
 		
-		maritalStatus.setCoding(Lists.newArrayList(maritalCoding));
+		maritalStatus.setCoding(Arrays.asList(maritalCoding));
 		maritalStatus.setText("Married");
 		
 		patient.setMaritalStatus(maritalStatus);
