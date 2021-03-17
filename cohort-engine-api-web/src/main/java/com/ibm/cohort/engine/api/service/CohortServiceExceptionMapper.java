@@ -15,6 +15,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +87,7 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 			else if (ex instanceof BaseServerResponseException) {
 				serviceErrorCode = Status.INTERNAL_SERVER_ERROR.getStatusCode();
 				serviceErrorListCode = serviceErrorCode;
-				description = ((BaseServerResponseException) ex).getResponseBody();
+				description = StringEscapeUtils.escapeJson(((BaseServerResponseException) ex).getResponseBody());
 			}
 			//catch everything else and return a 500
 			else {
