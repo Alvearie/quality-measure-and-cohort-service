@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
+import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
@@ -29,6 +30,7 @@ import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.cqfruler.MeasureEvaluation;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceHelper;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
+import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
 
 /**
  * Implementation of measure evaluation logic for the IBM Common Data Model IG
@@ -147,9 +149,7 @@ public class CDMMeasureEvaluation {
 			CDMContext defineContext = (CDMContext) context;
 			
 			// Grab the define results from the expression cache
-			if(evidenceOptions.isIncludeDefineEvaluation()) {
-				addDefineEvaluationToReport(report, defineContext);
-			}
+			addDefineEvaluationToReport(report, defineContext, evidenceOptions.getDefineReturnOption());
 			
 			defineContext.clearExpressionCache();
 		}
@@ -157,13 +157,17 @@ public class CDMMeasureEvaluation {
 		return report;
 	}
 	
-	protected static void addDefineEvaluationToReport(MeasureReport report, CDMContext defineContext) {
+	protected static void addDefineEvaluationToReport(MeasureReport report, CDMContext defineContext, DefineReturnOptions defineOption) {
+		if(DefineReturnOptions.NONE == defineOption) {
+			return;
+		}
+		
 		for(Entry<VersionedIdentifier, Map<String, Object>> libraryCache : defineContext.getEntriesInCache()) {
 			for(Entry<String, Object> defineResult : libraryCache.getValue().entrySet()) {
 				
 				List<Type> values = MeasureEvidenceHelper.getFhirTypes(defineResult.getValue());
 				
-				if (!values.isEmpty()) {
+				if (shouldAddDefineResult(defineOption, values)) {
 					
 					Extension evidence = new Extension();
 					evidence.setUrl(CDMConstants.EVIDENCE_URL);
@@ -182,6 +186,51 @@ public class CDMMeasureEvaluation {
 						valueExtension.setValue(value);
 						evidence.addExtension(valueExtension);
 					}
+					
+					report.addExtension(evidence);
+				}
+			}
+		}
+	}
+	
+	private static boolean shouldAddDefineResult(DefineReturnOptions defineOption, List<Type> values) {
+		if(!values.isEmpty()) {
+			if(DefineReturnOptions.ALL == defineOption) {
+				return true;
+			}
+			else if(DefineReturnOptions.BOOLEAN == defineOption
+					&& values.size() == 1
+					&& values.get(0) instanceof BooleanType) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	protected static void addBooleanDefineEvaluationToReport(MeasureReport report, CDMContext defineContext) {
+		for(Entry<VersionedIdentifier, Map<String, Object>> libraryCache : defineContext.getEntriesInCache()) {
+			for(Entry<String, Object> defineResult : libraryCache.getValue().entrySet()) {
+				
+				Type value = MeasureEvidenceHelper.getFhirType(defineResult.getValue());
+				
+				if (value instanceof BooleanType) {
+					
+					Extension evidence = new Extension();
+					evidence.setUrl(CDMConstants.EVIDENCE_URL);
+					
+					StringType key = new StringType(MeasureEvidenceHelper.createEvidenceKey(libraryCache.getKey(), defineResult.getKey()));
+					
+					Extension textExtension = new Extension();
+					textExtension.setUrl(CDMConstants.EVIDENCE_TEXT_URL);
+					textExtension.setValue(key);
+					
+					evidence.addExtension(textExtension);
+					
+					Extension valueExtension = new Extension();
+					valueExtension.setUrl(CDMConstants.EVIDENCE_VALUE_URL);
+					valueExtension.setValue(value);
+					evidence.addExtension(valueExtension);
 					
 					report.addExtension(evidence);
 				}

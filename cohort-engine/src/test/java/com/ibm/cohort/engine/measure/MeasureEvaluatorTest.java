@@ -47,6 +47,7 @@ import com.google.common.collect.Lists;
 import com.ibm.cohort.engine.LibraryFormat;
 import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
+import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
 import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
 
 public class MeasureEvaluatorTest extends BaseMeasureTest {
@@ -496,7 +497,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
 		mockFhirResourceRetrieval(measure);
 
-		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(true, true));
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(true, DefineReturnOptions.ALL));
 		
 		assertNotNull(report);
 		
@@ -525,7 +526,32 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
 		mockFhirResourceRetrieval(measure);
 
-		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(false, true));
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(false, DefineReturnOptions.ALL));
+		assertNotNull(report);
+		
+		assertTrue(report.getEvaluatedResource().isEmpty());
+		assertFalse(report.getExtensionsByUrl(CDMConstants.EVIDENCE_URL).isEmpty());
+	}
+	
+	@Test
+	public void in_populations_evaluated_boolean_define_only_returned() throws Exception {
+		CapabilityStatement metadata = getCapabilityStatement();
+		mockFhirResourceRetrieval("/metadata", metadata);
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = setupDefineReturnLibrary();
+		
+		expressionsByPopulationType.clear();
+		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
+		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOR, DENOMINATOR);
+		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
+
+		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
+		mockFhirResourceRetrieval(measure);
+
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(false, DefineReturnOptions.BOOLEAN));
 		assertNotNull(report);
 		
 		assertTrue(report.getEvaluatedResource().isEmpty());
@@ -550,7 +576,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
 		mockFhirResourceRetrieval(measure);
 
-		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(true, false));
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(true, DefineReturnOptions.NONE));
 		assertNotNull(report);
 		
 		assertFalse(report.getEvaluatedResource().isEmpty());
