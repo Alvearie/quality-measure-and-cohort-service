@@ -14,6 +14,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.cache.Cache;
 
+/**
+ * <p>A {@link RetrieveProvider} decorator that leverages a cache for easily cacheable retrieve() calls.
+ *
+ * <p>The underlying cache implementation depends on what {@link RetrieveCacheContext} is passed in.
+ */
 public class CachingRetrieveProvider implements RetrieveProvider {
 
 	private static final Logger LOG = LoggerFactory.getLogger(CachingRetrieveProvider.class);
@@ -43,14 +48,25 @@ public class CachingRetrieveProvider implements RetrieveProvider {
 	) {
 		Iterable<Object> retVal;
 
+		/*
+		 * Do not query the cache under the following circumstances:
+		 *
+		 * * If `contextValue` is not a String.
+		 *     This can be relaxed once we better understand what other types show up here,
+		 *     and how they might be serialized.
+		 *
+		 * * If any of the date based fields are non-null.
+		 *     Due to the nature of time itself, the values returned by the underlying provider may change
+		 *     in between calls that are minutes or even seconds apart even though the parameters are the same.
+		 */
 		if (contextValue.getClass() != String.class || datePath != null || dateLowPath != null || dateHighPath != null || dateRange != null) {
 			LOG.trace("Skipping cache");
 			retVal = baseProvider.retrieve(context, contextPath, contextValue, dataType, templateId, codePath, codes, valueSet, datePath, dateLowPath, dateHighPath, dateRange);
 		}
 		else {
-			Cache<CacheKey, Iterable<Object>> cache = retrieveCacheContext.getCache((String)contextValue);
+			Cache<RetrieveCacheKey, Iterable<Object>> cache = retrieveCacheContext.getCache((String)contextValue);
 			LOG.trace("Attempting cache");
-			CacheKey key = CacheKey.create(context, contextPath, (String)contextValue, dataType, templateId, codePath, codes, valueSet);
+			RetrieveCacheKey key = RetrieveCacheKey.create(context, contextPath, (String)contextValue, dataType, templateId, codePath, codes, valueSet);
 
 			retVal = cache.get(key);
 			if (retVal == null) {

@@ -8,7 +8,7 @@ package com.ibm.cohort.engine.measure;
 
 import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
-import com.ibm.cohort.engine.measure.cache.TransientRetrieveCacheContext;
+import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
@@ -56,7 +56,7 @@ public class R4MeasureEvaluatorBuilderTest extends BaseMeasureTest {
 
 	@Test
 	public void build_withCacheContext() throws Exception {
-		try(RetrieveCacheContext cacheContext = new TransientRetrieveCacheContext(new CaffeineConfiguration<>())) {
+		try(RetrieveCacheContext cacheContext = new DefaultRetrieveCacheContext(new CaffeineConfiguration<>())) {
 			MeasureEvaluator evaluator = new R4MeasureEvaluatorBuilder()
 					.withClientContext(clientContext)
 					.withRetrieveCacheContext(cacheContext)

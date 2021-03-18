@@ -10,7 +10,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.opencds.cqf.cql.engine.runtime.Code;
 
-public class CacheCodeTest {
+public class RetrieveCacheCodeTest {
 
 	@Test
 	public void create() {
@@ -25,8 +25,8 @@ public class CacheCodeTest {
 				.withDisplay(display)
 				.withVersion(version);
 
-		CacheCode expected = new CacheCode(code, system, display, version);
-		CacheCode actual = CacheCode.create(source);
+		RetrieveCacheCode expected = new RetrieveCacheCode(code, system, display, version);
+		RetrieveCacheCode actual = RetrieveCacheCode.create(source);
 
 		Assert.assertEquals(expected, actual);
 	}

@@ -18,9 +18,9 @@ import java.util.Objects;
  * A HashMap friendly model representing the cacheable fields of `RetrieveProvider.retrieve()`.
  * @see org.opencds.cqf.cql.engine.retrieve.RetrieveProvider
  */
-public class CacheKey {
+public class RetrieveCacheKey {
 
-	public static CacheKey create(
+	public static RetrieveCacheKey create(
 			String context,
 			String contextPath,
 			String contextValue,
@@ -31,14 +31,14 @@ public class CacheKey {
 			String valueSet
 	) {
 		// POST PR TODO: Is a null list or empty list better for persistence?
-		List<CacheCode> cacheCodes = Collections.emptyList();
+		List<RetrieveCacheCode> retrieveCacheCodes = Collections.emptyList();
 		if (codes != null) {
-			cacheCodes = new ArrayList<>();
+			retrieveCacheCodes = new ArrayList<>();
 			for (Code code : codes) {
-				cacheCodes.add(CacheCode.create(code));
+				retrieveCacheCodes.add(RetrieveCacheCode.create(code));
 			}
 		}
-		return new CacheKey(context, contextPath, contextValue, dataType, templateId, codePath, cacheCodes, valueSet);
+		return new RetrieveCacheKey(context, contextPath, contextValue, dataType, templateId, codePath, retrieveCacheCodes, valueSet);
 	}
 
 	private final String context;
@@ -47,17 +47,17 @@ public class CacheKey {
 	private final String dataType;
 	private final String templateId;
 	private final String codePath;
-	private final List<CacheCode> codes;
+	private final List<RetrieveCacheCode> codes;
 	private final String valueSet;
 
-	public CacheKey(
+	public RetrieveCacheKey(
 			String context,
 			String contextPath,
 			String contextValue,
 			String dataType,
 			String templateId,
 			String codePath,
-			List<CacheCode> codes,
+			List<RetrieveCacheCode> codes,
 			String valueSet
 	) {
 		this.context = context;
@@ -75,15 +75,15 @@ public class CacheKey {
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
-		CacheKey cacheKey = (CacheKey) o;
-		return Objects.equals(context, cacheKey.context)
-				&& Objects.equals(contextPath, cacheKey.contextPath)
-				&& Objects.equals(contextValue, cacheKey.contextValue)
-				&& Objects.equals(dataType, cacheKey.dataType)
-				&& Objects.equals(templateId, cacheKey.templateId)
-				&& Objects.equals(codePath, cacheKey.codePath)
-				&& Objects.equals(codes, cacheKey.codes)
-				&& Objects.equals(valueSet, cacheKey.valueSet);
+		RetrieveCacheKey retrieveCacheKey = (RetrieveCacheKey) o;
+		return Objects.equals(context, retrieveCacheKey.context)
+				&& Objects.equals(contextPath, retrieveCacheKey.contextPath)
+				&& Objects.equals(contextValue, retrieveCacheKey.contextValue)
+				&& Objects.equals(dataType, retrieveCacheKey.dataType)
+				&& Objects.equals(templateId, retrieveCacheKey.templateId)
+				&& Objects.equals(codePath, retrieveCacheKey.codePath)
+				&& Objects.equals(codes, retrieveCacheKey.codes)
+				&& Objects.equals(valueSet, retrieveCacheKey.valueSet);
 	}
 
 	@Override
@@ -94,7 +94,7 @@ public class CacheKey {
 
 	@Override
 	public String toString() {
-		return "CacheKey{" +
+		return "RetrieveCacheKey{" +
 				"context='" + context + '\'' +
 				", contextPath='" + contextPath + '\'' +
 				", contextValue='" + contextValue + '\'' +

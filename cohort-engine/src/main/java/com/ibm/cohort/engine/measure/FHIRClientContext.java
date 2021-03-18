@@ -13,8 +13,29 @@ import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
+/**
+ * A wrapper around the different HAPI client connections required by the engine.
+ *
+ * Use {@link Builder} for construction.
+ */
 public class FHIRClientContext {
 
+	/**
+	 * <p>Builds instances of {@link FHIRClientContext}.
+	 *
+	 * <p>Allows up to four unique connections that access the following services:
+	 * <ul>
+	 *     <li>Terminology
+	 *     <li>Data
+	 *     <li>Measure
+	 *     <li>Library
+	 * </ul>
+	 *
+	 * <p>A default connection may also be provided in place of any of the above mentioned connections.
+	 * If any connection is not provided while there is a default, the default connection is used.
+	 *
+	 * <p>Failing to provide a valid connection for all four services will result in an {@link IllegalArgumentException}.
+	 */
 	public static class Builder {
 
 		private FhirContext fhirContext;

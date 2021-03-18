@@ -24,9 +24,9 @@ import com.ibm.cohort.engine.measure.FHIRClientContext;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.MeasureEvaluator;
 import com.ibm.cohort.engine.measure.R4MeasureEvaluatorBuilder;
-import com.ibm.cohort.engine.measure.cache.CacheKey;
+import com.ibm.cohort.engine.measure.cache.RetrieveCacheKey;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
-import com.ibm.cohort.engine.measure.cache.TransientRetrieveCacheContext;
+import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
@@ -224,11 +224,11 @@ public class CohortEngineFlinkDriver implements Serializable {
 	}
 
 	private RetrieveCacheContext createCacheContext() {
-		CaffeineConfiguration<CacheKey, Iterable<Object>> cacheConfig = new CaffeineConfiguration<>();
+		CaffeineConfiguration<RetrieveCacheKey, Iterable<Object>> cacheConfig = new CaffeineConfiguration<>();
 		cacheConfig.setMaximumSize(OptionalLong.of(cacheConfiguration.getMaxSize()));
 		cacheConfig.setExpireAfterWrite(OptionalLong.of(TimeUnit.SECONDS.toNanos(cacheConfiguration.getExpireOnWrite())));
 		cacheConfig.setStatisticsEnabled(cacheConfiguration.isEnableStatistics());
-		return new TransientRetrieveCacheContext(cacheConfig);
+		return new DefaultRetrieveCacheContext(cacheConfig);
 	}
 
 }

@@ -12,27 +12,39 @@ import javax.cache.configuration.CompleteConfiguration;
 import java.io.IOException;
 import java.util.UUID;
 
-public class TransientRetrieveCacheContext implements RetrieveCacheContext {
+/**
+ * <p>A simple implementation of {@link RetrieveCacheContext} that will
+ * call {@link #flushCache()} whenever a contextId different from the
+ * previously used contextId is passed in.
+ *
+ * <p>Flushing the cache clears all contents in the cache
+ * and the currently stored contextId.
+ *
+ * <p><b>NOTE</b>: The last contextId passed in will not be flushed
+ * automatically.  The user will either need to call {@link #flushCache()}
+ * or {@link #close()}.
+ */
+public class DefaultRetrieveCacheContext implements RetrieveCacheContext {
 
-	private static final String CACHE_ID_PREFIX = "transient-retrieve-cache-";
+	private static final String CACHE_ID_PREFIX = "default-retrieve-cache-";
 
-	private final Cache<CacheKey, Iterable<Object>> cache;
+	private final Cache<RetrieveCacheKey, Iterable<Object>> cache;
 
 	private String currentContextId;
 
-	public TransientRetrieveCacheContext(CompleteConfiguration<CacheKey, Iterable<Object>> config) {
+	public DefaultRetrieveCacheContext(CompleteConfiguration<RetrieveCacheKey, Iterable<Object>> config) {
 		// Create a unique cacheId to prevent conflicts with other caches in the same JVM.
 		String uuid = UUID.randomUUID().toString();
 		String cacheId = CACHE_ID_PREFIX + uuid;
 		this.cache = Caching.getCachingProvider().getCacheManager().createCache(cacheId, config);
 	}
 
-	public TransientRetrieveCacheContext(Cache<CacheKey, Iterable<Object>> cache) {
+	public DefaultRetrieveCacheContext(Cache<RetrieveCacheKey, Iterable<Object>> cache) {
 		this.cache = cache;
 	}
 
 	@Override
-	public Cache<CacheKey, Iterable<Object>> getCache(String contextId) {
+	public Cache<RetrieveCacheKey, Iterable<Object>> getCache(String contextId) {
 		if (!contextId.equals(currentContextId)) {
 			if (currentContextId != null) {
 				flushCache();

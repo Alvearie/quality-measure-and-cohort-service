@@ -15,10 +15,10 @@ import java.util.Objects;
  * A HashMap friendly version of the CQL engine's `Code` class.
  * @see org.opencds.cqf.cql.engine.runtime.Code
  */
-public final class CacheCode {
+public final class RetrieveCacheCode {
 
-	public static CacheCode create(Code code) {
-		return new CacheCode(code.getCode(), code.getSystem(), code.getDisplay(), code.getVersion());
+	public static RetrieveCacheCode create(Code code) {
+		return new RetrieveCacheCode(code.getCode(), code.getSystem(), code.getDisplay(), code.getVersion());
 	}
 
 	private final String code;
@@ -26,7 +26,7 @@ public final class CacheCode {
 	private final String display;
 	private final String version;
 
-	public CacheCode(String code, String system, String display, String version) {
+	public RetrieveCacheCode(String code, String system, String display, String version) {
 		this.code = code;
 		this.system = system;
 		this.display = display;
@@ -38,11 +38,11 @@ public final class CacheCode {
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
-		CacheCode cacheCode = (CacheCode) o;
-		return Objects.equals(code, cacheCode.code)
-				&& Objects.equals(system, cacheCode.system)
-				&& Objects.equals(display, cacheCode.display)
-				&& Objects.equals(version, cacheCode.version);
+		RetrieveCacheCode retrieveCacheCode = (RetrieveCacheCode) o;
+		return Objects.equals(code, retrieveCacheCode.code)
+				&& Objects.equals(system, retrieveCacheCode.system)
+				&& Objects.equals(display, retrieveCacheCode.display)
+				&& Objects.equals(version, retrieveCacheCode.version);
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public final class CacheCode {
 
 	@Override
 	public String toString() {
-		return "CacheCode{" +
+		return "RetrieveCacheCode{" +
 				"code='" + code + '\'' +
 				", system='" + system + '\'' +
 				", display='" + display + '\'' +

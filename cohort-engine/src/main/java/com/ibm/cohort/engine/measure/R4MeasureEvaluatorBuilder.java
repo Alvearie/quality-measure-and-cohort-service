@@ -16,6 +16,10 @@ import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import java.util.Map;
 
+/**
+ * A builder intended to allow for easy creation of {@link MeasureEvaluator} instances tailored for use
+ * with FHIR R4.
+ */
 public class R4MeasureEvaluatorBuilder {
 
 	private FHIRClientContext clientContext;

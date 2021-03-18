@@ -66,8 +66,8 @@ public class CachingRetrieveProviderTest {
 
 		RetrieveProvider mockProvider = Mockito.mock(RetrieveProvider.class);
 
-		CacheKey cacheKey = CacheKey.create(CONTEXT, CONTEXT_PATH, CONTEXT_VALUE, DATA_TYPE, TEMPLATE_ID, CODE_PATH, CODES, VALUE_SET);
-		Cache<CacheKey, Iterable<Object>> mockCache = createMockCache(cacheKey, expected);
+		RetrieveCacheKey retrieveCacheKey = RetrieveCacheKey.create(CONTEXT, CONTEXT_PATH, CONTEXT_VALUE, DATA_TYPE, TEMPLATE_ID, CODE_PATH, CODES, VALUE_SET);
+		Cache<RetrieveCacheKey, Iterable<Object>> mockCache = createMockCache(retrieveCacheKey, expected);
 
 		RetrieveCacheContext mockCacheContext = createMockCacheContext(mockCache);
 		CachingRetrieveProvider provider = new CachingRetrieveProvider(mockProvider, mockCacheContext);
@@ -152,15 +152,15 @@ public class CachingRetrieveProviderTest {
 		Assert.assertSame(expected, actual);
 	}
 
-	private RetrieveCacheContext createMockCacheContext(Cache<CacheKey, Iterable<Object>> retVal) {
+	private RetrieveCacheContext createMockCacheContext(Cache<RetrieveCacheKey, Iterable<Object>> retVal) {
 		RetrieveCacheContext mockCacheContext = Mockito.mock(RetrieveCacheContext.class);
 		Mockito.when(mockCacheContext.getCache(CONTEXT_VALUE))
 				.thenReturn(retVal);
 		return mockCacheContext;
 	}
 
-	private Cache<CacheKey, Iterable<Object>> createMockCache(CacheKey input, Iterable<Object> retVal) {
-		Cache<CacheKey, Iterable<Object>> mockCache = Mockito.mock(Cache.class);
+	private Cache<RetrieveCacheKey, Iterable<Object>> createMockCache(RetrieveCacheKey input, Iterable<Object> retVal) {
+		Cache<RetrieveCacheKey, Iterable<Object>> mockCache = Mockito.mock(Cache.class);
 		Mockito.when(mockCache.get(input))
 				.thenReturn(retVal);
 		return mockCache;

@@ -10,7 +10,7 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
 import com.ibm.cohort.engine.BaseFhirTest;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
-import com.ibm.cohort.engine.measure.cache.TransientRetrieveCacheContext;
+import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Patient;
 import org.junit.Assert;
@@ -56,7 +56,7 @@ public class R4DataProviderFactoryTest extends BaseFhirTest {
 				.build()
 				.getDataClient();
 		TerminologyProvider terminologyProvider = new R4FhirTerminologyProvider(client);
-		try(RetrieveCacheContext cacheContext = new TransientRetrieveCacheContext(new CaffeineConfiguration<>())) {
+		try(RetrieveCacheContext cacheContext = new DefaultRetrieveCacheContext(new CaffeineConfiguration<>())) {
 			Map<String, DataProvider> map = R4DataProviderFactory.createDataProviderMap(
 					client,
 					terminologyProvider,

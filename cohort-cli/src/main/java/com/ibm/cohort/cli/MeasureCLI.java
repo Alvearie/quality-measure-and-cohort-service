@@ -15,11 +15,11 @@ import java.util.zip.ZipFile;
 
 import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
 import com.ibm.cohort.engine.measure.R4DataProviderFactory;
-import com.ibm.cohort.engine.measure.cache.CacheKey;
+import com.ibm.cohort.engine.measure.cache.RetrieveCacheKey;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
-import com.ibm.cohort.engine.measure.cache.TransientRetrieveCacheContext;
+import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import org.hl7.fhir.r4.model.MeasureReport;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 
@@ -174,13 +174,13 @@ public class MeasureCLI extends BaseCLI {
 				measureContexts = MeasureContextProvider.getMeasureContexts(arguments.resourceId,  arguments.parameters);
 			}
 
-			CaffeineConfiguration<CacheKey, Iterable<Object>> cacheConfig = new CaffeineConfiguration<>();
+			CaffeineConfiguration<RetrieveCacheKey, Iterable<Object>> cacheConfig = new CaffeineConfiguration<>();
 			cacheConfig.setMaximumSize(OptionalLong.of(arguments.maxCacheSize));
 			cacheConfig.setExpireAfterWrite(OptionalLong.of(TimeUnit.SECONDS.toNanos(arguments.cacheExpireOnWrite)));
 			cacheConfig.setStatisticsEnabled(arguments.enableCacheStatistics);
 
 			TerminologyProvider terminologyProvider = new R4FhirTerminologyProvider(terminologyServerClient);
-			try (RetrieveCacheContext retrieveCacheContext = arguments.enableCache ? new TransientRetrieveCacheContext(cacheConfig) : null) {
+			try (RetrieveCacheContext retrieveCacheContext = arguments.enableCache ? new DefaultRetrieveCacheContext(cacheConfig) : null) {
 				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataServerClient, terminologyProvider, retrieveCacheContext);
 
 				evaluator = new MeasureEvaluator(measureProvider, libraryProvider, terminologyProvider, dataProviders);

@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CacheKeyTest {
+public class RetrieveCacheKeyTest {
 
 	private static final String CONTEXT = "context";
 	private static final String CONTEXT_PATH = "contextPath";
@@ -40,7 +40,7 @@ public class CacheKeyTest {
 
 	@Test
 	public void create_nullCodes() {
-		CacheKey expected = new CacheKey(
+		RetrieveCacheKey expected = new RetrieveCacheKey(
 				CONTEXT,
 				CONTEXT_PATH,
 				CONTEXT_VALUE,
@@ -51,7 +51,7 @@ public class CacheKeyTest {
 				VALUE_SET
 		);
 
-		CacheKey actual = CacheKey.create(
+		RetrieveCacheKey actual = RetrieveCacheKey.create(
 				CONTEXT,
 				CONTEXT_PATH,
 				CONTEXT_VALUE,
@@ -67,7 +67,7 @@ public class CacheKeyTest {
 
 	@Test
 	public void create_emptyCodes() {
-		CacheKey expected = new CacheKey(
+		RetrieveCacheKey expected = new RetrieveCacheKey(
 				CONTEXT,
 				CONTEXT_PATH,
 				CONTEXT_VALUE,
@@ -78,7 +78,7 @@ public class CacheKeyTest {
 				VALUE_SET
 		);
 
-		CacheKey actual = CacheKey.create(
+		RetrieveCacheKey actual = RetrieveCacheKey.create(
 				CONTEXT,
 				CONTEXT_PATH,
 				CONTEXT_VALUE,
@@ -94,7 +94,7 @@ public class CacheKeyTest {
 
 	@Test
 	public void create_actualCodes() {
-		CacheKey expected = new CacheKey(
+		RetrieveCacheKey expected = new RetrieveCacheKey(
 				CONTEXT,
 				CONTEXT_PATH,
 				CONTEXT_VALUE,
@@ -105,7 +105,7 @@ public class CacheKeyTest {
 				VALUE_SET
 		);
 
-		CacheKey actual = CacheKey.create(
+		RetrieveCacheKey actual = RetrieveCacheKey.create(
 				CONTEXT,
 				CONTEXT_PATH,
 				CONTEXT_VALUE,
@@ -119,9 +119,9 @@ public class CacheKeyTest {
 		Assert.assertEquals(expected, actual);
 	}
 
-	private List<CacheCode> toCacheCodes(List<Code> cacheCodes) {
+	private List<RetrieveCacheCode> toCacheCodes(List<Code> cacheCodes) {
 		return cacheCodes.stream()
-				.map(CacheCode::create)
+				.map(RetrieveCacheCode::create)
 				.collect(Collectors.toList());
 	}
 }
