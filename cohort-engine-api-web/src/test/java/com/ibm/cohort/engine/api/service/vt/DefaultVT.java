@@ -30,6 +30,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.io.File;
+
 import org.apache.http.HttpStatus;
 import org.custommonkey.xmlunit.Diff;
 import org.hl7.fhir.r4.model.Identifier;
@@ -46,6 +48,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.api.service.CohortEngineRestConstants;
+
 import com.ibm.cohort.engine.api.service.CohortEngineRestHandler;
 import com.ibm.cohort.engine.api.service.ServiceBuildConstants;
 import com.ibm.cohort.engine.api.service.TestHelper;
@@ -70,6 +73,9 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
+
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.parser.IParser;
 
 /*
  * PLEASE READ THIS FIRST
@@ -142,7 +148,7 @@ public class DefaultVT extends ServiceVTBase {
 		} else {
 			termServerConfig = dataServerConfig;
 		}
-		
+
 	}
 
 	@AfterClass
@@ -375,6 +381,25 @@ public class DefaultVT extends ServiceVTBase {
         assertXpathValuesEqual("//jvm[4]/@latest", "//jvm[4]/@current", myJavaFlavours);
         assertXpathValuesNotEqual("//jvm[2]/@current", "//jvm[3]/@current", myJavaFlavours);
     }
+
+    @Test
+	public void testValueSetUpload(){
+		//todo possibly extract the endpoint
+		final String RESOURCE = getUrlBase() + "/{version}/valueset";
+		FhirContext fhirContext = FhirContext.forR4();
+//		IParser parser = fhirContext.newJsonParser().setPrettyPrint(true);
+
+		RequestSpecification request = buildBaseRequest(new Headers())
+//				.queryParam("version", ServiceBuildConstants.DATE)
+				.queryParam("updateIfExists", false)
+				.multiPart(CohortEngineRestHandler.VALUE_SET_PART, new File("src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx"));
+
+		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
+		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
+
+		String expected = getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"measure_evaluation_exp.json");
+		String actual = vr.extract().asString();
+	}
 
 	@Override
 	protected Logger getLogger() {

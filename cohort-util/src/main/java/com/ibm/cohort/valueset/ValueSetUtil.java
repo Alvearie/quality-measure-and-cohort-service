@@ -27,6 +27,22 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 public class ValueSetUtil {
 
+	public static void validateArtifact(ValueSetArtifact valueSetArtifact){
+			if(valueSetArtifact.getUrl() == null){
+				//todo new kind of exception? Invalid Format? something specific
+				throw new IllegalArgumentException("URL must be supplied");
+			}
+			if(valueSetArtifact.getFhirResource().getId() == null || valueSetArtifact.getFhirResource().getId().equals("")){
+				throw new IllegalArgumentException("Identifier must be supplied, ensure that either the OID or the ID field is filled in");
+			}
+			if(valueSetArtifact.getFhirResource().getVersion() == null || valueSetArtifact.getFhirResource().getVersion().equals("")){
+				throw new IllegalArgumentException("Value Set Version must be supplied");
+			}
+			if(valueSetArtifact.getFhirResource().getCompose().getInclude() == null || valueSetArtifact.getFhirResource().getCompose().getInclude().size() == 0){
+				throw new IllegalArgumentException("Value set must include codes but no codes were included.");
+			}
+	}
+
 	public static ValueSetArtifact createArtifact(InputStream is) throws IOException {
 		XSSFSheet informationSheet;
 		try (XSSFWorkbook wb = new XSSFWorkbook(is)) {
@@ -86,6 +102,7 @@ public class ValueSetUtil {
 			throw new RuntimeException("There must be an Identifier specified! Please populate the ID field");
 		}
 		valueSet.setUrl(url + identifier);
+		valueSet.setId(identifier);
 		ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
 
 		for (Map.Entry<String, List<ValueSet.ConceptReferenceComponent>> singleInclude : codeSystemToCodes.entrySet()) {
@@ -97,30 +114,32 @@ public class ValueSetUtil {
 		valueSet.setCompose(compose);
 		ValueSetArtifact artifact = new ValueSetArtifact();
 		artifact.setName(valueSet.getName());
-		artifact.setResource(valueSet);
+		artifact.setFhirResource(valueSet);
 		artifact.setUrl(valueSet.getUrl());
 		return artifact;
 	}
 
-	public static void importArtifacts(IGenericClient client, List<ValueSetArtifact> valueSetArtifacts) {
-		importArtifacts(client, valueSetArtifacts, false);
-	}
-
-	public static void importArtifacts(IGenericClient client, List<ValueSetArtifact> valueSetArtifacts, boolean continueIFExists) {
-
-		for (ValueSetArtifact valueSetArtifact : valueSetArtifacts) {
-			Bundle bundle = client.search().forResource(ValueSet.class).where(ValueSet.URL.matches().value(valueSetArtifact.getUrl()))
-					.returnBundle(Bundle.class).execute();
-			if (bundle.getEntry().size() > 0) {
-				valueSetArtifact.setId(bundle.getEntryFirstRep().getResource().getIdElement().getIdPart());
-				if (continueIFExists)  {
-					MethodOutcome outcome = client.update().resource(client.getFhirContext().newJsonParser().encodeResourceToString(valueSetArtifact.getResource())).execute();
-					valueSetArtifact.setId(outcome.getId().getIdPart());
-				}
-			} else {
-				MethodOutcome outcome = client.create().resource(client.getFhirContext().newJsonParser().encodeResourceToString(valueSetArtifact.getResource())).execute();
-				valueSetArtifact.setId(outcome.getId().getIdPart());
+	public static void importArtifacts(IGenericClient client, List<ValueSetArtifact> valueSetArtifacts, boolean updateIfExists) {
+		for(ValueSetArtifact valueSetArtifact : valueSetArtifacts) {
+			boolean valueSetExists = doesValueSetExist(client, valueSetArtifact);
+			if(!valueSetExists || updateIfExists) {
+				importArtifact(client, valueSetArtifact);
 			}
 		}
+	}
+
+	public static boolean doesValueSetExist(IGenericClient client, ValueSetArtifact valueSetArtifact){
+		Bundle bundle = client.search().forResource(ValueSet.class).where(ValueSet.URL.matches().value(valueSetArtifact.getUrl()))
+				.returnBundle(Bundle.class).execute();
+		return bundle.getEntry().size() > 0;
+	}
+
+	public static String importArtifact(IGenericClient client, ValueSetArtifact valueSetArtifact) {
+
+		MethodOutcome outcome = client.create().resource(client.getFhirContext().newJsonParser().encodeResourceToString(valueSetArtifact.getFhirResource())).execute();
+		valueSetArtifact.setId(outcome.getId().getIdPart());
+
+		return valueSetArtifact.getId();
+
 	}
 }

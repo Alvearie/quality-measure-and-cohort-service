@@ -16,6 +16,14 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -53,6 +61,8 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.BaseFhirTest;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
+import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.api.service.model.EvaluateMeasuresStatus;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
 import com.ibm.cohort.engine.measure.Identifier;
@@ -62,6 +72,7 @@ import com.ibm.cohort.engine.parameter.IntervalParameter;
 import com.ibm.cohort.engine.parameter.Parameter;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
+import com.ibm.cohort.valueset.ValueSetUtil;
 import com.ibm.watson.common.service.base.ServiceBaseUtility;
 import com.ibm.watson.common.service.base.security.Tenant;
 import com.ibm.watson.common.service.base.security.TenantManager;
@@ -94,6 +105,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 	List<MeasureParameterInfo> parameterInfoList = new ArrayList<MeasureParameterInfo>(
 			Arrays.asList(new MeasureParameterInfo().documentation("documentation").name("name").min(0).max("max")
 					.use("IN").type("type")));
+	private final String valueSetInput = "src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx";
 
 	@Mock
 	private static DefaultFhirClientBuilder mockDefaultFhirClientBuilder;
@@ -541,4 +553,100 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 				+ "        documentation: documentation\n" + "    ]\n" + "}";
 		assertEquals(validResp, loadResponse.getEntity().toString());
 	}
+
+	@PrepareForTest({ Response.class, ValueSetUtil.class, FHIRRestUtils.class })
+	@Test
+	public void testLoadValueSets() throws IOException {
+		prepMocks();
+		mockResponseClasses();
+
+		PowerMockito.mockStatic(FHIRRestUtils.class);
+		PowerMockito.mockStatic(ValueSetUtil.class);
+		PowerMockito.when(FHIRRestUtils.parseAuthenticationHeaderInfo(ArgumentMatchers.any())).thenReturn(authParts);
+
+		PowerMockito.when(
+				FHIRRestUtils.getFHIRClient(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(),
+						ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
+				.thenReturn(measureClient);
+		PowerMockito.when(ValueSetUtil.doesValueSetExist(ArgumentMatchers.any(), ArgumentMatchers.any()))
+				.thenReturn(false);
+		PowerMockito.when(ValueSetUtil.importArtifact(ArgumentMatchers.any(), ArgumentMatchers.any()))
+				.thenReturn("ID");
+
+		File tempFile = new File(valueSetInput);
+		IAttachment spreadsheetPart = PowerMockito.mock(IAttachment.class);
+		DataHandler dataHandler = PowerMockito.mock(DataHandler.class);
+		when(spreadsheetPart.getDataHandler()).thenReturn(dataHandler);
+		when(dataHandler.getInputStream())
+					.thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get(tempFile.getAbsolutePath()))));
+
+		IMultipartBody body = PowerMockito.mock(IMultipartBody.class);
+		when(body.getAttachment(any())).thenReturn(spreadsheetPart);
+		when(body.getRootAttachment()).thenReturn(spreadsheetPart);
+
+		Response loadResponse = restHandler.putValueSet(
+				mockHttpHeaders,
+				"version",
+				"fhirEndpoint",
+				"fhirTenantId",
+				"fhirTenantIdHeader",
+				"fhirDataSourceIdHeader",
+				"fhirDataSourceId",
+				false,
+				body
+		);
+		assertNotNull(loadResponse);
+		PowerMockito.verifyStatic(Response.class);
+		Response.status(Status.OK);
+	}
+
+	@PrepareForTest({ Response.class, ValueSetUtil.class, FHIRRestUtils.class })
+	@Test
+	public void testValueSetExists() throws IOException {
+		prepMocks();
+		mockResponseClasses();
+
+		PowerMockito.mockStatic(ServiceBaseUtility.class);
+		PowerMockito.mockStatic(FHIRRestUtils.class);
+		PowerMockito.mockStatic(ValueSetUtil.class);
+		PowerMockito.mockStatic(DefaultFhirClientBuilder.class);
+		PowerMockito.when(ServiceBaseUtility.apiSetup(version, logger, methodName)).thenReturn(null);
+		PowerMockito.when(FHIRRestUtils.parseAuthenticationHeaderInfo(ArgumentMatchers.any())).thenReturn(authParts);
+
+		PowerMockito.when(
+				FHIRRestUtils.getFHIRClient(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(),
+						ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
+				.thenReturn(measureClient);
+		PowerMockito.when(ValueSetUtil.doesValueSetExist(ArgumentMatchers.any(), ArgumentMatchers.any()))
+				.thenReturn(true);
+		PowerMockito.when(ValueSetUtil.importArtifact(ArgumentMatchers.any(), ArgumentMatchers.any()))
+				.thenReturn("ID");
+
+		File tempFile = new File(valueSetInput);
+		IAttachment spreadsheetPart = PowerMockito.mock(IAttachment.class);
+		byte[] x = Files.readAllBytes(Paths.get(tempFile.getAbsolutePath()));
+		DataHandler dataHandler = PowerMockito.mock(DataHandler.class);
+		when(spreadsheetPart.getDataHandler()).thenReturn(dataHandler);
+		when(dataHandler.getInputStream())
+				.thenReturn(new ByteArrayInputStream(x));
+
+		IMultipartBody body = PowerMockito.mock(IMultipartBody.class);
+		when(body.getAttachment(any())).thenReturn(spreadsheetPart);
+
+		Response loadResponse = restHandler.putValueSet(
+				mockHttpHeaders,
+				"version",
+				"fhirEndpoint",
+				"fhirTenantId",
+				"fhirTenantIdHeader",
+				"fhirDataSourceIdHeader",
+				"fhirDataSourceId",
+				false,
+				body
+		);
+		assertNotNull(loadResponse);
+		PowerMockito.verifyStatic(Response.class);
+		Response.status(490);
+	}
+
 }
