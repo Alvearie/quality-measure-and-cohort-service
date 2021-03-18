@@ -278,6 +278,10 @@
 						<groupId>com.vladsch.flexmark</groupId>
 						<artifactId>flexmark-all</artifactId>
 					</exclusion>
+					<exclusion>
+						<groupId>org.eclipse.jetty</groupId>
+						<artifactId>jetty-servlets</artifactId>
+					</exclusion>
 				</exclusions>
 			</dependency>
 			<!-- Updating due to AppScan issue with 29.0-jre pulled in via common -->
@@ -335,12 +339,17 @@
 						<groupId>com.vladsch.flexmark</groupId>
 						<artifactId>flexmark-all</artifactId>
 					</exclusion>
+					<exclusion>
+						<groupId>org.eclipse.jetty</groupId>
+						<artifactId>jetty-servlets</artifactId>
+					</exclusion>
 				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-servlets</artifactId>
  				<version>9.4.30.v20200611</version>
+ 				<scope>test</scope>
 			</dependency>
 
 			<dependency>
