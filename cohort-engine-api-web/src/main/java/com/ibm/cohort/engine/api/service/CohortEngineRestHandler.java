@@ -6,9 +6,14 @@
 package com.ibm.cohort.engine.api.service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.zip.ZipInputStream;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -147,7 +152,7 @@ public class CohortEngineRestHandler {
 	})
 	public Response evaluateMeasure(@Context HttpServletRequest request,
 			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
-			@ApiParam(hidden = true, type="file") IMultipartBody multipartBody) {		
+			@ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody) {		
 		final String methodName = "evaluateMeasure";
 		
 		// Error out if feature is not enabled
@@ -156,6 +161,16 @@ public class CohortEngineRestHandler {
 		ResponseBuilder responseBuilder = null;
 		
 		try {
+			// Perform api setup
+			Response errorResponse = ServiceBaseUtility.apiSetup(version, logger, methodName);
+			if(errorResponse != null) {
+				return errorResponse;
+			}
+			
+			if( multipartBody == null ) {
+				throw new IllegalArgumentException("A multipart/form-data body is required");
+			}
+			
 			IAttachment metadataAttachment = multipartBody.getAttachment(REQUEST_DATA_PART);
 			if( metadataAttachment == null ) {
 				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", REQUEST_DATA_PART));
@@ -169,6 +184,23 @@ public class CohortEngineRestHandler {
 			// deserialize the MeasuresEvaluation request
 			ObjectMapper om = new ObjectMapper();
 			MeasureEvaluation evaluationRequest = om.readValue( metadataAttachment.getDataHandler().getInputStream(), MeasureEvaluation.class );
+			
+			// See https://openliberty.io/guides/bean-validation.html
+			//TODO: The validator below is recommended to be injected using CDI in the guide
+			ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+			Validator validator = factory.getValidator();
+			
+			Set<ConstraintViolation<MeasureEvaluation>> violations = validator.validate( evaluationRequest );
+			if( ! violations.isEmpty() ) {
+				StringBuilder sb = new StringBuilder("Invalid request metadata: ");
+				for( ConstraintViolation<MeasureEvaluation> violation : violations ) { 
+					sb.append(System.lineSeparator())
+						.append(violation.getPropertyPath().toString())
+						.append(": ")
+						.append(violation.getMessage());
+				}
+				throw new IllegalArgumentException(sb.toString());
+			}
 			
 			FhirClientBuilder clientBuilder = FhirClientBuilderFactory.newInstance().newFhirClientBuilder();
 			IGenericClient dataClient = clientBuilder.createFhirClient(evaluationRequest.getDataServerConfig());

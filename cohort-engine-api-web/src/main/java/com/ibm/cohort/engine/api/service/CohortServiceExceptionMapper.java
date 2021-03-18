@@ -18,6 +18,7 @@ import javax.ws.rs.ext.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
 import com.ibm.watson.service.base.model.ServiceError;
 
@@ -78,6 +79,12 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 			//will get thrown is invalid measure ids are input or
 			//library ids don't resolve properly
 			else if (ex instanceof IllegalArgumentException){
+				serviceErrorCode = Status.BAD_REQUEST.getStatusCode();
+				serviceErrorListCode = serviceErrorCode;
+			}
+			//will get thrown by Jackson deserialization for various types of 
+			//parsing errors.
+			else if (ex instanceof MismatchedInputException) {
 				serviceErrorCode = Status.BAD_REQUEST.getStatusCode();
 				serviceErrorListCode = serviceErrorCode;
 			}

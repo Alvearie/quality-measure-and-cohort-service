@@ -7,6 +7,8 @@ package com.ibm.cohort.engine.api.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -19,7 +21,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipOutputStream;
 
 import javax.activation.DataHandler;
 import javax.servlet.http.HttpServletRequest;
@@ -36,6 +37,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -52,6 +54,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.BaseFhirTest;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
+import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.parameter.DateParameter;
 import com.ibm.cohort.engine.parameter.IntervalParameter;
@@ -207,18 +210,8 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		Response loadResponse = restHandler.evaluateMeasure(mockRequestContext, "version", body);
 		assertEquals(mockResponse, loadResponse);
 		
-		PowerMockito.verifyStatic(Response.class, Mockito.times(1));
+		PowerMockito.verifyStatic(Response.class);
 		Response.status(Response.Status.OK);
-	}
-
-	private void mockResponseClasses() {
-		PowerMockito.mockStatic(Response.class);
-		PowerMockito.when(Response.status(Mockito.any(Response.Status.class))).thenReturn(mockResponseBuilder);
-		PowerMockito.when(Response.status(Mockito.anyInt())).thenReturn(mockResponseBuilder);
-		PowerMockito.when(mockResponseBuilder.entity(Mockito.any(Object.class))).thenReturn(mockResponseBuilder);
-		PowerMockito.when(mockResponseBuilder.header(Mockito.anyString(), Mockito.anyString())).thenReturn(mockResponseBuilder);
-		PowerMockito.when(mockResponseBuilder.type(Mockito.any(String.class))).thenReturn(mockResponseBuilder);
-		PowerMockito.when(mockResponseBuilder.build()).thenReturn(mockResponse);
 	}
 	
 	@PrepareForTest({ Response.class, TenantManager.class, ServiceBaseUtility.class })
@@ -253,9 +246,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		IAttachment rootPart = mockAttachment(jsonIs);
 		
 		// Create the ZIP part of the request
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		try ( ZipOutputStream zos = new ZipOutputStream(baos) ) { }
-		ByteArrayInputStream zipIs = new ByteArrayInputStream( baos.toByteArray() );
+		ByteArrayInputStream zipIs = TestHelper.emptyZip();
 		IAttachment measurePart = mockAttachment(zipIs);
 		
 		// Assemble them together into a reasonable facsimile of the real request
@@ -268,6 +259,88 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		
 		PowerMockito.verifyStatic(Response.class);
 		Response.status(400);
+	}
+	
+	@PrepareForTest({ Response.class, TenantManager.class, ServiceBaseUtility.class })
+	@Test
+	public void testEvaluateMeasureMissingVersion() throws Exception {
+		prepMocks();
+		
+		PowerMockito.mockStatic(ServiceBaseUtility.class);
+		
+		Response badRequest = Mockito.mock(Response.class);
+		PowerMockito.when(ServiceBaseUtility.class, "apiSetup", Mockito.isNull(), Mockito.any(), Mockito.eq("evaluateMeasure")).thenReturn(badRequest);
+		
+		mockResponseClasses();
+		
+		// Create the metadata part of the request
+		String json = "{}";
+		ByteArrayInputStream jsonIs = new ByteArrayInputStream(json.getBytes());
+		IAttachment rootPart = mockAttachment(jsonIs);
+		
+		// Create the ZIP part of the request
+		ByteArrayInputStream zipIs = TestHelper.emptyZip();
+		IAttachment measurePart = mockAttachment(zipIs);
+		
+		// Assemble them together into a reasonable facsimile of the real request
+		IMultipartBody body = mock(IMultipartBody.class);
+		when( body.getAttachment(CohortEngineRestHandler.REQUEST_DATA_PART) ).thenReturn(rootPart);
+		when( body.getAttachment(CohortEngineRestHandler.MEASURE_PART) ).thenReturn(measurePart);
+		
+		Response loadResponse = restHandler.evaluateMeasure(mockRequestContext, null, body);
+		assertNotNull(loadResponse);
+		assertSame(badRequest, loadResponse);
+		
+		PowerMockito.verifyStatic(ServiceBaseUtility.class);
+		ServiceBaseUtility.apiSetup(Mockito.isNull(), Mockito.any(), Mockito.anyString());
+		
+		// verifyStatic must be called before each verification
+		PowerMockito.verifyStatic(ServiceBaseUtility.class);
+		ServiceBaseUtility.apiCleanup(Mockito.any(), Mockito.eq("evaluateMeasure"));
+	}
+	
+	@PrepareForTest({ Response.class, TenantManager.class, ServiceBaseUtility.class })
+	@Test
+	public void testEvaluateMeasureInvalidMeasureJSON() throws Exception {
+		prepMocks();
+		
+		PowerMockito.mockStatic(ServiceBaseUtility.class);
+		PowerMockito.when(ServiceBaseUtility.apiSetup(version, logger, methodName)).thenReturn(null);
+		
+		mockResponseClasses();
+		
+		// Create the metadata part of the request
+		String json = "{ \"something\": \"unexpected\" }";
+		ByteArrayInputStream jsonIs = new ByteArrayInputStream(json.getBytes());
+		IAttachment rootPart = mockAttachment(jsonIs);
+		
+		// Create the ZIP part of the request
+		IAttachment measurePart = mockAttachment( TestHelper.emptyZip() );
+		
+		// Assemble them together into a reasonable facsimile of the real request
+		IMultipartBody body = mock(IMultipartBody.class);
+		when( body.getAttachment(CohortEngineRestHandler.REQUEST_DATA_PART) ).thenReturn(rootPart);
+		when( body.getAttachment(CohortEngineRestHandler.MEASURE_PART) ).thenReturn(measurePart);
+		
+		Response loadResponse = restHandler.evaluateMeasure(mockRequestContext, "version", body);
+		assertNotNull(loadResponse);
+		
+		PowerMockito.verifyStatic(Response.class);
+		Response.status(400);
+		
+		ArgumentCaptor<ServiceErrorList> errorBody = ArgumentCaptor.forClass(ServiceErrorList.class);
+		Mockito.verify(mockResponseBuilder).entity(errorBody.capture());
+		assertTrue( errorBody.getValue().getErrors().get(0).getMessage().contains("Unrecognized field"));
+	}
+	
+	private void mockResponseClasses() {
+		PowerMockito.mockStatic(Response.class);
+		PowerMockito.when(Response.status(Mockito.any(Response.Status.class))).thenReturn(mockResponseBuilder);
+		PowerMockito.when(Response.status(Mockito.anyInt())).thenReturn(mockResponseBuilder);
+		PowerMockito.when(mockResponseBuilder.entity(Mockito.any(Object.class))).thenReturn(mockResponseBuilder);
+		PowerMockito.when(mockResponseBuilder.header(Mockito.anyString(), Mockito.anyString())).thenReturn(mockResponseBuilder);
+		PowerMockito.when(mockResponseBuilder.type(Mockito.any(String.class))).thenReturn(mockResponseBuilder);
+		PowerMockito.when(mockResponseBuilder.build()).thenReturn(mockResponse);
 	}
 
 	private IAttachment mockAttachment(InputStream multipartData) throws IOException {

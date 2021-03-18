@@ -5,6 +5,8 @@
  */
 package com.ibm.cohort.engine.api.service.model;
 
+import javax.validation.constraints.NotNull;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -19,9 +21,12 @@ import io.swagger.annotations.ApiModelProperty;
 @ApiModel
 public class MeasureEvaluation {
 
+	@NotNull
 	private FhirServerConfig dataServerConfig;
 	private FhirServerConfig terminologyServerConfig;
+	@NotNull
 	private String patientId;
+	@NotNull
 	private MeasureContext measureContext;
 	private MeasureEvidenceOptions evidenceOptions;
 

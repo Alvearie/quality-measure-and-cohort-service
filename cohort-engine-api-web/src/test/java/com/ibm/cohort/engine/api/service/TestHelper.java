@@ -5,6 +5,8 @@
  */
 package com.ibm.cohort.engine.api.service;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -79,5 +81,11 @@ public class TestHelper {
 		library.setUrl("http://ibm.com/health/Library/test_library");
 		library.addContent().setContentType("text/cql").setData("library test_library version '1.0.0'\nparameter AgeOfMaturation default 18\nusing FHIR version '4.0.0'\ncontext Patient\ndefine Adult: AgeInYears() >= \"AgeOfMaturation\"".getBytes());
 		return library;
+	}
+	
+	public static ByteArrayInputStream emptyZip() throws IOException{
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try ( ZipOutputStream zos = new ZipOutputStream(baos) ) { }
+		return new ByteArrayInputStream( baos.toByteArray() );
 	}
 }
