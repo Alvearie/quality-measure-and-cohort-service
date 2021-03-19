@@ -113,6 +113,10 @@ public class DefaultVT extends ServiceVTBase {
 			System.setProperty("test.httpPort", "9080");
 		}
 		
+		if(  System.getProperty("test.httpSslPort") == null ) { 
+			System.setProperty("test.httpSslPort", "9443");
+		}
+		
 		if( System.getProperty("test.contextRoot") == null ) {
 			System.setProperty("test.contextRoot", "services/cohort");
 		}
