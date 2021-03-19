@@ -8,15 +8,21 @@ package com.ibm.cohort.engine.measure.evidence;
 
 public class MeasureEvidenceOptions {
 	private boolean includeEvaluatedResources = false;
-	private boolean includeDefineEvaluation = false;
+	private DefineReturnOptions defineReturnOption = DefineReturnOptions.NONE;
+	
+	public enum DefineReturnOptions {
+		ALL,
+		BOOLEAN,
+		NONE
+	}
 	
 	public MeasureEvidenceOptions() {}
 	
-	public MeasureEvidenceOptions(boolean includeEvaluatedResources, boolean includeDefineEvaluation) {
+	public MeasureEvidenceOptions(boolean includeEvaluatedResources, DefineReturnOptions defineReturnOption) {
 		this.includeEvaluatedResources = includeEvaluatedResources;
-		this.includeDefineEvaluation = includeDefineEvaluation;
+		this.defineReturnOption = defineReturnOption;
 	}
-
+	
 	public boolean isIncludeEvaluatedResources() {
 		return includeEvaluatedResources;
 	}
@@ -24,20 +30,20 @@ public class MeasureEvidenceOptions {
 	public void setIncludeEvaluatedResources(boolean includeEvaluatedResources) {
 		this.includeEvaluatedResources = includeEvaluatedResources;
 	}
-
-	public boolean isIncludeDefineEvaluation() {
-		return includeDefineEvaluation;
+	
+	public DefineReturnOptions getDefineReturnOption() {
+		return defineReturnOption;
 	}
 
-	public void setIncludeDefineEvaluation(boolean includeDefineEvaluation) {
-		this.includeDefineEvaluation = includeDefineEvaluation;
+	public void setDefineReturnOption(DefineReturnOptions defineReturnOption) {
+		this.defineReturnOption = defineReturnOption;
 	}
-
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + (includeDefineEvaluation ? 1231 : 1237);
+		result = prime * result + ((defineReturnOption == null) ? 0 : defineReturnOption.hashCode());
 		result = prime * result + (includeEvaluatedResources ? 1231 : 1237);
 		return result;
 	}
@@ -51,7 +57,7 @@ public class MeasureEvidenceOptions {
 		if (getClass() != obj.getClass())
 			return false;
 		MeasureEvidenceOptions other = (MeasureEvidenceOptions) obj;
-		if (includeDefineEvaluation != other.includeDefineEvaluation)
+		if (defineReturnOption != other.defineReturnOption)
 			return false;
 		if (includeEvaluatedResources != other.includeEvaluatedResources)
 			return false;

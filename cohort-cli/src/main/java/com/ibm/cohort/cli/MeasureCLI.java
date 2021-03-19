@@ -31,6 +31,7 @@ import com.ibm.cohort.engine.measure.RestFhirLibraryResolutionProvider;
 import com.ibm.cohort.engine.measure.RestFhirMeasureResolutionProvider;
 import com.ibm.cohort.engine.measure.ZipResourceResolutionProvider;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
+import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 
 import ca.uhn.fhir.parser.IParser;
@@ -74,9 +75,9 @@ public class MeasureCLI extends BaseCLI {
 				"--include-evaluated-resources" }, description = "Include evaluated resources on measure report. Defaults to false.")
 		private boolean includeEvaluatedResources = false;
 		
-		@Parameter(names = { "-i",
-				"--include-define-results" }, description = "Include results for evaluated define statements on measure report. Defaults to false.")
-		private boolean includeDefineResults = false;
+		@Parameter(names = { "-o",
+				"--define-return-option" }, description = "Specify define return option for evaluated define statements on measure report. Defaults to NONE.  Valid options are (ALL|BOOLEAN|NONE).")
+		private DefineReturnOptions defineReturnOption = DefineReturnOptions.NONE;
 
 		public void validate() {
 			boolean resourceSpecified = resourceId != null;
@@ -157,7 +158,7 @@ public class MeasureCLI extends BaseCLI {
 			for( String contextId : arguments.contextIds ) {
 				out.println("Evaluating: " + contextId);
 				// Reports only returned for measures where patient is in initial population
-				List<MeasureReport> reports = evaluator.evaluatePatientMeasures(contextId, measureContexts, new MeasureEvidenceOptions(arguments.includeEvaluatedResources, arguments.includeDefineResults));
+				List<MeasureReport> reports = evaluator.evaluatePatientMeasures(contextId, measureContexts, new MeasureEvidenceOptions(arguments.includeEvaluatedResources, arguments.defineReturnOption));
 
 				for (MeasureReport report : reports) {
 					if (arguments.reportFormat == ReportFormat.TEXT) {
