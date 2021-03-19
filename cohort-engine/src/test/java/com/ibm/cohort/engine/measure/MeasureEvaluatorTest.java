@@ -9,6 +9,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.ibm.cohort.engine.cdm.CDMConstants.MEASURE_PARAMETER_URL;
+import static com.ibm.cohort.engine.cdm.CDMConstants.PARAMETER_DEFAULT_URL;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -585,14 +587,14 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 
 	private Extension createMeasureParameter(String name, Type defaultValue) {
 		Extension measureParameter = new Extension();
-		measureParameter.setUrl(MeasureEvaluator.MEASURE_PARAMETER_URL);
+		measureParameter.setUrl(MEASURE_PARAMETER_URL);
 
 		ParameterDefinition parameterDefinition = new ParameterDefinition();
 		parameterDefinition.setName(name);
 		measureParameter.setValue(parameterDefinition);
 
 		Extension defaultValueExtension = new Extension();
-		defaultValueExtension.setUrl(MeasureEvaluator.PARAMETER_DEFAULT_URL);
+		defaultValueExtension.setUrl(PARAMETER_DEFAULT_URL);
 		defaultValueExtension.setValue(defaultValue);
 		parameterDefinition.addExtension(defaultValueExtension);
 

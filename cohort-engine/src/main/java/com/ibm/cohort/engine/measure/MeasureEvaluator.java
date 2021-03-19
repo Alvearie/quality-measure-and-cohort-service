@@ -5,6 +5,9 @@
  */
 package com.ibm.cohort.engine.measure;
 
+import static com.ibm.cohort.engine.cdm.CDMConstants.MEASURE_PARAMETER_URL;
+import static com.ibm.cohort.engine.cdm.CDMConstants.PARAMETER_DEFAULT_URL;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,8 +40,7 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
  * server.
  */
 public class MeasureEvaluator {
-	protected static final String MEASURE_PARAMETER_URL = "http://ibm.com/fhir/cdm/StructureDefinition/measure-parameter";
-	protected static final String PARAMETER_DEFAULT_URL = "http://ibm.com/fhir/cdm/StructureDefinition/default-value";
+
 
 	private IGenericClient dataClient;
 	private IGenericClient terminologyClient;
