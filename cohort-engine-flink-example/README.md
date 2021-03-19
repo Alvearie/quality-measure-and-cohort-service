@@ -18,12 +18,12 @@ Each input record is a random patient paired with every measure from the provide
 The RNG is seeded to ensure consistent data.
 
 ##### Arguments
-* `--kafkaBrokers <ARG>`: The list of Kafka brokers to connect to.
-* `--kafkaPassword <ARG>`: The password to connect to Kafka.
-* `--kafkaTopic <ARG>`: The Kafka topic to send input to.
-* `--numRecords <ARG>`: The total number of records to produce.
-* `--measureFile <ARG>`: A file containing a single FHIR measure ID per line.
-* `--patientFile <ARG>`: A file containing a single FHIR patient ID per line.
+* `--kafka-brokers <ARG>`: The list of Kafka brokers to connect to.
+* `--kafka-password <ARG>`: The password to connect to Kafka.
+* `--kafka-topic <ARG>`: The Kafka topic to send input to.
+* `--num-records <ARG>`: The total number of records to produce.
+* `--measure-file <ARG>`: A file containing a single FHIR measure ID per line.
+* `--patient-file <ARG>`: A file containing a single FHIR patient ID per line.
 
 Cohort Engine Flink Driver
 --------------------------
@@ -39,25 +39,25 @@ compilation.
 The Flink job will run indefinitely until manually canceled.
 
 ##### Arguments
-* `--kafkaBrokers <ARG>`: The list of Kafka brokers to connect to.
-* `--kafkaPassword <ARG>`: The password to connect to Kafka.
-* `--kafkaInputTopic <ARG>`: The Kafka topic to read input records from.
-* `--kafkaOutputTopic <ARG>` (optional): The Kafka topic to write JSON FHIR MeasureReports to.
+* `--kafka-brokers <ARG>`: The list of Kafka brokers to connect to.
+* `--kafka-password <ARG>`: The password to connect to Kafka.
+* `--kafka-input-topic <ARG>`: The Kafka topic to read input records from.
+* `--kafka-output-topic <ARG>` (optional): The Kafka topic to write JSON FHIR MeasureReports to.
     * If not provided, no records will be written to Kafka.
-* `--kafkaGroupId <ARG>`: The Kafka consumer group ID.
+* `--kafka-group-id <ARG>`: The Kafka consumer group ID.
 
-* `--fhirEndpoint <ARG>`: The HTTP(S) endpoint for the target FHIR server.
-* `--fhirUsername <ARG>`: The username for authentication to the FHIR server.
-* `--fhirPassword <ARG>`: The password for authentication to the FHIR server.
-* `--fhirTenantId <ARG>`: The tenant on the FHIR server to query.
+* `--fhir-endpoint <ARG>`: The HTTP(S) endpoint for the target FHIR server.
+* `--fhir-username <ARG>`: The username for authentication to the FHIR server.
+* `--fhir-password <ARG>`: The password for authentication to the FHIR server.
+* `--fhir-tenant-id <ARG>`: The tenant on the FHIR server to query.
 
-* `--jobName <ARG>` (optional): The name of the submitted Flink Job (Default: `cohort-engine`).
-* `--printOutputToConsole` (optional): Log the MeasureReports to standard out (Default: `false`).
-* `--rebalanceInput` (optional): Perform a `rebalance` operation after reading the input records from Kafka (Default: `false`).
+* `--job-name <ARG>` (optional): The name of the submitted Flink Job (Default: `cohort-engine`).
+* `--print-output-to-console` (optional): Log the MeasureReports to standard out (Default: `false`).
+* `--rebalance-input` (optional): Perform a `rebalance` operation after reading the input records from Kafka (Default: `false`).
     * Useful if you want to scale your compute tasks separately from your Kafka topic partitions.
-* `--readFromStart` (optional): Start streaming input records from the beginning of the Kafka topic (Default: `false`).
+* `--read-from-start` (optional): Start streaming input records from the beginning of the Kafka topic (Default: `false`).
 
-* `--enableCache` (optional): Enable the retrieve cache (Default: `false`).
-* `--cacheMaxSize <ARG>` (optional): The maximum size the retrieve cache can grow before evictions begin (Default: `1000`).
-* `--cacheExpireOnWrite <ARG>` (optional): The amount of seconds after last write before a retrieve cache entry is evicted (Default: `300`).
-* `--enableCacheStatistics` (optional): Enable retrieve cache statistic recording via JMX (Default: `false`).
+* `--enable-retrieve-cache` (optional): Enable the retrieve cache (Default: `false`).
+* `--max-retrieve-cache-size <ARG>` (optional): The maximum size the retrieve cache can grow before evictions begin (Default: `1000`).
+* `--retrieve-cache-expire-on-write <ARG>` (optional): The amount of seconds after last write before a retrieve cache entry is evicted (Default: `300`).
+* `--enable-retrieve-cache-statistics` (optional): Enable retrieve cache statistic recording via JMX (Default: `false`).
