@@ -329,7 +329,7 @@ public class MeasureEvaluation {
                                 }
                             }
                         }
-                        MeasureSupplementalDataEvaluation.populateSDEAccumulators(measure, context, patient, sdeAccumulators, sde);
+                        MeasureSupplementalDataEvaluation.populateSDEAccumulators(context, patient, sdeAccumulators, sde);
                     }
 
                     // Calculate actual measure score, Count(numerator) / Count(denominator)
@@ -348,7 +348,7 @@ public class MeasureEvaluation {
                                 null);
                         populateResourceMap(context, MeasurePopulationType.INITIALPOPULATION, resources,
                                 codeToResourceMap, includeEvaluatedResources);
-                        MeasureSupplementalDataEvaluation.populateSDEAccumulators(measure, context, patient, sdeAccumulators, sde);
+                        MeasureSupplementalDataEvaluation.populateSDEAccumulators(context, patient, sdeAccumulators, sde);
                     }
 
                     break;
@@ -403,7 +403,7 @@ public class MeasureEvaluation {
             report.setEvaluatedResource(evaluatedResourceIds);
         }
         if (sdeAccumulators.size() > 0) {
-            report = MeasureSupplementalDataEvaluation.processAccumulators(report, sdeAccumulators, sde, isSingle, patients);
+            report = MeasureSupplementalDataEvaluation.processAccumulators(report, sdeAccumulators, isSingle, patients);
         }
 
         return report;

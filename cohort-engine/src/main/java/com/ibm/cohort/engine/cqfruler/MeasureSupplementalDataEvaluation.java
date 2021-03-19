@@ -34,7 +34,7 @@ public class MeasureSupplementalDataEvaluation {
 	
 	private MeasureSupplementalDataEvaluation() {}
 	
-	public static void populateSDEAccumulators(Measure measure, Context context, Patient patient,
+	public static void populateSDEAccumulators(Context context, Patient patient,
 			Map<String, Map<String, Integer>> sdeAccumulators,
 			List<Measure.MeasureSupplementalDataComponent> sde) {
 		context.setContextValue("Patient", patient.getIdElement().getIdPart());
@@ -87,8 +87,7 @@ public class MeasureSupplementalDataEvaluation {
 	}
 
 	public static MeasureReport processAccumulators(MeasureReport report,
-			Map<String, Map<String, Integer>> sdeAccumulators,
-			List<Measure.MeasureSupplementalDataComponent> sde, boolean isSingle, List<Patient> patients) {
+			Map<String, Map<String, Integer>> sdeAccumulators, boolean isSingle, List<Patient> patients) {
 		List<Reference> newRefList = new ArrayList<>();
 		sdeAccumulators.forEach((sdeKey, sdeAccumulator) -> {
 			sdeAccumulator.forEach((sdeAccumulatorKey, sdeAccumulatorValue) -> {
