@@ -1,0 +1,15 @@
+settings:
+  env:
+    HOST: https://localhost:9443/services/cohort/api
+   
+execution:
+- executor: pytest
+  scenario: pytest-test
+
+scenarios:
+  pytest-test:
+    script: ../../src/main/python/rest/tests/MeasureParametersAPITests.py
+
+reporting:
+- module: junit-xml
+  filename: ../results/sampleTest.xml
