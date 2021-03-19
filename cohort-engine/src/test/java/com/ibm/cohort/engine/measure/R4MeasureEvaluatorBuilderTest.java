@@ -37,7 +37,7 @@ public class R4MeasureEvaluatorBuilderTest extends BaseMeasureTest {
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 		mockPatientRetrieval(PATIENT_ID, AdministrativeGender.MALE, 22);
 
-		Library library = mockLibraryRetrieval("TestAdultMales", "1.0.0", "cql/fhir-measure/test-adult-males.cql");
+		Library library = mockLibraryRetrieval("TestAdultMalesSimple", "1.0.0", "cql/fhir-measure/test-adult-males-simple.cql");
 		Measure measure = getCohortMeasure(MEASURE_NAME, library, "Numerator");
 		mockFhirResourceRetrieval(measure);
 
