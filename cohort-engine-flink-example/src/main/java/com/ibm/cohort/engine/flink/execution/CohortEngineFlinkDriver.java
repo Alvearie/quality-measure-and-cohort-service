@@ -76,7 +76,7 @@ public class CohortEngineFlinkDriver implements Serializable {
 		CacheConfiguration cacheConfiguration = new CacheConfiguration(
 				params.getInt("cacheMaxSize", 1_000),
 				params.getInt("cacheExpireOnWrite", 300),
-				params.has("cacheEnableStatistics")
+				params.has("enableCacheStatistics")
 		);
 
 		CohortEngineFlinkDriver example = new CohortEngineFlinkDriver(

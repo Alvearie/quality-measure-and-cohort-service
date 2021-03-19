@@ -60,4 +60,4 @@ The Flink job will run indefinitely until manually canceled.
 * `--enableCache` (optional): Enable the retrieve cache (Default: `false`).
 * `--cacheMaxSize <ARG>` (optional): The maximum size the retrieve cache can grow before evictions begin (Default: `1000`).
 * `--cacheExpireOnWrite <ARG>` (optional): The amount of seconds after last write before a retrieve cache entry is evicted (Default: `300`).
-* `--cacheEnableStatistics` (optional): Enable retrieve cache statistic recording via JMX (Default: `false`).
+* `--enableCacheStatistics` (optional): Enable retrieve cache statistic recording via JMX (Default: `false`).
