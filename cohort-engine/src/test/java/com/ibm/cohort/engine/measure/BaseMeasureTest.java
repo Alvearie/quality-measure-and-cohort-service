@@ -26,12 +26,14 @@ import org.hl7.fhir.r4.model.Expression;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
+import org.hl7.fhir.r4.model.RelatedArtifact;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.codesystems.MeasureScoring;
 import org.junit.Before;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 
 import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
@@ -55,7 +57,7 @@ public class BaseMeasureTest extends BaseFhirTest {
 	protected Map<MeasurePopulationType, String> expressionsByPopulationType;
 	protected Map<MeasurePopulationType, Integer> expectationsByPopulationType;
 	
-	IGenericClient client = null;
+	protected IGenericClient client = null;
 
 	@Before
 	public void setUp() {
@@ -166,8 +168,8 @@ public class BaseMeasureTest extends BaseFhirTest {
 		for (String expression : careGapExpressions) {
 			Measure.MeasureGroupPopulationComponent pop = new Measure.MeasureGroupPopulationComponent();
 			pop.setId(expression);
-			pop.setCode(new CodeableConcept(new Coding(CDMMeasureEvaluation.CDM_CODE_SYSTEM_MEASURE_POPULATION_TYPE,
-					CDMMeasureEvaluation.CARE_GAP, "Care Gap")));
+			pop.setCode(new CodeableConcept(new Coding(CDMConstants.CDM_CODE_SYSTEM_MEASURE_POPULATION_TYPE,
+					CDMConstants.CARE_GAP, "Care Gap")));
 			pop.setCriteria(new Expression().setLanguage("text/cql+identifier").setExpression(expression));
 			measure.getGroupFirstRep().addPopulation(pop);
 		}
@@ -183,6 +185,10 @@ public class BaseMeasureTest extends BaseFhirTest {
 			pop.setCriteria(new Expression().setExpression(entry.getValue()));
 			group.addPopulation(pop);
 		}
+	}
+	
+	protected RelatedArtifact asRelation(Library library) {
+		return new RelatedArtifact().setType(RelatedArtifact.RelatedArtifactType.DEPENDSON).setResource( library.getUrl() + "|" + library.getVersion() );
 	}
 
 	public Measure getTemplateMeasure(String measureName, Library library, MeasureScoring scoring) throws Exception{
