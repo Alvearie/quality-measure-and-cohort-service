@@ -26,6 +26,7 @@ import org.hl7.fhir.r4.model.Expression;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
+import org.hl7.fhir.r4.model.RelatedArtifact;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.codesystems.MeasureScoring;
 import org.junit.Before;
@@ -56,7 +57,7 @@ public class BaseMeasureTest extends BaseFhirTest {
 	protected Map<MeasurePopulationType, String> expressionsByPopulationType;
 	protected Map<MeasurePopulationType, Integer> expectationsByPopulationType;
 	
-	IGenericClient client = null;
+	protected IGenericClient client = null;
 
 	@Before
 	public void setUp() {
@@ -184,6 +185,10 @@ public class BaseMeasureTest extends BaseFhirTest {
 			pop.setCriteria(new Expression().setExpression(entry.getValue()));
 			group.addPopulation(pop);
 		}
+	}
+	
+	protected RelatedArtifact asRelation(Library library) {
+		return new RelatedArtifact().setType(RelatedArtifact.RelatedArtifactType.DEPENDSON).setResource( library.getUrl() + "|" + library.getVersion() );
 	}
 
 	public Measure getTemplateMeasure(String measureName, Library library, MeasureScoring scoring) throws Exception{

@@ -29,13 +29,12 @@ import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Extension;
-import org.hl7.fhir.r4.model.IntegerType;
 import org.hl7.fhir.r4.model.HumanName;
+import org.hl7.fhir.r4.model.IntegerType;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
 import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.RelatedArtifact;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Type;
 import org.junit.Before;
@@ -439,11 +438,6 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 															// production behavior
 			assertEquals(pop.getId(), expectations.get(pop.getId()).intValue(), pop.getCount());
 		}
-	}
-	
-
-	protected RelatedArtifact asRelation(Library library) {
-		return new RelatedArtifact().setType(RelatedArtifact.RelatedArtifactType.DEPENDSON).setResource( library.getUrl() + "|" + library.getVersion() );
 	}
 	
 	private Library setupDefineReturnLibrary() throws Exception {

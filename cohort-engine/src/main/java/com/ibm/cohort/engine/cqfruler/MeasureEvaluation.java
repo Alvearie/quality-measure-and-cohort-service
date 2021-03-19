@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  * 
  * Originated from org.opencds.cqf.r4.evaluation.MeasureEvaluation
+ * 
+ * continous-variable support has been removed due to apparent lack of functionality
+ *  -- The Measure Observation function is only called for patient resources, even when the function accepts other types of resources
+ *  -- If the Measure Observation function does not return a resource, the result of the function (i.e. duration of encounter) is not persisted on the returned resource
+ * 
  */
 
 package com.ibm.cohort.engine.cqfruler;
@@ -201,10 +206,6 @@ public class MeasureEvaluation {
             Measure.MeasureGroupPopulationComponent denominatorCriteria = null;
             Measure.MeasureGroupPopulationComponent denominatorExclusionCriteria = null;
             Measure.MeasureGroupPopulationComponent denominatorExceptionCriteria = null;
-            Measure.MeasureGroupPopulationComponent measurePopulationCriteria = null;
-            Measure.MeasureGroupPopulationComponent measurePopulationExclusionCriteria = null;
-//            // TODO: Isn't quite right, there may be multiple measure observations...
-            Measure.MeasureGroupPopulationComponent measureObservationCriteria = null;
 
             Map<String, Resource> initialPopulation = null;
             Map<String, Resource> numerator = null;
@@ -212,9 +213,6 @@ public class MeasureEvaluation {
             Map<String, Resource> denominator = null;
             Map<String, Resource> denominatorExclusion = null;
             Map<String, Resource> denominatorException = null;
-            Map<String, Resource> measurePopulation = null;
-            Map<String, Resource> measurePopulationExclusion = null;
-            Map<String, Resource> measureObservation = null;
 
             Map<String, Patient> initialPopulationPatients = null;
             Map<String, Patient> numeratorPatients = null;
@@ -222,8 +220,6 @@ public class MeasureEvaluation {
             Map<String, Patient> denominatorPatients = null;
             Map<String, Patient> denominatorExclusionPatients = null;
             Map<String, Patient> denominatorExceptionPatients = null;
-            Map<String, Patient> measurePopulationPatients = null;
-            Map<String, Patient> measurePopulationExclusionPatients = null;
 
             for (Measure.MeasureGroupPopulationComponent pop : group.getPopulation()) {
                 MeasurePopulationType populationType = MeasurePopulationType
@@ -272,24 +268,8 @@ public class MeasureEvaluation {
                                 denominatorExceptionPatients = new HashMap<>();
                             }
                             break;
-                        case MEASUREPOPULATION:
-                            measurePopulationCriteria = pop;
-                            measurePopulation = new HashMap<>();
-                            if (type == MeasureReport.MeasureReportType.SUBJECTLIST) {
-                                measurePopulationPatients = new HashMap<>();
-                            }
-                            break;
-                        case MEASUREPOPULATIONEXCLUSION:
-                            measurePopulationExclusionCriteria = pop;
-                            measurePopulationExclusion = new HashMap<>();
-                            if (type == MeasureReport.MeasureReportType.SUBJECTLIST) {
-                                measurePopulationExclusionPatients = new HashMap<>();
-                            }
-                            break;
-                        case MEASUREOBSERVATION:
-                            measureObservationCriteria = pop;
-                            measureObservation = new HashMap<>();
-                            break;
+                        default:
+                        	throw new UnsupportedOperationException("Measure population, observation and measure population exclusion are used for continuous-variable scoring measures which are not supported");
                     }
                 }
             }
@@ -359,39 +339,6 @@ public class MeasureEvaluation {
 
                     break;
                 }
-                case CONTINUOUSVARIABLE: {
-
-                    // For each patient in the patient list
-                    for (Patient patient : patients) {
-
-                        // Are they in the initial population?
-                        boolean inInitialPopulation = evaluatePopulationCriteria(context, patient,
-                                initialPopulationCriteria, initialPopulation, initialPopulationPatients, null, null,
-                                null);
-                        populateResourceMap(context, MeasurePopulationType.INITIALPOPULATION, resources,
-                                codeToResourceMap, includeEvaluatedResources);
-
-                        if (inInitialPopulation) {
-                            // Are they in the measure population?
-                            boolean inMeasurePopulation = evaluatePopulationCriteria(context, patient,
-                                    measurePopulationCriteria, measurePopulation, measurePopulationPatients,
-                                    measurePopulationExclusionCriteria, measurePopulationExclusion,
-                                    measurePopulationExclusionPatients);
-
-                            if (inMeasurePopulation) {
-                                for (Resource resource : measurePopulation.values()) {
-                                    Resource observation = ObservationMeasureEvaluation.evaluateObservationCriteria(context, patient, resource, measureObservationCriteria, report);
-                                    measureObservation.put(resource.getIdElement().getIdPart(), observation);
-                                    report.addContained(observation);
-                                    report.getEvaluatedResource().add(new Reference("#" + observation.getId()));
-                                }
-                            }
-                        }
-                        MeasureSupplementalDataEvaluation.populateSDEAccumulators(measure, context, patient, sdeAccumulators,sde);
-                    }
-
-                    break;
-                }
                 case COHORT: {
 
                     // For each patient in the patient list
@@ -406,6 +353,8 @@ public class MeasureEvaluation {
 
                     break;
                 }
+                case CONTINUOUSVARIABLE:
+                	throw new UnsupportedOperationException("Scoring type CONTINUOUSVARIABLE is not supported");
                 
             }
 
@@ -428,13 +377,6 @@ public class MeasureEvaluation {
             addPopulationCriteriaReport(report, reportGroup, denominatorExceptionCriteria,
                     denominatorException != null ? denominatorException.size() : 0,
                     denominatorExceptionPatients != null ? denominatorExceptionPatients.values() : null);
-            addPopulationCriteriaReport(report, reportGroup, measurePopulationCriteria,
-                    measurePopulation != null ? measurePopulation.size() : 0,
-                    measurePopulationPatients != null ? measurePopulationPatients.values() : null);
-            addPopulationCriteriaReport(report, reportGroup, measurePopulationExclusionCriteria,
-                    measurePopulationExclusion != null ? measurePopulationExclusion.size() : 0,
-                    measurePopulationExclusionPatients != null ? measurePopulationExclusionPatients.values() : null);
-            // TODO: Measure Observations...
         }
 
         for (Entry<String, Set<String>> entry : codeToResourceMap.entrySet()) {
