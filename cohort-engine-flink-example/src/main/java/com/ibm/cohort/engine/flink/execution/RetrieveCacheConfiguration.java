@@ -8,7 +8,7 @@ package com.ibm.cohort.engine.flink.execution;
 
 import java.io.Serializable;
 
-public class CacheConfiguration implements Serializable {
+public class RetrieveCacheConfiguration implements Serializable {
 
 	private static final long serialVersionUID = -1312955467512758710L;
 
@@ -16,9 +16,9 @@ public class CacheConfiguration implements Serializable {
 	private int expireOnWrite;
 	private boolean enableStatistics;
 
-	public CacheConfiguration() { }
+	public RetrieveCacheConfiguration() { }
 
-	public CacheConfiguration(int maxSize, int expireOnWrite, boolean enableStatistics) {
+	public RetrieveCacheConfiguration(int maxSize, int expireOnWrite, boolean enableStatistics) {
 		this.maxSize = maxSize;
 		this.expireOnWrite = expireOnWrite;
 		this.enableStatistics = enableStatistics;

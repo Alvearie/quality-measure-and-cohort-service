@@ -34,15 +34,15 @@ public class R4DataProviderFactory {
 	public static Map<String, DataProvider> createDataProviderMap(
 			IGenericClient client,
 			TerminologyProvider terminologyProvider,
-			RetrieveCacheContext cacheContext
+			RetrieveCacheContext retrieveCacheContext
 	) {
 		ModelResolver modelResolver = new R4FhirModelResolver();
 
 		SearchParameterResolver resolver = new SearchParameterResolver(client.getFhirContext());
 		RestFhirRetrieveProvider baseRetrieveProvider = new RestFhirRetrieveProvider(resolver, client);
 		baseRetrieveProvider.setTerminologyProvider(terminologyProvider);
-		RetrieveProvider retrieveProvider = cacheContext != null
-				? new CachingRetrieveProvider(baseRetrieveProvider, cacheContext)
+		RetrieveProvider retrieveProvider = retrieveCacheContext != null
+				? new CachingRetrieveProvider(baseRetrieveProvider, retrieveCacheContext)
 				: baseRetrieveProvider;
 
 		DataProvider dataProvider = new CompositeDataProvider(modelResolver, retrieveProvider);

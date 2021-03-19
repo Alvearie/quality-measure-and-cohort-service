@@ -51,60 +51,60 @@ public class CohortEngineFlinkDriver implements Serializable {
 		ParameterTool params = ParameterTool.fromArgs(args);
 
 		FHIRServerInfo fhirServerInfo = new FHIRServerInfo(
-				params.getRequired("fhirTenantId"),
-				params.getRequired("fhirUsername"),
-				params.getRequired("fhirPassword"),
-				params.getRequired("fhirEndpoint")
+				params.getRequired("fhir-tenant-id"),
+				params.getRequired("fhir-username"),
+				params.getRequired("fhir-password"),
+				params.getRequired("fhir-endpoint")
 		);
 
 		KafkaInfo kafkaInputInfo = new KafkaInfo(
-				params.getRequired("kafkaBrokers"),
-				params.getRequired("kafkaInputTopic"),
-				params.getRequired("kafkaPassword")
+				params.getRequired("kafka-brokers"),
+				params.getRequired("kafka-input-topic"),
+				params.getRequired("kafka-password")
 		);
 
 		KafkaInfo kafkaOutputInfo = null;
-		if (params.has("kafkaOutputTopic")) {
+		if (params.has("kafka-output-topic")) {
 			kafkaOutputInfo = new KafkaInfo(
-					params.getRequired("kafkaBrokers"),
-					params.getRequired("kafkaOutputTopic"),
-					params.getRequired("kafkaPassword")
+					params.getRequired("kafka-brokers"),
+					params.getRequired("kafka-output-topic"),
+					params.getRequired("kafka-password")
 			);
 		}
 
-		boolean enableCache = params.has("enableCache");
-		CacheConfiguration cacheConfiguration = new CacheConfiguration(
-				params.getInt("cacheMaxSize", 1_000),
-				params.getInt("cacheExpireOnWrite", 300),
-				params.has("enableCacheStatistics")
+		boolean enableRetrieveCache = params.has("enable-retrieve-cache");
+		RetrieveCacheConfiguration retrieveCacheConfiguration = new RetrieveCacheConfiguration(
+				params.getInt("max-retrieve-cache-size", 1_000),
+				params.getInt("retrieve-cache-expire-on-write", 300),
+				params.has("enable-retrieve-cache-statistics")
 		);
 
 		CohortEngineFlinkDriver example = new CohortEngineFlinkDriver(
 				fhirServerInfo,
-				enableCache ? cacheConfiguration : null
+				enableRetrieveCache ? retrieveCacheConfiguration : null
 		);
 		example.run(
-				params.get("jobName", "cohort-engine"),
-				params.getRequired("kafkaGroupId"),
+				params.get("job-name", "cohort-engine"),
+				params.getRequired("kafka-group-id"),
 				kafkaInputInfo,
 				kafkaOutputInfo,
-				params.has("printOutputToConsole"),
-				params.has("rebalanceInput"),
-				params.has("readFromStart")
+				params.has("print-output-to-console"),
+				params.has("rebalance-input"),
+				params.has("read-from-start")
 		);
 	}
 
 	private final FHIRServerInfo fhirServerInfo;
-	private final CacheConfiguration cacheConfiguration;
+	private final RetrieveCacheConfiguration retrieveCacheConfiguration;
 
 	private transient MeasureEvaluator evaluator;
 	private transient FhirContext fhirContext;
 	private transient ObjectMapper objectMapper;
-	private transient RetrieveCacheContext cacheContext;
+	private transient RetrieveCacheContext retrieveCacheContext;
 
-	public CohortEngineFlinkDriver(FHIRServerInfo fhirServerInfo, CacheConfiguration cacheConfiguration) {
+	public CohortEngineFlinkDriver(FHIRServerInfo fhirServerInfo, RetrieveCacheConfiguration retrieveCacheConfiguration) {
 		this.fhirServerInfo = fhirServerInfo;
-		this.cacheConfiguration = cacheConfiguration;
+		this.retrieveCacheConfiguration = retrieveCacheConfiguration;
 	}
 
 	private void run(
@@ -195,11 +195,11 @@ public class CohortEngineFlinkDriver implements Serializable {
 		return evaluator;
 	}
 
-	private RetrieveCacheContext getCacheContext() {
-		if (cacheContext == null) {
-			cacheContext = createCacheContext();
+	private RetrieveCacheContext getRetrieveCacheContext() {
+		if (retrieveCacheContext == null) {
+			retrieveCacheContext = createRetrieveCacheContext();
 		}
-		return cacheContext;
+		return retrieveCacheContext;
 	}
 
 	private MeasureEvaluator createEvaluator() {
@@ -212,8 +212,8 @@ public class CohortEngineFlinkDriver implements Serializable {
 				.withDefaultClient(genericClient)
 				.build();
 		R4MeasureEvaluatorBuilder evalBuilder = new R4MeasureEvaluatorBuilder().withClientContext(clientContext);
-		if (cacheConfiguration != null) {
-			evalBuilder.withRetrieveCacheContext(getCacheContext());
+		if (retrieveCacheConfiguration != null) {
+			evalBuilder.withRetrieveCacheContext(getRetrieveCacheContext());
 		}
 		return evalBuilder.build();
 	}
@@ -223,11 +223,11 @@ public class CohortEngineFlinkDriver implements Serializable {
 		return mapper.readValue(input, MeasureExecution.class);
 	}
 
-	private RetrieveCacheContext createCacheContext() {
+	private RetrieveCacheContext createRetrieveCacheContext() {
 		CaffeineConfiguration<RetrieveCacheKey, Iterable<Object>> cacheConfig = new CaffeineConfiguration<>();
-		cacheConfig.setMaximumSize(OptionalLong.of(cacheConfiguration.getMaxSize()));
-		cacheConfig.setExpireAfterWrite(OptionalLong.of(TimeUnit.SECONDS.toNanos(cacheConfiguration.getExpireOnWrite())));
-		cacheConfig.setStatisticsEnabled(cacheConfiguration.isEnableStatistics());
+		cacheConfig.setMaximumSize(OptionalLong.of(retrieveCacheConfiguration.getMaxSize()));
+		cacheConfig.setExpireAfterWrite(OptionalLong.of(TimeUnit.SECONDS.toNanos(retrieveCacheConfiguration.getExpireOnWrite())));
+		cacheConfig.setStatisticsEnabled(retrieveCacheConfiguration.isEnableStatistics());
 		return new DefaultRetrieveCacheContext(cacheConfig);
 	}
 

@@ -1,6 +1,6 @@
 # User Guide - Getting Started
 
-The [IBM Quality Measure and Cohort Engine](https://github.com/Alvearie/quality-measure-and-cohort-service/) is an open source project under the [Alvearie](https://github.com/Alvearie/) organization in Github. The Cohort Engine provides APIs for evaluating cohorts via definitions written in Clinical Quality Language (CQL). Users can execute CQL scripts directly using the CqlEngineWrapper API or indirectly through the use of FHIR measure and library resources. 
+The [IBM Quality Measure and Cohort Engine](https://github.com/Alvearie/quality-measure-and-cohort-service/) is an open source project under the [Alvearie](https://github.com/Alvearie/) organization in Github. The Cohort Engine provides APIs for evaluating cohorts via definitions written in Clinical Quality Language (CQL). Users can execute CQL scripts directly using the CqlEngineWrapper API or indirectly through the use of FHIR measure and library resources.
 
 Builds are published in [Github packages](https://github.com/orgs/Alvearie/packages?repo_name=quality-measure-and-cohort-service) or you can pull the source code and build it yourself. If you are using the precompiled artifacts, you will most likely want to start with [cohort-cli](https://github.com/Alvearie/quality-measure-and-cohort-service/packages/506888) and choose the latest shaded jar (more on that below). If you are building yourself, use``git clone`` to pull down [the repository](https://github.com/Alvearie/quality-measure-and-cohort-service) and ``mvn install -f cohort-parent`` to build it. If you don't already have Maven installed on your workstation, [download](https://maven.apache.org/download.cgi) version 3.6.3 or newer and follow the [installation instructions](https://maven.apache.org/install.html). You should be using a Java SDK version 8.0 or higher. If you don't already have a Java SDK on your workstation, you can download one [here](https://adoptopenjdk.net/).
 
@@ -14,7 +14,7 @@ A common pattern is to have the FHIR server deployed in the IBM Cloud. For insta
 kubectl -n <kubernetes-namespace> port-forward service/<fhir-service> 9443:9443
 ```
 
-If you don't have a FHIR server of your own to use, you can test with [http://hapi.fhir.org/baseR4](http://hapi.fhir.org/baseR4). 
+If you don't have a FHIR server of your own to use, you can test with [http://hapi.fhir.org/baseR4](http://hapi.fhir.org/baseR4).
 
 Sample configuration files are provided in the config directory that will connect to either a local or port-forwarded IBM FHIR server (config/local-ibm-fhir.json) or the public HAPI FHIR server (config/remote-hapi-fhir.json).  Three possible servers can be configured - a data server, a terminology server, and a measure resource server. Only the data server configuration is required. If the terminology server or measure resource server configuration is not provided, it is assumed that the data server connection will be used. The separation allows for more complex configurations where terminology or measure and library resources are spread across multiple FHIR tenants (for example, using a shared tenant for terminology and measure resources). More detail on the [FHIR Server Configuration](#fhir-server-configuration) can be found in later sections.
 
@@ -24,12 +24,12 @@ If you choose to use an IBM FHIR option, you will need to consider how to handle
 
 ## CQL Definitions
 
-CQL is a public specification and there are a number of helpful resources on the web for learning about the language (see below) or you can use the sample CQL definitions under src/test/resources/cql if you don't have your own. 
+CQL is a public specification and there are a number of helpful resources on the web for learning about the language (see below) or you can use the sample CQL definitions under src/test/resources/cql if you don't have your own.
 
 * Language Specification - [http://cql.hl7.org](http://cql.hl7.org)
 * eCQI Resource Center CQL Language Education - [https://ecqi.healthit.gov/cql?qt-tabs_cql=2](https://ecqi.healthit.gov/cql?qt-tabs_cql=2)
 * CQL Online Library Editor - [http://cql-online.esacinc.com/](http://cql-online.esacinc.com/)
-* Electronic Clinical Quality Measure (eCQM) Clinical Quality Language (CQL) Basics Webinar - 
+* Electronic Clinical Quality Measure (eCQM) Clinical Quality Language (CQL) Basics Webinar -
 [https://www.youtube.com/watch?v=3M8qeQNzXX8](https://www.youtube.com/watch?v=3M8qeQNzXX8)
 
 ## Command-line interface
@@ -139,11 +139,11 @@ Users should choose zero or one authentication scheme. If both user/password cre
 
 ### Input Parameters
 
-Parameters on the command-line are represented as colon-delimited triplet data in the format ``name:type:value``. Names should exact case match the definitions in the CQL library being used. The type is a lowercase value that matches the CQL datatype of the parameter. Value literals for date types should be prefixed with the @ sign per the CQL specification (e.g. ``MyParam:date:@1970-01-01``) and time types should be prefixed with the letter T (e.g. MyParam:time:T12:00:00). For data types that have structured data associated with them, such as an interval or quantity parameter, the value field contains additional formatting. For quantity parameters, the amount and unit of measure are colon-delimited (e.g. MyParam:quantity:10,mg/mL). For interval parameters, the value parameter is comma-delimited (to avoid collisions with date-time strings) and is triplet of ``datatype,start,end`` where the start and end parameters follow the standard rules for those types as above. 
+Parameters on the command-line are represented as colon-delimited triplet data in the format ``name:type:value``. Names should exact case match the definitions in the CQL library being used. The type is a lowercase value that matches the CQL datatype of the parameter. Value literals for date types should be prefixed with the @ sign per the CQL specification (e.g. ``MyParam:date:@1970-01-01``) and time types should be prefixed with the letter T (e.g. MyParam:time:T12:00:00). For data types that have structured data associated with them, such as an interval or quantity parameter, the value field contains additional formatting. For quantity parameters, the amount and unit of measure are colon-delimited (e.g. MyParam:quantity:10,mg/mL). For interval parameters, the value parameter is comma-delimited (to avoid collisions with date-time strings) and is triplet of ``datatype,start,end`` where the start and end parameters follow the standard rules for those types as above.
 
 ### Library loaders
 
-Several library loading mechanisms are supplied with the engine. The location of the library code is provided using the ``-f <libraryResource>`` command-line parameter. The engine will check if the resource is a folder, ZIP file, or if the resource is neither a folder or ZIP file then it is assumed to be the resource ID of a FHIR Library resource that contains the CQL definitions. 
+Several library loading mechanisms are supplied with the engine. The location of the library code is provided using the ``-f <libraryResource>`` command-line parameter. The engine will check if the resource is a folder, ZIP file, or if the resource is neither a folder or ZIP file then it is assumed to be the resource ID of a FHIR Library resource that contains the CQL definitions.
 
 For the folder and ZIP library loading mechanisms, filenames are assumed to be in the format ``name-version`` with either a .cql or .xml file extension. Other possible ELM formats, such as JSON, are not currently supported. Files that do not match supported criteria are ignored. Multi-level directory structure can be used if desired.
 
@@ -172,7 +172,7 @@ Connectivity issues to the FHIR server are reported through the HAPI FHIR Client
 
 An UnsupportedOperationException is thrown if a parameter type of "concept" is attempted from the command line. Concept parameters are complex and unlikely to be necessary, so no effort was made to support them right now.
 
-When a context (aka Patient ID) is provided that does not match a valid Patient resource in the FHIR server, HAPI will bubble up and HTTP 404 exception. And HTTP 404 might also be thrown if FHIR Library resource loading is used and the provided Library ID does not exist. 
+When a context (aka Patient ID) is provided that does not match a valid Patient resource in the FHIR server, HAPI will bubble up and HTTP 404 exception. And HTTP 404 might also be thrown if FHIR Library resource loading is used and the provided Library ID does not exist.
 
 # Measure Evaluation
 
@@ -198,6 +198,12 @@ Usage: measure-engine [options]
       JSON. 
       Default: NONE
       Possible Values: [ALL, BOOLEAN, NONE]
+    --enable-retrieve-cache
+      Enable the use of the retrieve cache.
+      Default: false
+    --enable-retrieve-cache-statistics
+      Enable retrieve cache statistic recording via JMX.
+      Default: false
     --filter
       Filter information for resource loader if the resource loader supports 
       filtering 
@@ -214,6 +220,9 @@ Usage: measure-engine [options]
     -j, --json-measure-configurations
       JSON File containing measure resource ids and optional parameters. 
       Cannot be specified if -r option is used
+    --max-retrieve-cache-size
+      The maximum size the retrieve cache can grow before evictions begin.
+      Default: 1000
     -m, --measure-server
       Path to configuration data for the FHIR knowledge assets. This will be 
       either a JSON configuration file containing FHIR server connection 
@@ -225,10 +234,13 @@ Usage: measure-engine [options]
     -r, --resource
       FHIR Resource ID or canonical URL for the measure resource to be 
       evaluated. Cannot be specified if -j option is used
+    --retrieve-cache-expire-on-write
+      The amount of time after last write (in seconds) before a retrieve cache
+      entry is evicted.
+      Default: 300
     -t, --terminology-server
       Path to JSON configuration data for the FHIR server connection that will 
       be used to retrieve terminology.
-
 ```
 
 ## Passing parameters on the command line (-p option)
@@ -290,7 +302,7 @@ Outer Structure:
     * Description: Measure id (resource id or canonical URL) of a measure to evaluate.
     * Type: String
     * *Note*: *Is required when `identifier` is not specified.
-* `measureConfigurations.parameters` (Optional): 
+* `measureConfigurations.parameters` (Optional):
     * Description: An optional list of one or more `Parameter` objects to use during evaluation for the corresponding measure.
     * Type: `Parameter` (see structure below)
 * `measureConfigurations.identifier.value` (Optional*):
@@ -325,7 +337,7 @@ Parameter Structure:
     * Description: CQL parameter type.
     * Currently supported values: `integer`, `decimal`, `boolean`, `string`, `datetime`, `time`, `quantity`, `code`,
     `concept`, and `interval`.
-* `value` (Required for non-interval parameters, see below): 
+* `value` (Required for non-interval parameters, see below):
     * Description: String representation of the value that will be converted to the appropriate type as specified in the
     `type` field.
     * Usage: For `interval` parameters, this field will be ignored (or it can be omitted). Otherwise, the value should
@@ -475,7 +487,7 @@ If the `-j` argument is provided, but the file does not exist, then a `IllegalAr
 
 #### Unrecognized JSON fields
 If the JSON object contains unexpected fields a `com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException` will
-be thrown. 
+be thrown.
 
 #### Missing fields in the JSON object
 If the JSON object does not contain required fields, an `IllegalArgumentException` exception will be thrown. Cases that
@@ -488,7 +500,7 @@ can cause this:
     * Either `name` or `type` is missing or empty.
     * The `type` for a parameter is set to `interval`, but `subtype`, `start`, or `end` are missing or empty.
     * The `type` for a parameter is a non-interval type, but `value` is missing or empty.
-    
+
 #### Unsupported type and subtype values
 If an unsupported `type` or `subtype` is specified for a `Parameter`, then an `IllegalArgumentException` will be thrown.
 
@@ -542,7 +554,7 @@ $> java -jar fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar -m local-fhir-confi
 
 Requests are processed as FHIR bundles and the contents of the request and response bundles are written to an output path specified by the ``-o`` option. If no ``-o`` option is provided then the output is written to the current working directory. Users are responsible for creating the directory used in the -o option prior to executing the importer. The directory will not be created for you.
 
-### VSAC Spreadsheet 
+### VSAC Spreadsheet
 In order to use this tool, you will need to download spreadsheets from the VSAC website. Start at the VSAC authority website [here](https://vsac.nlm.nih.gov/). Navigate to the Search Value Sets tab to look for specific value sets, and select Export Value Set Results on relevent sets.
 <br>To load value set resources downloaded from the NIH website (spreadsheets, not zip files) into a target FHIR server, use the following invocation:
 

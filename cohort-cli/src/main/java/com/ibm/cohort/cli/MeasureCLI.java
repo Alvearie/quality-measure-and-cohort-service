@@ -90,17 +90,17 @@ public class MeasureCLI extends BaseCLI {
 				"--define-return-option" }, description = "Specify define return option for evaluated define statements on measure report. Defaults to NONE. To view returned results, must specify -f JSON.")
 		private DefineReturnOptions defineReturnOption = DefineReturnOptions.NONE;
 
-		@Parameter(names = { "--enable-cache" }, description = "Enable the use of the retrieve cache.")
-		private boolean enableCache = false;
+		@Parameter(names = { "--enable-retrieve-cache" }, description = "Enable the use of the retrieve cache.")
+		private boolean enableRetrieveCache = false;
 
-		@Parameter(names = { "--max-cache-size" }, description = "The maximum size the retrieve cache can grow before evictions begin.")
-		private int maxCacheSize = 1_000;
+		@Parameter(names = { "--max-retrieve-cache-size" }, description = "The maximum size the retrieve cache can grow before evictions begin.")
+		private int maxRetrieveCacheSize = 1_000;
 
-		@Parameter(names = { "--cache-expire-on-write" }, description = "The amount of time after last write (in seconds) before a retrieve cache entry is evicted.")
-		private int cacheExpireOnWrite = 300;
+		@Parameter(names = { "--retrieve-cache-expire-on-write" }, description = "The amount of time after last write (in seconds) before a retrieve cache entry is evicted.")
+		private int retrieveCacheExpireOnWrite = 300;
 
-		@Parameter(names = { "--enable-cache-statistics" }, description = "Enable retrieve cache statistic recording via JMX.")
-		private boolean enableCacheStatistics = false;
+		@Parameter(names = { "--enable-retrieve-cache-statistics" }, description = "Enable retrieve cache statistic recording via JMX.")
+		private boolean enableRetrieveCacheStatistics = false;
 
 		public void validate() {
 			boolean resourceSpecified = resourceId != null;
@@ -174,13 +174,13 @@ public class MeasureCLI extends BaseCLI {
 				measureContexts = MeasureContextProvider.getMeasureContexts(arguments.resourceId,  arguments.parameters);
 			}
 
-			CaffeineConfiguration<RetrieveCacheKey, Iterable<Object>> cacheConfig = new CaffeineConfiguration<>();
-			cacheConfig.setMaximumSize(OptionalLong.of(arguments.maxCacheSize));
-			cacheConfig.setExpireAfterWrite(OptionalLong.of(TimeUnit.SECONDS.toNanos(arguments.cacheExpireOnWrite)));
-			cacheConfig.setStatisticsEnabled(arguments.enableCacheStatistics);
+			CaffeineConfiguration<RetrieveCacheKey, Iterable<Object>> retrieveCacheConfig = new CaffeineConfiguration<>();
+			retrieveCacheConfig.setMaximumSize(OptionalLong.of(arguments.maxRetrieveCacheSize));
+			retrieveCacheConfig.setExpireAfterWrite(OptionalLong.of(TimeUnit.SECONDS.toNanos(arguments.retrieveCacheExpireOnWrite)));
+			retrieveCacheConfig.setStatisticsEnabled(arguments.enableRetrieveCacheStatistics);
 
 			TerminologyProvider terminologyProvider = new R4FhirTerminologyProvider(terminologyServerClient);
-			try (RetrieveCacheContext retrieveCacheContext = arguments.enableCache ? new DefaultRetrieveCacheContext(cacheConfig) : null) {
+			try (RetrieveCacheContext retrieveCacheContext = arguments.enableRetrieveCache ? new DefaultRetrieveCacheContext(retrieveCacheConfig) : null) {
 				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataServerClient, terminologyProvider, retrieveCacheContext);
 
 				evaluator = new MeasureEvaluator(measureProvider, libraryProvider, terminologyProvider, dataProviders);

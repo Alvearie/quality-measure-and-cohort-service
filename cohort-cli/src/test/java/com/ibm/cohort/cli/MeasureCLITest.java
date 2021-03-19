@@ -105,10 +105,10 @@ public class MeasureCLITest extends BaseMeasureTest {
 					"-d", tmpFile.getAbsolutePath(),
 					"-j", tmpMeasureConfigurationsFile.getAbsolutePath(),
 					"-c", patient.getId(),
-					"--enable-cache",
-					"--max-cache-size", "500",
-					"--cache-expire-on-write", "100",
-					"--enable-cache-statistics"
+					"--enable-retrieve-cache",
+					"--max-retrieve-cache-size", "500",
+					"--retrieve-cache-expire-on-write", "100",
+					"--enable-retrieve-cache-statistics"
 			}, out);
 		} finally {
 			tmpFile.delete();
