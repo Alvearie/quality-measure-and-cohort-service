@@ -230,9 +230,6 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 	}
 
 	@Test
-	@Ignore
-	// This test fails with "ConceptRef evaluate not supported message" due to a bug in the Engine.
-	// see https://github.com/DBCG/cql_engine/issues/421
 	public void testConditionClinicalStatusActiveIsMatched() throws Exception {
 
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
@@ -344,7 +341,6 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 	}
 
 	@Test
-	// @Ignore // This isn't working right now due to weirdness in the CqlEngine
 	public void testNumCallsWithParamsUsingEngineWrapperMethod() throws Exception {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 
