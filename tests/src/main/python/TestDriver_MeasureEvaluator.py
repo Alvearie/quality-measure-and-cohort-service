@@ -31,7 +31,7 @@ class Test(object):
         return tests
 
     @pytest.mark.parametrize("library,target,output,avg",setup())
-    def test1(self,library,target,output,avg):
+    def test(self,library,target,output,avg):
         self.runner(library,target,output,avg)
 
     # Runner will call execute in a loop to perform benchmark validation.

@@ -22,7 +22,7 @@ class Test(object):
 
     # parameterize controls how tests are bucketed in the Taurus output
     @pytest.mark.parametrize("jsonMeasureConfigurationFile, targets, testName", setup())
-    def test1(self, jsonMeasureConfigurationFile, targets, testName):
+    def test(self, jsonMeasureConfigurationFile, targets, testName):
         self.execute(jsonMeasureConfigurationFile, targets)
 
 # Execute submits a query and waits for the subprocess to complete
