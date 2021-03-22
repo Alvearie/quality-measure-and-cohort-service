@@ -13,23 +13,22 @@ baseDir = currentDir + '/'
 testFile=baseDir + os.environ['TESTS_JSON']
 jar = os.environ['JAR']
 
+def setup():
+    os.chdir(baseDir)
+    tests = list()
+    with open(testFile) as f:
+        data = json.load(f)
+        testValues = data['tests']
+        for testValue in testValues.values():
+            regEx=False
+            try:
+                regEx=testValue['regEx']
+            except:
+                regEx=False
+            tests.append((testValue['jsonMeasureConfigurationFile'], testValue['resource'], testValue['params'], testValue['targets'], testValue['response'], testValue['measureServer'], testValue['filters'], regEx))
+    return tests
  
 class Test(object):
-
-    def setup():
-        os.chdir(baseDir)
-        tests = list()
-        with open(testFile) as f:
-            data = json.load(f)
-            testValues = data['tests']
-            for testValue in testValues.values():
-                regEx=False
-                try:
-                    regEx=testValue['regEx']
-                except:
-                    regEx=False
-                tests.append((testValue['jsonMeasureConfigurationFile'], testValue['resource'], testValue['params'], testValue['targets'], testValue['response'], testValue['measureServer'], testValue['filters'], regEx))
-        return tests
 
     @pytest.mark.parametrize("jsonMeasureConfigurationFile, resource, params, targets, output, measureServer, filters, regEx", setup())
     def test(self, jsonMeasureConfigurationFile, resource, params, targets, output, measureServer, filters, regEx):

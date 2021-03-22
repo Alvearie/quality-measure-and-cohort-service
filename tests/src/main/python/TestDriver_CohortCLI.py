@@ -14,17 +14,17 @@ libraries=os.environ['LIBRARY_PATH']
 testFile=baseDir + os.environ['TESTS_JSON']
 jar = os.environ['JAR']
 
+def setup():
+    os.chdir(baseDir)
+    tests = list()
+    with open(testFile) as f:
+        data = json.load(f)
+        testValues = data['tests']
+        for testValue in testValues.values():
+            tests.append((testValue['params'], testValue['library'], testValue['version'], testValue['targets'], testValue['response'], testValue['source'], testValue['expressions'], testValue['measureServer']))
+    return tests
  
 class Test(object):
-    def setup():
-        os.chdir(baseDir)
-        tests = list()
-        with open(testFile) as f:
-            data = json.load(f)
-            testValues = data['tests']
-            for testValue in testValues.values():
-                tests.append((testValue['params'], testValue['library'], testValue['version'], testValue['targets'], testValue['response'], testValue['source'], testValue['expressions'], testValue['measureServer']))
-        return tests
 
     @pytest.mark.parametrize("params, library, version, targets,output,source,expressions,measureServer",setup())
     def test(self, params, library, version, targets, output, source, expressions, measureServer):
