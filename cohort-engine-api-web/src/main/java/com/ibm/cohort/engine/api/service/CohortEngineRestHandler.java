@@ -5,6 +5,7 @@
  */
 package com.ibm.cohort.engine.api.service;
 
+import java.io.File;
 import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipInputStream;
@@ -29,7 +30,6 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.MeasureReport;
-import org.opencds.cqf.r4.builders.IdentifierBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,7 +143,7 @@ public class CohortEngineRestHandler {
 		@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
 		// These are necessary to create a proper view of the request body that is all wrapped up in the Liberty IMultipartBody parameter
 		@ApiImplicitParam(name=REQUEST_DATA_PART, value=REQUEST_DATA_PART_DESC, dataTypeClass = MeasureEvaluation.class, required=true, paramType="form"),
-		@ApiImplicitParam(name=MEASURE_PART, value=MEASURE_PART_DESC, required=true, paramType="form", type="file" )
+		@ApiImplicitParam(name=MEASURE_PART, value=MEASURE_PART_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = { 
 			@ApiResponse(code = 200, message = "Successful Operation"),
@@ -270,10 +270,9 @@ public class CohortEngineRestHandler {
 			
 			//build the identifier object which is used by the fhir client
 			//to find the measure
-			Identifier identifier = new IdentifierBuilder()
-					.buildValue(measureIdentifierValue)
-					.buildSystem(measureIdentifierSystem)
-					.build();
+			Identifier identifier = new Identifier()
+					.setValue(measureIdentifierValue)
+					.setSystem(measureIdentifierSystem);
 
 			//resolve the measure, and return the parameter info for all the libraries linked to by the measure
 			List<MeasureParameterInfo> parameterInfoList = FHIRRestUtils.getParametersForMeasureIdentifier(measureClient, identifier, measureVersion);

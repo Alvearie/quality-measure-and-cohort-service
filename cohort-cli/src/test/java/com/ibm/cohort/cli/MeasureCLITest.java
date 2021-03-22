@@ -30,6 +30,7 @@ import org.hl7.fhir.r4.model.Patient;
 import org.junit.Test;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 
+import com.beust.jcommander.ParameterException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.helpers.CanonicalHelper;
 import com.ibm.cohort.engine.measure.BaseMeasureTest;
@@ -580,6 +581,19 @@ public class MeasureCLITest extends BaseMeasureTest {
 				"-d", "",
 				"-c", "1234",
 				"-f", "JSON"
+		}, out);
+	}
+	
+	@Test(expected = ParameterException.class)
+	public void testInvalidDefineOptionArguments() throws Exception {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream out = new PrintStream(baos);
+		MeasureCLI cli = new MeasureCLI();
+		cli.runWithArgs(new String[]{
+				"-d", "something",
+				"-c", "1234",
+				"-r", "1234567",
+				"-o", "FUN"
 		}, out);
 	}
 

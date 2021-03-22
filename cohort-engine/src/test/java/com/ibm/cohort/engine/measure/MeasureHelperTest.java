@@ -15,10 +15,10 @@ import java.util.Collections;
 import org.hl7.fhir.r4.model.Measure;
 import org.junit.Before;
 import org.junit.Test;
-import org.opencds.cqf.r4.builders.IdentifierBuilder;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.matching.EqualToPattern;
+import com.ibm.cohort.engine.r4.builder.IdentifierBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 

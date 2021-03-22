@@ -7,8 +7,6 @@
 package com.ibm.cohort.engine;
 
 import java.util.AbstractMap.SimpleEntry;
-
-import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -35,6 +33,8 @@ import org.opencds.cqf.cql.engine.model.ModelResolver;
 import org.opencds.cqf.cql.engine.retrieve.RetrieveProvider;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
+import com.ibm.cohort.engine.cdm.CDMConstants;
+import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.parameter.Parameter;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
@@ -51,7 +51,7 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 public class CqlEngineWrapper {
 
 	public static final List<String> SUPPORTED_MODELS = Arrays.asList("http://hl7.org/fhir",
-			"http://hl7.org/fhir/us/core", "http://hl7.org/fhir/us/qicore", "http://ibm.com/fhir/cdm");
+			"http://hl7.org/fhir/us/core", "http://hl7.org/fhir/us/qicore", CDMConstants.BASE_URL);
 
 	/*
 	 * Wrap the ModelResolver around a static ThreadLocal to prevent
@@ -219,7 +219,7 @@ public class CqlEngineWrapper {
 		for (String contextId : contextIds) {
 			callback.onContextBegin(contextId);
 
-			Context context = new Context(library);
+			Context context = new CDMContext(library);
 			for (Map.Entry<String, DataProvider> e : dataProviders.entrySet()) {
 				context.registerDataProvider(e.getKey(), e.getValue());
 			}
@@ -382,7 +382,7 @@ public class CqlEngineWrapper {
 		Map<String, Object> typedParameters = null;
 		if (parameters != null) {
 			typedParameters = parameters.entrySet().stream()
-					.map(entry -> new AbstractMap.SimpleEntry<String,Object>(entry.getKey(), entry.getValue().toCqlType()))
+					.map(entry -> new SimpleEntry<String,Object>(entry.getKey(), entry.getValue().toCqlType()))
 					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 		}
 		return typedParameters;

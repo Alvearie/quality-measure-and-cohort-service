@@ -41,7 +41,7 @@ public class MeasureEvaluationTest {
 		evaluation.setTerminologyServerConfig(termServerConfig);
 		evaluation.setPatientId("patientId");
 		evaluation.setMeasureContext(ctx);
-		evaluation.setEvidenceOptions(new MeasureEvidenceOptions(false, true));
+		evaluation.setEvidenceOptions(new MeasureEvidenceOptions(false, MeasureEvidenceOptions.DefineReturnOptions.ALL));
 		
 		ObjectMapper om = new ObjectMapper();
 		String serialized = om.writeValueAsString(evaluation);

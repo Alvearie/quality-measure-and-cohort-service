@@ -9,24 +9,34 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
+import org.cqframework.cql.elm.execution.VersionedIdentifier;
+import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
+import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.Type;
 import org.hl7.fhir.r4.model.codesystems.MeasureScoring;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.runtime.Interval;
-import org.opencds.cqf.r4.evaluation.MeasureEvaluation;
+
+import com.ibm.cohort.engine.cdm.CDMConstants;
+import com.ibm.cohort.engine.cqfruler.CDMContext;
+import com.ibm.cohort.engine.cqfruler.MeasureEvaluation;
+import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceHelper;
+import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
+import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
 
 /**
  * Implementation of measure evaluation logic for the IBM Common Data Model IG
  * Patient Quality Measure profile.
  */
 public class CDMMeasureEvaluation {
-
-	public static final String CARE_GAP = "care-gap";
-	public static final String CDM_CODE_SYSTEM_MEASURE_POPULATION_TYPE = "http://ibm.com/fhir/cdm/CodeSystem/measure-population-type";
 
 	/**
 	 * Helper for collecting and indexing the various standard population types from
@@ -87,10 +97,7 @@ public class CDMMeasureEvaluation {
 	private MeasureEvaluation evaluation;
 
 	public CDMMeasureEvaluation(DataProvider provider, Interval measurementPeriod) {
-		// The DaoRegistry parameter is only used for practitioner and subject-list type
-		// measures, so we can safely null it out right now. It is based on HAPI JPA
-		// ResourceProvider interface that we won't be able to use with IBM FHIR.
-		evaluation = new MeasureEvaluation(provider, /* daoRegistry= */null, measurementPeriod);
+		evaluation = new MeasureEvaluation(provider, measurementPeriod);
 	}
 
 	/**
@@ -102,8 +109,11 @@ public class CDMMeasureEvaluation {
 	 * @param patientId Patient ID of the patient to evaluate
 	 * @return MeasureReport with population components filled out.
 	 */
-	public MeasureReport evaluatePatientMeasure(Measure measure, Context context, String patientId) {
-		MeasureReport report = evaluation.evaluatePatientMeasure(measure, context, patientId);
+	public MeasureReport evaluatePatientMeasure(Measure measure, Context context, String patientId, MeasureEvidenceOptions evidenceOptions) {
+		context.setExpressionCaching(true);
+		
+		boolean includeEvaluatedResources = (evidenceOptions != null ) ? evidenceOptions.isIncludeEvaluatedResources() : false;
+		MeasureReport report = evaluation.evaluatePatientMeasure(measure, context, patientId, includeEvaluatedResources);
 
 		MeasureScoring scoring = MeasureScoring.fromCode(measure.getScoring().getCodingFirstRep().getCode());
 		switch (scoring) {
@@ -117,7 +127,7 @@ public class CDMMeasureEvaluation {
 				boolean evaluateCareGaps = isEligibleForCareGapEvaluation(reportGroup);
 
 				for (Measure.MeasureGroupPopulationComponent pop : group.getPopulation()) {
-					if (pop.getCode().hasCoding(CDM_CODE_SYSTEM_MEASURE_POPULATION_TYPE, CARE_GAP)) {
+					if (pop.getCode().hasCoding(CDMConstants.CDM_CODE_SYSTEM_MEASURE_POPULATION_TYPE, CDMConstants.CARE_GAP)) {
 						Boolean result = Boolean.FALSE;
 						if (evaluateCareGaps) {
 							result = evaluateCriteria(context, pop.getCriteria().getExpression());
@@ -135,8 +145,99 @@ public class CDMMeasureEvaluation {
 		default:
 			// no customizations needed
 		}
+		
+		if(context instanceof CDMContext) {
+			CDMContext defineContext = (CDMContext) context;
+			
+			// Grab the define results from the expression cache
+			MeasureEvidenceOptions.DefineReturnOptions defineReturnOptions = (evidenceOptions != null ) ? evidenceOptions.getDefineReturnOption() : MeasureEvidenceOptions.DefineReturnOptions.NONE;
+			addDefineEvaluationToReport(report, defineContext, defineReturnOptions);
+			
+			defineContext.clearExpressionCache();
+		}
 
 		return report;
+	}
+	
+	protected static void addDefineEvaluationToReport(MeasureReport report, CDMContext defineContext, DefineReturnOptions defineOption) {
+		if(DefineReturnOptions.NONE == defineOption) {
+			return;
+		}
+		
+		for(Entry<VersionedIdentifier, Map<String, Object>> libraryCache : defineContext.getEntriesInCache()) {
+			for(Entry<String, Object> defineResult : libraryCache.getValue().entrySet()) {
+				
+				List<Type> values = MeasureEvidenceHelper.getFhirTypes(defineResult.getValue());
+				
+				if (shouldAddDefineResult(defineOption, values)) {
+					
+					Extension evidence = new Extension();
+					evidence.setUrl(CDMConstants.EVIDENCE_URL);
+					
+					StringType key = new StringType(MeasureEvidenceHelper.createEvidenceKey(libraryCache.getKey(), defineResult.getKey()));
+					
+					Extension textExtension = new Extension();
+					textExtension.setUrl(CDMConstants.EVIDENCE_TEXT_URL);
+					textExtension.setValue(key);
+					
+					evidence.addExtension(textExtension);
+					
+					for(Type value : values) {
+						Extension valueExtension = new Extension();
+						valueExtension.setUrl(CDMConstants.EVIDENCE_VALUE_URL);
+						valueExtension.setValue(value);
+						evidence.addExtension(valueExtension);
+					}
+					
+					report.addExtension(evidence);
+				}
+			}
+		}
+	}
+	
+	private static boolean shouldAddDefineResult(DefineReturnOptions defineOption, List<Type> values) {
+		if(!values.isEmpty()) {
+			if(DefineReturnOptions.ALL == defineOption) {
+				return true;
+			}
+			else if(DefineReturnOptions.BOOLEAN == defineOption
+					&& values.size() == 1
+					&& values.get(0) instanceof BooleanType) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	protected static void addBooleanDefineEvaluationToReport(MeasureReport report, CDMContext defineContext) {
+		for(Entry<VersionedIdentifier, Map<String, Object>> libraryCache : defineContext.getEntriesInCache()) {
+			for(Entry<String, Object> defineResult : libraryCache.getValue().entrySet()) {
+				
+				Type value = MeasureEvidenceHelper.getFhirType(defineResult.getValue());
+				
+				if (value instanceof BooleanType) {
+					
+					Extension evidence = new Extension();
+					evidence.setUrl(CDMConstants.EVIDENCE_URL);
+					
+					StringType key = new StringType(MeasureEvidenceHelper.createEvidenceKey(libraryCache.getKey(), defineResult.getKey()));
+					
+					Extension textExtension = new Extension();
+					textExtension.setUrl(CDMConstants.EVIDENCE_TEXT_URL);
+					textExtension.setValue(key);
+					
+					evidence.addExtension(textExtension);
+					
+					Extension valueExtension = new Extension();
+					valueExtension.setUrl(CDMConstants.EVIDENCE_VALUE_URL);
+					valueExtension.setValue(value);
+					evidence.addExtension(valueExtension);
+					
+					report.addExtension(evidence);
+				}
+			}
+		}
 	}
 
 	/**
@@ -172,13 +273,6 @@ public class CDMMeasureEvaluation {
 	 *         true/false when list result and count > 0.
 	 */
 	private Boolean evaluateCriteria(Context context, String expression) {
-		// TODO: Determine why the OSS implementation clears the expression cache after
-		// each evaluation. That seems to be generally a bad thing unless
-		// the population components are coming from different libraries with
-		// potentially overlapping define names, but we _know_ that isn't happening
-		// because we are following the Davinci spec where there is only one Library
-		// entry point.
-
 		Object result = context.resolveExpressionRef(expression).evaluate(context);
 		if (result == null) {
 			result = Collections.emptyList();
@@ -187,7 +281,7 @@ public class CDMMeasureEvaluation {
 		if (result instanceof Boolean) {
 			return (Boolean) result;
 		} else if (result instanceof List) {
-			return ((List<?>) result).size() > 0;
+			return !((List<?>) result).isEmpty();
 		} else {
 			throw new IllegalArgumentException(String
 					.format("Criteria expression '%s' did not evaluate to a boolean or list result.", expression));

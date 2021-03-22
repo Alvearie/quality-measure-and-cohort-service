@@ -187,7 +187,7 @@ public class DefaultVT extends ServiceVTBase {
 		// This is a patient ID that is assumed to exist in the target FHIR server
 		requestData.setPatientId(VALID_PATIENT_ID);
 		requestData.setMeasureContext(new MeasureContext(measure.getId(), parameterOverrides));
-		requestData.setEvidenceOptions(new MeasureEvidenceOptions(false,false));
+		requestData.setEvidenceOptions(new MeasureEvidenceOptions(false, MeasureEvidenceOptions.DefineReturnOptions.NONE));
 		
 		ObjectMapper om = new ObjectMapper();
 		System.out.println( om.writeValueAsString(requestData) );
@@ -244,7 +244,7 @@ public class DefaultVT extends ServiceVTBase {
 		// This is a patient ID that is assumed to exist in the target FHIR server
 		requestData.setPatientId(VALID_PATIENT_ID);
 		requestData.setMeasureContext(new MeasureContext(null, parameterOverrides, new com.ibm.cohort.engine.measure.Identifier(identifier.getSystem(), identifier.getValue()), measure.getVersion()));
-		requestData.setEvidenceOptions(new MeasureEvidenceOptions(false,false));
+		requestData.setEvidenceOptions(new MeasureEvidenceOptions(false,MeasureEvidenceOptions.DefineReturnOptions.NONE));
 		
 		ObjectMapper om = new ObjectMapper();
 		System.out.println( om.writeValueAsString(requestData) );

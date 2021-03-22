@@ -18,6 +18,7 @@ import com.ibm.cohort.engine.measure.Identifier;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.parameter.Parameter;
 
+
 public class MeasureContextProvider {
 	public static List<MeasureContext> getMeasureContexts(File input) throws IOException {
 		ObjectMapper objectMapper = new ObjectMapper();

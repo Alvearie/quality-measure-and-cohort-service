@@ -20,11 +20,5 @@
 			},
 			"count": 1
 		}]
-	}],
-	"evaluatedResource": [{
-		"reference": "5538328e-3cb5-49e5-817d-5dffdb2bb902"
-	},
-	{
-		"reference": "Patient/eb068c3f-3954-50c6-0c67-2b82d29865f0"
 	}]
 }

@@ -133,6 +133,7 @@ public class MeasureEvaluator {
 	}
 
 	public MeasureReport evaluatePatientMeasure(String patientId, MeasureContext context, MeasureEvidenceOptions evidenceOptions) {
+
 		MeasureReport measureReport = null;
 
 		if (context.getMeasureId() != null) {
@@ -218,7 +219,7 @@ public class MeasureEvaluator {
 		}
 
 		CDMMeasureEvaluation evaluation = new CDMMeasureEvaluation(seed.getDataProvider(), seed.getMeasurementPeriod());
-		return evaluation.evaluatePatientMeasure(measure, seed.getContext(), patientId);
+		return evaluation.evaluatePatientMeasure(measure, seed.getContext(), patientId, evidenceOptions);
 	}
 
 	private Object toCqlObject(Type type) {
