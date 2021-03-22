@@ -596,7 +596,12 @@
 				<artifactId>jakarta.ws.rs-api</artifactId>
 				<version>2.1.6</version>
 			</dependency>
-			
+			<dependency>
+				<groupId>com.beust</groupId>
+				<artifactId>jcommander</artifactId>
+				<version>1.78</version>
+			</dependency>
+		
 		</dependencies>
 	</dependencyManagement>
 
@@ -1023,9 +1028,6 @@
             			<configuration>
 							<failOnWarning>true</failOnWarning>
 							
-							<ignoredUsedUndeclaredDependencies>
-								<ignoredUsedUndeclaredDependency>jakarta.xml.bind:jakarta.xml.bind-api</ignoredUsedUndeclaredDependency>								
-							</ignoredUsedUndeclaredDependencies>
 							<ignoredUnusedDeclaredDependencies> 
 								<ignoredUnusedDeclaredDependency>ca.uhn.hapi.fhir:hapi-fhir-structures-r4</ignoredUnusedDeclaredDependency>	
 								<ignoredUnusedDeclaredDependency>org.slf4j:slf4j-simple</ignoredUnusedDeclaredDependency>			
