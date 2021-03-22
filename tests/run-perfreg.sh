@@ -35,19 +35,19 @@ echo "Copying test results xml files to ${PERF_REG_RESULTS}"
 mkdir ${PERF_REG_RESULTS}
 kubectl -n ${CLUSTER_NAMESPACE} cp "${POD_NAME}:/bzt-configs/tests/results" "${PERF_REG_RESULTS}"
 
-# First Check to see if python3 is available for use with xmlCombiner.py script. If not first install python3.8 using yum. 
-pythonVersion=$(python3 --version 2>/dev/null)
+# First Check to see if python3 is available for use with xmlCombiner.py script. If not first install python3.8 using yum.
 pythonBinary=python3
+pythonVersion=$(${pythonBinary} --version 2>/dev/null)
 if [ -z "${pythonVersion}" ]
 then
   echo "Python check output: '${pythonVersion}'"
-  echo "Missing python3, installing..."
+  echo "Missing ${pythonBinary}, installing..."
   sudo yum -y install python38
   which python3.8
   python3.8 --version
   pythonBinary=python3.8
 else 
-  echo "Found 'python3' binary"
+  echo "Found '${pythonBinary}' binary"
 fi
 
 $pythonBinary ${TEST_DIR}/scripts/xmlCombiner.py ${PERF_REG_RESULTS}/*.xml
