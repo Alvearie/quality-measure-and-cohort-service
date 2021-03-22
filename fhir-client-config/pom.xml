@@ -26,27 +26,28 @@
 		</dependency>
 		<dependency>
 			<groupId>ca.uhn.hapi.fhir</groupId>
+			<artifactId>hapi-fhir-base</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ca.uhn.hapi.fhir</groupId>
 			<artifactId>hapi-fhir-structures-r4</artifactId>
-			<version>${hapi.fhir.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>xpp3</groupId>
-					<artifactId>xpp3</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>xpp3</groupId>
-					<artifactId>xpp3_xpath</artifactId>
-				</exclusion>
-			</exclusions>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

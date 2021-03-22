@@ -35,7 +35,12 @@
 			<groupId>com.ibm.cohort</groupId>
 			<artifactId>cohort-engine</artifactId>
 			<version>${revision}</version>
-			<scope>compile</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>fhir-client-config</artifactId>
+			<version>${revision}</version>
 		</dependency>
 
 		<dependency>
@@ -46,16 +51,42 @@
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-clients_2.12</artifactId>
+			<artifactId>flink-connector-kafka_2.12</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
-
+		
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-java</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-core</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>ca.uhn.hapi.fhir</groupId>
+			<artifactId>hapi-fhir-base</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ca.uhn.hapi.fhir</groupId>
+			<artifactId>org.hl7.fhir.r4</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>ca.uhn.hapi.fhir</groupId>
+			<artifactId>hapi-fhir-structures-r4</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		
 		<dependency>
 			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<version>1.7.30</version>
+			<artifactId>slf4j-api</artifactId>
 		</dependency>
-
+		
 		<dependency>
 			<groupId>com.github.ben-manes.caffeine</groupId>
 			<artifactId>jcache</artifactId>
@@ -67,12 +98,13 @@
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
-
+		
 		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-connector-kafka_2.12</artifactId>
-			<version>${flink.version}</version>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-clients</artifactId>
+			<version>2.4.1</version>
 		</dependency>
+
 	</dependencies>
 
 	<build>
