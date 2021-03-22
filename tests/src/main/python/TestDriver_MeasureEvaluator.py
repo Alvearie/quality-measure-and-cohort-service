@@ -17,18 +17,18 @@ baseDir = currentDir + '/'
 testLibrary = os.environ['TEST_LIBRARY']
 testFile=baseDir + os.environ['TESTS_JSON']
 
-def setup():
-    os.chdir(baseDir)
-    # This will eventually need to read these in from a file.
-    tests = list()
-    with open(testFile) as f:
-        data = json.load(f)
-        testValues = data['tests']
-        for testValue in testValues.values():
-            tests.append((testValue['library'], testValue['target'], testValue['response'], float(testValue['avg'])))
-    return tests
  
 class Test(object):
+    def setup():
+        os.chdir(baseDir)
+        # This will eventually need to read these in from a file.
+        tests = list()
+        with open(testFile) as f:
+            data = json.load(f)
+            testValues = data['tests']
+            for testValue in testValues.values():
+                tests.append((testValue['library'], testValue['target'], testValue['response'], float(testValue['avg'])))
+        return tests
 
     @pytest.mark.parametrize("library,target,output,avg",setup())
     def test1(self,library,target,output,avg):

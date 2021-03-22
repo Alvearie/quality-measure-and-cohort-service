@@ -9,17 +9,16 @@ baseDir = currentDir + '/'
 testFile=baseDir + os.environ['TESTS_JSON']
 jar = os.environ['JAR']
 
-def setup():
-    os.chdir(baseDir)
-    tests = list()
-    with open(testFile) as f:
-        data = json.load(f)
-        testValues = data['tests']
-        for testName in testValues:
-            tests.append((testValues[testName]['jsonMeasureConfigurationFile'], testValues[testName]['targets'], testName))
-    return tests
-
 class Test(object):
+    def setup():
+        os.chdir(baseDir)
+        tests = list()
+        with open(testFile) as f:
+            data = json.load(f)
+            testValues = data['tests']
+            for testName in testValues:
+                tests.append((testValues[testName]['jsonMeasureConfigurationFile'], testValues[testName]['targets'], testName))
+        return tests
 
     # parameterize controls how tests are bucketed in the Taurus output
     @pytest.mark.parametrize("jsonMeasureConfigurationFile, targets, testName", setup())
