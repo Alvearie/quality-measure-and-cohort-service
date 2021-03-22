@@ -46,9 +46,13 @@
 		<engine.version>1.5.1</engine.version>
 		<ruler.version>0.4.0</ruler.version>
 
-		<jackson.version>2.10.5.1</jackson.version>
+		<jackson.version>2.11.2</jackson.version>
 		<jacoco.version>0.8.6</jacoco.version>
 		<powermock.version>2.0.9</powermock.version>
+		<groovy.version>2.4.8</groovy.version>
+		<slf4j.version>1.7.30</slf4j.version>
+		<swagger.version>1.6.2</swagger.version>
+		<ant.junit.version>1.10.9</ant.junit.version>
 
 		<!-- Default values for the jacoco-maven-plugin reports -->
 		<cohort.jacoco.classRatio>0.80</cohort.jacoco.classRatio>
@@ -462,13 +466,13 @@
 			<dependency>
 				<groupId>org.apache.ant</groupId>
 				<artifactId>ant-junit</artifactId>
-				<version>1.10.9</version>
+				<version>${ant.junit.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.ant</groupId>
 				<artifactId>ant-junit4</artifactId>
-				<version>1.10.9</version>
+				<version>${ant.junit.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
@@ -484,19 +488,19 @@
 			<dependency>
 				<groupId>org.codehaus.groovy</groupId>
 				<artifactId>groovy</artifactId>
-				<version>2.4.8</version>
+				<version>${groovy.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.codehaus.groovy</groupId>
 				<artifactId>groovy-json</artifactId>
-				<version>2.4.8</version>
+				<version>${groovy.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.codehaus.groovy</groupId>
 				<artifactId>groovy-xml</artifactId>
-				<version>2.4.8</version>
+				<version>${groovy.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
@@ -508,12 +512,12 @@
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-simple</artifactId>
-				<version>1.7.30</version>
+				<version>${slf4j.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
-				<version>1.7.30</version>
+				<version>${slf4j.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.powermock</groupId>
@@ -564,17 +568,17 @@
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-annotations</artifactId>
-				<version>2.11.2</version>
+				<version>${jackson.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-databind</artifactId>
-				<version>2.11.2</version>
+				<version>${jackson.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-core</artifactId>
-				<version>2.11.2</version>
+				<version>${jackson.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>commons-collections</groupId>
@@ -584,12 +588,12 @@
 			<dependency>
 				<groupId>io.swagger</groupId>
 				<artifactId>swagger-annotations</artifactId>
-				<version>1.6.2</version>
+				<version>${swagger.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.swagger</groupId>
 				<artifactId>swagger-jaxrs</artifactId>
-				<version>1.6.2</version>
+				<version>${swagger.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>jakarta.ws.rs</groupId>
