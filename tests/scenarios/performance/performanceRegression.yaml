@@ -31,6 +31,8 @@ execution:
     env:
       TESTS_JSON: tests/src/main/resources/performance/one-hundred-patients-five-measures.json
 
+# Each label for a scenario has to match the the string output by pytest parameterize for a test case.
+# If it does not, then the criteria will be skipped by Taurus.
 scenarios:
   one-patient-one-measure:
     script: /bzt-configs/tests/src/main/python/TestDriver_MeasurePerformance.py
@@ -38,6 +40,7 @@ scenarios:
       - subject: p99.9
         condition: '>'
         threshold: 10s
+        label: 'test1[tests/src/main/resources/measure-parameters/performance/singlePerformanceMeasure.json-targets0-1 Patient 1 Measure]'
         message: One patient, 1 measure took longer than 10 seconds
 
   one-patient-five-measures:
@@ -46,7 +49,8 @@ scenarios:
       - subject: p99.9
         condition: '>'
         threshold: 13s
-        message: One patients, 5 measures took longer than 13 seconds
+        label: 'test1[tests/src/main/resources/measure-parameters/performance/fivePerformanceMeasures.json-targets0-1 Patient 5 Measures]'
+        message: One patient, 5 measures took longer than 13 seconds
 
   hundred-patients-one-measure:
     script: /bzt-configs/tests/src/main/python/TestDriver_MeasurePerformance.py
@@ -54,6 +58,7 @@ scenarios:
       - subject: p99.9
         condition: '>'
         threshold: 31s
+        label: 'test1[tests/src/main/resources/measure-parameters/performance/singlePerformanceMeasure.json-targets0-100 Patients 1 Measure]'
         message: One hundred patients, 1 measure took longer than 31 seconds
 
   thousand-patients-one-measure:
@@ -62,6 +67,7 @@ scenarios:
       - subject: p99.9
         condition: '>'
         threshold: 218s
+        label: 'test1[tests/src/main/resources/measure-parameters/performance/singlePerformanceMeasure.json-targets0-1000 Patients 1 Measure]'
         message: One thousand patients, 1 measure took longer than 218 seconds
 
   hundred-patients-five-measures:
@@ -70,6 +76,7 @@ scenarios:
       - subject: p99.9
         condition: '>'
         threshold: 273s
+        label: 'test1[tests/src/main/resources/measure-parameters/performance/fivePerformanceMeasures.json-targets0-100 Patients 5 Measures]'
         message: One hundred patients, 5 measure took longer than 273 seconds
 
 modules:
