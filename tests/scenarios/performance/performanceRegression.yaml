@@ -38,7 +38,6 @@ scenarios:
       - subject: p99.9
         condition: '>'
         threshold: 10s
-        label: 'One Patient One Measure'
         message: One patient, 1 measure took longer than 10 seconds
 
   one-patient-five-measures:
@@ -47,8 +46,7 @@ scenarios:
       - subject: p99.9
         condition: '>'
         threshold: 13s
-        label: 'One Patient Five Measures'
-        message: One patient, 5 measures took longer than 13 seconds
+        message: One patients, 5 measures took longer than 13 seconds
 
   hundred-patients-one-measure:
     script: /bzt-configs/tests/src/main/python/TestDriver_MeasurePerformance.py
@@ -56,7 +54,6 @@ scenarios:
       - subject: p99.9
         condition: '>'
         threshold: 31s
-        label: 'One Hundred Patients One Measure'
         message: One hundred patients, 1 measure took longer than 31 seconds
 
   thousand-patients-one-measure:
@@ -65,7 +62,6 @@ scenarios:
       - subject: p99.9
         condition: '>'
         threshold: 218s
-        label: 'One Thousand Patients One Measure'
         message: One thousand patients, 1 measure took longer than 218 seconds
 
   hundred-patients-five-measures:
@@ -74,7 +70,6 @@ scenarios:
       - subject: p99.9
         condition: '>'
         threshold: 273s
-        label: 'One Hundred Patients Five Measures'
         message: One hundred patients, 5 measure took longer than 273 seconds
 
 modules:
