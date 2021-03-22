@@ -7,7 +7,7 @@ package com.ibm.cohort.engine.parameter;
 
 import org.opencds.cqf.cql.engine.runtime.Time;
 
-public class TimeParameter extends SimpleParameter {
+public class TimeParameter extends StringBackedParameter {
 	public TimeParameter() {
 		setType(ParameterType.TIME);
 	}

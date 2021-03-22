@@ -7,7 +7,7 @@ package com.ibm.cohort.engine.parameter;
 
 import org.opencds.cqf.cql.engine.runtime.Date;
 
-public class DateParameter extends SimpleParameter {
+public class DateParameter extends StringBackedParameter {
 	public DateParameter() {
 		setType(ParameterType.DATE);
 	}

@@ -7,7 +7,7 @@ package com.ibm.cohort.engine.parameter;
 
 import java.math.BigDecimal;
 
-public class DecimalParameter extends SimpleParameter {
+public class DecimalParameter extends StringBackedParameter {
 	public DecimalParameter() {
 		setType(ParameterType.DECIMAL);
 	}

@@ -5,14 +5,14 @@
  */
 package com.ibm.cohort.engine.parameter;
 
-public abstract class SimpleParameter extends Parameter {
+public abstract class StringBackedParameter extends Parameter {
 	private String value;
 	
-	public SimpleParameter() {
+	public StringBackedParameter() {
 		setType(ParameterType.SIMPLE);
 	}
 	
-	public SimpleParameter(String value) {
+	public StringBackedParameter(String value) {
 		this();
 		setValue(value);
 	}

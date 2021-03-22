@@ -9,7 +9,7 @@ import java.time.OffsetDateTime;
 
 import org.opencds.cqf.cql.engine.runtime.DateTime;
 
-public class DatetimeParameter extends SimpleParameter {
+public class DatetimeParameter extends StringBackedParameter {
 	public static final String DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZZZ";
 	
 	public DatetimeParameter() {

@@ -5,7 +5,7 @@
  */
 package com.ibm.cohort.engine.parameter;
 
-public class StringParameter extends SimpleParameter {
+public class StringParameter extends StringBackedParameter {
 	public StringParameter() {
 		setType(ParameterType.STRING);
 	}
