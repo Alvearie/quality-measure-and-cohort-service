@@ -103,6 +103,12 @@
 			<version>1.0.2</version>
 		</dependency>
 		
+		<dependency>
+			<groupId>javax.cache</groupId>
+			<artifactId>cache-api</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+		
 		<!-- Runtime dependencies -->
 		
 		<dependency>
@@ -139,24 +145,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>javax.cache</groupId>
-			<artifactId>cache-api</artifactId>
-			<version>1.1.1</version>
-		</dependency>
-
-		<dependency>
 			<groupId>com.github.ben-manes.caffeine</groupId>
 			<artifactId>jcache</artifactId>
-			<version>2.9.0</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-util</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
-			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
