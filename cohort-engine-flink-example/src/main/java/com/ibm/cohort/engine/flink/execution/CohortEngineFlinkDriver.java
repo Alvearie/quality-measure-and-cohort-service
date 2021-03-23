@@ -66,7 +66,7 @@ public class CohortEngineFlinkDriver implements Serializable {
 
 		CohortEngineFlinkDriver example = new CohortEngineFlinkDriver(
 				fhirServerInfo,
-				params.has("enable-retrieve-cache")
+				params.has("disable-retrieve-cache")
 		);
 		example.run(
 				params.get("job-name", "cohort-engine"),
@@ -80,16 +80,16 @@ public class CohortEngineFlinkDriver implements Serializable {
 	}
 
 	private final FHIRServerInfo fhirServerInfo;
-	private final boolean enableRetrieveCache;
+	private final boolean disableRetrieveCache;
 
 	private transient MeasureEvaluator evaluator;
 	private transient FhirContext fhirContext;
 	private transient ObjectMapper objectMapper;
 	private transient RetrieveCacheContext retrieveCacheContext;
 
-	public CohortEngineFlinkDriver(FHIRServerInfo fhirServerInfo, boolean enableRetrieveCache) {
+	public CohortEngineFlinkDriver(FHIRServerInfo fhirServerInfo, boolean disableRetrieveCache) {
 		this.fhirServerInfo = fhirServerInfo;
-		this.enableRetrieveCache = enableRetrieveCache;
+		this.disableRetrieveCache = disableRetrieveCache;
 	}
 
 	private void run(
@@ -192,7 +192,7 @@ public class CohortEngineFlinkDriver implements Serializable {
 				.withDefaultClient(fhirServerInfo.toIbmServerConfig())
 				.build();
 		R4MeasureEvaluatorBuilder evalBuilder = new R4MeasureEvaluatorBuilder().withClientContext(clientContext);
-		if (enableRetrieveCache) {
+		if (!disableRetrieveCache) {
 			evalBuilder.withRetrieveCacheContext(getRetrieveCacheContext());
 		}
 		return evalBuilder.build();

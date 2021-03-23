@@ -57,4 +57,4 @@ The Flink job will run indefinitely until manually canceled.
     * Useful if you want to scale your compute tasks separately from your Kafka topic partitions.
 * `--read-from-start` (optional): Start streaming input records from the beginning of the Kafka topic (Default: `false`).
 
-* `--enable-retrieve-cache` (optional): Enable the retrieve cache (Default: `false`).
+* `--disable-retrieve-cache` (optional): Disable the retrieve cache (Default: `false`).

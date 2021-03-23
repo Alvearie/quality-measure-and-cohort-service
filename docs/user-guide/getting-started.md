@@ -198,8 +198,8 @@ Usage: measure-engine [options]
       JSON. 
       Default: NONE
       Possible Values: [ALL, BOOLEAN, NONE]
-    --enable-retrieve-cache
-      Enable the use of the retrieve cache.
+    --disable-retrieve-cache
+      Disable the use of the retrieve cache.
       Default: false
     --filter
       Filter information for resource loader if the resource loader supports 

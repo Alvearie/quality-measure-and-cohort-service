@@ -86,8 +86,8 @@ public class MeasureCLI extends BaseCLI {
 				"--define-return-option" }, description = "Specify define return option for evaluated define statements on measure report. Defaults to NONE. To view returned results, must specify -f JSON.")
 		private DefineReturnOptions defineReturnOption = DefineReturnOptions.NONE;
 
-		@Parameter(names = { "--enable-retrieve-cache" }, description = "Enable the use of the retrieve cache.")
-		private boolean enableRetrieveCache = false;
+		@Parameter(names = { "--disable-retrieve-cache" }, description = "Disable the use of the retrieve cache.")
+		private boolean disableRetrieveCache = false;
 
 		public void validate() {
 			boolean resourceSpecified = resourceId != null;
@@ -162,7 +162,7 @@ public class MeasureCLI extends BaseCLI {
 			}
 
 			TerminologyProvider terminologyProvider = new R4FhirTerminologyProvider(terminologyServerClient);
-			try (RetrieveCacheContext retrieveCacheContext = arguments.enableRetrieveCache ? new DefaultRetrieveCacheContext() : null) {
+			try (RetrieveCacheContext retrieveCacheContext = arguments.disableRetrieveCache ? null : new DefaultRetrieveCacheContext()) {
 				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataServerClient, terminologyProvider, retrieveCacheContext);
 
 				evaluator = new MeasureEvaluator(measureProvider, libraryProvider, terminologyProvider, dataProviders);
