@@ -1,0 +1,34 @@
+settings:
+  env:
+    JAR: null
+    DATA_FHIR_SERVER_DETAILS: null
+    MEASURE_FHIR_SERVER_DETAILS: null
+    TESTS_JSON: tests/src/main/resources/performance/performance-regression-tests.json
+    
+execution:
+  - executor: pytest
+    scenario: one-patient-one-measure
+    env:
+      TESTS_JSON: tests/src/main/resources/performance/one-patient-one-measure.json
+
+# Each label for a scenario has to match the the string output by pytest parameterize for a test case.
+# If it does not, then the criteria will be skipped by Taurus.
+scenarios:
+  thousand-patients-five-measures:
+    script: /bzt-configs/tests/src/main/python/TestDriver_MeasurePerformance.py
+    criteria:
+      - subject: p99.9
+        condition: '>'
+        threshold: 3600s
+        label: 'test[tests/src/main/resources/measure-parameters/performance/fivePerformanceMeasures.json-targets0-1 Patient 1 Measure]'
+        message: One thousand patients, 5 measures took longer than 3600 seconds
+
+modules:
+  local:
+    sequential: true
+
+reporting:
+  - module: passfail
+  - module: junit-xml
+    filename: /bzt-configs/tests/results/performanceCTTests.xml
+    data-source: pass-fail
