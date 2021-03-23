@@ -25,17 +25,17 @@ def setup():
                 regEx=testValue['regEx']
             except:
                 regEx=False
-            tests.append((testValue['jsonMeasureConfigurationFile'], testValue['resource'], testValue['params'], testValue['targets'], testValue['response'], testValue['measureServer'], regEx))
+            tests.append((testValue['jsonMeasureConfigurationFile'], testValue['resource'], testValue['params'], testValue['targets'], testValue['response'], testValue['measureServer'], testValue['filters'], regEx))
     return tests
  
 class Test(object):
 
-    @pytest.mark.parametrize("jsonMeasureConfigurationFile, resource, params, targets, output, measureServer, regEx", setup())
-    def test1(self, jsonMeasureConfigurationFile, resource, params, targets, output, measureServer, regEx):
-        self.execute(jsonMeasureConfigurationFile, resource, params, targets, output, measureServer, regEx)
+    @pytest.mark.parametrize("jsonMeasureConfigurationFile, resource, params, targets, output, measureServer, filters, regEx", setup())
+    def test1(self, jsonMeasureConfigurationFile, resource, params, targets, output, measureServer, filters, regEx):
+        self.execute(jsonMeasureConfigurationFile, resource, params, targets, output, measureServer, filters, regEx)
 
     # Execute submits a query and validates the return.
-    def execute(self, jsonMeasureConfigurationFile, resource, params, targets, output, measureServer, regEx):
+    def execute(self, jsonMeasureConfigurationFile, resource, params, targets, output, measureServer, filters, regEx):
         o = output.split('\n')
         callDetails = ["java", "-Xms1G", "-Xmx1G", "-Djavax.net.ssl.trustStore="+os.environ["TRUSTSTORE"], "-Djavax.net.ssl.trustStorePassword="+os.environ["TRUSTSTORE_PASSWORD"], "-Djavax.net.ssl.trustStoreType="+os.environ["TRUSTSTORE_TYPE"], "-classpath", jar, "com.ibm.cohort.cli.MeasureCLI"]
         if os.environ['DATA_FHIR_SERVER_DETAILS']:
@@ -53,6 +53,10 @@ class Test(object):
         if params:
             for val in params:
                 callDetails.append("-p")
+                callDetails.append(val)
+        if filters:
+            for val in filters:
+                callDetails.append("--filter")
                 callDetails.append(val)
         if measureServer:
             callDetails.append("-m")

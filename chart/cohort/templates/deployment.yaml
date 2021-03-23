@@ -41,6 +41,9 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: ENABLE_DARK_FEATURES
+              value: {{ .Values.enableDarkFeatures }}
           ports:
           {{- range .Values.service.ports }}
           - containerPort: {{ . }}
