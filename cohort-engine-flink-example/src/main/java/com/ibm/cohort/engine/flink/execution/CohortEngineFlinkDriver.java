@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
-import ca.uhn.fhir.rest.client.api.IGenericClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.flink.KafkaCommon;
 import com.ibm.cohort.engine.flink.KafkaInfo;
@@ -24,9 +23,6 @@ import com.ibm.cohort.engine.measure.R4MeasureEvaluatorBuilder;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
-import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilderFactory;
-import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
-import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -192,13 +188,8 @@ public class CohortEngineFlinkDriver implements Serializable {
 	}
 
 	private MeasureEvaluator createEvaluator() {
-		FhirClientBuilderFactory factory = new DefaultFhirClientBuilderFactory();
-
-		FhirClientBuilder clientBuilder = factory.newFhirClientBuilder(getFhirContext());
-		IGenericClient genericClient = clientBuilder.createFhirClient(fhirServerInfo.toIbmServerConfig());
-
 		FHIRClientContext clientContext = new FHIRClientContext.Builder()
-				.withDefaultClient(genericClient)
+				.withDefaultClient(fhirServerInfo.toIbmServerConfig())
 				.build();
 		R4MeasureEvaluatorBuilder evalBuilder = new R4MeasureEvaluatorBuilder().withClientContext(clientContext);
 		if (enableRetrieveCache) {
