@@ -13,7 +13,7 @@ class MeasureParametersAPITest(TestClass):
         fhirMeasuresApi = FHIRMeasuresApi(swagger_client.ApiClient(self.configuration))
         result = None
         try:
-            resp = fhirMeasuresApi.get_measure_parameters('2021-03-15','https://fhir-internal.dev:9443/fhir-server/api/v4','default','badMeasureID')
+            resp = fhirMeasuresApi.get_measure_parameters('2021-03-15',self.fhir_endpoint,'default','badMeasureID')
             result = resp.read()
         except Exception as e: 
             print(str(e))
@@ -23,9 +23,20 @@ class MeasureParametersAPITest(TestClass):
     def test_simpleCase(self):
         fhirMeasuresApi = FHIRMeasuresApi(swagger_client.ApiClient(self.configuration))
 
-        resp = fhirMeasuresApi.get_measure_parameters('2021-03-15','https://fhir-internal.dev:9443/fhir-server/api/v4','default','999',_preload_content = False)
+        resp = fhirMeasuresApi.get_measure_parameters('2021-03-15',self.fhir_endpoint,'default','999',_preload_content = False)
         response = resp.read()
         response = response.decode('utf-8')
         status = resp.status
         result = 'STATUS: ' + str(status) + ' RESPONSE: ' + response
         assert '200' in result, 'Should contain 200.'
+    
+    def test_invalidFHIREndpoint(self):
+        fhirMeasuresApi = FHIRMeasuresApi(swagger_client.ApiClient(self.configuration))
+        result = None
+        try:
+            resp = fhirMeasuresApi.get_measure_parameters('2021-03-15','badURL','default','badMeasureID')
+            result = resp.read()
+        except Exception as e: 
+            print(str(e))
+            result = str(e)
+        assert '400' in result, 'Should contain 400 error.'
