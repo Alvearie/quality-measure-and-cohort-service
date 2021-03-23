@@ -8,15 +8,12 @@ package com.ibm.cohort.engine.flink.execution;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.OptionalLong;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
 import com.ibm.cohort.engine.flink.KafkaCommon;
 import com.ibm.cohort.engine.flink.KafkaInfo;
 import com.ibm.cohort.engine.flink.MeasureExecution;
@@ -24,7 +21,6 @@ import com.ibm.cohort.engine.measure.FHIRClientContext;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.MeasureEvaluator;
 import com.ibm.cohort.engine.measure.R4MeasureEvaluatorBuilder;
-import com.ibm.cohort.engine.measure.cache.RetrieveCacheKey;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
@@ -72,16 +68,9 @@ public class CohortEngineFlinkDriver implements Serializable {
 			);
 		}
 
-		boolean enableRetrieveCache = params.has("enable-retrieve-cache");
-		RetrieveCacheConfiguration retrieveCacheConfiguration = new RetrieveCacheConfiguration(
-				params.getInt("max-retrieve-cache-size", 1_000),
-				params.getInt("retrieve-cache-expire-on-write", 300),
-				params.has("enable-retrieve-cache-statistics")
-		);
-
 		CohortEngineFlinkDriver example = new CohortEngineFlinkDriver(
 				fhirServerInfo,
-				enableRetrieveCache ? retrieveCacheConfiguration : null
+				params.has("enable-retrieve-cache")
 		);
 		example.run(
 				params.get("job-name", "cohort-engine"),
@@ -95,16 +84,16 @@ public class CohortEngineFlinkDriver implements Serializable {
 	}
 
 	private final FHIRServerInfo fhirServerInfo;
-	private final RetrieveCacheConfiguration retrieveCacheConfiguration;
+	private final boolean enableRetrieveCache;
 
 	private transient MeasureEvaluator evaluator;
 	private transient FhirContext fhirContext;
 	private transient ObjectMapper objectMapper;
 	private transient RetrieveCacheContext retrieveCacheContext;
 
-	public CohortEngineFlinkDriver(FHIRServerInfo fhirServerInfo, RetrieveCacheConfiguration retrieveCacheConfiguration) {
+	public CohortEngineFlinkDriver(FHIRServerInfo fhirServerInfo, boolean enableRetrieveCache) {
 		this.fhirServerInfo = fhirServerInfo;
-		this.retrieveCacheConfiguration = retrieveCacheConfiguration;
+		this.enableRetrieveCache = enableRetrieveCache;
 	}
 
 	private void run(
@@ -197,7 +186,7 @@ public class CohortEngineFlinkDriver implements Serializable {
 
 	private RetrieveCacheContext getRetrieveCacheContext() {
 		if (retrieveCacheContext == null) {
-			retrieveCacheContext = createRetrieveCacheContext();
+			retrieveCacheContext = new DefaultRetrieveCacheContext();
 		}
 		return retrieveCacheContext;
 	}
@@ -212,7 +201,7 @@ public class CohortEngineFlinkDriver implements Serializable {
 				.withDefaultClient(genericClient)
 				.build();
 		R4MeasureEvaluatorBuilder evalBuilder = new R4MeasureEvaluatorBuilder().withClientContext(clientContext);
-		if (retrieveCacheConfiguration != null) {
+		if (enableRetrieveCache) {
 			evalBuilder.withRetrieveCacheContext(getRetrieveCacheContext());
 		}
 		return evalBuilder.build();
@@ -221,14 +210,6 @@ public class CohortEngineFlinkDriver implements Serializable {
 	private MeasureExecution deserializeMeasureExecution(String input) throws Exception {
 		ObjectMapper mapper = getObjectMapper();
 		return mapper.readValue(input, MeasureExecution.class);
-	}
-
-	private RetrieveCacheContext createRetrieveCacheContext() {
-		CaffeineConfiguration<RetrieveCacheKey, Iterable<Object>> cacheConfig = new CaffeineConfiguration<>();
-		cacheConfig.setMaximumSize(OptionalLong.of(retrieveCacheConfiguration.getMaxSize()));
-		cacheConfig.setExpireAfterWrite(OptionalLong.of(TimeUnit.SECONDS.toNanos(retrieveCacheConfiguration.getExpireOnWrite())));
-		cacheConfig.setStatisticsEnabled(retrieveCacheConfiguration.isEnableStatistics());
-		return new DefaultRetrieveCacheContext(cacheConfig);
 	}
 
 }

@@ -78,7 +78,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 	}
 
 	@Test
-	public void testCohortMeasureSinglePatientJsonInputWithCacheOptions() throws Exception {
+	public void testCohortMeasureSinglePatientJsonInputWithCacheEnabled() throws Exception {
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1592-14-03");
@@ -105,10 +105,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 					"-d", tmpFile.getAbsolutePath(),
 					"-j", tmpMeasureConfigurationsFile.getAbsolutePath(),
 					"-c", patient.getId(),
-					"--enable-retrieve-cache",
-					"--max-retrieve-cache-size", "500",
-					"--retrieve-cache-expire-on-write", "100",
-					"--enable-retrieve-cache-statistics"
+					"--enable-retrieve-cache"
 			}, out);
 		} finally {
 			tmpFile.delete();

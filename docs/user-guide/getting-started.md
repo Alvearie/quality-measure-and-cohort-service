@@ -201,9 +201,6 @@ Usage: measure-engine [options]
     --enable-retrieve-cache
       Enable the use of the retrieve cache.
       Default: false
-    --enable-retrieve-cache-statistics
-      Enable retrieve cache statistic recording via JMX.
-      Default: false
     --filter
       Filter information for resource loader if the resource loader supports 
       filtering 
@@ -220,9 +217,6 @@ Usage: measure-engine [options]
     -j, --json-measure-configurations
       JSON File containing measure resource ids and optional parameters. 
       Cannot be specified if -r option is used
-    --max-retrieve-cache-size
-      The maximum size the retrieve cache can grow before evictions begin.
-      Default: 1000
     -m, --measure-server
       Path to configuration data for the FHIR knowledge assets. This will be 
       either a JSON configuration file containing FHIR server connection 
@@ -234,10 +228,6 @@ Usage: measure-engine [options]
     -r, --resource
       FHIR Resource ID or canonical URL for the measure resource to be 
       evaluated. Cannot be specified if -j option is used
-    --retrieve-cache-expire-on-write
-      The amount of time after last write (in seconds) before a retrieve cache
-      entry is evicted.
-      Default: 300
     -t, --terminology-server
       Path to JSON configuration data for the FHIR server connection that will 
       be used to retrieve terminology.

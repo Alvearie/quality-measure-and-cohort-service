@@ -9,13 +9,9 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalLong;
-import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipFile;
 
-import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
 import com.ibm.cohort.engine.measure.R4DataProviderFactory;
-import com.ibm.cohort.engine.measure.cache.RetrieveCacheKey;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
@@ -93,15 +89,6 @@ public class MeasureCLI extends BaseCLI {
 		@Parameter(names = { "--enable-retrieve-cache" }, description = "Enable the use of the retrieve cache.")
 		private boolean enableRetrieveCache = false;
 
-		@Parameter(names = { "--max-retrieve-cache-size" }, description = "The maximum size the retrieve cache can grow before evictions begin.")
-		private int maxRetrieveCacheSize = 1_000;
-
-		@Parameter(names = { "--retrieve-cache-expire-on-write" }, description = "The amount of time after last write (in seconds) before a retrieve cache entry is evicted.")
-		private int retrieveCacheExpireOnWrite = 300;
-
-		@Parameter(names = { "--enable-retrieve-cache-statistics" }, description = "Enable retrieve cache statistic recording via JMX.")
-		private boolean enableRetrieveCacheStatistics = false;
-
 		public void validate() {
 			boolean resourceSpecified = resourceId != null;
 			boolean measureConfigurationSpecified = measureConfigurationFile != null;
@@ -174,13 +161,8 @@ public class MeasureCLI extends BaseCLI {
 				measureContexts = MeasureContextProvider.getMeasureContexts(arguments.resourceId,  arguments.parameters);
 			}
 
-			CaffeineConfiguration<RetrieveCacheKey, Iterable<Object>> retrieveCacheConfig = new CaffeineConfiguration<>();
-			retrieveCacheConfig.setMaximumSize(OptionalLong.of(arguments.maxRetrieveCacheSize));
-			retrieveCacheConfig.setExpireAfterWrite(OptionalLong.of(TimeUnit.SECONDS.toNanos(arguments.retrieveCacheExpireOnWrite)));
-			retrieveCacheConfig.setStatisticsEnabled(arguments.enableRetrieveCacheStatistics);
-
 			TerminologyProvider terminologyProvider = new R4FhirTerminologyProvider(terminologyServerClient);
-			try (RetrieveCacheContext retrieveCacheContext = arguments.enableRetrieveCache ? new DefaultRetrieveCacheContext(retrieveCacheConfig) : null) {
+			try (RetrieveCacheContext retrieveCacheContext = arguments.enableRetrieveCache ? new DefaultRetrieveCacheContext() : null) {
 				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataServerClient, terminologyProvider, retrieveCacheContext);
 
 				evaluator = new MeasureEvaluator(measureProvider, libraryProvider, terminologyProvider, dataProviders);

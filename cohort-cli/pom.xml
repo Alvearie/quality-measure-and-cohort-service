@@ -92,6 +92,10 @@
 									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
 									<resource>META-INF/cxf/bus-extensions.txt</resource>
 								</transformer>
+								<!-- Merge all default configuration files built for Lightbend's Configuration library -->
+								<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+									<resource>reference.conf</resource>
+								</transformer>
 							</transformers>
 							<!-- filter out META-INF files to avoid issues with signed jar files -->
 							<!-- http://zhentao-li.blogspot.com/2012/06/maven-shade-plugin-invalid-signature.html -->

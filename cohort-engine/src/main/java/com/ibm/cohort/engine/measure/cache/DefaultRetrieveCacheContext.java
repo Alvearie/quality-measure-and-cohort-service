@@ -9,6 +9,7 @@ package com.ibm.cohort.engine.measure.cache;
 import javax.cache.Cache;
 import javax.cache.Caching;
 import javax.cache.configuration.CompleteConfiguration;
+import javax.cache.configuration.MutableConfiguration;
 import java.io.IOException;
 import java.util.UUID;
 
@@ -28,17 +29,44 @@ public class DefaultRetrieveCacheContext implements RetrieveCacheContext {
 
 	private static final String CACHE_ID_PREFIX = "default-retrieve-cache-";
 
+	// Create a unique cacheId to prevent conflicts with other caches in the same JVM.
+	private static String createCacheId() {
+		String uuid = UUID.randomUUID().toString();
+		return CACHE_ID_PREFIX + uuid;
+	}
+
+	private static CompleteConfiguration<RetrieveCacheKey, Iterable<Object>> getDefaultConfiguration() {
+		return new MutableConfiguration<RetrieveCacheKey, Iterable<Object>>()
+				// Disable store-by-value by default to prevent needless object copying
+				.setStoreByValue(false);
+	}
+
 	private final Cache<RetrieveCacheKey, Iterable<Object>> cache;
 
 	private String currentContextId;
 
-	public DefaultRetrieveCacheContext(CompleteConfiguration<RetrieveCacheKey, Iterable<Object>> config) {
-		// Create a unique cacheId to prevent conflicts with other caches in the same JVM.
-		String uuid = UUID.randomUUID().toString();
-		String cacheId = CACHE_ID_PREFIX + uuid;
-		this.cache = Caching.getCachingProvider().getCacheManager().createCache(cacheId, config);
+	/**
+	 * <p>Creates a new context that wraps a new cache created using the system's default JCache provider and configuration.
+	 *
+	 * <p>The default configuration will have `store-by-value` set to false for performance reasons, but all other
+	 * properties will be decided by the chosen JCache provider.
+	 */
+	public DefaultRetrieveCacheContext() {
+		this(getDefaultConfiguration());
 	}
 
+	/**
+	 * Creates a new context that wraps a new cache created using the system's default JCache provider.
+	 * @param config The configuration for the newly created cache.
+	 */
+	public DefaultRetrieveCacheContext(CompleteConfiguration<RetrieveCacheKey, Iterable<Object>> config) {
+		this(Caching.getCachingProvider().getCacheManager().createCache(createCacheId(), config));
+	}
+
+	/**
+	 * Creates a new context that simply wraps the provided {@link Cache}.
+	 * @param cache The underlying {@link Cache}
+	 */
 	public DefaultRetrieveCacheContext(Cache<RetrieveCacheKey, Iterable<Object>> cache) {
 		this.cache = cache;
 	}
