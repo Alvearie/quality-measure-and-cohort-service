@@ -22,7 +22,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.hl7.fhir.r4.model.Identifier;
-import org.opencds.cqf.r4.builders.IdentifierBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +31,7 @@ import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfoList;
 import com.ibm.cohort.engine.api.service.model.MeasuresEvaluation;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
+import com.ibm.cohort.engine.r4.builder.IdentifierBuilder;
 import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
 import com.ibm.watson.common.service.base.ServiceBaseConstants;
 import com.ibm.watson.common.service.base.ServiceBaseUtility;
