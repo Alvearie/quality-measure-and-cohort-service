@@ -190,40 +190,43 @@ Usage: measure-engine [options]
   * -c, --context-id
       FHIR resource ID for one or more patients to evaluate.
   * -d, --data-server
-      Path to JSON configuration data for the FHIR server connection that will
+      Path to JSON configuration data for the FHIR server connection that will 
       be used to retrieve data.
+    -o, --define-return-option
+      Specify define return option for evaluated define statements on measure 
+      report. Defaults to NONE. To view returned results, must specify -f 
+      JSON. 
+      Default: NONE
+      Possible Values: [ALL, BOOLEAN, NONE]
     --filter
-      Filter information for resource loader if the resource loader supports
-      filtering
+      Filter information for resource loader if the resource loader supports 
+      filtering 
     -f, --format
       Output format of the report (JSON|TEXT*)
       Default: TEXT
       Possible Values: [TEXT, JSON]
     -h, --help
       Display this help
-    -i, --include-define-results
-      Include results for evaluated define statements on measure report.
-      Defaults to false.
-      Default: false
     -e, --include-evaluated-resources
-      Include evaluated resources on measure report. Defaults to false.
+      Include evaluated resources on measure report. To view resources must 
+      specify -f JSON.
       Default: false
     -j, --json-measure-configurations
-      JSON File containing measure resource ids and optional parameters.
+      JSON File containing measure resource ids and optional parameters. 
       Cannot be specified if -r option is used
     -m, --measure-server
-      Path to configuration data for the FHIR knowledge assets. This will be
-      either a JSON configuration file containing FHIR server connection
+      Path to configuration data for the FHIR knowledge assets. This will be 
+      either a JSON configuration file containing FHIR server connection 
       details or the path to a file containing the FHIR resources of interest.
     -p, --parameters
-      Parameter value(s) in format name:type:value where value can contain
-      additional parameterized elements separated by comma. Multiple
+      Parameter value(s) in format name:type:value where value can contain 
+      additional parameterized elements separated by comma. Multiple 
       parameters must be specified as multiple -p options
     -r, --resource
-      FHIR Resource ID or canonical URL for the measure resource to be
+      FHIR Resource ID or canonical URL for the measure resource to be 
       evaluated. Cannot be specified if -j option is used
     -t, --terminology-server
-      Path to JSON configuration data for the FHIR server connection that will
+      Path to JSON configuration data for the FHIR server connection that will 
       be used to retrieve terminology.
 
 ```

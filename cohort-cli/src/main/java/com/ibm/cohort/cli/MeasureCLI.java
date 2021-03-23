@@ -72,11 +72,11 @@ public class MeasureCLI extends BaseCLI {
 		private List<String> filters;
 		
 		@Parameter(names = { "-e",
-				"--include-evaluated-resources" }, description = "Include evaluated resources on measure report. Defaults to false.")
+				"--include-evaluated-resources" }, description = "Include evaluated resources on measure report. To view resources must specify -f JSON.")
 		private boolean includeEvaluatedResources = false;
 		
 		@Parameter(names = { "-o",
-				"--define-return-option" }, description = "Specify define return option for evaluated define statements on measure report. Defaults to NONE.  Valid options are (ALL|BOOLEAN|NONE).")
+				"--define-return-option" }, description = "Specify define return option for evaluated define statements on measure report. Defaults to NONE. To view returned results, must specify -f JSON.")
 		private DefineReturnOptions defineReturnOption = DefineReturnOptions.NONE;
 
 		public void validate() {

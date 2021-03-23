@@ -1,0 +1,90 @@
+settings:
+  env:
+    JAR: null
+    DATA_FHIR_SERVER_DETAILS: null
+    MEASURE_FHIR_SERVER_DETAILS: null
+    TESTS_JSON: tests/src/main/resources/performance/performance-regression-tests.json
+    
+execution:
+  - executor: pytest
+    scenario: one-patient-one-measure
+    env:
+      TESTS_JSON: tests/src/main/resources/performance/one-patient-one-measure.json
+
+  - executor: pytest
+    scenario: one-patient-five-measures
+    env:
+      TESTS_JSON: tests/src/main/resources/performance/one-patient-five-measures.json
+
+  - executor: pytest
+    scenario: hundred-patients-one-measure
+    env:
+      TESTS_JSON: tests/src/main/resources/performance/one-hundred-patients-one-measure.json
+
+  - executor: pytest
+    scenario: thousand-patients-one-measure
+    env:
+      TESTS_JSON: tests/src/main/resources/performance/one-thousand-patients-one-measure.json
+
+  - executor: pytest
+    scenario: hundred-patients-five-measures
+    env:
+      TESTS_JSON: tests/src/main/resources/performance/one-hundred-patients-five-measures.json
+
+# Each label for a scenario has to match the the string output by pytest parameterize for a test case.
+# If it does not, then the criteria will be skipped by Taurus.
+scenarios:
+  one-patient-one-measure:
+    script: /bzt-configs/tests/src/main/python/TestDriver_MeasurePerformance.py
+    criteria:
+      - subject: p99.9
+        condition: '>'
+        threshold: 10s
+        label: 'test[tests/src/main/resources/measure-parameters/performance/singlePerformanceMeasure.json-targets0-1 Patient 1 Measure]'
+        message: One patient, 1 measure took longer than 10 seconds
+
+  one-patient-five-measures:
+    script: /bzt-configs/tests/src/main/python/TestDriver_MeasurePerformance.py
+    criteria:
+      - subject: p99.9
+        condition: '>'
+        threshold: 13s
+        label: 'test[tests/src/main/resources/measure-parameters/performance/fivePerformanceMeasures.json-targets0-1 Patient 5 Measures]'
+        message: One patient, 5 measures took longer than 13 seconds
+
+  hundred-patients-one-measure:
+    script: /bzt-configs/tests/src/main/python/TestDriver_MeasurePerformance.py
+    criteria:
+      - subject: p99.9
+        condition: '>'
+        threshold: 31s
+        label: 'test[tests/src/main/resources/measure-parameters/performance/singlePerformanceMeasure.json-targets0-100 Patients 1 Measure]'
+        message: One hundred patients, 1 measure took longer than 31 seconds
+
+  thousand-patients-one-measure:
+    script: /bzt-configs/tests/src/main/python/TestDriver_MeasurePerformance.py
+    criteria:
+      - subject: p99.9
+        condition: '>'
+        threshold: 218s
+        label: 'test[tests/src/main/resources/measure-parameters/performance/singlePerformanceMeasure.json-targets0-1000 Patients 1 Measure]'
+        message: One thousand patients, 1 measure took longer than 218 seconds
+
+  hundred-patients-five-measures:
+    script: /bzt-configs/tests/src/main/python/TestDriver_MeasurePerformance.py
+    criteria:
+      - subject: p99.9
+        condition: '>'
+        threshold: 273s
+        label: 'test[tests/src/main/resources/measure-parameters/performance/fivePerformanceMeasures.json-targets0-100 Patients 5 Measures]'
+        message: One hundred patients, 5 measure took longer than 273 seconds
+
+modules:
+  local:
+    sequential: true
+
+reporting:
+  - module: passfail
+  - module: junit-xml
+    filename: /bzt-configs/tests/results/performanceRegression.xml
+    data-source: pass-fail
