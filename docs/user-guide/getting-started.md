@@ -200,7 +200,6 @@ Usage: measure-engine [options]
       Possible Values: [ALL, BOOLEAN, NONE]
     --disable-retrieve-cache
       Disable the use of the retrieve cache.
-      Default: false
     --filter
       Filter information for resource loader if the resource loader supports 
       filtering 
