@@ -6,23 +6,25 @@
 
 package com.ibm.cohort.engine.flink;
 
+import java.util.List;
+
 public class MeasureExecution {
-	private String measureId;
+	private List<String> measureIds;
 	private String patientId;
 
 	public MeasureExecution() { }
 
-	public MeasureExecution(String measureId, String patientId) {
-		this.measureId = measureId;
+	public MeasureExecution(List<String> measureIds, String patientId) {
+		this.measureIds = measureIds;
 		this.patientId = patientId;
 	}
 
-	public String getMeasureId() {
-		return measureId;
+	public List<String> getMeasureIds() {
+		return measureIds;
 	}
 
-	public void setMeasureId(String measureId) {
-		this.measureId = measureId;
+	public void setMeasureIds(List<String> measureIds) {
+		this.measureIds = measureIds;
 	}
 
 	public String getPatientId() {
@@ -36,7 +38,7 @@ public class MeasureExecution {
 	@Override
 	public String toString() {
 		return "MeasureExecution{" +
-				"measureId=" + measureId +
+				"measureIds=" + measureIds +
 				", patientId='" + patientId + '\'' +
 				'}';
 	}
