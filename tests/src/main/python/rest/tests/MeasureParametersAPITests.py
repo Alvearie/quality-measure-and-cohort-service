@@ -27,8 +27,9 @@ class MeasureParametersAPITest(TestClass):
         response = resp.read()
         response = response.decode('utf-8')
         status = resp.status
-        result = 'STATUS: ' + str(status) + ' RESPONSE: ' + response
-        assert '200' in result, 'Should contain 200.'
+        assert '200' in str(status), 'Should contain 200.'
+        expectedResp = '{"parameterInfoList":[{"max":"1","min":0,"name":"Measurement Period","type":"Period","use":"In"},{"max":"1","min":0,"name":"Initial Population","type":"boolean","use":"Out"},{"max":"1","min":0,"name":"Denominator","type":"boolean","use":"Out"},{"max":"1","min":0,"name":"Numerator","type":"boolean","use":"Out"}]}'
+        assert expectedResp in response, 'Response should contain ' + expectedResp
     
     def test_invalidFHIREndpoint(self):
         fhirMeasuresApi = FHIRMeasuresApi(swagger_client.ApiClient(self.configuration))
