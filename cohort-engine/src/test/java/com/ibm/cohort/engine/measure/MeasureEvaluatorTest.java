@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.ibm.cohort.engine.measure.seed.MeasureEvaluationSeeder;
 import org.hl7.fhir.r4.model.Address;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CapabilityStatement;
@@ -59,7 +60,13 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Before
 	public void setUp() {
 		super.setUp();
-		evaluator = new MeasureEvaluator(client, client, client);
+
+		FHIRClientContext clientContext = new FHIRClientContext.Builder()
+				.withDefaultClient(client)
+				.build();
+		evaluator = new R4MeasureEvaluatorBuilder()
+				.withClientContext(clientContext)
+				.build();
 	}
 
 	@Test
@@ -330,7 +337,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 
 		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
 		Extension parameterExtension = new Extension();
-		parameterExtension.setUrl(MeasureEvaluator.PARAMETER_EXTENSION_URL);
+		parameterExtension.setUrl(MeasureEvaluationSeeder.PARAMETER_EXTENSION_URL);
 		parameterExtension.setId("SomeAge");
 
 		Type age = new IntegerType(20);
@@ -361,7 +368,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
 
 		Extension parameterExtension = new Extension();
-		parameterExtension.setUrl(MeasureEvaluator.PARAMETER_EXTENSION_URL);
+		parameterExtension.setUrl(MeasureEvaluationSeeder.PARAMETER_EXTENSION_URL);
 		parameterExtension.setId("SomeAge");
 		Type age = new StringType("invalid");
 
@@ -391,7 +398,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
 
 		Extension parameterExtension = new Extension();
-		parameterExtension.setUrl(MeasureEvaluator.PARAMETER_EXTENSION_URL);
+		parameterExtension.setUrl(MeasureEvaluationSeeder.PARAMETER_EXTENSION_URL);
 		parameterExtension.setId("SomeAge");
 
 		Address unsupportedType = new Address();

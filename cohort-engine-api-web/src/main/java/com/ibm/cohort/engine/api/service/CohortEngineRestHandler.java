@@ -7,6 +7,7 @@ package com.ibm.cohort.engine.api.service;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipInputStream;
 
@@ -30,6 +31,9 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.MeasureReport;
+import org.opencds.cqf.cql.engine.data.DataProvider;
+import org.opencds.cqf.cql.engine.fhir.terminology.R4FhirTerminologyProvider;
+import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +43,10 @@ import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfoList;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
 import com.ibm.cohort.engine.measure.MeasureEvaluator;
+import com.ibm.cohort.engine.measure.R4DataProviderFactory;
 import com.ibm.cohort.engine.measure.ZipResourceResolutionProvider;
+import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
+import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
@@ -214,14 +221,17 @@ public class CohortEngineRestHandler {
 			String [] searchPaths = new String[] { "fhirResources", "fhirResources/libraries" };
 			ZipResourceResolutionProvider provider = new ZipResourceResolutionProvider(new ZipInputStream( measureAttachment.getDataHandler().getInputStream()), parser, searchPaths);;
 			
-			MeasureEvaluator evaluator = new MeasureEvaluator(dataClient, terminologyClient);
-			evaluator.setLibraryResolutionProvider(provider);
-			evaluator.setMeasureResolutionProvider(provider);
-			MeasureReport report = evaluator.evaluatePatientMeasure(evaluationRequest.getPatientId(), evaluationRequest.getMeasureContext(), evaluationRequest.getEvidenceOptions());
-			
-			// The default serializer gets into an infinite loop when trying to serialize MeasureReport, so we use the
-			// HAPI encoder instead.
-			responseBuilder = Response.status(Response.Status.OK).header("Content-Type", "application/json").entity(parser.encodeResourceToString(report));
+			TerminologyProvider terminologyProvider = new R4FhirTerminologyProvider(terminologyClient);
+			try (RetrieveCacheContext retrieveCacheContext = new DefaultRetrieveCacheContext()) {
+				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataClient, terminologyProvider, retrieveCacheContext);
+				
+				MeasureEvaluator evaluator = new MeasureEvaluator(provider, provider, terminologyProvider, dataProviders);
+				MeasureReport report = evaluator.evaluatePatientMeasure(evaluationRequest.getPatientId(), evaluationRequest.getMeasureContext(), evaluationRequest.getEvidenceOptions());
+				
+				// The default serializer gets into an infinite loop when trying to serialize MeasureReport, so we use the
+				// HAPI encoder instead.
+				responseBuilder = Response.status(Response.Status.OK).header("Content-Type", "application/json").entity(parser.encodeResourceToString(report));
+			}
 		} catch (Throwable e) {
 			//map any exceptions caught into the proper REST error response objects
 			return new CohortServiceExceptionMapper().toResponse(e);

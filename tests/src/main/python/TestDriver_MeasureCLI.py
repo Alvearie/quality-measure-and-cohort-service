@@ -31,7 +31,7 @@ def setup():
 class Test(object):
 
     @pytest.mark.parametrize("jsonMeasureConfigurationFile, resource, params, targets, output, measureServer, filters, regEx", setup())
-    def test1(self, jsonMeasureConfigurationFile, resource, params, targets, output, measureServer, filters, regEx):
+    def test(self, jsonMeasureConfigurationFile, resource, params, targets, output, measureServer, filters, regEx):
         self.execute(jsonMeasureConfigurationFile, resource, params, targets, output, measureServer, filters, regEx)
 
     # Execute submits a query and validates the return.

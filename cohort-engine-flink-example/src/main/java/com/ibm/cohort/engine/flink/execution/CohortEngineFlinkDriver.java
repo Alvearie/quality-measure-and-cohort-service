@@ -7,26 +7,29 @@
 package com.ibm.cohort.engine.flink.execution;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
-import ca.uhn.fhir.rest.client.api.IGenericClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.flink.KafkaCommon;
 import com.ibm.cohort.engine.flink.KafkaInfo;
 import com.ibm.cohort.engine.flink.MeasureExecution;
+import com.ibm.cohort.engine.measure.FHIRClientContext;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.MeasureEvaluator;
+import com.ibm.cohort.engine.measure.R4MeasureEvaluatorBuilder;
+import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
+import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
-import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilderFactory;
-import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
-import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
+import org.apache.flink.util.Collector;
 import org.hl7.fhir.r4.model.MeasureReport;
 
 public class CohortEngineFlinkDriver implements Serializable {
@@ -40,47 +43,53 @@ public class CohortEngineFlinkDriver implements Serializable {
 		ParameterTool params = ParameterTool.fromArgs(args);
 
 		FHIRServerInfo fhirServerInfo = new FHIRServerInfo(
-				params.getRequired("fhirTenantId"),
-				params.getRequired("fhirUsername"),
-				params.getRequired("fhirPassword"),
-				params.getRequired("fhirEndpoint")
+				params.getRequired("fhir-tenant-id"),
+				params.getRequired("fhir-username"),
+				params.getRequired("fhir-password"),
+				params.getRequired("fhir-endpoint")
 		);
 
 		KafkaInfo kafkaInputInfo = new KafkaInfo(
-				params.getRequired("kafkaBrokers"),
-				params.getRequired("kafkaInputTopic"),
-				params.getRequired("kafkaPassword")
+				params.getRequired("kafka-brokers"),
+				params.getRequired("kafka-input-topic"),
+				params.getRequired("kafka-password")
 		);
 
 		KafkaInfo kafkaOutputInfo = null;
-		if (params.has("kafkaOutputTopic")) {
+		if (params.has("kafka-output-topic")) {
 			kafkaOutputInfo = new KafkaInfo(
-					params.getRequired("kafkaBrokers"),
-					params.getRequired("kafkaOutputTopic"),
-					params.getRequired("kafkaPassword")
+					params.getRequired("kafka-brokers"),
+					params.getRequired("kafka-output-topic"),
+					params.getRequired("kafka-password")
 			);
 		}
 
-		CohortEngineFlinkDriver example = new CohortEngineFlinkDriver(fhirServerInfo);
+		CohortEngineFlinkDriver example = new CohortEngineFlinkDriver(
+				fhirServerInfo,
+				params.has("disable-retrieve-cache")
+		);
 		example.run(
-				params.get("jobName", "cohort-engine"),
-				params.getRequired("kafkaGroupId"),
+				params.get("job-name", "cohort-engine"),
+				params.getRequired("kafka-group-id"),
 				kafkaInputInfo,
 				kafkaOutputInfo,
-				params.has("printOutputToConsole"),
-				params.has("rebalanceInput"),
-				params.has("readFromStart")
+				params.has("print-output-to-console"),
+				params.has("rebalance-input"),
+				params.has("read-from-start")
 		);
 	}
 
 	private final FHIRServerInfo fhirServerInfo;
+	private final boolean disableRetrieveCache;
 
 	private transient MeasureEvaluator evaluator;
 	private transient FhirContext fhirContext;
 	private transient ObjectMapper objectMapper;
+	private transient RetrieveCacheContext retrieveCacheContext;
 
-	public CohortEngineFlinkDriver(FHIRServerInfo fhirServerInfo) {
+	public CohortEngineFlinkDriver(FHIRServerInfo fhirServerInfo, boolean disableRetrieveCache) {
 		this.fhirServerInfo = fhirServerInfo;
+		this.disableRetrieveCache = disableRetrieveCache;
 	}
 
 	private void run(
@@ -109,7 +118,9 @@ public class CohortEngineFlinkDriver implements Serializable {
 
 		stream = stream
 				.map(this::deserializeMeasureExecution)
-				.map(this::evaluate);
+				.map(this::evaluate)
+				.flatMap((List<String> measureReports, Collector<String> collector) -> measureReports.forEach(collector::collect))
+				.returns(String.class);
 
 		if (printOutputToConsole) {
 			stream.print();
@@ -127,19 +138,25 @@ public class CohortEngineFlinkDriver implements Serializable {
 		env.execute(jobName);
 	}
 
-	private String evaluate(MeasureExecution execution) {
+	private List<String> evaluate(MeasureExecution execution) {
 		MeasureEvaluator evaluator = getEvaluator();
 
-		MeasureReport result = evaluator.evaluatePatientMeasure(
+		List<MeasureContext> measureContexts = execution.getMeasureIds().stream()
+				.map(MeasureContext::new)
+				.collect(Collectors.toList());
+
+		List<MeasureReport> result = evaluator.evaluatePatientMeasures(
 				execution.getPatientId(),
-				new MeasureContext(execution.getMeasureId()),
+				measureContexts,
 				NO_EVIDENCE_OPTIONS
 		);
 
 		FhirContext fhirContext = getFhirContext();
 		IParser jsonParser = fhirContext.newJsonParser();
 
-		return jsonParser.encodeResourceToString(result);
+		return result.stream()
+				.map(jsonParser::encodeResourceToString)
+				.collect(Collectors.toList());
 	}
 
 	private ObjectMapper getObjectMapper() {
@@ -163,16 +180,22 @@ public class CohortEngineFlinkDriver implements Serializable {
 		return evaluator;
 	}
 
-	private MeasureEvaluator createEvaluator() {
-		FhirClientBuilderFactory factory = new DefaultFhirClientBuilderFactory();
+	private RetrieveCacheContext getRetrieveCacheContext() {
+		if (retrieveCacheContext == null) {
+			retrieveCacheContext = new DefaultRetrieveCacheContext();
+		}
+		return retrieveCacheContext;
+	}
 
-		FhirClientBuilder builder = factory.newFhirClientBuilder(getFhirContext());
-		IGenericClient genericClient = builder.createFhirClient(fhirServerInfo.toIbmServerConfig());
-		return new MeasureEvaluator(
-				genericClient,
-				genericClient,
-				genericClient
-		);
+	private MeasureEvaluator createEvaluator() {
+		FHIRClientContext clientContext = new FHIRClientContext.Builder()
+				.withDefaultClient(fhirServerInfo.toIbmServerConfig())
+				.build();
+		R4MeasureEvaluatorBuilder evalBuilder = new R4MeasureEvaluatorBuilder().withClientContext(clientContext);
+		if (!disableRetrieveCache) {
+			evalBuilder.withRetrieveCacheContext(getRetrieveCacheContext());
+		}
+		return evalBuilder.build();
 	}
 
 	private MeasureExecution deserializeMeasureExecution(String input) throws Exception {
