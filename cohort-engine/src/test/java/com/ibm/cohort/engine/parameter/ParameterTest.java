@@ -49,7 +49,7 @@ public class ParameterTest {
 		
 		for( int i=0; i<deserialized.size(); i++ ) {
 			Parameter expected = parameters.get(i);
-			Parameter actual = parameters.get(i);
+			Parameter actual = deserialized.get(i);
 			
 			assertEquals( expected, actual );
 		}

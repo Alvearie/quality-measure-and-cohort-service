@@ -37,8 +37,9 @@ public class IntervalParameter extends Parameter {
 		return startInclusive;
 	}
 
-	public void setStartInclusive(boolean startInclusive) {
+	public IntervalParameter setStartInclusive(boolean startInclusive) {
 		this.startInclusive = startInclusive;
+		return this;
 	}
 	
 	public Parameter getEnd() {
