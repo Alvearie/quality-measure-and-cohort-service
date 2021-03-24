@@ -22,6 +22,6 @@ public class DatetimeParameter extends StringBackedParameter {
 	
 	@Override
 	public Object toCqlType() {
-		return new DateTime( OffsetDateTime.parse(getValue().replace("@","")) );
+		return new DateTime( getValue().replace("@",""), OffsetDateTime.now().getOffset() );
 	}
 }

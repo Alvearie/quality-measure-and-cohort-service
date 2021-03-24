@@ -7,6 +7,7 @@ package com.ibm.cohort.engine.measure;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
@@ -14,6 +15,7 @@ import java.util.Map;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hl7.fhir.r4.model.Measure;
+import org.opencds.cqf.cql.engine.runtime.DateTime;
 
 import com.ibm.cohort.engine.parameter.DateParameter;
 import com.ibm.cohort.engine.parameter.DatetimeParameter;
@@ -137,18 +139,32 @@ public class DefaultMeasurementPeriodStrategy implements MeasurementPeriodStrate
 		String start = null;
 		String end = null; 
 		
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(TARGET_DATE_FORMAT);
+		//DateFormat formatter = new SimpleDateFormat(TARGET_DATE_FORMAT);
+		
+		// round tripping parameters through their cql-types deals with
+		// weird CQL-language formatting such as the "@" char.
 		if( interval.getStart() instanceof DatetimeParameter ) {
+			DateTime cqlType = null;
+			
 			DatetimeParameter dtStart = (DatetimeParameter) interval.getStart();
-			start = dtStart.getValue();
+			cqlType = (DateTime) dtStart.toCqlType();
+			start = formatter.format( cqlType.getDateTime() );
 			
 			DatetimeParameter dtEnd = (DatetimeParameter) interval.getEnd();
-			end = dtEnd.getValue();
+			cqlType = (DateTime) dtEnd.toCqlType();
+			end = formatter.format( cqlType.getDateTime() );
+
 		} else if( interval.getStart() instanceof DateParameter ) {
+			org.opencds.cqf.cql.engine.runtime.Date cqlType = null;
+			
 			DateParameter dStart = (DateParameter) interval.getStart();
-			start = dStart.getValue();
+			cqlType = (org.opencds.cqf.cql.engine.runtime.Date) dStart.toCqlType();
+			start = formatter.format( cqlType.getDate() );
 			
 			DateParameter dEnd = (DateParameter) interval.getEnd();
-			end = dEnd.getValue();
+			cqlType = (org.opencds.cqf.cql.engine.runtime.Date) dEnd.toCqlType();
+			end = formatter.format( cqlType.getDate() );
 		} else {
 			throw new IllegalArgumentException(String.format("Unexpected interval data type '%s'", interval.getStart().getClass()));
 		}

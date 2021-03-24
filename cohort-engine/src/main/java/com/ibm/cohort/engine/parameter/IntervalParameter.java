@@ -54,8 +54,9 @@ public class IntervalParameter extends Parameter {
 		return endInclusive;
 	}
 
-	public void setEndInclusive(boolean endInclusive) {
+	public IntervalParameter setEndInclusive(boolean endInclusive) {
 		this.endInclusive = endInclusive;
+		return this;
 	}
 	
 	@Override

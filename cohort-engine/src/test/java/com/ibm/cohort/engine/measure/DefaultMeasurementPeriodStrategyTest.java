@@ -21,6 +21,7 @@ import org.hl7.fhir.r4.model.Measure;
 import org.junit.Test;
 
 import com.ibm.cohort.engine.parameter.DateParameter;
+import com.ibm.cohort.engine.parameter.DatetimeParameter;
 import com.ibm.cohort.engine.parameter.IntervalParameter;
 import com.ibm.cohort.engine.parameter.Parameter;
 
@@ -120,7 +121,7 @@ public class DefaultMeasurementPeriodStrategyTest {
 	}
 	
 	@Test
-	public void parameter_not_null_datetime___value_used() {
+	public void parameter_not_null_date___value_used() {
 
 		Measure measure = new Measure();
 		Map<String, Parameter> parameterOverrides = Collections.singletonMap(DefaultMeasurementPeriodStrategy.DEFAULT_MEASUREMENT_PERIOD_PARAMETER,
@@ -130,6 +131,19 @@ public class DefaultMeasurementPeriodStrategyTest {
 				.getMeasurementPeriod(measure, parameterOverrides);
 		assertEquals("Unexpected start", "2020-03-14", result.getLeft() );
 		assertEquals("Unexpected end", "2020-09-14", result.getRight() );
+	}
+	
+	@Test
+	public void parameter_not_null_datetime_with_ampersand___value_used() {
+
+		Measure measure = new Measure();
+		Map<String, Parameter> parameterOverrides = Collections.singletonMap(DefaultMeasurementPeriodStrategy.DEFAULT_MEASUREMENT_PERIOD_PARAMETER,
+				new IntervalParameter(new DatetimeParameter("@2020-01-01T00:00:00.0"), true, new DatetimeParameter("@2021-01-01T00:00:00.0"), true));
+
+		Pair<String, String> result = new DefaultMeasurementPeriodStrategy()
+				.getMeasurementPeriod(measure, parameterOverrides);
+		assertEquals("Unexpected start", "2020-01-01", result.getLeft() );
+		assertEquals("Unexpected end", "2021-01-01", result.getRight() );
 	}
 
 

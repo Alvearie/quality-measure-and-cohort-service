@@ -62,9 +62,9 @@ public class ParameterTest {
 	@Test
 	public void datetime_interval_with_non_inclusive_end___ends_just_before_value() {
 		IntervalParameter parameter = new IntervalParameter(
-				new DatetimeParameter("2020-03-14T00:00:00-05:00"),
+				new DatetimeParameter("2020-03-14T00:00:00.0-05:00"),
 				true,
-				new DatetimeParameter("2021-03-14T00:00:00-05:00"),
+				new DatetimeParameter("2021-03-14T00:00:00.0-05:00"),
 				false
 				);
 		
