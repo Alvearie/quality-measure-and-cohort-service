@@ -1,7 +1,6 @@
 settings:
   env:
     HOST: https://localhost:9443/services/cohort/api
-    FHIR_JSON: False
     VERIFY_SSL: False
 
    
