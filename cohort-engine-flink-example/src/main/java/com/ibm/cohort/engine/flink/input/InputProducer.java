@@ -32,17 +32,17 @@ public class InputProducer {
 		ParameterTool params = ParameterTool.fromArgs(args);
 
 		KafkaInfo kafkaInfo = new KafkaInfo(
-				params.getRequired("kafkaBrokers"),
-				params.getRequired("kafkaTopic"),
-				params.getRequired("kafkaPassword")
+				params.getRequired("kafka-brokers"),
+				params.getRequired("kafka-topic"),
+				params.getRequired("kafka-password")
 		);
 
 		LOG.info("Starting...");
 		run(
-				params.getInt("numRecords"),
+				params.getInt("num-records"),
 				kafkaInfo,
-				params.getRequired("measureFile"),
-				params.getRequired("patientFile")
+				params.getRequired("measure-file"),
+				params.getRequired("patient-file")
 		);
 		LOG.info("Finished");
 	}
@@ -56,10 +56,9 @@ public class InputProducer {
 
 		try (KafkaProducer<String, String> producer = new KafkaProducer<>(properties)) {
 			for (int i = 0; i < numRecords; i++) {
-				String measureId = measureIds.get(random.nextInt(measureIds.size()));
 				String patientId = patientIds.get(random.nextInt(patientIds.size()));
 
-				MeasureExecution measureExecution = new MeasureExecution(measureId, patientId);
+				MeasureExecution measureExecution = new MeasureExecution(measureIds, patientId);
 				String rawJson = objectMapper.writeValueAsString(measureExecution);
 				ProducerRecord<String, String> record = new ProducerRecord<>(kafkaInfo.getTopic(), rawJson);
 				producer.send(record);
