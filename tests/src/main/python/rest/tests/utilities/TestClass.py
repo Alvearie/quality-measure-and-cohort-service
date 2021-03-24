@@ -33,6 +33,6 @@ class TestClass(unittest.TestCase):
     if os.environ['VERIFY_SSL'] == 'False':
         configuration.verify_ssl = False
     else:
-        configuraiton.verify_ssl = True
+        configuration.verify_ssl = True
     #Common Values
     
