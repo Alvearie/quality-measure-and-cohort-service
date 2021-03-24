@@ -19,8 +19,7 @@ import io.swagger.annotations.ApiModelProperty;
 public class MeasureParameterInfoList {
 
 	private List<MeasureParameterInfo> parameterInfoList = new ArrayList<MeasureParameterInfo>();
-	/**
-	 **/
+	
 	public MeasureParameterInfoList measureParameterInfoList(List<MeasureParameterInfo> parameterInfoList) {
 		this.parameterInfoList = parameterInfoList;
 		return this;

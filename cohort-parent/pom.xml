@@ -46,8 +46,13 @@
 		<engine.version>1.5.1</engine.version>
 		<ruler.version>0.4.0</ruler.version>
 
-		<jackson.version>2.10.5.1</jackson.version>
+		<jackson.version>2.11.2</jackson.version>
 		<jacoco.version>0.8.6</jacoco.version>
+		<powermock.version>2.0.9</powermock.version>
+		<groovy.version>2.4.8</groovy.version>
+		<slf4j.version>1.7.30</slf4j.version>
+		<swagger.version>1.6.2</swagger.version>
+		<ant.junit.version>1.10.9</ant.junit.version>
 
 		<!-- Default values for the jacoco-maven-plugin reports -->
 		<cohort.jacoco.classRatio>0.80</cohort.jacoco.classRatio>
@@ -169,6 +174,32 @@
 				<version>${hapi.fhir.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>ca.uhn.hapi.fhir</groupId>
+				<artifactId>org.hl7.fhir.r4</artifactId>
+				<version>${hapi.fhir.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>ca.uhn.hapi.fhir</groupId>
+				<artifactId>org.hl7.fhir.utilities</artifactId>
+				<version>${hapi.fhir.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>ca.uhn.hapi.fhir</groupId>
+				<artifactId>hapi-fhir-structures-r4</artifactId>
+				<version>${hapi.fhir.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>xpp3</groupId>
+						<artifactId>xpp3</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>xpp3</groupId>
+						<artifactId>xpp3_xpath</artifactId>
+					</exclusion>
+				</exclusions>
+				<scope>runtime</scope>
+			</dependency>
+			<dependency>
 				<groupId>commons-codec</groupId>
 				<artifactId>commons-codec</artifactId>
 				<version>1.14</version>
@@ -182,6 +213,11 @@
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-lang3</artifactId>
 				<version>3.11</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-compress</artifactId>
+				<version>1.19</version>
 			</dependency>
 			<dependency>
 				<groupId>info.cqframework</groupId>
@@ -377,6 +413,16 @@
 			</dependency>
 			<dependency>
 				<groupId>com.ibm.watson.health.services</groupId>
+				<artifactId>service-model-os</artifactId>
+				<version>${whcs.base.utils.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ibm.watson.health.services</groupId>
+				<artifactId>service-swagger-fragment-os</artifactId>
+				<version>${whcs.base.utils.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ibm.watson.health.services</groupId>
 				<artifactId>service-base-os</artifactId>
 				<version>${whcs.base.utils.version}</version>
 				<classifier>tests</classifier>
@@ -407,6 +453,11 @@
 				<scope>provided</scope>
 			</dependency>
 			<dependency>
+				<groupId>javax.validation</groupId>
+				<artifactId>validation-api</artifactId>
+				<version>1.1.0.Final</version>
+			</dependency>
+			<dependency>
 				<groupId>net.javacrumbs.json-unit</groupId>
 				<artifactId>json-unit</artifactId>
 				<version>1.16.0</version>
@@ -415,13 +466,13 @@
 			<dependency>
 				<groupId>org.apache.ant</groupId>
 				<artifactId>ant-junit</artifactId>
-				<version>1.10.9</version>
+				<version>${ant.junit.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.ant</groupId>
 				<artifactId>ant-junit4</artifactId>
-				<version>1.10.9</version>
+				<version>${ant.junit.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
@@ -430,21 +481,26 @@
 				<version>4.5.13</version>
 			</dependency>
 			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpcore</artifactId>
+				<version>4.4.13</version>
+			</dependency>
+			<dependency>
 				<groupId>org.codehaus.groovy</groupId>
 				<artifactId>groovy</artifactId>
-				<version>2.4.8</version>
+				<version>${groovy.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.codehaus.groovy</groupId>
 				<artifactId>groovy-json</artifactId>
-				<version>2.4.8</version>
+				<version>${groovy.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.codehaus.groovy</groupId>
 				<artifactId>groovy-xml</artifactId>
-				<version>2.4.8</version>
+				<version>${groovy.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
@@ -456,30 +512,47 @@
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-simple</artifactId>
-				<version>1.7.30</version>
+				<version>${slf4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.powermock</groupId>
 				<artifactId>powermock-api-mockito2</artifactId>
-				<version>2.0.9</version>
+				<version>${powermock.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.powermock</groupId>
 				<artifactId>powermock-module-junit4</artifactId>
-				<version>2.0.9</version>
+				<version>${powermock.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.powermock</groupId>
 				<artifactId>powermock-module-javaagent</artifactId>
-				<version>2.0.9</version>
+				<version>${powermock.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.powermock</groupId>
 				<artifactId>powermock-module-junit4-rule-agent</artifactId>
-				<version>2.0.9</version>
+				<version>${powermock.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.powermock</groupId>
+				<artifactId>powermock-core</artifactId>
+				<version>${powermock.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-core</artifactId>
+				<version>3.3.3</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
@@ -491,6 +564,51 @@
 				<groupId>org.apache.cxf</groupId>
 				<artifactId>cxf-rt-transports-http</artifactId>
 				<version>3.3.8</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-annotations</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-core</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-collections</groupId>
+				<artifactId>commons-collections</artifactId>
+				<version>3.2.2</version>
+			</dependency>
+			<dependency>
+				<groupId>io.swagger</groupId>
+				<artifactId>swagger-annotations</artifactId>
+				<version>${swagger.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.swagger</groupId>
+				<artifactId>swagger-jaxrs</artifactId>
+				<version>${swagger.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>jakarta.ws.rs</groupId>
+				<artifactId>jakarta.ws.rs-api</artifactId>
+				<version>2.1.6</version>
+			</dependency>
+			<dependency>
+				<groupId>com.beust</groupId>
+				<artifactId>jcommander</artifactId>
+				<version>1.78</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.ben-manes.caffeine</groupId>
+				<artifactId>jcache</artifactId>
+				<version>2.9.0</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -597,7 +715,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-dependency-plugin</artifactId>
-					<version>2.10</version>
+					<version>3.1.2</version>
 				</plugin>
 <!-- 				The Install Plugin is used during the install phase to add artifact(s) to the local repository. The Install Plugin uses the information in the POM (groupId, artifactId, version) to determine the proper location for the artifact within the local repository. -->
 				<plugin>
@@ -682,7 +800,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-javadoc-plugin</artifactId>
-					<version>2.9.1</version>
+					<version>3.0.1</version>
 					<configuration>
 						<source>${whBldsdkVer}</source>
 					</configuration>
@@ -910,6 +1028,25 @@
 							<outputDirectory>${project.build.directory}/unittest_home</outputDirectory>
 						</configuration>
 					</execution>
+					
+					<execution>
+            			<goals>
+            				<goal>analyze-only</goal>
+            			</goals>
+            			<configuration>
+							<failOnWarning>true</failOnWarning>
+							<ignoredUsedUndeclaredDependencies>
+								<!-- Excluding this because the JAXB classes are provided by the JRE as of Java 8, but there are potentially other classes in jakarta that we don't want to wholesale exclude -->
+								jakarta.xml.bind:jakarta.xml.bind-api
+							</ignoredUsedUndeclaredDependencies>
+							
+							<ignoredUnusedDeclaredDependencies> 
+								<ignoredUnusedDeclaredDependency>ca.uhn.hapi.fhir:hapi-fhir-structures-r4</ignoredUnusedDeclaredDependency>	
+								<ignoredUnusedDeclaredDependency>org.slf4j:slf4j-simple</ignoredUnusedDeclaredDependency>			
+								<ignoredUnusedDeclaredDependency>com.github.ben-manes.caffeine:jcache</ignoredUnusedDeclaredDependency>			
+							</ignoredUnusedDeclaredDependencies>
+						</configuration>
+            		</execution>
 				</executions>
 			</plugin>
 			<plugin>
@@ -994,7 +1131,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.9.1</version>
+				<version>3.0.1</version>
 				<reportSets>
 					<reportSet>
 						<id>html</id>
