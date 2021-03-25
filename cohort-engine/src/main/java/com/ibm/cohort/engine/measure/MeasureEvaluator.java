@@ -5,35 +5,24 @@
  */
 package com.ibm.cohort.engine.measure;
 
-import static com.ibm.cohort.engine.cdm.CDMConstants.MEASURE_PARAMETER_URL;
-import static com.ibm.cohort.engine.cdm.CDMConstants.PARAMETER_DEFAULT_URL;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
-import org.hl7.fhir.r4.model.ParameterDefinition;
-import org.hl7.fhir.r4.model.Type;
-import org.opencds.cqf.common.evaluation.EvaluationProviderFactory;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
-import org.opencds.cqf.cql.engine.execution.Context;
+import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
-import org.opencds.cqf.cql.engine.fhir.model.FhirModelResolver;
-import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
 
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
-import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
 import com.ibm.cohort.engine.measure.seed.IMeasureEvaluationSeed;
 import com.ibm.cohort.engine.measure.seed.MeasureEvaluationSeeder;
 
-import ca.uhn.fhir.rest.client.api.IGenericClient;
+import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 /**
  * Provide an interface for doing quality measure evaluation against a FHIR R4
@@ -41,59 +30,22 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
  */
 public class MeasureEvaluator {
 
-
-	private IGenericClient dataClient;
-	private IGenericClient terminologyClient;
-	private IGenericClient measureClient;
-	private FhirModelResolver fhirModelResolver;
-
-	private MeasureResolutionProvider<Measure> provider = null;
-	private LibraryResolutionProvider<Library> libraryProvider = null;
+	private final MeasureResolutionProvider<Measure> measureProvider;
+	private final LibraryResolutionProvider<Library> libraryProvider;
+	private final TerminologyProvider terminologyProvider;
+	private final Map<String, DataProvider> dataProviders;
 	private MeasurementPeriodStrategy measurementPeriodStrategy;
 
-	public MeasureEvaluator(IGenericClient dataClient, IGenericClient terminologyClient) {
-		this.dataClient = dataClient;
-		this.terminologyClient = terminologyClient;
-	}
-
-	public MeasureEvaluator(IGenericClient dataClient, IGenericClient terminologyClient, IGenericClient measureClient) {
-		this.dataClient = dataClient;
-		this.terminologyClient = terminologyClient;
-		this.measureClient = measureClient;
-		this.fhirModelResolver = new R4FhirModelResolver();
-	}
-
 	public MeasureEvaluator(
-			IGenericClient dataClient,
-			IGenericClient terminologyClient,
-			IGenericClient measureClient,
-			FhirModelResolver fhirModelResolver) {
-		this.dataClient = dataClient;
-		this.terminologyClient = terminologyClient;
-		this.measureClient = measureClient;
-		this.fhirModelResolver = fhirModelResolver;
-	}
-
-	public void setMeasureResolutionProvider(MeasureResolutionProvider<Measure> provider) {
-		this.provider = provider;
-	}
-	
-	public MeasureResolutionProvider<Measure> getMeasureResolutionProvider() {
-		if( this.provider == null ) {
-			this.provider = new RestFhirMeasureResolutionProvider(measureClient);
-		}
-		return this.provider;
-	}
-	
-	public void setLibraryResolutionProvider(LibraryResolutionProvider<Library> provider) {
-		this.libraryProvider = provider;
-	}
-	
-	public LibraryResolutionProvider<Library> getLibraryResolutionProvider() {
-		if( this.libraryProvider == null ) {
-			this.libraryProvider = new RestFhirLibraryResolutionProvider(measureClient);
-		}
-		return this.libraryProvider;
+			MeasureResolutionProvider<Measure> measureProvider,
+			LibraryResolutionProvider<Library> libraryProvider,
+			TerminologyProvider terminologyProvider,
+			Map<String, DataProvider> dataProviders
+	) {
+		this.measureProvider = measureProvider;
+		this.libraryProvider = libraryProvider;
+		this.terminologyProvider = terminologyProvider;
+		this.dataProviders = dataProviders;
 	}
 
 	public void setMeasurementPeriodStrategy(MeasurementPeriodStrategy strategy) {
@@ -106,7 +58,7 @@ public class MeasureEvaluator {
 		}
 		return this.measurementPeriodStrategy;
 	}
-	
+
 	/**
 	 * Evaluates measures for a given patient
 	 * 
@@ -149,7 +101,7 @@ public class MeasureEvaluator {
 	}
 
 	public MeasureReport evaluatePatientMeasure(String measureId, String patientId, Map<String, Object> parameters, MeasureEvidenceOptions evidenceOptions) {
-		Measure measure = MeasureHelper.loadMeasure(measureId, getMeasureResolutionProvider());
+		Measure measure = MeasureHelper.loadMeasure(measureId, measureProvider);
 		return evaluatePatientMeasure(measure, patientId, parameters, evidenceOptions);
 	}
 	
@@ -158,7 +110,7 @@ public class MeasureEvaluator {
 	}
 
 	public MeasureReport evaluatePatientMeasure(Identifier identifier, String version, String patientId, Map<String, Object> parameters, MeasureEvidenceOptions evidenceOptions) {
-		Measure measure =  MeasureHelper.loadMeasure(identifier,  version, getMeasureResolutionProvider());
+		Measure measure =  MeasureHelper.loadMeasure(identifier,  version, measureProvider);
 		return evaluatePatientMeasure(measure, patientId, parameters, evidenceOptions);
 	}
 
@@ -169,11 +121,9 @@ public class MeasureEvaluator {
 
 	public MeasureReport evaluatePatientMeasure(Measure measure, String patientId, String periodStart, String periodEnd,
 			Map<String, Object> parameters, MeasureEvidenceOptions evidenceOptions) {
-		LibraryResolutionProvider<Library> libraryResolutionProvider = getLibraryResolutionProvider();
-		LibraryLoader libraryLoader = LibraryHelper.createLibraryLoader(libraryResolutionProvider);
+		LibraryLoader libraryLoader = LibraryHelper.createLibraryLoader(libraryProvider);
 
-		EvaluationProviderFactory factory = new ProviderFactory(dataClient, terminologyClient);
-		MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(factory, libraryLoader, libraryResolutionProvider);
+		MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(terminologyProvider, dataProviders, libraryLoader, libraryProvider);
 		seeder.disableDebugLogging();
 
 		// TODO - consider talking with OSS project about making source, user, and pass
@@ -181,14 +131,6 @@ public class MeasureEvaluator {
 		// providers. For example, we need an additional custom HTTP header for
 		// configuration of our FHIR server.
 		IMeasureEvaluationSeed seed = seeder.create(measure, periodStart, periodEnd, "ProductLine");
-
-		// fhir path: Measure.extension[measureParameter][].valueParameterDefinition.extension[defaultValue]
-		measure.getExtension().stream()
-				.filter(MeasureEvaluator::isMeasureParameter)
-				.map(parameter -> fhirModelResolver.resolvePath(parameter, "valueParameterDefinition"))
-				.map(ParameterDefinition.class::cast)
-				.forEach(parameterDefinition -> setDefaultValue(seed.getContext(), parameterDefinition));
-
 
 		// TODO - The OSS logic converts the period start and end into an
 		// Interval and creates a parameter named "Measurement Period" that is populated
@@ -209,27 +151,4 @@ public class MeasureEvaluator {
 		return evaluation.evaluatePatientMeasure(measure, seed.getContext(), patientId, evidenceOptions);
 	}
 
-	private void setDefaultValue(Context context, ParameterDefinition parameterDefinition) {
-		parameterDefinition.getExtension().stream()
-				.filter(MeasureEvaluator::isDefaultValue)
-				.forEach(defaultValue ->
-						         context.setParameter(
-						         		null,
-							            parameterDefinition.getName(),
-							            toCqlObject(defaultValue.getValue())));
-	}
-
-	private Object toCqlObject(Type type) {
-		return Optional.ofNullable(type)
-				.map((fhirType) -> fhirModelResolver.resolvePath(fhirType, "value"))
-				.orElseThrow(() -> new UnsupportedFhirTypeException(type));
-	}
-
-	public static boolean isMeasureParameter(Extension extension) {
-		return MEASURE_PARAMETER_URL.equals(extension.getUrl());
-	}
-
-	public static boolean isDefaultValue(Extension extension) {
-		return PARAMETER_DEFAULT_URL.equals(extension.getUrl());
-	}
 }

@@ -27,7 +27,7 @@ def setup():
 class Test(object):
 
     @pytest.mark.parametrize("params, library, version, targets,output,source,expressions,measureServer",setup())
-    def test1(self, params, library, version, targets, output, source, expressions, measureServer):
+    def test(self, params, library, version, targets, output, source, expressions, measureServer):
         self.execute(params, library, version, targets, output, source, expressions, measureServer)
 
     # Execute submits a query and validates the return.

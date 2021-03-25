@@ -8,10 +8,14 @@ package com.ibm.cohort.cli;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipFile;
 
+import com.ibm.cohort.engine.measure.R4DataProviderFactory;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
+import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
+import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import org.hl7.fhir.r4.model.MeasureReport;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 
@@ -36,6 +40,9 @@ import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
+import org.opencds.cqf.cql.engine.data.DataProvider;
+import org.opencds.cqf.cql.engine.fhir.terminology.R4FhirTerminologyProvider;
+import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 public class MeasureCLI extends BaseCLI {
 
@@ -72,12 +79,15 @@ public class MeasureCLI extends BaseCLI {
 		private List<String> filters;
 		
 		@Parameter(names = { "-e",
-				"--include-evaluated-resources" }, description = "Include evaluated resources on measure report. Defaults to false.")
+				"--include-evaluated-resources" }, description = "Include evaluated resources on measure report. To view resources must specify -f JSON.")
 		private boolean includeEvaluatedResources = false;
 		
 		@Parameter(names = { "-o",
-				"--define-return-option" }, description = "Specify define return option for evaluated define statements on measure report. Defaults to NONE.  Valid options are (ALL|BOOLEAN|NONE).")
+				"--define-return-option" }, description = "Specify define return option for evaluated define statements on measure report. Defaults to NONE. To view returned results, must specify -f JSON.")
 		private DefineReturnOptions defineReturnOption = DefineReturnOptions.NONE;
+
+		@Parameter(names = { "--disable-retrieve-cache" }, description = "Disable the use of the retrieve cache.")
+		private boolean disableRetrieveCache = false;
 
 		public void validate() {
 			boolean resourceSpecified = resourceId != null;
@@ -108,41 +118,41 @@ public class MeasureCLI extends BaseCLI {
 
 			readDataServerConfiguration(arguments);
 			readTerminologyServerConfiguration(arguments);
-			
+
 			FhirClientBuilder builder = getFhirClientBuilder();
-			
+
 			IGenericClient dataServerClient = builder.createFhirClient(dataServerConfig);
 			IGenericClient terminologyServerClient = builder.createFhirClient(terminologyServerConfig);
-			
+
 			LibraryResolutionProvider<Library> libraryProvider;
 			MeasureResolutionProvider<Measure> measureProvider;
 
 			IParser parser = getFhirContext().newJsonParser().setPrettyPrint(true);
 			String [] filters = (arguments.filters != null) ? arguments.filters.toArray(new String[arguments.filters.size()]) : null;
-			
+
 			if( arguments.measureServerConfigFile != null && FileHelpers.isZip(arguments.measureServerConfigFile)) {
 				ZipFile zipFile = new ZipFile( arguments.measureServerConfigFile );
-				
+
 				ResourceResolutionProvider resourceProvider = new ZipResourceResolutionProvider(zipFile, parser, filters);
-				
+
 				libraryProvider = resourceProvider;
 				measureProvider = resourceProvider;
-				
+
 			} else if( arguments.measureServerConfigFile != null && arguments.measureServerConfigFile.isDirectory() ) {
-				
+
 				ResourceResolutionProvider resourceProvider = new DirectoryResourceResolutionProvider(arguments.measureServerConfigFile, parser, filters);
-				
+
 				libraryProvider = resourceProvider;
 				measureProvider = resourceProvider;
-				
+
 			} else {
 				readMeasureServerConfiguration( arguments );
 				IGenericClient measureServerClient = builder.createFhirClient(measureServerConfig);
-				
+
 				libraryProvider = new RestFhirLibraryResolutionProvider( measureServerClient );
 				measureProvider = new RestFhirMeasureResolutionProvider( measureServerClient );
 			}
-			
+
 			List<MeasureContext> measureContexts;
 
 			if (arguments.measureConfigurationFile != null) {
@@ -150,41 +160,44 @@ public class MeasureCLI extends BaseCLI {
 			} else {
 				measureContexts = MeasureContextProvider.getMeasureContexts(arguments.resourceId,  arguments.parameters);
 			}
-			
-			evaluator = new MeasureEvaluator(dataServerClient, terminologyServerClient);
-			evaluator.setMeasureResolutionProvider(measureProvider);
-			evaluator.setLibraryResolutionProvider(libraryProvider);
-			
-			for( String contextId : arguments.contextIds ) {
-				out.println("Evaluating: " + contextId);
-				// Reports only returned for measures where patient is in initial population
-				List<MeasureReport> reports = evaluator.evaluatePatientMeasures(contextId, measureContexts, new MeasureEvidenceOptions(arguments.includeEvaluatedResources, arguments.defineReturnOption));
 
-				for (MeasureReport report : reports) {
-					if (arguments.reportFormat == ReportFormat.TEXT) {
-						out.println("Result for " + report.getMeasure());
-						for (MeasureReport.MeasureReportGroupComponent group : report.getGroup()) {
-							for (MeasureReport.MeasureReportGroupPopulationComponent pop : group.getPopulation()) {
-								String popCode = pop.getCode().getCodingFirstRep().getCode();
-								if (pop.getId() != null) {
-									popCode += "(" + pop.getId() + ")";
+			TerminologyProvider terminologyProvider = new R4FhirTerminologyProvider(terminologyServerClient);
+			try (RetrieveCacheContext retrieveCacheContext = arguments.disableRetrieveCache ? null : new DefaultRetrieveCacheContext()) {
+				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataServerClient, terminologyProvider, retrieveCacheContext);
+
+				evaluator = new MeasureEvaluator(measureProvider, libraryProvider, terminologyProvider, dataProviders);
+
+				for (String contextId : arguments.contextIds) {
+					out.println("Evaluating: " + contextId);
+					// Reports only returned for measures where patient is in initial population
+					List<MeasureReport> reports = evaluator.evaluatePatientMeasures(contextId, measureContexts, new MeasureEvidenceOptions(arguments.includeEvaluatedResources, arguments.defineReturnOption));
+
+					for (MeasureReport report : reports) {
+						if (arguments.reportFormat == ReportFormat.TEXT) {
+							out.println("Result for " + report.getMeasure());
+							for (MeasureReport.MeasureReportGroupComponent group : report.getGroup()) {
+								for (MeasureReport.MeasureReportGroupPopulationComponent pop : group.getPopulation()) {
+									String popCode = pop.getCode().getCodingFirstRep().getCode();
+									if (pop.getId() != null) {
+										popCode += "(" + pop.getId() + ")";
+									}
+									out.println(String.format("Population: %s = %d", popCode, pop.getCount()));
 								}
-								out.println(String.format("Population: %s = %d", popCode, pop.getCount()));
 							}
+						} else {
+							out.println(parser.encodeResourceToString(report));
 						}
-					} else {
-						out.println(parser.encodeResourceToString(report));
+						out.println("---");
 					}
-					out.println("---");
-				}
-				if (reports.isEmpty()) {
-					out.println("---");
+					if (reports.isEmpty()) {
+						out.println("---");
+					}
 				}
 			}
 		}
 		return evaluator;
 	}
-	
+
 	public static void main(String[] args) throws Exception {
 		MeasureCLI cli = new MeasureCLI();
 		cli.runWithArgs( args, System.out );

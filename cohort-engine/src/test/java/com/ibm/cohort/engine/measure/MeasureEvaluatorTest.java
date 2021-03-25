@@ -60,7 +60,13 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Before
 	public void setUp() {
 		super.setUp();
-		evaluator = new MeasureEvaluator(client, client, client);
+
+		FHIRClientContext clientContext = new FHIRClientContext.Builder()
+				.withDefaultClient(client)
+				.build();
+		evaluator = new R4MeasureEvaluatorBuilder()
+				.withClientContext(clientContext)
+				.build();
 	}
 
 	@Test
@@ -356,6 +362,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
 
 		measure.addExtension(createMeasureParameter("SomeAge", new StringType("invalid")));
+
 		mockFhirResourceRetrieval(measure);
 
 		evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());

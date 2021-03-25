@@ -19,8 +19,8 @@ import org.hl7.fhir.r4.model.ParameterDefinition;
 import org.hl7.fhir.r4.model.ParameterDefinition.ParameterUse;
 
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
-import com.ibm.cohort.engine.measure.MeasureEvaluator;
 import com.ibm.cohort.engine.measure.RestFhirMeasureResolutionProvider;
+import com.ibm.cohort.engine.measure.seed.MeasureEvaluationSeeder;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
 
@@ -175,7 +175,7 @@ public class FHIRRestUtils {
 
 	private static List<MeasureParameterInfo> getParameters(Measure measure) {
 		return measure.getExtension().stream()
-				.filter(MeasureEvaluator::isMeasureParameter)
+				.filter(MeasureEvaluationSeeder::isMeasureParameter)
 				.map(Extension::getValue)
 				.map(ParameterDefinition.class::cast) // enforced as part of IG
 				.map(FHIRRestUtils::toMeasureParameterInfo)
@@ -195,7 +195,7 @@ public class FHIRRestUtils {
 				.ifPresent(retVal::setUse);
 
 		parameterDefinition.getExtension().stream()
-				.filter(MeasureEvaluator::isDefaultValue).findFirst() // only zero or one per IG
+				.filter(MeasureEvaluationSeeder::isDefaultValue).findFirst() // only zero or one per IG
 				.map(Extension::getValue)
 				.map(Object::toString)
 				.ifPresent(retVal::setDefaultValue);

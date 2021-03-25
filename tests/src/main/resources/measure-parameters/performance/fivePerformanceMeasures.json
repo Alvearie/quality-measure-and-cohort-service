@@ -1,0 +1,19 @@
+{
+  "measureConfigurations": [
+    {
+      "measureId": "wh-cohort-Over-the-Hill-1.0.0"
+    },
+    {
+      "measureId": "wh-cohort-Colorectal-Cancer-Screening-HCPCS-1.0.0"
+    },
+    {
+      "measureId": "wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0"
+    },
+    {
+      "measureId": "wh-cohort-Cervical-Cancer-Screening-1.0.0"
+    },
+    {
+      "measureId": "wh-cohort-Wellness-Check-3.0.0"
+    }
+  ]
+}

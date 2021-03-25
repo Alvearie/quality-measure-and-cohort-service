@@ -1,0 +1,10 @@
+{
+  "tests": {
+    "1 Patient 5 Measures": {
+      "jsonMeasureConfigurationFile": "tests/src/main/resources/measure-parameters/performance/fivePerformanceMeasures.json",
+      "targets": [
+        "eb068c3f-3954-50c6-0c67-2b82d29865f0"
+      ]
+    }
+  }
+}

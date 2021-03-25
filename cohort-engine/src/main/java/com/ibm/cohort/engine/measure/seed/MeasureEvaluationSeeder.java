@@ -1,16 +1,20 @@
 package com.ibm.cohort.engine.measure.seed;
 
-import java.util.ArrayList;
+import static com.ibm.cohort.engine.cdm.CDMConstants.MEASURE_PARAMETER_URL;
+import static com.ibm.cohort.engine.cdm.CDMConstants.PARAMETER_DEFAULT_URL;
+
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Triple;
+import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
-import org.opencds.cqf.common.evaluation.EvaluationProviderFactory;
+import org.hl7.fhir.r4.model.ParameterDefinition;
+import org.hl7.fhir.r4.model.Type;
 import org.opencds.cqf.common.helpers.DateHelper;
 import org.opencds.cqf.common.helpers.UsingHelper;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
@@ -18,31 +22,32 @@ import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.debug.DebugMap;
 import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
+import org.opencds.cqf.cql.engine.model.ModelResolver;
 import org.opencds.cqf.cql.engine.runtime.DateTime;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.measure.LibraryHelper;
+import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
 
 public class MeasureEvaluationSeeder {
 
-	private final EvaluationProviderFactory providerFactory;
+	private final TerminologyProvider terminologyProvider;
+	private final Map<String, DataProvider> dataProviders;
 	private final LibraryLoader libraryLoader;
 	private final LibraryResolutionProvider<Library> libraryResourceProvider;
 
 	private boolean enableExpressionCaching;
 	private boolean debugMode = true;
-	private String terminologyProviderSource;
-	private String terminologyProviderUser;
-	private String terminologyProviderPassword;
 
 	public MeasureEvaluationSeeder(
-			EvaluationProviderFactory providerFactory,
+			TerminologyProvider terminologyProvider,
+			Map<String, DataProvider> dataProviders,
 			LibraryLoader libraryLoader,
 			LibraryResolutionProvider<Library> libraryResourceProvider) {
-		this.providerFactory = providerFactory;
+		this.terminologyProvider = terminologyProvider;
+		this.dataProviders = dataProviders;
 		this.libraryLoader = libraryLoader;
 		this.libraryResourceProvider = libraryResourceProvider;
 	}
@@ -59,16 +64,6 @@ public class MeasureEvaluationSeeder {
 		return this;
 	}
 
-
-	public MeasureEvaluationSeeder withTerminologyProvider(String source, String user, String password) {
-		this.terminologyProviderSource = source;
-		this.terminologyProviderUser = user;
-		this.terminologyProviderPassword = password;
-
-		return this;
-	}
-
-
 	public IMeasureEvaluationSeed create(Measure measure, String periodStart, String periodEnd, String productLine) {
 		List<org.cqframework.cql.elm.execution.Library> libraries = LibraryHelper.loadLibraries(measure, this.libraryLoader, this.libraryResourceProvider);
 		if( CollectionUtils.isEmpty(libraries) ) { 
@@ -84,39 +79,34 @@ public class MeasureEvaluationSeeder {
 			throw new IllegalArgumentException("Evaluation of Measure using multiple Models is not supported at this time.");
 		}
 
+		// Per the above condition, we should only have one model per measure
+		String lastModelUri = usingDefs.get(usingDefs.size() - 1).getRight();
+		DataProvider dataProvider = dataProviders.get(lastModelUri);
 
-		TerminologyProvider terminologyProvider = createTerminologyProvider(usingDefs);
-		Map<Triple<String, String, String>, DataProvider> dataProviders = createDataProviders(usingDefs, terminologyProvider);
 		Interval measurementPeriod = createMeasurePeriod(periodStart, periodEnd);
-		Context context = createContext(primaryLibrary, dataProviders, terminologyProvider, measurementPeriod, productLine);
+		Context context = createContext(primaryLibrary, lastModelUri, dataProvider, measurementPeriod, productLine);
 
-		List<Map.Entry<Triple<String, String, String>, DataProvider>> dataProviderList = new ArrayList<>(dataProviders.entrySet());
-		DataProvider lastDataProvider = dataProviderList.get(dataProviderList.size() - 1).getValue();
+		// fhir path: Measure.extension[measureParameter][].valueParameterDefinition.extension[defaultValue]
+		measure.getExtension().stream()
+				.filter(MeasureEvaluationSeeder::isMeasureParameter)
+				.map(parameter -> dataProvider.resolvePath(parameter, "valueParameterDefinition"))
+				.map(ParameterDefinition.class::cast)
+				.forEach(parameterDefinition -> setDefaultValue(context, parameterDefinition, dataProvider));
 
-		return new CustomMeasureEvaluationSeed(measure, context, measurementPeriod, lastDataProvider);
+		return new CustomMeasureEvaluationSeed(measure, context, measurementPeriod, dataProvider);
 	}
 
-	@VisibleForTesting
 	protected Context createContext(
 			org.cqframework.cql.elm.execution.Library library,
-			Map<Triple<String, String, String>, DataProvider> dataProviders,
-			TerminologyProvider terminologyProvider,
+			String modelUri,
+			DataProvider dataProvider,
 			Interval measurementPeriod,
 			String productLine) {
 
 		Context context = createDefaultContext(library);
 		context.registerLibraryLoader(libraryLoader);
-
-		if (!dataProviders.isEmpty()) {
-			context.registerTerminologyProvider(terminologyProvider);
-		}
-
-		for (Map.Entry<Triple<String, String, String>, DataProvider> dataProviderEntry : dataProviders.entrySet()) {
-			Triple<String, String, String> usingDef = dataProviderEntry.getKey();
-			DataProvider dataProvider = dataProviderEntry.getValue();
-
-			context.registerDataProvider(usingDef.getRight(), dataProvider);
-		}
+		context.registerTerminologyProvider(terminologyProvider);
+		context.registerDataProvider(modelUri, dataProvider);
 
 		context.setParameter(
 		null,
@@ -141,48 +131,36 @@ public class MeasureEvaluationSeeder {
 		return context;
 	}
 
-	@VisibleForTesting
 	protected Context createDefaultContext(org.cqframework.cql.elm.execution.Library library) {
 		return new CDMContext(library);
 	}
 
-	@VisibleForTesting
 	protected Interval createMeasurePeriod(String periodStart, String periodEnd) {
 		return new Interval(DateHelper.resolveRequestDate(periodStart, true), true,
 							DateHelper.resolveRequestDate(periodEnd, false), true);
 	}
 
-
-	private Map<Triple<String, String, String>, DataProvider> createDataProviders(
-			Iterable<Triple<String, String, String>> usingDefs,
-			TerminologyProvider terminologyProvider) {
-		LinkedHashMap<Triple<String, String, String>, DataProvider> dataProviders = new LinkedHashMap<>();
-
-		for (Triple<String, String, String> def : usingDefs) {
-			dataProviders.put(def, this.providerFactory.createDataProvider(def.getLeft(), def.getMiddle(), terminologyProvider));
-		}
-
-		return dataProviders;
+	private void setDefaultValue(Context context, ParameterDefinition parameterDefinition, ModelResolver modelResolver) {
+		parameterDefinition.getExtension().stream()
+				.filter(MeasureEvaluationSeeder::isDefaultValue)
+				.forEach(defaultValue ->
+						         context.setParameter(
+								         null,
+								         parameterDefinition.getName(),
+								         toCqlObject(defaultValue.getValue(), modelResolver)));
 	}
 
-	private TerminologyProvider createTerminologyProvider(List<Triple<String, String, String>> usingDefs) {
-		// If there are no Usings, there is probably not any place the Terminology
-		// actually used so I think the assumption that at least one provider exists is
-		// ok.
-		TerminologyProvider terminologyProvider = null;
-		if (!usingDefs.isEmpty()) {
-			// Creates a terminology provider based on the first using statement. This
-			// assumes the terminology
-			// server matches the FHIR version of the CQL.
-			terminologyProvider = this.providerFactory.createTerminologyProvider(
-				usingDefs.get(0).getLeft(), 
-				usingDefs.get(0).getMiddle(), 
-				terminologyProviderSource, 
-				terminologyProviderUser, 
-				terminologyProviderPassword);
-		}
-
-		return terminologyProvider;
+	private Object toCqlObject(Type type, ModelResolver modelResolver) {
+		return Optional.ofNullable(type)
+				.map((fhirType) -> modelResolver.resolvePath(fhirType, "value"))
+				.orElseThrow(() -> new UnsupportedFhirTypeException(type));
 	}
 
+	public static boolean isMeasureParameter(Extension extension) {
+		return MEASURE_PARAMETER_URL.equals(extension.getUrl());
+	}
+
+	public static boolean isDefaultValue(Extension extension) {
+		return PARAMETER_DEFAULT_URL.equals(extension.getUrl());
+	}
 }
