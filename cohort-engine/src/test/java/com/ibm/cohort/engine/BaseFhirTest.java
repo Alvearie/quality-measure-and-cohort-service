@@ -39,6 +39,8 @@ import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.MetadataResource;
+import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
@@ -137,7 +139,11 @@ public class BaseFhirTest {
 	}
 	
 	protected void mockNotFound(String resource) {
-		mockFhirResourceRetrieval( get(urlMatching(resource)), getFhirParser(), null, getFhirServerConfig(), 404 );
+		OperationOutcome outcome = new OperationOutcome();
+		outcome.getText().setStatusAsString("generated");
+		outcome.getIssueFirstRep().setSeverity(IssueSeverity.ERROR).setCode(OperationOutcome.IssueType.PROCESSING).setDiagnostics(resource);
+		
+		mockFhirResourceRetrieval( get(urlMatching(resource)), getFhirParser(), outcome, getFhirServerConfig(), 404 );
 	}
 
 	protected MappingBuilder setAuthenticationParameters(FhirServerConfig fhirConfig, MappingBuilder builder) {

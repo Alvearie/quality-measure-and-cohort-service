@@ -7,10 +7,15 @@ package com.ibm.cohort.engine.measure;
 
 import java.util.Map;
 
+import javax.validation.Valid;
+import javax.validation.constraints.AssertTrue;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.ibm.cohort.engine.parameter.Parameter;
@@ -18,6 +23,7 @@ import com.ibm.cohort.engine.parameter.Parameter;
 @JsonInclude(Include.NON_NULL)
 public class MeasureContext {
 	private String measureId;
+	@Valid
 	private Map<String, Parameter> parameters;
 	private Identifier identifier;
 	private String version;
@@ -73,4 +79,20 @@ public class MeasureContext {
 	public boolean equals(Object o) {
 		return EqualsBuilder.reflectionEquals(this, o);
 	}
+	
+	@AssertTrue(message="Either measureID or identifier and version are required, but not both")
+	@JsonIgnore
+	public boolean isExactlyOneFormOfIdentification() {
+		boolean hasResourceId = ! StringUtils.isEmpty(measureId);
+		boolean hasIdentifier = identifier != null;
+		
+		return ( hasResourceId ^ hasIdentifier );
+	}
+	
+	@AssertTrue(message="Version should not be specified without identifier")
+	@JsonIgnore
+	public boolean isVersionOnlyWithIdentifier() {
+		return (identifier != null ) || (identifier == null && StringUtils.isEmpty(version) );
+	}
+	
 }

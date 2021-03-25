@@ -5,14 +5,18 @@
  */
 package com.ibm.cohort.engine.parameter;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+
 import org.opencds.cqf.cql.engine.runtime.Interval;
 
 public class IntervalParameter extends Parameter {
 	@NotNull
+	@Valid
 	private Parameter start;
 	private boolean startInclusive;
 	@NotNull
+	@Valid
 	private Parameter end;	
 	private boolean endInclusive;
 	

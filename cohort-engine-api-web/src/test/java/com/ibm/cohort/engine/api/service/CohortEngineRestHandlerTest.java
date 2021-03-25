@@ -55,6 +55,7 @@ import com.ibm.cohort.engine.BaseFhirTest;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
+import com.ibm.cohort.engine.measure.Identifier;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.parameter.DateParameter;
 import com.ibm.cohort.engine.parameter.IntervalParameter;
@@ -247,6 +248,132 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		
 		// Create the ZIP part of the request
 		ByteArrayInputStream zipIs = TestHelper.emptyZip();
+		IAttachment measurePart = mockAttachment(zipIs);
+		
+		// Assemble them together into a reasonable facsimile of the real request
+		IMultipartBody body = mock(IMultipartBody.class);
+		when( body.getAttachment(CohortEngineRestHandler.REQUEST_DATA_PART) ).thenReturn(rootPart);
+		when( body.getAttachment(CohortEngineRestHandler.MEASURE_PART) ).thenReturn(measurePart);
+		
+		Response loadResponse = restHandler.evaluateMeasure(mockRequestContext, "version", body);
+		assertNotNull(loadResponse);
+		
+		PowerMockito.verifyStatic(Response.class);
+		Response.status(400);
+	}
+	
+	@PrepareForTest({ Response.class, TenantManager.class, ServiceBaseUtility.class })
+	@Test
+	public void testEvaluateMeasureMissingPatient() throws Exception {
+		prepMocks();
+		
+		PowerMockito.mockStatic(ServiceBaseUtility.class);
+		PowerMockito.when(ServiceBaseUtility.apiSetup(version, logger, methodName)).thenReturn(null);
+		
+		mockResponseClasses();
+		
+		Library library = TestHelper.getTemplateLibrary();
+		
+		Measure measure = TestHelper.getTemplateMeasure(library);
+		
+		Patient patient = getPatient("patientId", AdministrativeGender.MALE, 40);
+		
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockNotFound("/Patient/" + patient.getId());
+		
+		FhirServerConfig clientConfig = getFhirServerConfig();
+		
+		Map<String,Parameter> parameterOverrides = new HashMap<>();
+		parameterOverrides.put("Measurement Period", new IntervalParameter(
+				new DateParameter("2019-07-04")
+				, true
+				, new DateParameter("2020-07-04")
+				, true));
+		
+		MeasureContext measureContext = new MeasureContext(measure.getId(), parameterOverrides);
+		
+		MeasureEvaluation evaluationRequest = new MeasureEvaluation();
+		evaluationRequest.setDataServerConfig(clientConfig);
+		evaluationRequest.setPatientId(patient.getId());
+		evaluationRequest.setMeasureContext(measureContext);
+		//evaluationRequest.setEvidenceOptions(evidenceOptions);
+		
+		FhirContext fhirContext = FhirContext.forR4();
+		IParser parser = fhirContext.newJsonParser().setPrettyPrint(true);
+				
+		// Create the metadata part of the request
+		ObjectMapper om = new ObjectMapper();
+		String json = om.writeValueAsString(evaluationRequest);
+		ByteArrayInputStream jsonIs = new ByteArrayInputStream(json.getBytes());
+		IAttachment rootPart = mockAttachment(jsonIs);
+		
+		// Create the ZIP part of the request
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		TestHelper.createMeasureArtifact(baos, parser, measure, library);
+		ByteArrayInputStream zipIs = new ByteArrayInputStream( baos.toByteArray() );
+		IAttachment measurePart = mockAttachment(zipIs);
+		
+		// Assemble them together into a reasonable facsimile of the real request
+		IMultipartBody body = mock(IMultipartBody.class);
+		when( body.getAttachment(CohortEngineRestHandler.REQUEST_DATA_PART) ).thenReturn(rootPart);
+		when( body.getAttachment(CohortEngineRestHandler.MEASURE_PART) ).thenReturn(measurePart);
+		
+		Response loadResponse = restHandler.evaluateMeasure(mockRequestContext, "version", body);
+		assertNotNull(loadResponse);
+		
+		PowerMockito.verifyStatic(Response.class);
+		Response.status(400);
+	}
+	
+	@PrepareForTest({ Response.class, TenantManager.class, ServiceBaseUtility.class })
+	@Test
+	public void testEvaluateMeasureMoreThanOneFormOfId() throws Exception {
+		prepMocks();
+		
+		PowerMockito.mockStatic(ServiceBaseUtility.class);
+		PowerMockito.when(ServiceBaseUtility.apiSetup(version, logger, methodName)).thenReturn(null);
+		
+		mockResponseClasses();
+		
+		Library library = TestHelper.getTemplateLibrary();
+		
+		Measure measure = TestHelper.getTemplateMeasure(library);
+		
+		Patient patient = getPatient("patientId", AdministrativeGender.MALE, 40);
+		
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval(patient);
+		
+		FhirServerConfig clientConfig = getFhirServerConfig();
+		
+		Map<String,Parameter> parameterOverrides = new HashMap<>();
+		parameterOverrides.put("Measurement Period", new IntervalParameter(
+				new DateParameter("2019-07-04")
+				, true
+				, new DateParameter("2020-07-04")
+				, true));
+		
+		MeasureContext measureContext = new MeasureContext(measure.getId(), parameterOverrides, new Identifier().setValue("identifier"));
+		
+		MeasureEvaluation evaluationRequest = new MeasureEvaluation();
+		evaluationRequest.setDataServerConfig(clientConfig);
+		evaluationRequest.setPatientId(patient.getId());
+		evaluationRequest.setMeasureContext(measureContext);
+		//evaluationRequest.setEvidenceOptions(evidenceOptions);
+		
+		FhirContext fhirContext = FhirContext.forR4();
+		IParser parser = fhirContext.newJsonParser().setPrettyPrint(true);
+				
+		// Create the metadata part of the request
+		ObjectMapper om = new ObjectMapper();
+		String json = om.writeValueAsString(evaluationRequest);
+		ByteArrayInputStream jsonIs = new ByteArrayInputStream(json.getBytes());
+		IAttachment rootPart = mockAttachment(jsonIs);
+		
+		// Create the ZIP part of the request
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		TestHelper.createMeasureArtifact(baos, parser, measure, library);
+		ByteArrayInputStream zipIs = new ByteArrayInputStream( baos.toByteArray() );
 		IAttachment measurePart = mockAttachment(zipIs);
 		
 		// Assemble them together into a reasonable facsimile of the real request

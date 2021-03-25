@@ -8,6 +8,7 @@ package com.ibm.cohort.engine.parameter;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -21,6 +22,7 @@ public class ConceptParameter extends Parameter {
 	
 	@NotNull
 	@Size(min=1)
+	@Valid
 	private List<CodeParameter> codes;
 	
 	public ConceptParameter() {

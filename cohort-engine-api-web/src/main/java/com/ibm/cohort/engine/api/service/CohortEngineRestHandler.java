@@ -58,6 +58,7 @@ import com.ibm.websphere.jaxrs20.multipart.IMultipartBody;
 
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
+import ca.uhn.fhir.rest.server.exceptions.BaseServerResponseException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -162,10 +163,10 @@ public class CohortEngineRestHandler {
 			@ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody) {		
 		final String methodName = "evaluateMeasure";
 		
+		Response response = null;
+		
 		// Error out if feature is not enabled
 		ServiceBaseUtility.isDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_MEASURE_EVALUATION);
-		
-		ResponseBuilder responseBuilder = null;
 		
 		try {
 			// Perform api setup
@@ -226,11 +227,17 @@ public class CohortEngineRestHandler {
 				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataClient, terminologyProvider, retrieveCacheContext);
 				
 				MeasureEvaluator evaluator = new MeasureEvaluator(provider, provider, terminologyProvider, dataProviders);
-				MeasureReport report = evaluator.evaluatePatientMeasure(evaluationRequest.getPatientId(), evaluationRequest.getMeasureContext(), evaluationRequest.getEvidenceOptions());
 				
-				// The default serializer gets into an infinite loop when trying to serialize MeasureReport, so we use the
-				// HAPI encoder instead.
-				responseBuilder = Response.status(Response.Status.OK).header("Content-Type", "application/json").entity(parser.encodeResourceToString(report));
+				try {
+					MeasureReport report = evaluator.evaluatePatientMeasure(evaluationRequest.getPatientId(), evaluationRequest.getMeasureContext(), evaluationRequest.getEvidenceOptions());
+					
+					// The default serializer gets into an infinite loop when trying to serialize MeasureReport, so we use the
+					// HAPI encoder instead.
+					ResponseBuilder responseBuilder = Response.status(Response.Status.OK).header("Content-Type", "application/json").entity(parser.encodeResourceToString(report));
+					response = responseBuilder.build();
+				} catch( BaseServerResponseException ex ) {
+					response = new CohortServiceExceptionMapper(dataClient.getFhirContext().newJsonParser()).toResponse(ex);
+				}
 			}
 		} catch (Throwable e) {
 			//map any exceptions caught into the proper REST error response objects
@@ -238,12 +245,12 @@ public class CohortEngineRestHandler {
 		} finally {
 			// Perform api cleanup
 			Response errorResponse = ServiceBaseUtility.apiCleanup(logger, methodName);
-			if(errorResponse != null) {
-				return errorResponse;
+			if( errorResponse != null ) {
+				response = errorResponse;
 			}
 		}
 
-		return responseBuilder.build();
+		return response;
 	}
 	
 	@GET

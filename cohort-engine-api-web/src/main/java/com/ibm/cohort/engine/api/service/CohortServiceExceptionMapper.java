@@ -22,14 +22,24 @@ import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
 import com.ibm.watson.service.base.model.ServiceError;
 
+import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException;
 import ca.uhn.fhir.rest.server.exceptions.AuthenticationException;
+import ca.uhn.fhir.rest.server.exceptions.BaseServerResponseException;
 
 @Provider
 public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 	private static final Logger logger = LoggerFactory.getLogger(CohortServiceExceptionMapper.class.getName());
 	private static final int maxExceptionCauseDepth = 20;
+	private IParser fhirParser;
 
+	public CohortServiceExceptionMapper() {
+		
+	}
+	
+	public CohortServiceExceptionMapper(IParser fhirParser) {
+		this.fhirParser = fhirParser;
+	}
 
 	@Override
 	public Response toResponse(Throwable ex) {
@@ -87,6 +97,19 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 			else if (ex instanceof MismatchedInputException) {
 				serviceErrorCode = Status.BAD_REQUEST.getStatusCode();
 				serviceErrorListCode = serviceErrorCode;
+			}
+			//will get thrown by HAPI FHIR when a requested resource is not found in the target FHIR server
+			else if (ex instanceof BaseServerResponseException) { 
+				serviceErrorCode = Status.BAD_REQUEST.getStatusCode();
+				serviceErrorListCode = serviceErrorCode;
+				
+				BaseServerResponseException sre = (BaseServerResponseException) ex;
+				reason = "Exception while communicating with FHIR";
+				if( fhirParser != null && sre.getOperationOutcome() != null ) {
+					description = fhirParser.encodeResourceToString(sre.getOperationOutcome());
+				} else { 
+					description = sre.getLocalizedMessage();
+				}
 			}
 			//catch everything else and return a 500
 			else {
