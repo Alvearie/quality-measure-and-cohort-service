@@ -29,7 +29,6 @@ import org.opencds.cqf.cql.engine.runtime.DateTime;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.measure.LibraryHelper;
 
@@ -101,7 +100,6 @@ public class MeasureEvaluationSeeder {
 		return new CustomMeasureEvaluationSeed(measure, context, measurementPeriod, dataProvider);
 	}
 
-	@VisibleForTesting
 	protected Context createContext(
 			org.cqframework.cql.elm.execution.Library library,
 			String modelUri,
@@ -137,12 +135,10 @@ public class MeasureEvaluationSeeder {
 		return context;
 	}
 
-	@VisibleForTesting
 	protected Context createDefaultContext(org.cqframework.cql.elm.execution.Library library) {
 		return new CDMContext(library);
 	}
 
-	@VisibleForTesting
 	protected Interval createMeasurePeriod(String periodStart, String periodEnd) {
 		return new Interval(DateHelper.resolveRequestDate(periodStart, true), true,
 							DateHelper.resolveRequestDate(periodEnd, false), true);

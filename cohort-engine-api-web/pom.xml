@@ -127,81 +127,101 @@
 			<artifactId>cohort-engine</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		
+		<dependency>
+			<groupId> org.opencds.cqf.cql</groupId>
+			<artifactId>engine</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId> org.opencds.cqf.cql</groupId>
+			<artifactId>engine.fhir</artifactId>
+		</dependency>
+		
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
 			<artifactId>cohort-engine-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		
 		<dependency>
-			<groupId>com.ibm.watson.health.services</groupId>
-			<artifactId>service-base-os</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.ibm.watson.health.services</groupId>
-			<artifactId>service-base-os</artifactId>
-			<classifier>tests</classifier>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.jayway.restassured</groupId>
-			<artifactId>rest-assured</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.jcabi</groupId>
-			<artifactId>jcabi-matchers</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>io.takari.junit</groupId>
-			<artifactId>takari-cpsuite</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>net.javacrumbs.json-unit</groupId>
-			<artifactId>json-unit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>xmlunit</groupId>
-			<artifactId>xmlunit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito2</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-module-junit4</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-module-javaagent</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-module-junit4-rule-agent</artifactId>
-			<scope>test</scope>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>fhir-client-config</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		
+		<dependency>
+			<groupId>com.ibm.watson.health.services</groupId>
+			<artifactId>service-base-os</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.ibm.watson.health.services</groupId>
+			<artifactId>service-model-os</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.ibm.watson.health.services</groupId>
+			<artifactId>service-swagger-fragment-os</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>jakarta.ws.rs</groupId>
+			<artifactId>jakarta.ws.rs-api</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>ca.uhn.hapi.fhir</groupId>
+			<artifactId>hapi-fhir-base</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>ca.uhn.hapi.fhir</groupId>
+			<artifactId>org.hl7.fhir.r4</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>io.swagger</groupId>
+			<artifactId>swagger-annotations</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>io.swagger</groupId>
+			<artifactId>swagger-jaxrs</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+ 		</dependency>
+ 		
+ 		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>jakarta.activation</groupId>
+	    	<artifactId>jakarta.activation-api</artifactId>
+	    </dependency>
+
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>jcache</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		
+		<!-- Provided dependencies -->
 		<dependency>
 			<groupId>com.ibm.websphere.appserver.api</groupId>
 			<artifactId>com.ibm.websphere.appserver.api.jaxrs20</artifactId>
@@ -210,10 +230,94 @@
 		</dependency>
 		
 		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		
+		<!-- Test dependencies -->
+		
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>net.javacrumbs.json-unit</groupId>
+			<artifactId>json-unit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>net.minidev</groupId>
+			<artifactId>json-smart</artifactId>
+			<version>1.1.1</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.ibm.watson.health.services</groupId>
+			<artifactId>service-base-os</artifactId>
+			<classifier>tests</classifier>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.jayway.restassured</groupId>
+			<artifactId>rest-assured</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>xmlunit</groupId>
+			<artifactId>xmlunit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito2</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-javaagent</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4-rule-agent</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>net.javacrumbs.json-unit</groupId>
+			<artifactId>json-unit-core</artifactId>
+			<version>1.16.0</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
 			<groupId>com.github.tomakehurst</groupId>
 			<artifactId>wiremock-jre8</artifactId>
 			<scope>test</scope>
 		</dependency>
+		
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
 			<artifactId>cohort-engine</artifactId>
@@ -222,26 +326,17 @@
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
-
-		<dependency>
-			<groupId>javax.validation</groupId>
-			<artifactId>validation-api</artifactId>
-		</dependency>
+		
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-validator</artifactId>
 			<scope>test</scope>
 		</dependency>
+		
 		<dependency>
 			<groupId>org.glassfish</groupId>
 			<artifactId>javax.el</artifactId>
 			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.github.ben-manes.caffeine</groupId>
-			<artifactId>jcache</artifactId>
-			<scope>runtime</scope>
 		</dependency>
 	</dependencies>
 </project>

@@ -12,6 +12,7 @@ import java.util.Objects;
 import javax.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.ibm.cohort.annotations.Generated;
 import com.ibm.watson.common.service.base.ServiceBaseUtility;
 import com.ibm.watson.service.base.model.ServiceError;
 
@@ -23,6 +24,7 @@ import io.swagger.annotations.ApiModelProperty;
 
 @ApiModel(description = "Object representing an HTTP response with errors")
 
+@Generated
 public class ServiceErrorList   {
   
   private List<ServiceError> errors = new ArrayList<ServiceError>();
@@ -49,7 +51,7 @@ public class ServiceErrorList   {
 
   /**
  * @param errors A list of input errors
- * @return a ServiceErrorList object
+ * @return this
  */
 public ServiceErrorList errors(List<ServiceError> errors) {
     this.errors = errors;
@@ -69,7 +71,7 @@ public ServiceErrorList errors(List<ServiceError> errors) {
 
   /**
  * @param trace error message correlation identifier
- * @return a ServiceErrorList object
+ * @return this
  */
 public ServiceErrorList trace(String trace) {
     this.trace = trace;
@@ -88,7 +90,7 @@ public ServiceErrorList trace(String trace) {
 
   /**
  * @param statusCode response code
- * @return a ServiceErrorList object
+ * @return this
  */
 public ServiceErrorList statusCode(Integer statusCode) {
     this.statusCode = statusCode;
