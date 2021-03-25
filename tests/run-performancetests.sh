@@ -53,6 +53,9 @@ PERF_REG_RESULTS="${OUTPUT_DIR}/ct-perf-results"
 mkdir -p ${PERF_REG_RESULTS}
 checkForTestResults "${PERF_REG_RESULTS}" "performanceCTTests.xml" 60 30
 
+# Make sure results are displayed to stdout even if the previous exec command returns early
+kubectl exec -it ${POD_NAME} -n ${CLUSTER_NAMESPACE} -- bash -c "cat /tmp/artifacts/*.ldjson"
+
 # First Check to see if python3 is available for use with xmlCombiner.py script. If not first install python3.8 using yum.
 pythonBinary=python3
 pythonVersion=$(${pythonBinary} --version 2>/dev/null)

@@ -50,7 +50,7 @@ class Test(object):
         decodedOutput = set()
         for line in process.stdout:
             print(line)
-            decodedOutput.add(line.decode('utf-8'))
+            decodedOutput.add(line.decode('utf-8').rstrip("\n"))
 
         for expectedOutput in self.createExpectedOutput(targets):
             assert expectedOutput in decodedOutput, 'Output did not contain: ' + expectedOutput
