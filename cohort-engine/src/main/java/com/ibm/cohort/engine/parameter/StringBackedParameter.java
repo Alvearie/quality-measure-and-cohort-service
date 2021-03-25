@@ -5,7 +5,10 @@
  */
 package com.ibm.cohort.engine.parameter;
 
+import javax.validation.constraints.NotNull;
+
 public abstract class StringBackedParameter extends Parameter {
+	@NotNull
 	private String value;
 	
 	public StringBackedParameter() {

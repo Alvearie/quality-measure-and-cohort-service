@@ -5,11 +5,15 @@
  */
 package com.ibm.cohort.engine.parameter;
 
+import javax.validation.constraints.NotNull;
+
 import org.opencds.cqf.cql.engine.runtime.Quantity;
 import org.opencds.cqf.cql.engine.runtime.Ratio;
 
 public class RatioParameter extends Parameter {
+	@NotNull
 	private QuantityParameter numerator;
+	@NotNull
 	private QuantityParameter denominator;
 	
 	public RatioParameter() { 

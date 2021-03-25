@@ -5,10 +5,13 @@
  */
 package com.ibm.cohort.engine.parameter;
 
+import javax.validation.constraints.NotNull;
+
 import org.opencds.cqf.cql.engine.runtime.Code;
 
 public class CodeParameter extends Parameter {
 	private String system;
+	@NotNull
 	private String value;
 	private String display;
 	private String version;

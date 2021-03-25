@@ -7,10 +7,14 @@ package com.ibm.cohort.engine.parameter;
 
 import java.math.BigDecimal;
 
+import javax.validation.constraints.NotNull;
+
 import org.opencds.cqf.cql.engine.runtime.Quantity;
 
 public class QuantityParameter extends Parameter {
+	@NotNull
 	private String amount;
+	@NotNull
 	private String unit;
 	
 	public QuantityParameter() { 

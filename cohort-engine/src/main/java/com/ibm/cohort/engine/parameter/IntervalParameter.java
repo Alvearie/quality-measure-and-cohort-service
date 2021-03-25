@@ -5,11 +5,14 @@
  */
 package com.ibm.cohort.engine.parameter;
 
+import javax.validation.constraints.NotNull;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 
 public class IntervalParameter extends Parameter {
+	@NotNull
 	private Parameter start;
 	private boolean startInclusive;
+	@NotNull
 	private Parameter end;	
 	private boolean endInclusive;
 	
@@ -36,7 +39,6 @@ public class IntervalParameter extends Parameter {
 	public boolean isStartInclusive() {
 		return startInclusive;
 	}
-
 	public IntervalParameter setStartInclusive(boolean startInclusive) {
 		this.startInclusive = startInclusive;
 		return this;
@@ -63,5 +65,4 @@ public class IntervalParameter extends Parameter {
 	public Object toCqlType() {
 		return new Interval( start.toCqlType(), startInclusive, end.toCqlType(), endInclusive );
 	}
-
 }

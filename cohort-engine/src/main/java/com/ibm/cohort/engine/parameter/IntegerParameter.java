@@ -5,8 +5,12 @@
  */
 package com.ibm.cohort.engine.parameter;
 
+import javax.validation.constraints.NotNull;
+
 public class IntegerParameter extends Parameter {
-	private int value;
+	
+	@NotNull
+	private Integer value;
 	
 	public IntegerParameter() {
 		setType(ParameterType.INTEGER);

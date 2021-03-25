@@ -48,7 +48,7 @@
 
 		<jackson.version>2.10.5.1</jackson.version>
 		<jacoco.version>0.8.6</jacoco.version>
-
+		
 		<!-- Default values for the jacoco-maven-plugin reports -->
 		<cohort.jacoco.classRatio>0.80</cohort.jacoco.classRatio>
 		<cohort.jacoco.instructionRatio>0.70</cohort.jacoco.instructionRatio>
@@ -491,6 +491,29 @@
 				<groupId>org.apache.cxf</groupId>
 				<artifactId>cxf-rt-transports-http</artifactId>
 				<version>3.3.8</version>
+			</dependency>
+			
+			<!-- Our Swagger dependency needs the 1.1.0 version, so we are backleveled -->
+			<dependency>
+				<groupId>javax.validation</groupId>
+				<artifactId>validation-api</artifactId>
+				<version>1.1.0.Final</version>
+			</dependency>
+			<dependency>
+				<groupId>org.hibernate</groupId>
+				<artifactId>hibernate-validator</artifactId>
+				<version>5.0.3.Final</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish</groupId>
+				<artifactId>javax.el</artifactId>
+				<version>3.0.0</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>com.github.ben-manes.caffeine</groupId>
+				<artifactId>jcache</artifactId>
+				<version>2.9.0</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

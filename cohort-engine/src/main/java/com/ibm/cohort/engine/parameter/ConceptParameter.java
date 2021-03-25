@@ -8,6 +8,9 @@ package com.ibm.cohort.engine.parameter;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
 import org.opencds.cqf.cql.engine.runtime.Code;
 import org.opencds.cqf.cql.engine.runtime.Concept;
 
@@ -15,6 +18,9 @@ import org.opencds.cqf.cql.engine.runtime.Concept;
 public class ConceptParameter extends Parameter {
 	
 	private String display;
+	
+	@NotNull
+	@Size(min=1)
 	private List<CodeParameter> codes;
 	
 	public ConceptParameter() {
@@ -26,6 +32,14 @@ public class ConceptParameter extends Parameter {
 		setDisplay(display);
 		if( codes != null ) {
 			setCodes( Arrays.asList(codes) );
+		}
+	}
+	
+	public ConceptParameter(String display, List<CodeParameter> codes) {
+		this();
+		setDisplay(display);
+		if( codes != null ) {
+			setCodes( codes );
 		}
 	}
 	

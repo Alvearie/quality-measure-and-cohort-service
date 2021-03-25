@@ -5,8 +5,12 @@
  */
 package com.ibm.cohort.engine.parameter;
 
+import javax.validation.constraints.NotNull;
+
 public class BooleanParameter extends Parameter {
-	private boolean value;
+	
+	@NotNull
+	private Boolean value;
 	
 	public BooleanParameter() {
 		setType(ParameterType.BOOLEAN);
