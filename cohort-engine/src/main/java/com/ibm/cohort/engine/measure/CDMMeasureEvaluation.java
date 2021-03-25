@@ -107,6 +107,7 @@ public class CDMMeasureEvaluation {
 	 * @param context   CQL Engine Execution Context pre-configured for use in
 	 *                  measure evaluation
 	 * @param patientId Patient ID of the patient to evaluate
+	 * @param evidenceOptions MeasureEvidenceOptions to indicate whether or not to return evaluated resources and define level results
 	 * @return MeasureReport with population components filled out.
 	 */
 	public MeasureReport evaluatePatientMeasure(Measure measure, Context context, String patientId, MeasureEvidenceOptions evidenceOptions) {
