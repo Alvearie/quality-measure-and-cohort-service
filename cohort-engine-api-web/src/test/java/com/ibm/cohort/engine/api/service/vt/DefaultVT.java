@@ -31,7 +31,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpStatus;
 import org.custommonkey.xmlunit.Diff;
 import org.hl7.fhir.r4.model.Identifier;
@@ -75,7 +77,6 @@ import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 
 import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.IParser;
 
 /*
  * PLEASE READ THIS FIRST
@@ -389,8 +390,17 @@ public class DefaultVT extends ServiceVTBase {
 		FhirContext fhirContext = FhirContext.forR4();
 //		IParser parser = fhirContext.newJsonParser().setPrettyPrint(true);
 
+<<<<<<< HEAD
 		RequestSpecification request = buildBaseRequest(new Headers())
 //				.queryParam("version", ServiceBuildConstants.DATE)
+=======
+		String auth = dataServerConfig.getUser() + ":" + dataServerConfig.getPassword();
+		byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(StandardCharsets.ISO_8859_1));
+
+		RequestSpecification request = buildBaseRequest(new Headers(new Header("Authorization", new String(encodedAuth))))
+				.param("version", ServiceBuildConstants.DATE)
+				.queryParam("fhir_server_rest_endpoint", dataServerConfig.getEndpoint())
+>>>>>>> 8f4ea94... Fixing auth
 				.queryParam("updateIfExists", false)
 				.multiPart(CohortEngineRestHandler.VALUE_SET_PART, new File("src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx"));
 
@@ -407,9 +417,12 @@ public class DefaultVT extends ServiceVTBase {
 		testValueSetUpload();
 		final String RESOURCE = getUrlBase() + "/{version}/valueset";
 
-		RequestSpecification request = buildBaseRequest(new Headers())
+		String auth = dataServerConfig.getUser() + ":" + dataServerConfig.getPassword();
+		byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(StandardCharsets.ISO_8859_1));
+
+		RequestSpecification request = buildBaseRequest(new Headers(new Header("Authorization", new String(encodedAuth))))
 				.param("version", ServiceBuildConstants.DATE)
-				.queryParam("fhir_server_rest_endpoint", "")
+				.queryParam("fhir_server_rest_endpoint", dataServerConfig.getEndpoint())
 				.queryParam("updateIfExists", false)
 				.multiPart(CohortEngineRestHandler.VALUE_SET_PART, new File("src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx"));
 
@@ -422,7 +435,10 @@ public class DefaultVT extends ServiceVTBase {
 		testValueSetUpload();
 		final String RESOURCE = getUrlBase() + "/{version}/valueset";
 
-		RequestSpecification request = buildBaseRequest(new Headers())
+		String auth = dataServerConfig.getUser() + ":" + dataServerConfig.getPassword();
+		byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(StandardCharsets.ISO_8859_1));
+
+		RequestSpecification request = buildBaseRequest(new Headers(new Header("Authorization", new String(encodedAuth))))
 				.param("version", ServiceBuildConstants.DATE)
 				.queryParam("fhir_server_rest_endpoint", "")
 				.queryParam("updateIfExists", true)
