@@ -40,6 +40,7 @@ import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.BeforeClass;
@@ -61,8 +62,10 @@ import com.ibm.cohort.engine.parameter.DateParameter;
 import com.ibm.cohort.engine.parameter.IntervalParameter;
 import com.ibm.cohort.engine.parameter.Parameter;
 import com.ibm.cohort.engine.api.service.CohortEngineRestHandler;
+import com.ibm.cohort.engine.api.service.FHIRRestUtils;
 import com.ibm.cohort.engine.api.service.ServiceBuildConstants;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
+import com.ibm.cohort.valueset.ValueSetUtil;
 import com.ibm.watson.common.service.base.utilities.BVT;
 import com.ibm.watson.common.service.base.utilities.DVT;
 import com.ibm.watson.common.service.base.utilities.ServiceAPIGlobalSpec;
@@ -80,6 +83,7 @@ import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 
 import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 /*
  * PLEASE READ THIS FIRST
@@ -434,7 +438,7 @@ public class DefaultVT extends ServiceVTBase {
 
 		RequestSpecification request = buildBaseRequest(new Headers(new Header("Authorization", new String(encodedAuth))))
 				.param("version", ServiceBuildConstants.DATE)
-				.queryParam("fhir_server_rest_endpoint", "")
+				.queryParam("fhir_server_rest_endpoint", dataServerConfig.getEndpoint())
 				.queryParam("updateIfExists", true)
 				.multiPart(CohortEngineRestHandler.VALUE_SET_PART, new File("src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx"));
 
@@ -447,4 +451,12 @@ public class DefaultVT extends ServiceVTBase {
 		return logger;
 	}
 
+
+	@After
+	public void cleanUp(){
+
+		IGenericClient terminologyClient = FHIRRestUtils.getFHIRClient(dataServerConfig.getEndpoint(), dataServerConfig.getUser(), dataServerConfig.getPassword(), null, null, null, null);
+		ValueSetUtil.deleteValueSet(terminologyClient, "http://cts.nlm.nih.gov/fhir/ValueSet/testValueSet");
+
+	}
 }

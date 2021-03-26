@@ -584,7 +584,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		when(body.getAttachment(any())).thenReturn(spreadsheetPart);
 		when(body.getRootAttachment()).thenReturn(spreadsheetPart);
 
-		Response loadResponse = restHandler.putValueSet(
+		Response loadResponse = restHandler.createValueSet(
 				mockHttpHeaders,
 				"version",
 				"fhirEndpoint",
@@ -633,7 +633,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		IMultipartBody body = PowerMockito.mock(IMultipartBody.class);
 		when(body.getAttachment(any())).thenReturn(spreadsheetPart);
 
-		Response loadResponse = restHandler.putValueSet(
+		Response loadResponse = restHandler.createValueSet(
 				mockHttpHeaders,
 				"version",
 				"fhirEndpoint",

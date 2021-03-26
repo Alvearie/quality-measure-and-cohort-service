@@ -5,9 +5,11 @@
  */
 package com.ibm.cohort.engine.api.service;
 
+import static com.ibm.watson.common.service.base.ServiceBaseConstants.MINOR_VERSION_DESCRIPTION;
+
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -19,8 +21,7 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -54,9 +55,9 @@ import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
-import com.ibm.watson.common.service.base.DarkFeatureSwaggerFilter;
 import com.ibm.cohort.valueset.ValueSetArtifact;
 import com.ibm.cohort.valueset.ValueSetUtil;
+import com.ibm.watson.common.service.base.DarkFeatureSwaggerFilter;
 import com.ibm.watson.common.service.base.ServiceBaseConstants;
 import com.ibm.watson.common.service.base.ServiceBaseUtility;
 import com.ibm.websphere.jaxrs20.multipart.IAttachment;
@@ -64,7 +65,6 @@ import com.ibm.websphere.jaxrs20.multipart.IMultipartBody;
 
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
-import ch.qos.logback.core.status.Status;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -165,6 +165,26 @@ public class CohortEngineRestHandler {
 			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class) 
 	})
 	public Response evaluateMeasure(@Context HttpServletRequest request,
+
+			@ApiParam(value = MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
+			@ApiParam(value = "patients and the measures to run", required = true) MeasuresEvaluation body) {
+		// return delegate.evaluateMeasures(body, securityContext);
+		ResponseBuilder responseBuilder = Response.status(Response.Status.ACCEPTED).entity("12345")
+				.header("Content-Location", request.getRequestURL() + "/status/12345?version=" + version);
+
+		return responseBuilder.build();
+	}
+
+	@GET
+	@Path("/evaluation/status/{jobId}/results")
+	@Produces({ "application/json" })
+	@ApiOperation(value = "Measure evaluation job results", notes = "Retrieves the results of the asynchronous measure evaluation job", response = EvaluateMeasureResults.class, responseContainer = "List", tags = {
+			"measures" })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "successful operation", response = EvaluateMeasureResults.class, responseContainer = "List"),
+			@ApiResponse(code = 404, message = "Measure evaluation job not found", response = Void.class),
+			@ApiResponse(code = 500, message = "Error getting job results", response = Void.class) })
+	public Response getEvaluateMeasuresResults(
 			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
 			@ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody) {		
 		final String methodName = "evaluateMeasure";
@@ -365,40 +385,44 @@ public class CohortEngineRestHandler {
 		}
 	}
 
-	//todo move this to the top (keeping here for locality in development)
-	public static String VALUE_SET_PART = "VALUE_SET";
 
 	@POST
 	@Path("/valueset/")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Produces({ MediaType.APPLICATION_JSON })
+	@ApiImplicitParams({
+			@ApiImplicitParam(name="multipartBody", dataTypeClass = File.class, required=true, paramType="form", type="file" )
+	})
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful Operation", response = String.class),
-			//todo new response code for already exists
 			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
+			@ApiResponse(code = 409, message = "Bad Request", response = ServiceErrorList.class),
 			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
 	})
 	@ApiOperation(value = "Insert a new value set to the fhir server or, if it already exists, update it in place", authorizations = {@Authorization(value = "BasicAuth") })
-	public Response putValueSet(@Context HttpHeaders httpHeaders,
-								@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
-								@ApiParam(value = CohortEngineRestHandler.FHIR_ENDPOINT_DESC, required = true, defaultValue = CohortEngineRestHandler.DEFAULT_FHIR_URL) @QueryParam("fhir_server_rest_endpoint") String fhirEndpoint,
-								@ApiParam(value = CohortEngineRestHandler.FHIR_TENANT_ID_DESC, required = true, defaultValue = "default") @QueryParam("fhir_server_tenant_id") String fhirTenantId,
-								@ApiParam(value = CohortEngineRestHandler.FHIR_TENANT_HEADER_DESC, defaultValue = IBMFhirServerConfig.DEFAULT_TENANT_ID_HEADER) @QueryParam("fhir_server_tenant_id_header") String fhirTenantIdHeader,
-								@ApiParam(value = CohortEngineRestHandler.FHIR_DS_HEADER_DESC, defaultValue = IBMFhirServerConfig.DEFAULT_DATASOURCE_ID_HEADER) @QueryParam("fhir_data_source_id_header") String fhirDataSourceIdHeader,
-								@ApiParam(value = CohortEngineRestHandler.FHIR_DS_ID_DESC) @QueryParam("fhir_data_source_id") String fhirDataSourceId,
-								//todo default to false
-								@QueryParam("updateIfExists") boolean updateIfExists,
-								//todo can assume only need one file at a time
-								@ApiParam(value = "Multipart form request containing value set spreadsheets") IMultipartBody multipartBody
+	public Response createValueSet(@Context HttpHeaders httpHeaders,
+								   @DefaultValue(ServiceBuildConstants.DATE) @ApiParam(value = MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
+								   @ApiParam(value = CohortEngineRestHandler.FHIR_ENDPOINT_DESC, required = true, defaultValue = CohortEngineRestHandler.DEFAULT_FHIR_URL) @QueryParam("fhir_server_rest_endpoint") String fhirEndpoint,
+								   @DefaultValue("default") @ApiParam(value = CohortEngineRestHandler.FHIR_TENANT_ID_DESC, required = true, defaultValue = "default") @QueryParam("fhir_server_tenant_id") String fhirTenantId,
+								   @ApiParam(value = CohortEngineRestHandler.FHIR_TENANT_HEADER_DESC, defaultValue = IBMFhirServerConfig.DEFAULT_TENANT_ID_HEADER) @QueryParam("fhir_server_tenant_id_header") String fhirTenantIdHeader,
+								   @ApiParam(value = CohortEngineRestHandler.FHIR_DS_HEADER_DESC, defaultValue = IBMFhirServerConfig.DEFAULT_DATASOURCE_ID_HEADER) @QueryParam("fhir_data_source_id_header") String fhirDataSourceIdHeader,
+								   @ApiParam(value = CohortEngineRestHandler.FHIR_DS_ID_DESC) @QueryParam("fhir_data_source_id") String fhirDataSourceId,
+								   @DefaultValue ("false") @QueryParam("updateIfExists") boolean updateIfExists,
+								   @ApiParam(value = "Multipart form request containing value set spreadsheets") IMultipartBody multipartBody
 								) {
-
+		String methodName = "createValueSet";
 		String[] authParts = FHIRRestUtils.parseAuthenticationHeaderInfo(httpHeaders);
 		IGenericClient terminologyClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, authParts[0], authParts[1], fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId);
-
+		Response response = null;
 		try {
-			IAttachment valueSetAttachment = multipartBody.getAttachment(VALUE_SET_PART);
+			// Perform api setup
+			Response errorResponse = ServiceBaseUtility.apiSetup(version, logger, methodName);
+			if(errorResponse != null) {
+				return errorResponse;
+			}
+			IAttachment valueSetAttachment = multipartBody.getRootAttachment();
 			if (valueSetAttachment == null) {
-				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", "temp"));
+				throw new IllegalArgumentException("Missing Value Set MIME attachment");
 			}
 
 			ValueSetArtifact artifact;
@@ -407,20 +431,24 @@ public class CohortEngineRestHandler {
 			}
 			ValueSetUtil.validateArtifact(artifact);
 
-			boolean valueSetExists = ValueSetUtil.doesValueSetExist(terminologyClient, artifact);
-			if(valueSetExists && !updateIfExists){
-				//todo look up appropriate response
-				return Response.status(490).build();
+			String valueSetId = ValueSetUtil.importArtifact(terminologyClient, artifact, updateIfExists);
+			if(valueSetId == null){
+				return Response.status(Response.Status.CONFLICT).header("Content-Type", "application/json").build();
 			}
 
-			String valueSetId = ValueSetUtil.importArtifact(terminologyClient, artifact);
-
-			//todo return new value set id, which means altering the import command
-			return Response.status(Response.Status.OK).header("Content-Type", "application/json").entity(valueSetId).build();
+			response = Response.status(Response.Status.OK).header("Content-Type", "application/json").entity(valueSetId).build();
 		}
-		catch (Exception e){
-			return Response.status(Status.ERROR).entity(e).build();
+		catch (IOException e){
+			return new CohortServiceExceptionMapper().toResponse(e);
 		}
+		finally {
+			// Perform api cleanup
+			Response errorResponse = ServiceBaseUtility.apiCleanup(logger, methodName);
+			if( errorResponse != null ) {
+				response = errorResponse;
+			}
+		}
+		return response;
 	}
 }
 

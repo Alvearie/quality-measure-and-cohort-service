@@ -121,22 +121,33 @@ public class ValueSetUtil {
 
 	public static void importArtifacts(IGenericClient client, List<ValueSetArtifact> valueSetArtifacts, boolean updateIfExists) {
 		for(ValueSetArtifact valueSetArtifact : valueSetArtifacts) {
-			boolean valueSetExists = doesValueSetExist(client, valueSetArtifact);
-			if(!valueSetExists || updateIfExists) {
-				importArtifact(client, valueSetArtifact);
-			}
+			importArtifact(client, valueSetArtifact, updateIfExists);
 		}
 	}
 
-	public static boolean doesValueSetExist(IGenericClient client, ValueSetArtifact valueSetArtifact){
-		Bundle bundle = client.search().forResource(ValueSet.class).where(ValueSet.URL.matches().value(valueSetArtifact.getUrl()))
-				.returnBundle(Bundle.class).execute();
-		return bundle.getEntry().size() > 0;
+	public static void deleteValueSet(IGenericClient client, String url){
+		client.delete().resourceConditionalByType("ValueSet").where(ValueSet.URL.matches().value(url)).execute();
 	}
 
-	public static String importArtifact(IGenericClient client, ValueSetArtifact valueSetArtifact) {
+	public static String importArtifact(IGenericClient client, ValueSetArtifact valueSetArtifact, boolean updateIfExists) {
 
-		MethodOutcome outcome = client.create().resource(client.getFhirContext().newJsonParser().encodeResourceToString(valueSetArtifact.getFhirResource())).execute();
+		Bundle bundle = client.search().forResource(ValueSet.class).where(ValueSet.URL.matches().value(valueSetArtifact.getUrl()))
+				.returnBundle(Bundle.class).execute();
+		MethodOutcome outcome;
+		if(bundle.getEntry().size() > 0){
+			String[] url = bundle.getEntry().get(0).getFullUrl().split("/");
+			valueSetArtifact.getFhirResource().setId(url[url.length-1]);
+			if(updateIfExists){
+				outcome = client.update().resource(client.getFhirContext().newJsonParser().encodeResourceToString(valueSetArtifact.getFhirResource()))
+						.conditional().where(ValueSet.URL.matches().value(valueSetArtifact.getUrl())).execute();
+			}
+			else{
+				return null;
+			}
+		}
+		else {
+			outcome = client.create().resource(client.getFhirContext().newJsonParser().encodeResourceToString(valueSetArtifact.getFhirResource())).execute();
+		}
 		valueSetArtifact.setId(outcome.getId().getIdPart());
 
 		return valueSetArtifact.getId();
