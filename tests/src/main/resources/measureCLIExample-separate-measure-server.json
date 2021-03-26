@@ -95,7 +95,7 @@
             "resource": null,
             "params": null,
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
-            "response": "Exception in thread \"main\" java.lang.IllegalArgumentException: Invalid measure parameter file: Must provide \"subtype\", \"start\",  and \"end\" for each measure parameter with type \"interval\".",
+            "response": "Exception in thread \"main\" java\\.lang\\.IllegalArgumentException:\n\\[0\\]\\.parameters\\[Measurement Period\\]\\.end: may not be null",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
             "filters": null,
             "regEx": true
@@ -105,7 +105,7 @@
             "resource": null,
             "params": null,
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
-            "response": "Exception in thread \"main\" java.lang.IllegalArgumentException: Unsupported interval type timeperiod",
+            "response": "Exception in thread \"main\" com.fasterxml.jackson.databind.exc.InvalidTypeIdException: Could not resolve type id 'timeperiod' as a subtype of `com.ibm.cohort.engine.parameter.Parameter`: known type ids = [boolean, code, concept, date, datetime, decimal, integer, interval, quantity, ratio, string, time] (for POJO property 'start')",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
             "filters": null,
             "regEx": true
