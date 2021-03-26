@@ -5,7 +5,9 @@
 #
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
-
+# Should have at least 3 replicas so that they can be spread to different
+# zones and so that during upgrades, k8s can ensure at least 1 replica is running
+# while the others are being upgraded
 replicaCount: 3
 annotations:
   TOOLCHAIN_ID: null
