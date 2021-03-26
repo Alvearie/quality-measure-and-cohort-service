@@ -5,8 +5,6 @@
  */
 package com.ibm.cohort.engine.api.service;
 
-import static com.ibm.watson.common.service.base.ServiceBaseConstants.MINOR_VERSION_DESCRIPTION;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -166,7 +164,7 @@ public class CohortEngineRestHandler {
 	})
 	public Response evaluateMeasure(@Context HttpServletRequest request,
 
-			@ApiParam(value = MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
+			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
 			@ApiParam(value = "patients and the measures to run", required = true) MeasuresEvaluation body) {
 		// return delegate.evaluateMeasures(body, securityContext);
 		ResponseBuilder responseBuilder = Response.status(Response.Status.ACCEPTED).entity("12345")
@@ -385,6 +383,7 @@ public class CohortEngineRestHandler {
 		}
 	}
 
+	public static String VALUE_SET_PART = "VALUE_SET";
 
 	@POST
 	@Path("/valueset/")
@@ -401,7 +400,7 @@ public class CohortEngineRestHandler {
 	})
 	@ApiOperation(value = "Insert a new value set to the fhir server or, if it already exists, update it in place", authorizations = {@Authorization(value = "BasicAuth") })
 	public Response createValueSet(@Context HttpHeaders httpHeaders,
-								   @DefaultValue(ServiceBuildConstants.DATE) @ApiParam(value = MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
+								   @DefaultValue(ServiceBuildConstants.DATE) @ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
 								   @ApiParam(value = CohortEngineRestHandler.FHIR_ENDPOINT_DESC, required = true, defaultValue = CohortEngineRestHandler.DEFAULT_FHIR_URL) @QueryParam("fhir_server_rest_endpoint") String fhirEndpoint,
 								   @DefaultValue("default") @ApiParam(value = CohortEngineRestHandler.FHIR_TENANT_ID_DESC, required = true, defaultValue = "default") @QueryParam("fhir_server_tenant_id") String fhirTenantId,
 								   @ApiParam(value = CohortEngineRestHandler.FHIR_TENANT_HEADER_DESC, defaultValue = IBMFhirServerConfig.DEFAULT_TENANT_ID_HEADER) @QueryParam("fhir_server_tenant_id_header") String fhirTenantIdHeader,
@@ -422,7 +421,7 @@ public class CohortEngineRestHandler {
 			}
 			IAttachment valueSetAttachment = multipartBody.getRootAttachment();
 			if (valueSetAttachment == null) {
-				throw new IllegalArgumentException("Missing Value Set MIME attachment");
+				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", VALUE_SET_PART));
 			}
 
 			ValueSetArtifact artifact;

@@ -88,7 +88,9 @@ public class ValueSetImporterTest extends BaseFhirTest {
 		Bundle oneResult = new Bundle();
 		Bundle.BundleEntryComponent entryComponent = new Bundle.BundleEntryComponent();
 		ValueSet set = new ValueSet();
-		set.setUrl("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1114.7");
+		String url = "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1114.7";
+		set.setUrl(url);
+		entryComponent.setFullUrl(url);
 		entryComponent.setResource(set);
 		oneResult.addEntry(entryComponent);
 		mockFhirResourceRetrieval(resourcePath, oneResult);

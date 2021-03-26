@@ -568,9 +568,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 				FHIRRestUtils.getFHIRClient(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(),
 						ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
 				.thenReturn(measureClient);
-		PowerMockito.when(ValueSetUtil.doesValueSetExist(ArgumentMatchers.any(), ArgumentMatchers.any()))
-				.thenReturn(false);
-		PowerMockito.when(ValueSetUtil.importArtifact(ArgumentMatchers.any(), ArgumentMatchers.any()))
+		PowerMockito.when(ValueSetUtil.importArtifact(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.eq(false)))
 				.thenReturn("ID");
 
 		File tempFile = new File(valueSetInput);
@@ -581,7 +579,6 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 					.thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get(tempFile.getAbsolutePath()))));
 
 		IMultipartBody body = PowerMockito.mock(IMultipartBody.class);
-		when(body.getAttachment(any())).thenReturn(spreadsheetPart);
 		when(body.getRootAttachment()).thenReturn(spreadsheetPart);
 
 		Response loadResponse = restHandler.createValueSet(
@@ -617,9 +614,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 				FHIRRestUtils.getFHIRClient(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(),
 						ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
 				.thenReturn(measureClient);
-		PowerMockito.when(ValueSetUtil.doesValueSetExist(ArgumentMatchers.any(), ArgumentMatchers.any()))
-				.thenReturn(true);
-		PowerMockito.when(ValueSetUtil.importArtifact(ArgumentMatchers.any(), ArgumentMatchers.any()))
+		PowerMockito.when(ValueSetUtil.importArtifact(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.eq(true)))
 				.thenReturn("ID");
 
 		File tempFile = new File(valueSetInput);
@@ -631,7 +626,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 				.thenReturn(new ByteArrayInputStream(x));
 
 		IMultipartBody body = PowerMockito.mock(IMultipartBody.class);
-		when(body.getAttachment(any())).thenReturn(spreadsheetPart);
+		when(body.getRootAttachment()).thenReturn(spreadsheetPart);
 
 		Response loadResponse = restHandler.createValueSet(
 				mockHttpHeaders,
@@ -646,7 +641,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		);
 		assertNotNull(loadResponse);
 		PowerMockito.verifyStatic(Response.class);
-		Response.status(490);
+		Response.status(Status.CONFLICT);
 	}
 
 }
