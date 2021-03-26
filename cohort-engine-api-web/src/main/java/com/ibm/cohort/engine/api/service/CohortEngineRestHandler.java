@@ -57,7 +57,6 @@ import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
 import com.ibm.watson.common.service.base.DarkFeatureSwaggerFilter;
 import com.ibm.cohort.valueset.ValueSetArtifact;
 import com.ibm.cohort.valueset.ValueSetUtil;
-import com.ibm.watson.common.service.base.ServiceBaseConstants;
 import com.ibm.watson.common.service.base.ServiceBaseUtility;
 import com.ibm.websphere.jaxrs20.multipart.IAttachment;
 import com.ibm.websphere.jaxrs20.multipart.IMultipartBody;

@@ -1083,6 +1083,7 @@
 								<!-- Excluding this because the JAXB classes are provided by the JRE as of Java 8, but there are potentially other classes in jakarta that we don't want to wholesale exclude -->
 								jakarta.xml.bind:jakarta.xml.bind-api
 							</ignoredUsedUndeclaredDependencies>
+							<ignoredUsedUndeclaredDependencies>com.sun.activation:jakarta.activation</ignoredUsedUndeclaredDependencies>
 							
 							<ignoredUnusedDeclaredDependencies> 
 								<ignoredUnusedDeclaredDependency>ca.uhn.hapi.fhir:hapi-fhir-structures-r4</ignoredUnusedDeclaredDependency>	
