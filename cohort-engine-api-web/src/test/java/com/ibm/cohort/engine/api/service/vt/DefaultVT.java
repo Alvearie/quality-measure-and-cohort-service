@@ -60,6 +60,8 @@ import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.parameter.DateParameter;
 import com.ibm.cohort.engine.parameter.IntervalParameter;
 import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.cohort.engine.api.service.CohortEngineRestHandler;
+import com.ibm.cohort.engine.api.service.ServiceBuildConstants;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import com.ibm.watson.common.service.base.utilities.BVT;
 import com.ibm.watson.common.service.base.utilities.DVT;
@@ -67,6 +69,7 @@ import com.ibm.watson.common.service.base.utilities.ServiceAPIGlobalSpec;
 import com.ibm.watson.common.service.base.utilities.UNDERCONSTRUCTION;
 import com.ibm.watson.common.service.base.vt.ServiceVTBase;
 import com.jayway.restassured.http.ContentType;
+import com.jayway.restassured.response.Header;
 import com.jayway.restassured.response.Headers;
 import com.jayway.restassured.response.ValidatableResponse;
 import com.jayway.restassured.specification.RequestSpecification;
@@ -131,14 +134,13 @@ public class DefaultVT extends ServiceVTBase {
 		if( System.getProperty("test.enabledDarkFeatures") == null ) {
 			System.setProperty("test.enabledDarkFeatures", SERVICE_ENABLED_DARK_FEATURES_ALL);
 		}
-		
 		ObjectMapper om = new ObjectMapper();
-		
+
 		String dataClientConfigPath = System.getProperty("test.dataConfig");
 		if( dataClientConfigPath != null ) {
 			File dataClientConfigFile = new File(dataClientConfigPath);
 			dataServerConfig = om.readValue(dataClientConfigFile, FhirServerConfig.class);
-		} else { 
+		} else {
 			fail("Missing required system property 'test.dataConfig'");
 		}
 		
@@ -385,22 +387,14 @@ public class DefaultVT extends ServiceVTBase {
 
     @Test
 	public void testValueSetUpload(){
-		//todo possibly extract the endpoint
 		final String RESOURCE = getUrlBase() + "/{version}/valueset";
-		FhirContext fhirContext = FhirContext.forR4();
-//		IParser parser = fhirContext.newJsonParser().setPrettyPrint(true);
 
-<<<<<<< HEAD
-		RequestSpecification request = buildBaseRequest(new Headers())
-//				.queryParam("version", ServiceBuildConstants.DATE)
-=======
 		String auth = dataServerConfig.getUser() + ":" + dataServerConfig.getPassword();
 		byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(StandardCharsets.ISO_8859_1));
 
 		RequestSpecification request = buildBaseRequest(new Headers(new Header("Authorization", new String(encodedAuth))))
 				.param("version", ServiceBuildConstants.DATE)
 				.queryParam("fhir_server_rest_endpoint", dataServerConfig.getEndpoint())
->>>>>>> 8f4ea94... Fixing auth
 				.queryParam("updateIfExists", false)
 				.multiPart(CohortEngineRestHandler.VALUE_SET_PART, new File("src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx"));
 
