@@ -20,7 +20,8 @@ public class MeasureParameterInfo {
 	private Integer min = null;
 	private String max = null;
 	private String type = null;
-	private String documentation = new String();
+	private String defaultValue = null;
+	private String documentation = null;
 
 	/**
 	 * @param name Name of the parameter which is the Fhir ParameterDefinition.name field
@@ -108,6 +109,28 @@ public class MeasureParameterInfo {
 	}
 
 	/**
+	 * @param defaultValue The defaultValue of the parameter. FHIR ParameterDefinition.defaultValue field
+	 * @return this
+	 */
+	public MeasureParameterInfo defaultValue(String defaultValue) {
+		this.defaultValue = defaultValue;
+		return this;
+	}
+
+	@ApiModelProperty(value = "The defaultValue of the parameter. FHIR ParameterDefinition.defaultValue field")
+	@JsonProperty("defaultValue")
+	public String getDefaultValue() {
+		return defaultValue;
+	}
+
+	/**
+	 * @param defaultValue The defaultValue of the parameter. FHIR ParameterDefinition.defaultValue field
+	 */
+	public void setDefaultValue(String defaultValue) {
+		this.defaultValue = defaultValue;
+	}
+
+	/**
 	 * @param documentation A string describing any documentation associated with this parameter. FHIR FHIR ParameterDefinition.documentation field
 	 * @return this
 	 */
@@ -164,6 +187,7 @@ public class MeasureParameterInfo {
 				&& Objects.equals(use, measureParameterInfo.use)
 				&& Objects.equals(max, measureParameterInfo.max)
 				&& Objects.equals(type, measureParameterInfo.type)
+				&& Objects.equals(defaultValue, measureParameterInfo.defaultValue)
 				&& Objects.equals(documentation,
 						measureParameterInfo.documentation)
 				&& Objects.equals(min, measureParameterInfo.min);
@@ -172,7 +196,7 @@ public class MeasureParameterInfo {
 	@Override
 	public int hashCode() {
 		return Objects.hash(name, use, max,
-				type, documentation, min);
+				type, defaultValue, documentation, min);
 	}
 
 	@Override
@@ -185,6 +209,7 @@ public class MeasureParameterInfo {
 		sb.append("    min: ").append(toIndentedString(min)).append("\n");
 		sb.append("    max: ").append(toIndentedString(max)).append("\n");
 		sb.append("    type: ").append(toIndentedString(type)).append("\n");
+		sb.append("    defaultValue: ").append(toIndentedString(defaultValue)).append("\n");
 		sb.append("    documentation: ").append(toIndentedString(documentation))
 				.append("\n");
 		return sb.toString();

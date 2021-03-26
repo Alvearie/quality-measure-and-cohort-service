@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
 import com.ibm.watson.service.base.model.ServiceError;
 
-import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException;
 import ca.uhn.fhir.rest.server.exceptions.AuthenticationException;
 import ca.uhn.fhir.rest.server.exceptions.BaseServerResponseException;
@@ -31,14 +30,10 @@ import ca.uhn.fhir.rest.server.exceptions.BaseServerResponseException;
 public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 	private static final Logger logger = LoggerFactory.getLogger(CohortServiceExceptionMapper.class.getName());
 	private static final int maxExceptionCauseDepth = 20;
-	private IParser fhirParser;
+//	private IParser fhirParser;
 
 	public CohortServiceExceptionMapper() {
 		
-	}
-	
-	public CohortServiceExceptionMapper(IParser fhirParser) {
-		this.fhirParser = fhirParser;
 	}
 
 	@Override
@@ -105,9 +100,11 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 				
 				BaseServerResponseException sre = (BaseServerResponseException) ex;
 				reason = "Exception while communicating with FHIR";
-				if( fhirParser != null && sre.getOperationOutcome() != null ) {
-					description = fhirParser.encodeResourceToString(sre.getOperationOutcome());
+
+				if( sre.getResponseBody() != null ) {
+					description = sre.getResponseBody(); 
 				} else { 
+					// Some errors do not have a response body 
 					description = sre.getLocalizedMessage();
 				}
 			}
@@ -115,6 +112,7 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 			else {
 				serviceErrorCode = Status.INTERNAL_SERVER_ERROR.getStatusCode();
 				serviceErrorListCode = serviceErrorCode;
+				description = ex.getMessage();
 			}
 			
 			if(reason.isEmpty()) {

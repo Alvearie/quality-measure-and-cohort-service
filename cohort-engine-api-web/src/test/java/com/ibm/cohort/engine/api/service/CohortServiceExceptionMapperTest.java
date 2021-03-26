@@ -96,7 +96,10 @@ public class CohortServiceExceptionMapperTest {
 		outcome.getText().setStatusAsString("generated");
 		outcome.getIssueFirstRep().setSeverity(IssueSeverity.ERROR).setCode(OperationOutcome.IssueType.PROCESSING).setDiagnostics("Resource Patient/something is not found");
 		
-		Response response = new CohortServiceExceptionMapper(parser).toResponse(new ResourceNotFoundException("Error", outcome));
+		ResourceNotFoundException ex = new ResourceNotFoundException("Error", outcome);
+		ex.setResponseBody(parser.encodeResourceToString(outcome));
+		
+		Response response = new CohortServiceExceptionMapper().toResponse(ex);
 		ServiceErrorList serviceErrorList = (ServiceErrorList) response.getEntity();
 		assertEquals(new Integer(400), serviceErrorList.getStatusCode());
 		assertEquals(1, serviceErrorList.getErrors().size());
@@ -126,20 +129,23 @@ public class CohortServiceExceptionMapperTest {
 
 		OperationOutcome outcome = parser.parseResource(OperationOutcome.class, json.toString());
 		
-		Response response = new CohortServiceExceptionMapper(parser).toResponse(new ResourceNotFoundException("Error", outcome));
+		ResourceNotFoundException ex = new ResourceNotFoundException("Error", outcome);
+		ex.setResponseBody(json.toString());
+		
+		Response response = new CohortServiceExceptionMapper().toResponse(ex);
 		ServiceErrorList serviceErrorList = (ServiceErrorList) response.getEntity();
 		assertEquals(new Integer(400), serviceErrorList.getStatusCode());
 		assertEquals(1, serviceErrorList.getErrors().size());
 		
 		//System.out.println("---" + serviceErrorList.getErrors().get(0).getDescription());
 		
-		assertTrue( "Missing resource ID in response", serviceErrorList.getErrors().get(0).getDescription().contains("Patient/patientId") );
+		assertTrue( "Missing resource ID in response", serviceErrorList.getErrors().get(0).getDescription().contains("patientId") );
 	}
 	
 	@Test
 	public void testToResponseResourceNotFoundExceptionNotOperationOutcome() throws Exception {
 		
-		Response response = new CohortServiceExceptionMapper(parser).toResponse(new ResourceNotFoundException("Bad URL"));
+		Response response = new CohortServiceExceptionMapper().toResponse(new ResourceNotFoundException("Bad URL"));
 		ServiceErrorList serviceErrorList = (ServiceErrorList) response.getEntity();
 		assertEquals(new Integer(400), serviceErrorList.getStatusCode());
 		assertEquals(1, serviceErrorList.getErrors().size());

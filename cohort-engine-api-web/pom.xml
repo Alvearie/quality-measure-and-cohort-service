@@ -220,7 +220,7 @@
 			<artifactId>jcache</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-		
+
 		<!-- Provided dependencies -->
 		<dependency>
 			<groupId>com.ibm.websphere.appserver.api</groupId>

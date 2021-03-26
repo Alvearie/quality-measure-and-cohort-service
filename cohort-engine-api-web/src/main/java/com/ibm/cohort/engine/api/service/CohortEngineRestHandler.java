@@ -58,7 +58,6 @@ import com.ibm.websphere.jaxrs20.multipart.IMultipartBody;
 
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
-import ca.uhn.fhir.rest.server.exceptions.BaseServerResponseException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -228,20 +227,17 @@ public class CohortEngineRestHandler {
 				
 				MeasureEvaluator evaluator = new MeasureEvaluator(provider, provider, terminologyProvider, dataProviders);
 				
-				try {
-					MeasureReport report = evaluator.evaluatePatientMeasure(evaluationRequest.getPatientId(), evaluationRequest.getMeasureContext(), evaluationRequest.getEvidenceOptions());
-					
-					// The default serializer gets into an infinite loop when trying to serialize MeasureReport, so we use the
-					// HAPI encoder instead.
-					ResponseBuilder responseBuilder = Response.status(Response.Status.OK).header("Content-Type", "application/json").entity(parser.encodeResourceToString(report));
-					response = responseBuilder.build();
-				} catch( BaseServerResponseException ex ) {
-					response = new CohortServiceExceptionMapper(dataClient.getFhirContext().newJsonParser()).toResponse(ex);
-				}
+				MeasureReport report = evaluator.evaluatePatientMeasure(evaluationRequest.getPatientId(), evaluationRequest.getMeasureContext(), evaluationRequest.getEvidenceOptions());
+				
+				// The default serializer gets into an infinite loop when trying to serialize MeasureReport, so we use the
+				// HAPI encoder instead.
+				ResponseBuilder responseBuilder = Response.status(Response.Status.OK).header("Content-Type", "application/json").entity(parser.encodeResourceToString(report));
+				response = responseBuilder.build();
+
 			}
 		} catch (Throwable e) {
 			//map any exceptions caught into the proper REST error response objects
-			return new CohortServiceExceptionMapper().toResponse(e);
+			response = new CohortServiceExceptionMapper().toResponse(e);
 		} finally {
 			// Perform api cleanup
 			Response errorResponse = ServiceBaseUtility.apiCleanup(logger, methodName);

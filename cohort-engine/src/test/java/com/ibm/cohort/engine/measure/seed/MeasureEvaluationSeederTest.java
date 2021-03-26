@@ -1,29 +1,20 @@
-/*
- * (C) Copyright IBM Corp. 2021, 2021
- *
- * SPDX-License-Identifier: Apache-2.0
- */
 package com.ibm.cohort.engine.measure.seed;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
-import com.ibm.cohort.engine.measure.LibraryHelper;
 import org.cqframework.cql.elm.execution.Library.Usings;
 import org.cqframework.cql.elm.execution.UsingDef;
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
-import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.Type;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -33,7 +24,8 @@ import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
-@SuppressWarnings("unchecked")
+import com.ibm.cohort.engine.measure.LibraryHelper;
+
 public class MeasureEvaluationSeederTest {
 
     private final String libraryUrl = "http://measure.evaluation.seeder.test/Library/test-library";
@@ -49,17 +41,11 @@ public class MeasureEvaluationSeederTest {
     private final String periodEnd = "2021-01-01";
     private final String productLine = "productLine";
 
-    private final String defaultParameterKey = "defaultParameterKey";
-    private final Type defaultValue = new StringType("defaultValue");
-    private final Object resolvedDefault = new Object();
-
     @Test
     public void create_fullContext() {
         TerminologyProvider terminologyProvider = Mockito.mock(TerminologyProvider.class);
 
         DataProvider dataProvider = Mockito.mock(DataProvider.class);
-        Mockito.when(dataProvider.resolvePath(defaultValue, "value"))
-                .thenReturn(resolvedDefault);
 
         Map<String, DataProvider> dataProviders = new HashMap<>();
         dataProviders.put(fhirUri, dataProvider);
@@ -68,7 +54,7 @@ public class MeasureEvaluationSeederTest {
         Mockito.when(libraryLoader.load(createLibraryIdentifier()))
                 .thenReturn(createCqlLibrary());
 
-		LibraryResolutionProvider<Library> libraryResourceProvider = Mockito.mock(LibraryResolutionProvider.class);
+        LibraryResolutionProvider<Library> libraryResourceProvider = Mockito.mock(LibraryResolutionProvider.class);
         Mockito.when(libraryResourceProvider.resolveLibraryByCanonicalUrl(libraryUrl))
                 .thenReturn(createLibrary());
 
@@ -93,7 +79,6 @@ public class MeasureEvaluationSeederTest {
 
         // Attempt to validate the `Context` by looking for key fields under our control.
         Assert.assertSame(terminologyProvider, actual.getContext().resolveTerminologyProvider());
-        Assert.assertSame(resolvedDefault, actual.getContext().resolveParameterRef(null, defaultParameterKey));
         Assert.assertEquals(productLine, actual.getContext().resolveParameterRef(null, "Product Line"));
         Assert.assertTrue(actual.getContext().isExpressionCachingEnabled());
         Assert.assertNotNull(actual.getContext().getDebugMap());
@@ -104,8 +89,6 @@ public class MeasureEvaluationSeederTest {
         TerminologyProvider terminologyProvider = Mockito.mock(TerminologyProvider.class);
 
         DataProvider dataProvider = Mockito.mock(DataProvider.class);
-        Mockito.when(dataProvider.resolvePath(defaultValue, "value"))
-                .thenReturn(resolvedDefault);
 
         Map<String, DataProvider> dataProviders = new HashMap<>();
         dataProviders.put(fhirUri, dataProvider);
@@ -139,7 +122,6 @@ public class MeasureEvaluationSeederTest {
 
         // Attempt to validate the `Context` by looking for key fields under our control.
         Assert.assertSame(terminologyProvider, actual.getContext().resolveTerminologyProvider());
-        Assert.assertSame(resolvedDefault, actual.getContext().resolveParameterRef(null, defaultParameterKey));
         Assert.assertThrows(NullPointerException.class, () -> actual.getContext().resolveParameterRef(null, "Product Line"));
         Assert.assertFalse(actual.getContext().isExpressionCachingEnabled());
         Assert.assertNull(actual.getContext().getDebugMap());
@@ -223,17 +205,11 @@ public class MeasureEvaluationSeederTest {
     }
 
     private Measure createMeasure() {
-        Extension extension = new Extension();
-        extension.setUrl(MeasureEvaluationSeeder.PARAMETER_EXTENSION_URL);
-        extension.setId(defaultParameterKey);
-        extension.setValue(defaultValue);
-
         CanonicalType libraryRef = new CanonicalType();
         libraryRef.setValue(libraryUrl);
 
         Measure measure = new Measure();
         measure.setLibrary(Collections.singletonList(libraryRef));
-        measure.setExtension(Collections.singletonList(extension));
         return measure;
     }
 

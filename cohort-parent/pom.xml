@@ -1093,7 +1093,10 @@
 							<ignoredUnusedDeclaredDependencies> 
 								<ignoredUnusedDeclaredDependency>ca.uhn.hapi.fhir:hapi-fhir-structures-r4</ignoredUnusedDeclaredDependency>	
 								<ignoredUnusedDeclaredDependency>org.slf4j:slf4j-simple</ignoredUnusedDeclaredDependency>			
-								<ignoredUnusedDeclaredDependency>com.github.ben-manes.caffeine:jcache</ignoredUnusedDeclaredDependency>			
+								<ignoredUnusedDeclaredDependency>com.github.ben-manes.caffeine:jcache</ignoredUnusedDeclaredDependency>
+								<ignoredUnusedDeclaredDependency>org.opencds.cqf:common</ignoredUnusedDeclaredDependency>
+								<ignoredUnusedDeclaredDependency>org.hamcrest:hamcrest-core</ignoredUnusedDeclaredDependency>
+								<ignoredUnusedDeclaredDependency>org.apache.commons:commons-text</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>org.hibernate:hibernate-validator</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>org.glassfish:javax.el</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>com.github.tomakehurst:wiremock-jre8</ignoredUnusedDeclaredDependency>

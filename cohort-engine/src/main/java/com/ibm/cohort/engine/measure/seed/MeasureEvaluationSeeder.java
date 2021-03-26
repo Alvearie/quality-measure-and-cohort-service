@@ -5,17 +5,20 @@
  */
 package com.ibm.cohort.engine.measure.seed;
 
+import static com.ibm.cohort.engine.cdm.CDMConstants.MEASURE_PARAMETER_URL;
+import static com.ibm.cohort.engine.cdm.CDMConstants.PARAMETER_DEFAULT_URL;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
+import org.hl7.fhir.r4.model.ParameterDefinition;
 import org.hl7.fhir.r4.model.Type;
 import org.opencds.cqf.common.helpers.DateHelper;
 import org.opencds.cqf.common.helpers.UsingHelper;
@@ -31,10 +34,9 @@ import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.measure.LibraryHelper;
+import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
 
 public class MeasureEvaluationSeeder {
-
-	public static final String PARAMETER_EXTENSION_URL = "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/cqfm-parameter";
 
 	private final TerminologyProvider terminologyProvider;
 	private final Map<String, DataProvider> dataProviders;
@@ -89,13 +91,12 @@ public class MeasureEvaluationSeeder {
 		Interval measurementPeriod = createMeasurePeriod(periodStart, periodEnd);
 		Context context = createContext(primaryLibrary, lastModelUri, dataProvider, measurementPeriod, productLine);
 
+		// fhir path: Measure.extension[measureParameter][].valueParameterDefinition.extension[defaultValue]
 		measure.getExtension().stream()
-				.filter(this::isParameterExtension)
-				.forEach(measureDefault ->
-						context.setParameter(
-								null,
-								measureDefault.getId(),
-								toCqlObject(measureDefault.getValue(), dataProvider)));
+				.filter(MeasureEvaluationSeeder::isMeasureParameter)
+				.map(parameter -> dataProvider.resolvePath(parameter, "valueParameterDefinition"))
+				.map(ParameterDefinition.class::cast)
+				.forEach(parameterDefinition -> setDefaultValue(context, parameterDefinition, dataProvider));
 
 		return new CustomMeasureEvaluationSeed(measure, context, measurementPeriod, dataProvider);
 	}
@@ -144,13 +145,27 @@ public class MeasureEvaluationSeeder {
 							DateHelper.resolveRequestDate(periodEnd, false), true);
 	}
 
+	private void setDefaultValue(Context context, ParameterDefinition parameterDefinition, ModelResolver modelResolver) {
+		parameterDefinition.getExtension().stream()
+				.filter(MeasureEvaluationSeeder::isDefaultValue)
+				.forEach(defaultValue ->
+						         context.setParameter(
+								         null,
+								         parameterDefinition.getName(),
+								         toCqlObject(defaultValue.getValue(), modelResolver)));
+	}
+
 	private Object toCqlObject(Type type, ModelResolver modelResolver) {
 		return Optional.ofNullable(type)
 				.map((fhirType) -> modelResolver.resolvePath(fhirType, "value"))
 				.orElseThrow(() -> new UnsupportedFhirTypeException(type));
 	}
 
-	private boolean isParameterExtension(Extension extension) {
-		return PARAMETER_EXTENSION_URL.equals(extension.getUrl());
+	public static boolean isMeasureParameter(Extension extension) {
+		return MEASURE_PARAMETER_URL.equals(extension.getUrl());
+	}
+
+	public static boolean isDefaultValue(Extension extension) {
+		return PARAMETER_DEFAULT_URL.equals(extension.getUrl());
 	}
 }
