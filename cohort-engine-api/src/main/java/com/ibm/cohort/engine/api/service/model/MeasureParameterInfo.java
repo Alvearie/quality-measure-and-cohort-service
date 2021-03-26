@@ -19,11 +19,12 @@ public class MeasureParameterInfo {
 	private Integer min = null;
 	private String max = null;
 	private String type = null;
-	private String documentation = new String();
+	private String defaultValue = null;
+	private String documentation = null;
 
 	/**
 	 * @param name Name of the parameter which is the Fhir ParameterDefinition.name field
-	 * @return
+	 * @return this
 	 */
 	public MeasureParameterInfo name(String name) {
 		this.name = name;
@@ -45,7 +46,7 @@ public class MeasureParameterInfo {
 
 	/**
 	 * @param use A string describing if the parameter is an input or output parameter. FHIR ParameterDefinition.use field
-	 * @return
+	 * @return this
 	 */
 	public MeasureParameterInfo use(String use) {
 		this.use = use;
@@ -86,7 +87,7 @@ public class MeasureParameterInfo {
 
 	/**
 	 * @param type The type of the parameter. FHIR ParameterDefinition.type field
-	 * @return
+	 * @return this
 	 */
 	public MeasureParameterInfo type(String type) {
 		this.type = type;
@@ -107,8 +108,30 @@ public class MeasureParameterInfo {
 	}
 
 	/**
+	 * @param defaultValue The defaultValue of the parameter. FHIR ParameterDefinition.defaultValue field
+	 * @return this
+	 */
+	public MeasureParameterInfo defaultValue(String defaultValue) {
+		this.defaultValue = defaultValue;
+		return this;
+	}
+
+	@ApiModelProperty(value = "The defaultValue of the parameter. FHIR ParameterDefinition.defaultValue field")
+	@JsonProperty("defaultValue")
+	public String getDefaultValue() {
+		return defaultValue;
+	}
+
+	/**
+	 * @param defaultValue The defaultValue of the parameter. FHIR ParameterDefinition.defaultValue field
+	 */
+	public void setDefaultValue(String defaultValue) {
+		this.defaultValue = defaultValue;
+	}
+
+	/**
 	 * @param documentation A string describing any documentation associated with this parameter. FHIR FHIR ParameterDefinition.documentation field
-	 * @return
+	 * @return this
 	 */
 	public MeasureParameterInfo documentation(String documentation) {
 		this.documentation = documentation;
@@ -130,7 +153,7 @@ public class MeasureParameterInfo {
 
 	/**
 	 * @param min The minimum number of times this parameter may be used (ie 0 means optional parameter,  greater than or equal to 1 means required parameter) FHIR ParameterDefinition.min field
-	 * @return
+	 * @return this
 	 */
 	public MeasureParameterInfo min(Integer min) {
 		this.min = min;
@@ -163,6 +186,7 @@ public class MeasureParameterInfo {
 				&& Objects.equals(use, measureParameterInfo.use)
 				&& Objects.equals(max, measureParameterInfo.max)
 				&& Objects.equals(type, measureParameterInfo.type)
+				&& Objects.equals(defaultValue, measureParameterInfo.defaultValue)
 				&& Objects.equals(documentation,
 						measureParameterInfo.documentation)
 				&& Objects.equals(min, measureParameterInfo.min);
@@ -171,7 +195,7 @@ public class MeasureParameterInfo {
 	@Override
 	public int hashCode() {
 		return Objects.hash(name, use, max,
-				type, documentation, min);
+				type, defaultValue, documentation, min);
 	}
 
 	@Override
@@ -184,6 +208,7 @@ public class MeasureParameterInfo {
 		sb.append("    min: ").append(toIndentedString(min)).append("\n");
 		sb.append("    max: ").append(toIndentedString(max)).append("\n");
 		sb.append("    type: ").append(toIndentedString(type)).append("\n");
+		sb.append("    defaultValue: ").append(toIndentedString(defaultValue)).append("\n");
 		sb.append("    documentation: ").append(toIndentedString(documentation))
 				.append("\n");
 		return sb.toString();

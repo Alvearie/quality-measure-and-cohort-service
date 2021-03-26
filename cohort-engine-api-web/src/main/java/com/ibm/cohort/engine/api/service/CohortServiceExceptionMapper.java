@@ -15,6 +15,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +24,7 @@ import com.ibm.watson.service.base.model.ServiceError;
 
 import ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException;
 import ca.uhn.fhir.rest.server.exceptions.AuthenticationException;
+import ca.uhn.fhir.rest.server.exceptions.BaseServerResponseException;
 
 @Provider
 public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
@@ -81,10 +83,17 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 				serviceErrorCode = Status.BAD_REQUEST.getStatusCode();
 				serviceErrorListCode = serviceErrorCode;
 			}
+			// FHIR Exception
+			else if (ex instanceof BaseServerResponseException) {
+				serviceErrorCode = Status.INTERNAL_SERVER_ERROR.getStatusCode();
+				serviceErrorListCode = serviceErrorCode;
+				description = StringEscapeUtils.escapeJson(((BaseServerResponseException) ex).getResponseBody());
+			}
 			//catch everything else and return a 500
 			else {
 				serviceErrorCode = Status.INTERNAL_SERVER_ERROR.getStatusCode();
 				serviceErrorListCode = serviceErrorCode;
+				description = ex.getMessage();
 			}
 			
 			if(reason.isEmpty()) {

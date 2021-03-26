@@ -5,28 +5,28 @@
  */
 package com.ibm.cohort.engine.api.service;
 
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.core.HttpHeaders;
 
-import org.hl7.fhir.r4.model.CanonicalType;
+import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
-import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.ParameterDefinition;
 import org.hl7.fhir.r4.model.ParameterDefinition.ParameterUse;
-import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
-import com.ibm.cohort.engine.measure.RestFhirLibraryResolutionProvider;
 import com.ibm.cohort.engine.measure.RestFhirMeasureResolutionProvider;
+import com.ibm.cohort.engine.measure.seed.MeasureEvaluationSeeder;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
+import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 
 /**
  * A set of methods that can be re-used across REST calls
@@ -150,10 +150,11 @@ public class FHIRRestUtils {
 	 * measure version using semantic versioning
 	 */
 	public static List<MeasureParameterInfo> getParametersForMeasureIdentifier(IGenericClient measureClient, Identifier identifier, String measureVersion) {
-		RestFhirMeasureResolutionProvider msp = new RestFhirMeasureResolutionProvider(measureClient);
-		Measure measure = msp.resolveMeasureByIdentifier(identifier, measureVersion);
+		Measure measure = Optional.of(new RestFhirMeasureResolutionProvider(measureClient))
+				.map(provider -> provider.resolveMeasureByIdentifier(identifier, measureVersion))
+				.orElseThrow(() -> new ResourceNotFoundException("Measure resource not found for identifier: " + identifier + ", version: " + measureVersion));
 
-		return FHIRRestUtils.getLibraryParmsForMeasure(measureClient, measure);
+		return getParameters(measure);
 	}
 	
 	/**
@@ -165,65 +166,41 @@ public class FHIRRestUtils {
 	 * Objects describe the parameters for libraries linked to by the FHIR Measure resource id
 	 */
 	public static List<MeasureParameterInfo> getParametersForMeasureId(IGenericClient measureClient, String measureId) {
-		RestFhirMeasureResolutionProvider msp = new RestFhirMeasureResolutionProvider(measureClient);
-		Measure measure = msp.resolveMeasureById(measureId);
+		Measure measure = Optional.of(new RestFhirMeasureResolutionProvider(measureClient))
+				.map(provider -> provider.resolveMeasureById(measureId))
+				.orElseThrow(() -> new ResourceNotFoundException("Measure resource not found for id: " + measureId));
 
-		return FHIRRestUtils.getLibraryParmsForMeasure(measureClient, measure);
+		return getParameters(measure);
 	}
-	
-	/**
-	 * @param measureClient A client that can be used to make calls to the FHIR server
-	 * @param measure A measure resource object we want to get the parameters for
-	 * @return A list containing parameter info for all the parameters
-	 * 
-	 * Get a list of MeasureParameterInfo objects which are used to return results via the REST API.
-	 * Objects describe the parameters for libraries linked to by the given FHIR Measure object
-	 */
-	protected static List<MeasureParameterInfo> getLibraryParmsForMeasure(IGenericClient measureClient, Measure measure){
-		List<MeasureParameterInfo> parameterInfoList = new ArrayList<MeasureParameterInfo>();
-		LibraryResolutionProvider<Library> libraryResolutionProvider = new RestFhirLibraryResolutionProvider(
-				measureClient);
 
-		//get the library urls for the libraries linked to this measure
-		List<CanonicalType> measureLibs = measure.getLibrary();
+	private static List<MeasureParameterInfo> getParameters(Measure measure) {
+		return measure.getExtension().stream()
+				.filter(MeasureEvaluationSeeder::isMeasureParameter)
+				.map(Extension::getValue)
+				.map(ParameterDefinition.class::cast) // enforced as part of IG
+				.map(FHIRRestUtils::toMeasureParameterInfo)
+				.collect(Collectors.toList());
+	}
 
-		//loop through listed libraries and get their parameter info
-		for(CanonicalType libraryCanonType : measureLibs) {
-			String libraryUrl = libraryCanonType.getValue();
-			Library library = libraryResolutionProvider.resolveLibraryByCanonicalUrl(libraryUrl);
+	private static MeasureParameterInfo toMeasureParameterInfo(ParameterDefinition parameterDefinition) {
+		MeasureParameterInfo retVal = new MeasureParameterInfo();
+		retVal.name(parameterDefinition.getName())
+				.type(parameterDefinition.getType())
+				.min(parameterDefinition.getMin())
+				.max(parameterDefinition.getMax())
+				.documentation(parameterDefinition.getDocumentation());
 
-			if(library == null) {
-				// if we can resolve by url, try to resolve by fhir library.id
-				String libraryId = libraryCanonType.getId();
-				if(libraryId != null) {
-					library = libraryResolutionProvider.resolveLibraryById(libraryId);
-				}
-			}
+		Optional.ofNullable(parameterDefinition.getUse())
+				.map(ParameterUse::getDisplay)
+				.ifPresent(retVal::setUse);
 
-			if(library != null) {
-				//get the parameter info and add it to our list
-				List<ParameterDefinition> parmDefs = library.getParameter();
-				if(parmDefs != null) {
-					for(ParameterDefinition parmDef : parmDefs) {
-						//use describes input/outut parameter type
-						ParameterUse use = parmDef.getUse();
-						String useStr = null;
-						if(use != null) {
-							useStr = use.getDisplay();
-						}
-						//min/max describe how many times a parameter can/must be used
-						MeasureParameterInfo parmInfo = new MeasureParameterInfo().name(parmDef.getName())
-						.type(parmDef.getType())
-						.min(parmDef.getMin())
-						.max(parmDef.getMax())
-						.use(useStr)
-						.documentation(parmDef.getDocumentation());
-						parameterInfoList.add(parmInfo);
-					}
-				}
-			}
-		}
-		return parameterInfoList;
+		parameterDefinition.getExtension().stream()
+				.filter(MeasureEvaluationSeeder::isDefaultValue).findFirst() // only zero or one per IG
+				.map(Extension::getValue)
+				.map(Object::toString)
+				.ifPresent(retVal::setDefaultValue);
+
+		return retVal;
 	}
 	
 	/**

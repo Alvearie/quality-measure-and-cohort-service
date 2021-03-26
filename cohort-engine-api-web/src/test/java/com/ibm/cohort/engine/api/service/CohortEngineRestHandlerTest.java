@@ -260,6 +260,7 @@ public class CohortEngineRestHandlerTest {
 		String validResp = "class MeasureParameterInfoList {\n"
 				+ "    parameterInfoList: [class MeasureParameterInfo {\n" + "        name: name\n"
 				+ "        use: IN\n" + "        min: 0\n" + "        max: max\n" + "        type: type\n"
+				+ "        defaultValue: null\n"
 				+ "        documentation: documentation\n" + "    ]\n" + "}";
 		assertEquals(validResp, loadResponse.getEntity().toString());
 	}

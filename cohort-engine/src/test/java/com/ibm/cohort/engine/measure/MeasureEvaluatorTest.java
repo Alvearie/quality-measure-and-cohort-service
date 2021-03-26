@@ -9,6 +9,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.ibm.cohort.engine.cdm.CDMConstants.MEASURE_PARAMETER_URL;
+import static com.ibm.cohort.engine.cdm.CDMConstants.PARAMETER_DEFAULT_URL;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -22,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.ibm.cohort.engine.measure.seed.MeasureEvaluationSeeder;
 import org.hl7.fhir.r4.model.Address;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CapabilityStatement;
@@ -35,6 +36,7 @@ import org.hl7.fhir.r4.model.IntegerType;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
+import org.hl7.fhir.r4.model.ParameterDefinition;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Type;
@@ -334,14 +336,8 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
 
 		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
-		Extension parameterExtension = new Extension();
-		parameterExtension.setUrl(MeasureEvaluationSeeder.PARAMETER_EXTENSION_URL);
-		parameterExtension.setId("SomeAge");
 
-		Type age = new IntegerType(20);
-		parameterExtension.setValue(age);
-
-		measure.addExtension(parameterExtension);
+		measure.addExtension(createMeasureParameter("SomeAge", new IntegerType(20)));
 		mockFhirResourceRetrieval(measure);
 
 		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());
@@ -365,14 +361,8 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 
 		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
 
-		Extension parameterExtension = new Extension();
-		parameterExtension.setUrl(MeasureEvaluationSeeder.PARAMETER_EXTENSION_URL);
-		parameterExtension.setId("SomeAge");
-		Type age = new StringType("invalid");
+		measure.addExtension(createMeasureParameter("SomeAge", new StringType("invalid")));
 
-		parameterExtension.setValue(age);
-
-		measure.addExtension(parameterExtension);
 		mockFhirResourceRetrieval(measure);
 
 		evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());
@@ -395,16 +385,10 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 
 		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
 
-		Extension parameterExtension = new Extension();
-		parameterExtension.setUrl(MeasureEvaluationSeeder.PARAMETER_EXTENSION_URL);
-		parameterExtension.setId("SomeAge");
-
 		Address unsupportedType = new Address();
 		unsupportedType.setCity("Cleaveland");
 
-		parameterExtension.setValue(unsupportedType);
-
-		measure.addExtension(parameterExtension);
+		measure.addExtension(createMeasureParameter("SomeAge", unsupportedType));
 		mockFhirResourceRetrieval(measure);
 
 		evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());
@@ -606,5 +590,21 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		
 		assertTrue(report.getEvaluatedResource().isEmpty());
 		assertEquals(null, report.getExtensionByUrl(CDMConstants.EVIDENCE_URL));
+	}
+
+	private Extension createMeasureParameter(String name, Type defaultValue) {
+		Extension measureParameter = new Extension();
+		measureParameter.setUrl(MEASURE_PARAMETER_URL);
+
+		ParameterDefinition parameterDefinition = new ParameterDefinition();
+		parameterDefinition.setName(name);
+		measureParameter.setValue(parameterDefinition);
+
+		Extension defaultValueExtension = new Extension();
+		defaultValueExtension.setUrl(PARAMETER_DEFAULT_URL);
+		defaultValueExtension.setValue(defaultValue);
+		parameterDefinition.addExtension(defaultValueExtension);
+
+		return measureParameter;
 	}
 }
