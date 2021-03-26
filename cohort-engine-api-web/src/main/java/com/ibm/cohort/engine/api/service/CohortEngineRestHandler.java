@@ -390,6 +390,8 @@ public class CohortEngineRestHandler {
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiImplicitParams({
+			// This is necessary for the dark launch feature
+			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
 			@ApiImplicitParam(name="multipartBody", dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
@@ -398,7 +400,16 @@ public class CohortEngineRestHandler {
 			@ApiResponse(code = 409, message = "Bad Request", response = ServiceErrorList.class),
 			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
 	})
-	@ApiOperation(value = "Insert a new value set to the fhir server or, if it already exists, update it in place", authorizations = {@Authorization(value = "BasicAuth") })
+	@ApiOperation(value = "Insert a new value set to the fhir server or, if it already exists, update it in place"
+			, tags = {"valueSet" }
+			, extensions = {
+			@Extension(properties = {
+					@ExtensionProperty(
+							name = DarkFeatureSwaggerFilter.DARK_FEATURE_NAME
+							, value = CohortEngineRestConstants.DARK_LAUNCHED_MEASURE_EVALUATION)
+			})}
+			, authorizations = {@Authorization(value = "BasicAuth")
+	})
 	public Response createValueSet(@Context HttpHeaders httpHeaders,
 								   @DefaultValue(ServiceBuildConstants.DATE) @ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
 								   @ApiParam(value = CohortEngineRestHandler.FHIR_ENDPOINT_DESC, required = true, defaultValue = CohortEngineRestHandler.DEFAULT_FHIR_URL) @QueryParam("fhir_server_rest_endpoint") String fhirEndpoint,
@@ -410,9 +421,9 @@ public class CohortEngineRestHandler {
 								   @ApiParam(value = "Multipart form request containing value set spreadsheets") IMultipartBody multipartBody
 								) {
 		String methodName = "createValueSet";
-		String[] authParts = FHIRRestUtils.parseAuthenticationHeaderInfo(httpHeaders);
-		IGenericClient terminologyClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, authParts[0], authParts[1], fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId);
-		Response response = null;
+		IGenericClient terminologyClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId, httpHeaders);
+		Response response;
+		ServiceBaseUtility.isDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_MEASURE_EVALUATION);
 		try {
 			// Perform api setup
 			Response errorResponse = ServiceBaseUtility.apiSetup(version, logger, methodName);

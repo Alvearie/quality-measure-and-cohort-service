@@ -122,8 +122,8 @@ public class DefaultVT extends ServiceVTBase {
 		if( System.getProperty("test.host") == null ) {
 			System.setProperty("test.host", "localhost");
 		}
-		
-		if(  System.getProperty("test.httpPort") == null ) { 
+
+		if(  System.getProperty("test.httpPort") == null ) {
 			System.setProperty("test.httpPort", "9080");
 		}
 		
@@ -403,10 +403,6 @@ public class DefaultVT extends ServiceVTBase {
 				.multiPart(CohortEngineRestHandler.VALUE_SET_PART, new File("src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx"));
 
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
-		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
-
-		String expected = getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"measure_evaluation_exp.json");
-		String actual = vr.extract().asString();
 		runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
 	}
 
