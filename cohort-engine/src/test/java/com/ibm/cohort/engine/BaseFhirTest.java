@@ -17,7 +17,11 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.Writer;
 import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
@@ -47,6 +51,8 @@ import org.hl7.fhir.r4.model.Resource;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
@@ -291,5 +297,18 @@ public class BaseFhirTest {
 			}
 		}
 		return bundle;
+	}
+	
+	protected File createFhirConfigFile() throws IOException, JsonProcessingException {
+		return createFhirConfigFile("target/fhir-stub.json");
+	}
+	
+	protected File createFhirConfigFile(String path) throws IOException, JsonProcessingException {
+		File tmpFile = new File(path);
+		ObjectMapper om = new ObjectMapper();
+		try (Writer w = new FileWriter(tmpFile)) {
+			w.write(om.writeValueAsString(getFhirServerConfig()));
+		}
+		return tmpFile;
 	}
 }

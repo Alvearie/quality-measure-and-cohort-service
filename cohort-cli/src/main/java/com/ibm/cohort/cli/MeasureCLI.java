@@ -9,15 +9,21 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipFile;
 
-import com.ibm.cohort.engine.measure.R4DataProviderFactory;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
-import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
-import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import org.hl7.fhir.r4.model.MeasureReport;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
+import org.opencds.cqf.cql.engine.data.DataProvider;
+import org.opencds.cqf.cql.engine.fhir.terminology.R4FhirTerminologyProvider;
+import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -30,19 +36,19 @@ import com.ibm.cohort.engine.helpers.FileHelpers;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.MeasureEvaluator;
 import com.ibm.cohort.engine.measure.MeasureResolutionProvider;
+import com.ibm.cohort.engine.measure.R4DataProviderFactory;
 import com.ibm.cohort.engine.measure.ResourceResolutionProvider;
 import com.ibm.cohort.engine.measure.RestFhirLibraryResolutionProvider;
 import com.ibm.cohort.engine.measure.RestFhirMeasureResolutionProvider;
 import com.ibm.cohort.engine.measure.ZipResourceResolutionProvider;
+import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
+import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
-import org.opencds.cqf.cql.engine.data.DataProvider;
-import org.opencds.cqf.cql.engine.fhir.terminology.R4FhirTerminologyProvider;
-import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 public class MeasureCLI extends BaseCLI {
 
@@ -160,6 +166,8 @@ public class MeasureCLI extends BaseCLI {
 			} else {
 				measureContexts = MeasureContextProvider.getMeasureContexts(arguments.resourceId,  arguments.parameters);
 			}
+			
+			validateMeasureContexts(measureContexts);
 
 			TerminologyProvider terminologyProvider = new R4FhirTerminologyProvider(terminologyServerClient);
 			try (RetrieveCacheContext retrieveCacheContext = arguments.disableRetrieveCache ? null : new DefaultRetrieveCacheContext()) {
@@ -196,6 +204,37 @@ public class MeasureCLI extends BaseCLI {
 			}
 		}
 		return evaluator;
+	}
+
+	private void validateMeasureContexts( List<MeasureContext> measureContexts ) {
+		StringBuilder sb = new StringBuilder();
+		ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+		try { 
+			Validator validator = factory.getValidator();
+			
+			// For some reason the validator doesn't work on the List, so I loop
+			// through manually for now.
+			MeasureContext context;
+			for( int i=0; i<measureContexts.size(); i++ ) {
+				context = measureContexts.get(i);
+				Set<ConstraintViolation<MeasureContext>> violations = validator.validate( context );
+				if( ! violations.isEmpty() ) {
+					for( ConstraintViolation<MeasureContext> violation : violations ) { 
+						sb.append(System.lineSeparator())
+							.append("[").append(i).append("].")
+							.append(violation.getPropertyPath().toString())
+							.append(": ")
+							.append(violation.getMessage());
+					}
+				}
+			}
+		} finally { 
+			factory.close();
+		}
+		
+		if( sb.length() > 0 ) {
+			throw new IllegalArgumentException(sb.toString());
+		}
 	}
 
 	public static void main(String[] args) throws Exception {

@@ -195,18 +195,22 @@ public class CohortEngineRestHandler {
 			// See https://openliberty.io/guides/bean-validation.html
 			//TODO: The validator below is recommended to be injected using CDI in the guide
 			ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-			Validator validator = factory.getValidator();
-			
-			Set<ConstraintViolation<MeasureEvaluation>> violations = validator.validate( evaluationRequest );
-			if( ! violations.isEmpty() ) {
-				StringBuilder sb = new StringBuilder("Invalid request metadata: ");
-				for( ConstraintViolation<MeasureEvaluation> violation : violations ) { 
-					sb.append(System.lineSeparator())
-						.append(violation.getPropertyPath().toString())
-						.append(": ")
-						.append(violation.getMessage());
+			try {
+				Validator validator = factory.getValidator();
+				
+				Set<ConstraintViolation<MeasureEvaluation>> violations = validator.validate( evaluationRequest );
+				if( ! violations.isEmpty() ) {
+					StringBuilder sb = new StringBuilder("Invalid request metadata: ");
+					for( ConstraintViolation<MeasureEvaluation> violation : violations ) { 
+						sb.append(System.lineSeparator())
+							.append(violation.getPropertyPath().toString())
+							.append(": ")
+							.append(violation.getMessage());
+					}
+					throw new IllegalArgumentException(sb.toString());
 				}
-				throw new IllegalArgumentException(sb.toString());
+			} finally { 
+				factory.close();
 			}
 			
 			FhirClientBuilder clientBuilder = FhirClientBuilderFactory.newInstance().newFhirClientBuilder();
