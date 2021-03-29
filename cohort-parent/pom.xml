@@ -53,6 +53,7 @@
 		<slf4j.version>1.7.30</slf4j.version>
 		<swagger.version>1.6.2</swagger.version>
 		<ant.junit.version>1.10.9</ant.junit.version>
+		<ibm.cos.version>2.9.0</ibm.cos.version>
 
 		<!-- Default values for the jacoco-maven-plugin reports -->
 		<cohort.jacoco.classRatio>0.80</cohort.jacoco.classRatio>
@@ -609,6 +610,21 @@
 				<groupId>com.github.ben-manes.caffeine</groupId>
 				<artifactId>jcache</artifactId>
 				<version>2.9.0</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ibm.cos</groupId>
+				<artifactId>ibm-cos-java-sdk</artifactId>
+				<version>${ibm.cos.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ibm.cos</groupId>
+				<artifactId>ibm-cos-java-sdk-core</artifactId>
+				<version>${ibm.cos.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ibm.cos</groupId>
+				<artifactId>ibm-cos-java-sdk-s3</artifactId>
+				<version>${ibm.cos.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
