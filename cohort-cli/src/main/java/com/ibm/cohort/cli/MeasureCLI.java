@@ -89,6 +89,9 @@ public class MeasureCLI extends BaseCLI {
 		@Parameter(names = { "--disable-retrieve-cache" }, description = "Disable the use of the retrieve cache.")
 		private boolean disableRetrieveCache = false;
 
+//		@ParametersDelegate
+//		private CosConfiguration cosConfiguration = new CosConfiguration();
+
 		public void validate() {
 			boolean resourceSpecified = resourceId != null;
 			boolean measureConfigurationSpecified = measureConfigurationFile != null;
