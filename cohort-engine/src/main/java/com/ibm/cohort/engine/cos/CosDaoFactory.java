@@ -6,6 +6,8 @@
 
 package com.ibm.cohort.engine.cos;
 
+import java.util.Map;
+
 import com.ibm.cloud.objectstorage.ClientConfiguration;
 import com.ibm.cloud.objectstorage.auth.AWSCredentials;
 import com.ibm.cloud.objectstorage.auth.AWSStaticCredentialsProvider;
@@ -24,17 +26,21 @@ public class CosDaoFactory {
 				configuration.getApiKey(),
 				configuration.getServiceInstanceId(),
 				configuration.getEndpointUrl(),
-				configuration.getLocation()
+				configuration.getLocation(),
+				configuration.getParams()
 		);
 
 		return new CosDao(cosClient);
 	}
 
-	private static AmazonS3 createClient(String apiKey, String serviceInstanceId, String endpointUrl, String location) {
+	private static AmazonS3 createClient(
+			String apiKey,
+			String serviceInstanceId,
+			String endpointUrl,
+			String location, Map<String, String> clientParams) {
 		AWSCredentials credentials = new BasicIBMOAuthCredentials(apiKey, serviceInstanceId);
-		ClientConfiguration clientConfig = new ClientConfiguration()
-				.withRequestTimeout(5_000)
-				.withTcpKeepAlive(true);
+
+		ClientConfiguration clientConfig = CosParameters.clientFrom(clientParams);
 
 		return AmazonS3ClientBuilder
 				.standard()
