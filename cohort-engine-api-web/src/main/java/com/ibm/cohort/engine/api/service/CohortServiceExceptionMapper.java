@@ -30,11 +30,6 @@ import ca.uhn.fhir.rest.server.exceptions.BaseServerResponseException;
 public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 	private static final Logger logger = LoggerFactory.getLogger(CohortServiceExceptionMapper.class.getName());
 	private static final int maxExceptionCauseDepth = 20;
-//	private IParser fhirParser;
-
-	public CohortServiceExceptionMapper() {
-		
-	}
 
 	@Override
 	public Response toResponse(Throwable ex) {
