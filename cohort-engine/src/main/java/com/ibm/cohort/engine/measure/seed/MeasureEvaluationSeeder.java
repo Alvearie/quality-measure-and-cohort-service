@@ -72,7 +72,7 @@ public class MeasureEvaluationSeeder {
 	public IMeasureEvaluationSeed create(Measure measure, String periodStart, String periodEnd, String productLine) {
 		List<org.cqframework.cql.elm.execution.Library> libraries = LibraryHelper.loadLibraries(measure, this.libraryLoader, this.libraryResourceProvider);
 		if( CollectionUtils.isEmpty(libraries) ) { 
-			throw new IllegalArgumentException(String.format("No libraries were able to be loaded for Measure/%s", measure.getId()));
+			throw new IllegalArgumentException(String.format("No libraries were able to be loaded for %s", measure.getId()));
 		}
 		
 		// the "primary" library is always the first library loaded for the measure
