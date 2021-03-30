@@ -116,6 +116,9 @@ public class CDMMeasureEvaluation {
 		boolean includeEvaluatedResources = (evidenceOptions != null ) ? evidenceOptions.isIncludeEvaluatedResources() : false;
 		MeasureReport report = evaluation.evaluatePatientMeasure(measure, context, patientId, includeEvaluatedResources);
 
+		// Use the id field of the measure to capture the meta history version
+		report.setMeasure(measure.getId());
+
 		MeasureScoring scoring = MeasureScoring.fromCode(measure.getScoring().getCodingFirstRep().getCode());
 		switch (scoring) {
 		case PROPORTION:
