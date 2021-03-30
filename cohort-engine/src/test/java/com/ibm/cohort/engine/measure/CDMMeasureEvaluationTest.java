@@ -21,6 +21,7 @@ import org.cqframework.cql.elm.execution.VersionedIdentifier;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.DomainResource;
 import org.hl7.fhir.r4.model.Extension;
+import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Reference;
@@ -85,6 +86,32 @@ public class CDMMeasureEvaluationTest {
 		}
 	}
 	
+	@Test
+	public void testSetReportMeasureToMeasureId__noMetaVersion__noHistoryInMeasureOnReport() {
+		MeasureReport report = new MeasureReport();
+
+		String measureId = "Measure/id1";
+		Measure measure = new Measure();
+		measure.setId(measureId);
+
+		CDMMeasureEvaluation.setReportMeasureToMeasureId(report, measure);
+
+		assertEquals(measureId, report.getMeasure());
+	}
+
+	@Test
+	public void testSetReportMeasureToMeasureId__noIncludeMetaVersion__hasHistoryInMeasureOnReport() {
+		MeasureReport report = new MeasureReport();
+
+		String measureId = "Measure/id1/_history/10";
+		Measure measure = new Measure();
+		measure.setId(measureId);
+
+		CDMMeasureEvaluation.setReportMeasureToMeasureId(report, measure);
+
+		assertEquals(measureId, report.getMeasure());
+	}
+
 	private CDMContext setupTestDefineContext(Map<VersionedIdentifier, Map<String, Object>> expectedResults) {
 		Library library = new Library();
 		CDMContext defineContext = new CDMContext(library);

@@ -116,8 +116,7 @@ public class CDMMeasureEvaluation {
 		boolean includeEvaluatedResources = (evidenceOptions != null ) ? evidenceOptions.isIncludeEvaluatedResources() : false;
 		MeasureReport report = evaluation.evaluatePatientMeasure(measure, context, patientId, includeEvaluatedResources);
 
-		// Use the id field of the measure to capture the meta history version
-		report.setMeasure(measure.getId());
+		setReportMeasureToMeasureId(report, measure);
 
 		MeasureScoring scoring = MeasureScoring.fromCode(measure.getScoring().getCodingFirstRep().getCode());
 		switch (scoring) {
@@ -199,6 +198,11 @@ public class CDMMeasureEvaluation {
 		}
 	}
 	
+	protected static void setReportMeasureToMeasureId(MeasureReport report, Measure measure) {
+		// Use the id field of the measure to capture the meta history version
+		report.setMeasure(measure.getId());
+	}
+
 	private static boolean shouldAddDefineResult(DefineReturnOptions defineOption, List<Type> values) {
 		if(!values.isEmpty()) {
 			if(DefineReturnOptions.ALL == defineOption) {
