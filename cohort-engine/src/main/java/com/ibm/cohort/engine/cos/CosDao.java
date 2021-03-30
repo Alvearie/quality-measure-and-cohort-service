@@ -39,7 +39,7 @@ public class CosDao {
 		) {
 			return IOUtils.toString(stream, StandardCharsets.UTF_8.name());
 		} catch (IOException e) {
-			logger.error("Error reading file: `{}`", key, e);
+			logger.error("Error retrieving object from bucket `{}` with key: `{}`", bucket, key, e);
 			throw e;
 		}
 	}
