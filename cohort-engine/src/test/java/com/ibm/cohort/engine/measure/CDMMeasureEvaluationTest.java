@@ -33,6 +33,9 @@ import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceHelper;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.parser.IParser;
+
 public class CDMMeasureEvaluationTest {
 	@Test
 	public void testDefinesOnMeasureReport() {
@@ -90,26 +93,30 @@ public class CDMMeasureEvaluationTest {
 	public void testSetReportMeasureToMeasureId__noMetaVersion__noHistoryInMeasureOnReport() {
 		MeasureReport report = new MeasureReport();
 
-		String measureId = "Measure/id1";
-		Measure measure = new Measure();
-		measure.setId(measureId);
+		FhirContext ctx = FhirContext.forR4();
+		String measureInput = "{\"resourceType\":\"Measure\",\"id\":\"id1\"}";
+
+		IParser parser = ctx.newJsonParser();
+		Measure measure = parser.parseResource(Measure.class, measureInput);
 
 		CDMMeasureEvaluation.setReportMeasureToMeasureId(report, measure);
 
-		assertEquals(measureId, report.getMeasure());
+		assertEquals("Measure/id1", report.getMeasure());
 	}
 
 	@Test
-	public void testSetReportMeasureToMeasureId__noIncludeMetaVersion__hasHistoryInMeasureOnReport() {
+	public void testSetReportMeasureToMeasureId__includesMetaVersion__hasHistoryInMeasureOnReport() {
 		MeasureReport report = new MeasureReport();
 
-		String measureId = "Measure/id1/_history/10";
-		Measure measure = new Measure();
-		measure.setId(measureId);
+		FhirContext ctx = FhirContext.forR4();
+		String measureInput = "{\"resourceType\":\"Measure\",\"id\":\"id1\",\"meta\":{\"versionId\":\"2\"}}";
+
+		IParser parser = ctx.newJsonParser();
+		Measure measure = parser.parseResource(Measure.class, measureInput);
 
 		CDMMeasureEvaluation.setReportMeasureToMeasureId(report, measure);
 
-		assertEquals(measureId, report.getMeasure());
+		assertEquals("Measure/id1/_history/2", report.getMeasure());
 	}
 
 	private CDMContext setupTestDefineContext(Map<VersionedIdentifier, Map<String, Object>> expectedResults) {
