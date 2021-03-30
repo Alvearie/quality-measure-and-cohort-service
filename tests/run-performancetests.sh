@@ -3,51 +3,73 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-set -x
+runTest() {
+  echo "Running test" ${1}
+  kubectl -n ${CLUSTER_NAMESPACE} exec ${POD_NAME} -- bash -c "export TRUSTSTORE_PASSWORD=${TRUSTSTORE_PASSWORD} && bzt ${1}"
+}
 
-passing=0
-failing=0
-output=""
+# Replace jar, server details, and filename in scenarios yaml files
+populateTaurusYaml() {
+  yamlfile=$1
+  
+  sed -i \
+  -e "/JAR/s|:.*$|: \"${SHADED_JAR}\"|" \
+  -e "/MEASURE_FHIR_SERVER_DETAILS/s|:.*$|: \"${DEFAULT_TENANT}\"|" \
+  -e "/DATA_FHIR_SERVER_DETAILS/s|:.*$|: \"${TESTFVT_TENANT}\"|" ${yamlfile}
+}
 
-#podname=$(kubectl get pods --namespace "${CLUSTER_NAMESPACE}" | grep -i "${APP_NAME}-${GIT_BRANCH}-${CHART_NAME}" | grep Running | cut -d " " -f 1 | head -n1)
-podname=$(kubectl get pods --namespace "${CLUSTER_NAMESPACE}" | grep -i "${APP_NAME}" | grep Running | cut -d " " -f 1 | head -n1)
+checkForTestResults() {
+  resultsDirectory=$1
+  resultsFile=$2
+  sleepTime=$3
+  remainingRetries=$4
 
-echo "### serviceState ###"
-test1=$(kubectl exec --namespace="${CLUSTER_NAMESPACE}" $podname -- curl http://localhost:9080/services/cohort/api/v1/status?liveness_check=false)
-if echo "$test1" | grep -q '"serviceState":"OK"';then
- echo "[PASS] serviceState"
-  passing=$((passing+1))
-  output="$output\n<testcase classname=\"bash\" name=\"serviceState\" time=\"0\"/>"
-else
-  failing=$((failing+1))
-  output="$output\n<testcase classname=\"bash\" name=\"serviceState\" time=\"0\"><failure>fail</failure><expected>OK</expected><actual>$test1</actual></testcase>"
+  localFileToCheck="${resultsDirectory}/${resultsFile}"
+
+  kubectl -n ${CLUSTER_NAMESPACE} cp "${POD_NAME}:/bzt-configs/tests/results/${resultsFile}" "${localFileToCheck}"
+
+  while [[ ! -f "${localFileToCheck}" ]] && [[ remainingRetries -gt 0 ]];
+  do
+    echo "${localFileToCheck} not found. Attempting to retrieve from test pod."
+    kubectl -n ${CLUSTER_NAMESPACE} cp "${POD_NAME}:/bzt-configs/tests/results/${resultsFile}" "${localFileToCheck}"
+    remainingRetries=$((remainingRetries-1))
+    echo "Sleeping for ${sleepTime} seconds and retrying...${remainingRetries} retries remaining."
+    sleep ${sleepTime}
+  done
+}
+
+. tests/setupEnvironmentVariables.sh
+
+POD_NAME=engine-cohort-ct-perf-test
+
+bash tests/create-taurus-pod.sh ${POD_NAME}
+
+populateTaurusYaml ${SCENARIOS_DIR}/performance/performanceCTScenarios.yaml
+kubectl -n ${CLUSTER_NAMESPACE} cp ${SCENARIOS_DIR}/performance/performanceCTScenarios.yaml ${POD_NAME}:/bzt-configs/tests/scenarios/performance/
+
+runTest "/bzt-configs/tests/scenarios/performance/performanceCTScenarios.yaml"
+
+PERF_REG_RESULTS="${OUTPUT_DIR}/ct-perf-results"
+mkdir -p ${PERF_REG_RESULTS}
+checkForTestResults "${PERF_REG_RESULTS}" "performanceCTTests.xml" 60 30
+
+# Make sure results are displayed to stdout even if the previous exec command returns early
+kubectl exec -it ${POD_NAME} -n ${CLUSTER_NAMESPACE} -- bash -c "cat /tmp/artifacts/*.ldjson"
+
+# First Check to see if python3 is available for use with xmlCombiner.py script. If not first install python3.8 using yum.
+pythonBinary=python3
+pythonVersion=$(${pythonBinary} --version 2>/dev/null)
+if [ -z "${pythonVersion}" ]
+then
+  echo "Python check output: '${pythonVersion}'"
+  echo "Missing ${pythonBinary}, installing..."
+  sudo yum -y install python38
+  which python3.8
+  python3.8 --version
+  pythonBinary=python3.8
+else 
+  echo "Found '${pythonBinary}' binary"
 fi
 
-echo
-echo "----------------"
-echo "Final Results"
-echo "----------------"
-echo "PASSING: $passing"
-echo "FAILING: $failing"
-total=$(($passing + $failing))
-
-
-echo "----------------"
-echo "Writing to xunit output"
-echo "----------------"
-
-date=`date`
-header="<testsuite name=\"FVT tests\" tests=\"$total\" failures=\"$failing\" errors=\"$failing\" skipped=\"0\" timestamp=\"${date}\" time=\"0\">"
-footer="</testsuite>"
-
-filename="performancetests.xml"
-cat << EOF > $filename
-$header
-$output
-$footer
-EOF
-
-
-if [ $failing -gt 0 ]; then
-  exit 1
-fi
+$pythonBinary ${TEST_DIR}/scripts/xmlCombiner.py ${PERF_REG_RESULTS}/*.xml
+mv combinedResults.xml performancetests.xml

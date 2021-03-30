@@ -32,7 +32,7 @@ runTest "/bzt-configs/tests/scenarios/performance/performanceRegression.yaml"
 
 PERF_REG_RESULTS="${OUTPUT_DIR}/perf-reg-results"
 echo "Copying test results xml files to ${PERF_REG_RESULTS}"
-mkdir ${PERF_REG_RESULTS}
+mkdir -p ${PERF_REG_RESULTS}
 kubectl -n ${CLUSTER_NAMESPACE} cp "${POD_NAME}:/bzt-configs/tests/results" "${PERF_REG_RESULTS}"
 
 # First Check to see if python3 is available for use with xmlCombiner.py script. If not first install python3.8 using yum.
