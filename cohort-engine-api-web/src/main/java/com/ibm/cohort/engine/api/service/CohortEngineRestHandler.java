@@ -402,6 +402,9 @@ public class CohortEngineRestHandler {
 								   @ApiParam(value = "Multipart form request containing value set spreadsheets") IMultipartBody multipartBody
 								) {
 		String methodName = "createValueSet";
+		if(fhirEndpoint == null){
+			return Response.status(Response.Status.BAD_REQUEST).entity("fhirEndpoint must be specified").build();
+		}
 		IGenericClient terminologyClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId, httpHeaders);
 		Response response;
 		ServiceBaseUtility.isDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD);
