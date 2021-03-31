@@ -199,8 +199,13 @@ public class CDMMeasureEvaluation {
 	}
 	
 	protected static void setReportMeasureToMeasureId(MeasureReport report, Measure measure) {
-		// Use the id field of the measure to capture the meta history version
-		report.setMeasure(measure.getId());
+		int startOfId = measure.getId().indexOf("Measure/");
+
+		if (startOfId < 0) {
+			report.setMeasure(measure.getId());
+		} else {
+			report.setMeasure(measure.getId().substring(startOfId));
+		}
 	}
 
 	private static boolean shouldAddDefineResult(DefineReturnOptions defineOption, List<Type> values) {

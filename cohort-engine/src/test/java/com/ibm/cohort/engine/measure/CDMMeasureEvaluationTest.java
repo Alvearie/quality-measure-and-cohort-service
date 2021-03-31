@@ -19,6 +19,7 @@ import java.util.stream.Stream;
 import org.cqframework.cql.elm.execution.Library;
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
 import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.DomainResource;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Measure;
@@ -87,6 +88,32 @@ public class CDMMeasureEvaluationTest extends BaseFhirTest {
 		}
 	}
 	
+	@Test
+	public void testSetReportMeasureToMeasureId__measureFromBundleWithoutMetaVersion__onlyMeasurePortionWithoutHistoryOnReport() {
+		MeasureReport report = new MeasureReport();
+
+		String bundleInput = "{\"resourceType\":\"Bundle\",\"id\":\"98765\",\"entry\":[{\"fullUrl\":\"https://full-url-to/fhir-server/api/v4/Measure/id1\",\"resource\":{\"resourceType\":\"Measure\",\"id\":\"id1\"}}]}";
+
+		Measure measure = (Measure) fhirParser.parseResource(Bundle.class, bundleInput).getEntryFirstRep().getResource();
+
+		CDMMeasureEvaluation.setReportMeasureToMeasureId(report, measure);
+
+		assertEquals("Measure/id1", report.getMeasure());
+	}
+
+	@Test
+	public void testSetReportMeasureToMeasureId__measureFromBundleWithMetaVersion__onlyMeasurePortionWithHistoryOnReport() {
+		MeasureReport report = new MeasureReport();
+
+		String bundleInput = "{\"resourceType\":\"Bundle\",\"id\":\"98765\",\"entry\":[{\"fullUrl\":\"https://full-url-to/fhir-server/api/v4/Measure/id1\",\"resource\":{\"resourceType\":\"Measure\",\"id\":\"id1\",\"meta\":{\"versionId\":\"2\"}}}]}";
+
+		Measure measure = (Measure) fhirParser.parseResource(Bundle.class, bundleInput).getEntryFirstRep().getResource();
+
+		CDMMeasureEvaluation.setReportMeasureToMeasureId(report, measure);
+
+		assertEquals("Measure/id1/_history/2", report.getMeasure());
+	}
+
 	@Test
 	public void testSetReportMeasureToMeasureId__noMetaVersion__noHistoryInMeasureOnReport() {
 		MeasureReport report = new MeasureReport();
