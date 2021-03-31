@@ -17,6 +17,7 @@ import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
+import org.hl7.fhir.r4.model.ParameterDefinition;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Type;
 import org.hl7.fhir.r4.model.codesystems.MeasureScoring;
@@ -110,7 +111,7 @@ public class CDMMeasureEvaluation {
 	 * @param evidenceOptions MeasureEvidenceOptions to indicate whether or not to return evaluated resources and define level results
 	 * @return MeasureReport with population components filled out.
 	 */
-	public MeasureReport evaluatePatientMeasure(Measure measure, Context context, String patientId, MeasureEvidenceOptions evidenceOptions) {
+	public MeasureReport evaluatePatientMeasure(Measure measure, Context context, String patientId, MeasureEvidenceOptions evidenceOptions, Map<String, Object> parameters) {
 		context.setExpressionCaching(true);
 		
 		boolean includeEvaluatedResources = (evidenceOptions != null ) ? evidenceOptions.isIncludeEvaluatedResources() : false;
@@ -158,6 +159,25 @@ public class CDMMeasureEvaluation {
 		}
 
 		return report;
+	}
+	
+	protected void addMeasureParametersToReport(Map<String, Object> parameters, MeasureReport report) {
+		for(Entry<String, Object> parameter : parameters.entrySet()) {
+			Extension measureParameterValue = new Extension();
+			measureParameterValue.setUrl(CDMConstants.MEASURE_PARAMETER_VALUE_URL);
+			
+			ParameterDefinition parameterDef = new ParameterDefinition();
+			parameterDef.setName(parameter.getKey());
+			Extension valueExtension = new Extension();
+			valueExtension.setUrl(CDMConstants.PARAMETER_VALUE_URL);
+//			valueExtension.setValue(parameter.getValue());
+			
+			parameterDef.addExtension(valueExtension);
+			
+			measureParameterValue.setValue(parameterDef);
+			
+			report.addExtension(measureParameterValue);
+		}
 	}
 	
 	protected static void addDefineEvaluationToReport(MeasureReport report, CDMContext defineContext, DefineReturnOptions defineOption) {

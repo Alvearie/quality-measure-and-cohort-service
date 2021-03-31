@@ -1,5 +1,7 @@
 package com.ibm.cohort.engine.measure.seed;
 
+import static org.junit.Assert.assertTrue;
+
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Collections;
@@ -10,19 +12,25 @@ import java.util.Map;
 import org.cqframework.cql.elm.execution.Library.Usings;
 import org.cqframework.cql.elm.execution.UsingDef;
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
+import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.IntegerType;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
+import org.hl7.fhir.r4.model.Period;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
+import org.opencds.cqf.cql.engine.data.CompositeDataProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
+import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
+import org.opencds.cqf.cql.evaluator.execution.provider.NoOpRetrieveProvider;
 
 import com.ibm.cohort.engine.measure.LibraryHelper;
 
@@ -161,6 +169,44 @@ public class MeasureEvaluationSeederTest {
         seeder.create(
                 new Measure(), periodStart, periodEnd, null
         );
+    }
+    
+    @Test
+    public void testFHIRTypeConversion() {
+    	TerminologyProvider terminologyProvider = Mockito.mock(TerminologyProvider.class);
+
+        DataProvider dataProvider = new CompositeDataProvider(new R4FhirModelResolver(), new NoOpRetrieveProvider());
+
+        Map<String, DataProvider> dataProviders = new HashMap<>();
+        dataProviders.put(fhirUri, dataProvider);
+
+        LibraryLoader libraryLoader = Mockito.mock(LibraryLoader.class);
+        Mockito.when(libraryLoader.load(createLibraryIdentifier()))
+                .thenReturn(createCqlLibrary());
+
+        LibraryResolutionProvider<Library> libraryResourceProvider = Mockito.mock(LibraryResolutionProvider.class);
+        Mockito.when(libraryResourceProvider.resolveLibraryByCanonicalUrl(libraryUrl))
+                .thenReturn(createLibrary());
+
+        MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(
+                terminologyProvider,
+                dataProviders,
+                libraryLoader,
+                libraryResourceProvider
+        );
+        
+        
+        BooleanType booleanType = new BooleanType(true);
+        IntegerType integerType = new IntegerType(20);
+        CodeableConcept cc = new CodeableConcept();
+        Period period = new Period();
+        period.setStart(new Date());
+        period.setEnd(new Date());
+    	
+        assertTrue(seeder.toCqlObject(integerType, dataProvider) instanceof Integer);
+        assertTrue(seeder.toCqlObject(booleanType, dataProvider) instanceof Boolean);
+        assertTrue(seeder.toCqlObject(period, dataProvider) instanceof Boolean);
+    	
     }
 
     private org.cqframework.cql.elm.execution.Library createCqlLibrary() {

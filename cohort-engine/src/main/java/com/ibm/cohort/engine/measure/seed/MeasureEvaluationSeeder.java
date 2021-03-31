@@ -155,7 +155,7 @@ public class MeasureEvaluationSeeder {
 								         toCqlObject(defaultValue.getValue(), modelResolver)));
 	}
 
-	private Object toCqlObject(Type type, ModelResolver modelResolver) {
+	protected Object toCqlObject(Type type, ModelResolver modelResolver) {
 		return Optional.ofNullable(type)
 				.map((fhirType) -> modelResolver.resolvePath(fhirType, "value"))
 				.orElseThrow(() -> new UnsupportedFhirTypeException(type));
