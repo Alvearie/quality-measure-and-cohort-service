@@ -242,7 +242,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 
 		File tmpMeasureConfigurationsFile = createTmpConfigurationsFileFromContents(
 				"{\"measureConfigurations\":[{\"measureId\":\"" + measure.getUrl() + "\"}," + 
-						"{\"measureId\":\"" + measure.getId() + "\",\"parameters\":[" + createParameterString("p1", "integer", "10")+ "]}]}");
+						"{\"measureId\":\"" + measure.getId() + "\",\"parameters\":{\"p1\": {\"type\":\"integer\", \"value\":10}}" + "}]}");
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream out = new PrintStream(baos);
@@ -502,11 +502,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		mockFhirResourceRetrieval(get(urlMatching("/Procedure.*")), emptyBundle);
 		mockFhirResourceRetrieval(get(urlMatching("/Observation.*")), emptyBundle);
 		
-		File tmpFile = new File("target/fhir-stub.json");
-		ObjectMapper om = new ObjectMapper();
-		try (Writer w = new FileWriter(tmpFile)) {
-			w.write(om.writeValueAsString(getFhirServerConfig()));
-		}
+		File tmpFile = createFhirConfigFile();
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream out = new PrintStream(baos);
@@ -543,11 +539,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		mockFhirResourceRetrieval(get(urlMatching("/Procedure.*")), emptyBundle);
 		mockFhirResourceRetrieval(get(urlMatching("/Observation.*")), emptyBundle);
 		
-		File tmpFile = new File("target/fhir-stub.json");
-		ObjectMapper om = new ObjectMapper();
-		try (Writer w = new FileWriter(tmpFile)) {
-			w.write(om.writeValueAsString(getFhirServerConfig()));
-		}
+		File tmpFile = createFhirConfigFile();
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream out = new PrintStream(baos);
@@ -584,11 +576,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		mockFhirResourceRetrieval(get(urlMatching("/Procedure.*")), emptyBundle);
 		mockFhirResourceRetrieval(get(urlMatching("/Observation.*")), emptyBundle);
 		
-		File tmpFile = new File("target/fhir-stub.json");
-		ObjectMapper om = new ObjectMapper();
-		try (Writer w = new FileWriter(tmpFile)) {
-			w.write(om.writeValueAsString(getFhirServerConfig()));
-		}
+		File tmpFile = createFhirConfigFile();
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream out = new PrintStream(baos);
@@ -656,6 +644,28 @@ public class MeasureCLITest extends BaseMeasureTest {
 			tmpMeasureConfigurationsFile.delete();
 		}
 	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void testMeasureContextValidationError() throws Exception {
+		File tmpMeasureConfigurationsFile = createTmpConfigurationsFileFromContents("{\"measureConfigurations\": [ {\"measureId\": \"measureId\", \"parameters\": { \"param1\": { \"type\": \"interval\", \"start\": { \"type\": \"integer\", \"value\": 10 } } } } ] }");
+		File tmpFhirConfigFile = createFhirConfigFile();
+		
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream out = new PrintStream(baos);
+		MeasureCLI cli = new MeasureCLI();
+		try {
+			cli.runWithArgs(new String[]{
+					"-d", tmpFhirConfigFile.getAbsolutePath(),
+					"-j", tmpMeasureConfigurationsFile.getAbsolutePath(),
+					"-c", "1234",
+					"-f", "JSON"
+			}, out);
+		} finally {
+			tmpMeasureConfigurationsFile.delete();
+			tmpFhirConfigFile.delete();
+		}
+	}
+	
 
 	protected void assertTextPopulationExpectations(String[] lines) {
 		Pattern p = Pattern.compile("Population: (?<code>[^ ]+) = (?<count>[0-9]+)");
@@ -671,10 +681,6 @@ public class MeasureCLITest extends BaseMeasureTest {
 	
 	private File createTmpConfigurationsFileForSingleMeasure(String measureId) throws IOException {
 		return createTmpConfigurationsFileFromContents("{\"measureConfigurations\":[{\"measureId\":\"" + measureId + "\"}]}");
-	}
-	
-	private String createParameterString(String name, String type, String value) {
-		return "{\"name\":\"" + name + "\",\"type\":\"" + type + "\",\"value\":\"" + value +"\"}";
 	}
 	
 	private File createTmpConfigurationsFileFromContents(String contents) throws IOException {

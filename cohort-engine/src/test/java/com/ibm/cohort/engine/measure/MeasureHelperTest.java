@@ -12,7 +12,6 @@ import static org.junit.Assert.assertNotNull;
 
 import java.util.Collections;
 
-import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Measure;
 import org.junit.Before;
 import org.junit.Test;
@@ -69,7 +68,7 @@ public class MeasureHelperTest extends BaseMeasureTest {
 
 		Measure measure = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/test.xml"), "Female");
 
-		Identifier identifier = new IdentifierBuilder()
+		org.hl7.fhir.r4.model.Identifier identifier = new IdentifierBuilder()
 				.buildValue(identifierValue)
 				.buildSystem(identifierSystem)
 				.build();
@@ -81,7 +80,7 @@ public class MeasureHelperTest extends BaseMeasureTest {
 				.withQueryParam("identifier", new EqualToPattern(identifierSystem + '|' + identifierValue));
 		mockFhirResourceRetrieval(builder,getBundle(measure));
 
-		Measure actual = MeasureHelper.loadMeasure(identifier, "", provider);
+		Measure actual = MeasureHelper.loadMeasure(new Identifier(identifierSystem, identifierValue), "", provider);
 		assertNotNull(actual);
 	}
 
@@ -97,7 +96,7 @@ public class MeasureHelperTest extends BaseMeasureTest {
 		measure1.setVersion("1.0.0");
 		measure2.setVersion("2.0.0");
 
-		Identifier identifier = new IdentifierBuilder()
+		org.hl7.fhir.r4.model.Identifier identifier = new IdentifierBuilder()
 				.buildValue(identifierValue)
 				.buildSystem(identifierSystem)
 				.build();
@@ -110,7 +109,7 @@ public class MeasureHelperTest extends BaseMeasureTest {
 				.withQueryParam("identifier", new EqualToPattern(identifierSystem + '|' + identifierValue));
 		mockFhirResourceRetrieval(builder,getBundle(measure1, measure2, measure3));
 
-		Measure actual = MeasureHelper.loadMeasure(identifier, null, provider);
+		Measure actual = MeasureHelper.loadMeasure(new Identifier(identifierSystem, identifierValue), null, provider);
 		assertNotNull(actual);
 	}
 
@@ -122,7 +121,7 @@ public class MeasureHelperTest extends BaseMeasureTest {
 
 		Measure measure = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/test.xml"), "Female");
 
-		Identifier identifier = new IdentifierBuilder()
+		org.hl7.fhir.r4.model.Identifier identifier = new IdentifierBuilder()
 				.buildValue(identifierValue)
 				.buildSystem(identifierSystem)
 				.build();
@@ -136,7 +135,7 @@ public class MeasureHelperTest extends BaseMeasureTest {
 				.withQueryParam("version", new EqualToPattern(measureVersion));
 		mockFhirResourceRetrieval(builder,getBundle(measure));
 
-		Measure actual = MeasureHelper.loadMeasure(identifier, measureVersion, provider);
+		Measure actual = MeasureHelper.loadMeasure(new Identifier(identifierSystem, identifierValue), measureVersion, provider);
 		assertNotNull(actual);
 	}
 }

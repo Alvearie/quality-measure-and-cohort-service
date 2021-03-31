@@ -17,27 +17,57 @@ import static org.custommonkey.xmlunit.XMLAssert.assertXpathValuesEqual;
 import static org.custommonkey.xmlunit.XMLAssert.assertXpathValuesNotEqual;
 import static org.custommonkey.xmlunit.XMLAssert.assertXpathsEqual;
 import static org.custommonkey.xmlunit.XMLAssert.assertXpathsNotEqual;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.http.HttpStatus;
 import org.custommonkey.xmlunit.Diff;
+import org.hl7.fhir.r4.model.Identifier;
+import org.hl7.fhir.r4.model.Library;
+import org.hl7.fhir.r4.model.Measure;
+import org.hl7.fhir.r4.model.MeasureReport;
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.cohort.engine.api.service.CohortEngineRestConstants;
+import com.ibm.cohort.engine.api.service.CohortEngineRestHandler;
 import com.ibm.cohort.engine.api.service.ServiceBuildConstants;
+import com.ibm.cohort.engine.api.service.TestHelper;
+import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
+import com.ibm.cohort.engine.measure.MeasureContext;
+import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
+import com.ibm.cohort.engine.parameter.DateParameter;
+import com.ibm.cohort.engine.parameter.IntervalParameter;
+import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import com.ibm.watson.common.service.base.utilities.BVT;
 import com.ibm.watson.common.service.base.utilities.DVT;
 import com.ibm.watson.common.service.base.utilities.ServiceAPIGlobalSpec;
 import com.ibm.watson.common.service.base.utilities.UNDERCONSTRUCTION;
 import com.ibm.watson.common.service.base.vt.ServiceVTBase;
 import com.jayway.restassured.http.ContentType;
+import com.jayway.restassured.response.Headers;
 import com.jayway.restassured.response.ValidatableResponse;
 import com.jayway.restassured.specification.RequestSpecification;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.parser.IParser;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 
@@ -63,12 +93,56 @@ import net.javacrumbs.jsonunit.core.Option;
 
 @Category(BVT.class) 			// all classes must be tagged as BVT, otherwise will not be picked up by automation runs
 public class DefaultVT extends ServiceVTBase {
+	private static final String VALID_PATIENT_ID = "eb068c3f-3954-50c6-0c67-2b82d29865f0";
+
 	private static final Logger logger = LoggerFactory.getLogger(DefaultVT.class.getName());
 
+	private static FhirServerConfig dataServerConfig;
+	private static FhirServerConfig termServerConfig;
+	
 	@BeforeClass
 	public static void setUp() throws Exception {
 		// Instantiate service location
 		instantiateServiceLocation();
+		
+		if( System.getProperty("test.host") == null ) {
+			System.setProperty("test.host", "localhost");
+		}
+		
+		if(  System.getProperty("test.httpPort") == null ) { 
+			System.setProperty("test.httpPort", "9080");
+		}
+		
+		if(  System.getProperty("test.httpSslPort") == null ) { 
+			System.setProperty("test.httpSslPort", "9443");
+		}
+		
+		if( System.getProperty("test.contextRoot") == null ) {
+			System.setProperty("test.contextRoot", "services/cohort");
+		}
+		
+		if( System.getProperty("test.enabledDarkFeatures") == null ) {
+			System.setProperty("test.enabledDarkFeatures", SERVICE_ENABLED_DARK_FEATURES_ALL);
+		}
+		
+		ObjectMapper om = new ObjectMapper();
+		
+		String dataClientConfigPath = System.getProperty("test.dataConfig");
+		if( dataClientConfigPath != null ) {
+			File dataClientConfigFile = new File(dataClientConfigPath);
+			dataServerConfig = om.readValue(dataClientConfigFile, FhirServerConfig.class);
+		} else { 
+			fail("Missing required system property 'test.dataConfig'");
+		}
+		
+		String termClientConfigPath = System.getProperty("test.terminologyConfig");
+		if( termClientConfigPath != null ) {
+			File termClientConfigFile = new File(termClientConfigPath);
+			termServerConfig = om.readValue(termClientConfigFile, FhirServerConfig.class);
+		} else {
+			termServerConfig = dataServerConfig;
+		}
+		
 	}
 
 	@AfterClass
@@ -80,52 +154,135 @@ public class DefaultVT extends ServiceVTBase {
 	@Category(DVT.class) // to tag a specific test to be part of DVT (deployment verification test)
 	@Test
 	/**
-	 * Test the create evaluation status stub
-	 *
+	 * Test a successful measure evaluation using Resource.id as the lookup key
 	 */
-	public void testCreateEvaluation() {
+	public void testMeasureEvaluationByMeasureID() throws Exception {
+		
+		// You want -Denabled.dark.features=all in your Liberty jvm.options
+		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_MEASURE_EVALUATION));
+		
 		final String RESOURCE = getUrlBase() + CohortServiceAPISpec.CREATE_DELETE_EVALUATION_PATH;
-		RequestSpecification request =
-			buildBaseRequest(HEADER_CONSUMES_JSON_STANDARD_JSON).
-			queryParam("version", ServiceBuildConstants.DATE).body(getJsonFromFile(ServiceAPIGlobalSpec.INP_FOLDER_TYPE,"create_evaluation_inp.json"));
-
-		ValidatableResponse vr = runSuccessValidation(request.post(RESOURCE,getServiceVersion()).then(), ContentType.JSON, HttpStatus.SC_ACCEPTED);
-		assertJsonEquals(getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"create_evaluation_exp.json"),vr.extract().asString());
-		assertJsonStructureEquals(getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"create_evaluation_exp.json"),vr.extract().asString());
+		
+		FhirContext fhirContext = FhirContext.forR4();
+		IParser parser = fhirContext.newJsonParser().setPrettyPrint(true);
+		
+		Library library = TestHelper.getTemplateLibrary();
+		
+		Measure measure = TestHelper.getTemplateMeasure(library);
+		
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		TestHelper.createMeasureArtifact(baos, parser, measure, library);
+		
+		//Files.write( baos.toByteArray(), new File("target/test_measure_v1_0_0.zip"));
+		
+		Map<String,Parameter> parameterOverrides = new HashMap<>();
+		parameterOverrides.put("Measurement Period", new IntervalParameter(new DateParameter("2019-07-04")
+				, true
+				, new DateParameter( "2020-07-04")
+				, true));;
+		
+		MeasureEvaluation requestData = new MeasureEvaluation();
+		requestData.setDataServerConfig(dataServerConfig);
+		requestData.setTerminologyServerConfig(termServerConfig);
+		// This is a patient ID that is assumed to exist in the target FHIR server
+		requestData.setPatientId(VALID_PATIENT_ID);
+		requestData.setMeasureContext(new MeasureContext(measure.getId(), parameterOverrides));
+		requestData.setEvidenceOptions(new MeasureEvidenceOptions(false, MeasureEvidenceOptions.DefineReturnOptions.NONE));
+		
+		ObjectMapper om = new ObjectMapper();
+		System.out.println( om.writeValueAsString(requestData) );
+		
+		RequestSpecification request = buildBaseRequest(new Headers())
+				.queryParam("version", ServiceBuildConstants.DATE)
+				.multiPart(CohortEngineRestHandler.REQUEST_DATA_PART, requestData, "application/json")
+				.multiPart(CohortEngineRestHandler.MEASURE_PART, "test_measure_v1_0_0.zip", new ByteArrayInputStream(baos.toByteArray()));
+		
+		ValidatableResponse response = request.post(RESOURCE,getServiceVersion()).then();
+		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
+		
+		String expected = getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"measure_evaluation_exp.json");
+		String actual = vr.extract().asString();
+		
+		assertMeasureReportEquals(parser, expected, actual);
 	}
-
+	
 	@Category(DVT.class) // to tag a specific test to be part of DVT (deployment verification test)
 	@Test
 	/**
-	 * Test the get evaluation status stub
-	 *
+	 * Test a successful measure evaluation using identifier and version as the lookup key
 	 */
-	public void testGetEvaluationStatus() {
-		final String RESOURCE = getUrlBase() + CohortServiceAPISpec.GET_EVALUATION_STATUS_PATH+"/12345";
-		RequestSpecification request =
-			buildBaseRequest(HEADER_CONSUMES_JSON_STANDARD_JSON).
-			queryParam("version", ServiceBuildConstants.DATE);
+	public void testMeasureEvaluationByMeasureIdentifier() throws Exception {
+		
+		// You want -Denabled.dark.features=all in your Liberty jvm.options
+		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_MEASURE_EVALUATION));
+		
+		final String RESOURCE = getUrlBase() + CohortServiceAPISpec.CREATE_DELETE_EVALUATION_PATH;
+		
+		FhirContext fhirContext = FhirContext.forR4();
+		IParser parser = fhirContext.newJsonParser().setPrettyPrint(true);
+		
+		Library library = TestHelper.getTemplateLibrary();
+		
+		Identifier identifier = new Identifier().setValue("measure-identifier").setSystem("http://ibm.com/health/test");
+		Measure measure = TestHelper.getTemplateMeasure(library);
+		measure.setIdentifier(Arrays.asList(identifier));
+		
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		TestHelper.createMeasureArtifact(baos, parser, measure, library);
+		
+		//Files.write( baos.toByteArray(), new File("target/test_measure_v1_0_0.zip"));
 
-		ValidatableResponse vr = runSuccessValidation(request.get(RESOURCE,getServiceVersion()).then(), ContentType.JSON, HttpStatus.SC_OK);
-		assertJsonEquals(getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"get_evaluation_status_exp.json"),vr.extract().asString());
-		assertJsonStructureEquals(getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"get_evaluation_status_exp.json"),vr.extract().asString());
+		Map<String,Parameter> parameterOverrides = new HashMap<>();
+		parameterOverrides.put("Measurement Period", new IntervalParameter(new DateParameter("2019-07-04")
+				, true
+				, new DateParameter( "2020-07-04")
+				, true));
+		
+		MeasureEvaluation requestData = new MeasureEvaluation();
+		requestData.setDataServerConfig(dataServerConfig);
+		requestData.setTerminologyServerConfig(termServerConfig);
+		// This is a patient ID that is assumed to exist in the target FHIR server
+		requestData.setPatientId(VALID_PATIENT_ID);
+		requestData.setMeasureContext(new MeasureContext(null, parameterOverrides, new com.ibm.cohort.engine.measure.Identifier(identifier.getSystem(), identifier.getValue()), measure.getVersion()));
+		requestData.setEvidenceOptions(new MeasureEvidenceOptions(false,MeasureEvidenceOptions.DefineReturnOptions.NONE));
+		
+		ObjectMapper om = new ObjectMapper();
+		System.out.println( om.writeValueAsString(requestData) );
+		
+		RequestSpecification request = buildBaseRequest(new Headers())
+				.queryParam("version", ServiceBuildConstants.DATE)
+				.multiPart(CohortEngineRestHandler.REQUEST_DATA_PART, requestData, "application/json")
+				.multiPart(CohortEngineRestHandler.MEASURE_PART, "test_measure_v1_0_0.zip", new ByteArrayInputStream(baos.toByteArray()));
+		
+		ValidatableResponse response = request.post(RESOURCE,getServiceVersion()).then();
+		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
+		
+		String expected = getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"measure_evaluation_exp.json");
+		String actual = vr.extract().asString();
+		
+		assertMeasureReportEquals(parser, expected, actual);
 	}
 
-	@Category(DVT.class) // to tag a specific test to be part of DVT (deployment verification test)
-	@Test
-	/**
-	 * Test the delete evaluation status stub
-	 *
-	 */
-	public void testDeleteEvaluation() {
-		final String RESOURCE = getUrlBase() + CohortServiceAPISpec.CREATE_DELETE_EVALUATION_PATH+"/12345";
-		RequestSpecification request =
-			buildBaseRequest(HEADER_CONSUMES_JSON_STANDARD_JSON).
-			queryParam("version", ServiceBuildConstants.DATE);
-
-		ValidatableResponse vr = runSuccessValidation(request.delete(RESOURCE,getServiceVersion()).then(), ContentType.JSON, HttpStatus.SC_OK);
-		assertJsonEquals(getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"create_evaluation_exp.json"),vr.extract().asString());
-		assertJsonStructureEquals(getJsonFromFile(ServiceAPIGlobalSpec.EXP_FOLDER_TYPE,"create_evaluation_exp.json"),vr.extract().asString());
+	private void assertMeasureReportEquals(IParser parser, String expected, String actual) {
+		MeasureReport expectedReport = parser.parseResource(MeasureReport.class, expected);
+		MeasureReport actualReport = parser.parseResource(MeasureReport.class, actual);
+		
+		// The order is not guaranteed and the Measure ID changes between runs
+		assertEquals( expectedReport.getEvaluatedResource().size(), actualReport.getEvaluatedResource().size() );
+		expectedReport.setEvaluatedResource(Collections.emptyList());
+		actualReport.setEvaluatedResource(Collections.emptyList());
+		
+		// The period in the report has the timezone encoded, so we can't use a point-in-time
+		// snapshot to evaluate equality. The point-in-time might have a different
+		// timezone offset than the actual value. This will ignore timezone.
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		assertEquals( sdf.format(expectedReport.getPeriod().getStart()), sdf.format(actualReport.getPeriod().getStart()));
+		assertEquals( sdf.format(expectedReport.getPeriod().getEnd()), sdf.format(actualReport.getPeriod().getEnd()));
+		expectedReport.setPeriod(null);
+		actualReport.setPeriod(null);
+		
+		// The remainder should match naturally
+		assertJsonEquals(parser.encodeResourceToString(expectedReport),parser.encodeResourceToString(actualReport));
 	}
 
 	@Test

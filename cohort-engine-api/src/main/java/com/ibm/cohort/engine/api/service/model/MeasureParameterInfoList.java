@@ -12,6 +12,7 @@ import java.util.Objects;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.ibm.cohort.annotations.Generated;
 
 import io.swagger.annotations.ApiModelProperty;
 
@@ -19,7 +20,10 @@ import io.swagger.annotations.ApiModelProperty;
 public class MeasureParameterInfoList {
 
 	private List<MeasureParameterInfo> parameterInfoList = new ArrayList<MeasureParameterInfo>();
-	
+	/**
+	 * @param parameterInfoList MeasureParameterInfo objects
+	 * @return a MeasureParameterInfoList object
+	 */
 	public MeasureParameterInfoList measureParameterInfoList(List<MeasureParameterInfo> parameterInfoList) {
 		this.parameterInfoList = parameterInfoList;
 		return this;
@@ -28,10 +32,18 @@ public class MeasureParameterInfoList {
 	@ApiModelProperty(required = true, value = "A list of parameter information objects for libraried referenced by the input measure")
 	@JsonProperty("MeasureParameterInfoList")
 	@NotNull
+	/**
+	 * Get the parameter info list
+	 * @return the parameter info list
+	 */
 	public List<MeasureParameterInfo> getParameterInfoList() {
 		return parameterInfoList;
 	}
 
+	/**
+	 * Set the parameter info list
+	 * @param parameterInfoList the parameter info list
+	 */
 	public void setParameterInfoList(List<MeasureParameterInfo> parameterInfoList) {
 		this.parameterInfoList = parameterInfoList;
 	}
@@ -65,6 +77,8 @@ public class MeasureParameterInfoList {
 	/**
 	 * Convert the given object to string with each line indented by 4 spaces
 	 * (except the first line).
+	 * @param o object to render
+	 * @return object rendered as String with indentation
 	 */
 	private String toIndentedString(Object o) {
 		if (o == null) {

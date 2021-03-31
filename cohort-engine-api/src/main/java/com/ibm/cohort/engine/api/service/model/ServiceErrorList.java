@@ -12,6 +12,7 @@ import java.util.Objects;
 import javax.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.ibm.cohort.annotations.Generated;
 import com.ibm.watson.common.service.base.ServiceBaseUtility;
 import com.ibm.watson.service.base.model.ServiceError;
 

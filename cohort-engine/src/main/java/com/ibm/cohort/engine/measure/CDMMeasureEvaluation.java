@@ -113,7 +113,8 @@ public class CDMMeasureEvaluation {
 	public MeasureReport evaluatePatientMeasure(Measure measure, Context context, String patientId, MeasureEvidenceOptions evidenceOptions) {
 		context.setExpressionCaching(true);
 		
-		MeasureReport report = evaluation.evaluatePatientMeasure(measure, context, patientId, evidenceOptions.isIncludeEvaluatedResources());
+		boolean includeEvaluatedResources = (evidenceOptions != null ) ? evidenceOptions.isIncludeEvaluatedResources() : false;
+		MeasureReport report = evaluation.evaluatePatientMeasure(measure, context, patientId, includeEvaluatedResources);
 
 		MeasureScoring scoring = MeasureScoring.fromCode(measure.getScoring().getCodingFirstRep().getCode());
 		switch (scoring) {
@@ -150,7 +151,8 @@ public class CDMMeasureEvaluation {
 			CDMContext defineContext = (CDMContext) context;
 			
 			// Grab the define results from the expression cache
-			addDefineEvaluationToReport(report, defineContext, evidenceOptions.getDefineReturnOption());
+			MeasureEvidenceOptions.DefineReturnOptions defineReturnOptions = (evidenceOptions != null ) ? evidenceOptions.getDefineReturnOption() : MeasureEvidenceOptions.DefineReturnOptions.NONE;
+			addDefineEvaluationToReport(report, defineContext, defineReturnOptions);
 			
 			defineContext.clearExpressionCache();
 		}

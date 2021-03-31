@@ -22,15 +22,19 @@
         "value": "over-the-hill-identifier"
       },
       "version": "2.0.0",
-      "parameters": [
-        {
-          "name": "Measurement Period",
+      "parameters": {
+        "Measurement Period": {
           "type": "interval",
-          "subtype": "datetime",
-          "start": "@2027-01-01T00:00:00.0",
-          "end": "@2028-01-01T00:00:00.0"
+          "start": {
+          	"type": "datetime",
+          	"value": "@2027-01-01T00:00:00.0"
+          },
+          "end": {
+          	"type": "datetime",
+          	"value": "@2028-01-01T00:00:00.0"
+          }
         }
-      ]
+      }
     }
   ]
 }

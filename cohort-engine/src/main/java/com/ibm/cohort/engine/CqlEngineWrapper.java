@@ -35,6 +35,7 @@ import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.cqfruler.CDMContext;
+import com.ibm.cohort.engine.parameter.Parameter;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
@@ -189,7 +190,7 @@ public class CqlEngineWrapper {
 	 *                       executed define (required).             
 	 */
 	protected void evaluateExpressionByExpression(final String libraryName, final String libraryVersion,
-			final Map<String, Object> parameters, final Set<String> expressions, final List<String> contextIds,
+			final Map<String, Parameter> parameters, final Set<String> expressions, final List<String> contextIds,
 			final EvaluationResultCallback callback) {
 		if (this.libraryLoader == null || this.dataServerClient == null || this.terminologyServerClient == null
 				|| this.measureServerClient == null) {
@@ -227,7 +228,8 @@ public class CqlEngineWrapper {
 			context.setExpressionCaching(true);
 
 			if (parameters != null) {
-				for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+				Map<String,Object> typedParameters = mapToCqlTypes(parameters);
+				for (Map.Entry<String, Object> entry : typedParameters.entrySet()) {
 					context.setParameter(/* libraryName= */null, entry.getKey(), entry.getValue());
 				}
 			}
@@ -335,7 +337,7 @@ public class CqlEngineWrapper {
 	 * @param callback       callback function to be evaluated once per context per
 	 *                       executed define
 	 */
-	protected void evaluateWithEngineWrapper(String libraryName, String libraryVersion, Map<String, Object> parameters,
+	protected void evaluateWithEngineWrapper(String libraryName, String libraryVersion, Map<String, Parameter> parameters,
 			Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback) {
 		if (this.libraryLoader == null || this.dataServerClient == null || this.terminologyServerClient == null
 				|| this.measureServerClient == null) {
@@ -360,18 +362,30 @@ public class CqlEngineWrapper {
 		Library library = libraryLoader.load(libraryId);
 		LibraryUtils.requireNoTranslationErrors(library);
 		LibraryUtils.requireValuesForNonDefaultParameters(library, parameters);
+		
+		Map<String, Object> typedParameters = mapToCqlTypes(parameters);		
 
 		CqlEngine cqlEngine = new CqlEngine(libraryLoader, dataProviders, termProvider);
 
 		for (String contextId : contextIds) {
 			callback.onContextBegin(contextId);
 			EvaluationResult er = cqlEngine.evaluate(libraryId, expressions, Pair.of(ContextNames.PATIENT, contextId),
-					parameters, /* debugMap= */null);
+					typedParameters, /* debugMap= */null);
 			for (Map.Entry<String, Object> result : er.expressionResults.entrySet()) {
 				callback.onEvaluationComplete(contextId, result.getKey(), result.getValue());
 			}
 			callback.onContextComplete(contextId);
 		}
+	}
+
+	private Map<String, Object> mapToCqlTypes(Map<String, Parameter> parameters) {
+		Map<String, Object> typedParameters = null;
+		if (parameters != null) {
+			typedParameters = parameters.entrySet().stream()
+					.map(entry -> new SimpleEntry<String,Object>(entry.getKey(), entry.getValue().toCqlType()))
+					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+		}
+		return typedParameters;
 	}
 
 	/**
@@ -392,7 +406,7 @@ public class CqlEngineWrapper {
 	 *                       least one value is required.
 	 * @param callback       callback function for receiving engine execution events
 	 */
-	public void evaluate(String libraryName, String libraryVersion, Map<String, Object> parameters,
+	public void evaluate(String libraryName, String libraryVersion, Map<String, Parameter> parameters,
 			Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback) {
 		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters, expressions, contextIds, callback);
 	}
@@ -416,7 +430,7 @@ public class CqlEngineWrapper {
 	 * @param callback       callback function to be evaluated once per context per
 	 *                       executed define
 	 */
-	public void evaluate(String libraryName, String libraryVersion, Map<String, Object> parameters,
+	public void evaluate(String libraryName, String libraryVersion, Map<String, Parameter> parameters,
 			Set<String> expressions, List<String> contextIds, ExpressionResultCallback callback) {
 		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters, expressions, contextIds,
 				new ProxyingEvaluationResultCallback(callback));

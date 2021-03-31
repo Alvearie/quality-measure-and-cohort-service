@@ -1,3 +1,8 @@
+/*
+ * (C) Copyright IBM Corp. 2021, 2021
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package com.ibm.cohort.engine.measure.seed;
 
 import static com.ibm.cohort.engine.cdm.CDMConstants.MEASURE_PARAMETER_URL;
@@ -67,7 +72,7 @@ public class MeasureEvaluationSeeder {
 	public IMeasureEvaluationSeed create(Measure measure, String periodStart, String periodEnd, String productLine) {
 		List<org.cqframework.cql.elm.execution.Library> libraries = LibraryHelper.loadLibraries(measure, this.libraryLoader, this.libraryResourceProvider);
 		if( CollectionUtils.isEmpty(libraries) ) { 
-			throw new IllegalArgumentException(String.format("No libraries were able to be loaded for Measure/%s", measure.getId()));
+			throw new IllegalArgumentException(String.format("No libraries were able to be loaded for %s", measure.getId()));
 		}
 		
 		// the "primary" library is always the first library loaded for the measure

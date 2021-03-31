@@ -50,6 +50,8 @@ import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
 import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
+import com.ibm.cohort.engine.parameter.BooleanParameter;
+import com.ibm.cohort.engine.parameter.Parameter;
 
 public class MeasureEvaluatorTest extends BaseMeasureTest {
 
@@ -165,8 +167,8 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test
 	public void not_in_initial_population___caregaps_evaluated_correctly() throws Exception {
 
-		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("InInitialPopulation", Boolean.FALSE);
+		Map<String, Parameter> parameters = new HashMap<>();
+		parameters.put("InInitialPopulation", new BooleanParameter(false));
 
 		expectationsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, 0);
 		expectationsByPopulationType.put(MeasurePopulationType.DENOMINATOR, 0);
@@ -181,8 +183,8 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test
 	public void not_in_denominator___caregaps_evaluated_correctly() throws Exception {
 
-		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("InDenominator", Boolean.FALSE);
+		Map<String, Parameter> parameters = new HashMap<>();
+		parameters.put("InDenominator", new BooleanParameter(false));
 
 		expectationsByPopulationType.put(MeasurePopulationType.DENOMINATOR, 0);
 
@@ -196,9 +198,9 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test
 	public void in_denominator_and_denominator_exclusions___caregaps_evaluated_correctly() throws Exception {
 
-		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("InDenominator", Boolean.TRUE);
-		parameters.put("InDenominatorExclusion", Boolean.TRUE);
+		Map<String, Parameter> parameters = new HashMap<>();
+		parameters.put("InDenominator", new BooleanParameter(true));
+		parameters.put("InDenominatorExclusion", new BooleanParameter(true));
 
 		expectationsByPopulationType.put(MeasurePopulationType.DENOMINATOR, 0);
 		expectationsByPopulationType.put(MeasurePopulationType.DENOMINATOREXCLUSION, 1);
@@ -213,9 +215,9 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test
 	public void in_numerator_and_numerator_exclusions___caregaps_evaluated_correctly() throws Exception {
 
-		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("InNumerator", Boolean.TRUE);
-		parameters.put("InNumeratorExclusion", Boolean.TRUE);
+		Map<String, Parameter> parameters = new HashMap<>();
+		parameters.put("InNumerator", new BooleanParameter(true));
+		parameters.put("InNumeratorExclusion", new BooleanParameter(true));
 
 		expectationsByPopulationType.put(MeasurePopulationType.NUMERATOR, 0);
 		expectationsByPopulationType.put(MeasurePopulationType.NUMERATOREXCLUSION, 1);
@@ -245,11 +247,11 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 											"CareGap2");
 		mockFhirResourceRetrieval(measure2);
 
-		Map<String, Object> passingParameters = new HashMap<>();
-		passingParameters.put("InInitialPopulation", Boolean.TRUE);
+		Map<String, Parameter> passingParameters = new HashMap<>();
+		passingParameters.put("InInitialPopulation", new BooleanParameter(true));
 
-		Map<String, Object> failingParameters = new HashMap<>();
-		failingParameters.put("InInitialPopulation", Boolean.FALSE);
+		Map<String, Parameter> failingParameters = new HashMap<>();
+		failingParameters.put("InInitialPopulation", new BooleanParameter(false));
 
 		List<MeasureContext> measureContexts = new ArrayList<>();
 		measureContexts.add(new MeasureContext(measure1.getId(), passingParameters));
@@ -277,8 +279,8 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 											"CareGap2");
 		mockFhirResourceRetrieval(measure);
 
-		Map<String, Object> passingParameters = new HashMap<>();
-		passingParameters.put("InInitialPopulation", Boolean.TRUE);
+		Map<String, Parameter> passingParameters = new HashMap<>();
+		passingParameters.put("InInitialPopulation", new BooleanParameter(true));
 
 		List<MeasureContext> measureContexts = new ArrayList<>();
 		measureContexts.add(new MeasureContext(measure.getId(), passingParameters));
@@ -305,8 +307,8 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		measure.setLibrary( Arrays.asList( new CanonicalType( "Library/" + library.getId()) ) );
 		mockFhirResourceRetrieval(measure);
 
-		Map<String, Object> passingParameters = new HashMap<>();
-		passingParameters.put("InInitialPopulation", Boolean.TRUE);
+		Map<String, Parameter> passingParameters = new HashMap<>();
+		passingParameters.put("InInitialPopulation", new BooleanParameter(true));
 
 		List<MeasureContext> measureContexts = new ArrayList<>();
 		measureContexts.add(new MeasureContext(measure.getId(), passingParameters));
@@ -394,7 +396,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());
 	}
 
-	private void runCareGapTest(Map<String, Object> parameters, Map<String, Integer> careGapExpectations)
+	private void runCareGapTest(Map<String, Parameter> parameters, Map<String, Integer> careGapExpectations)
 			throws ParseException, Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
 		mockFhirResourceRetrieval("/metadata", metadata);

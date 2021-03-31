@@ -15,10 +15,10 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
-import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
 import com.ibm.watson.service.base.model.ServiceError;
 
@@ -30,7 +30,6 @@ import ca.uhn.fhir.rest.server.exceptions.BaseServerResponseException;
 public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 	private static final Logger logger = LoggerFactory.getLogger(CohortServiceExceptionMapper.class.getName());
 	private static final int maxExceptionCauseDepth = 20;
-
 
 	@Override
 	public Response toResponse(Throwable ex) {
@@ -83,11 +82,26 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 				serviceErrorCode = Status.BAD_REQUEST.getStatusCode();
 				serviceErrorListCode = serviceErrorCode;
 			}
-			// FHIR Exception
-			else if (ex instanceof BaseServerResponseException) {
-				serviceErrorCode = Status.INTERNAL_SERVER_ERROR.getStatusCode();
+			//will get thrown by Jackson deserialization for various types of 
+			//parsing errors.
+			else if (ex instanceof MismatchedInputException) {
+				serviceErrorCode = Status.BAD_REQUEST.getStatusCode();
 				serviceErrorListCode = serviceErrorCode;
-				description = StringEscapeUtils.escapeJson(((BaseServerResponseException) ex).getResponseBody());
+			}
+			//will get thrown by HAPI FHIR when a requested resource is not found in the target FHIR server
+			else if (ex instanceof BaseServerResponseException) { 
+				serviceErrorCode = Status.BAD_REQUEST.getStatusCode();
+				serviceErrorListCode = serviceErrorCode;
+				
+				BaseServerResponseException sre = (BaseServerResponseException) ex;
+				reason = "Exception while communicating with FHIR";
+
+				if( sre.getResponseBody() != null ) {
+					description = sre.getResponseBody(); 
+				} else { 
+					// Some errors do not have a response body 
+					description = sre.getLocalizedMessage();
+				}
 			}
 			//catch everything else and return a 500
 			else {

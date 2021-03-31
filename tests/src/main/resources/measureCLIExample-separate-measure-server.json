@@ -95,7 +95,7 @@
             "resource": null,
             "params": null,
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
-            "response": "Exception in thread \"main\" java.lang.IllegalArgumentException: Invalid measure parameter file: Must provide \"subtype\", \"start\",  and \"end\" for each measure parameter with type \"interval\".",
+            "response": "\\[0\\]\\.parameters\\[Measurement Period\\]\\.end: may not be null",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
             "filters": null,
             "regEx": true
@@ -105,7 +105,7 @@
             "resource": null,
             "params": null,
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
-            "response": "Exception in thread \"main\" java.lang.IllegalArgumentException: Unsupported interval type timeperiod",
+            "response": "Exception in thread \"main\" com\\.fasterxml\\.jackson\\.databind\\.exc\\.InvalidTypeIdException: Could not resolve type id 'timeperiod'",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
             "filters": null,
             "regEx": true
@@ -115,7 +115,7 @@
             "resource": null,
             "params": null,
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
-            "response": "Exception in thread \"main\" java.time.format.DateTimeParseException: Text '2020/01/01T00:00:00.0:00.000Z' could not be parsed at index 4",
+            "response": "Exception in thread \"main\" java\\.time\\.format\\.DateTimeParseException: Text '2020/01/01T00:00:00\\.0:00\\.000Z' could not be parsed at index 4",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
             "filters": null,
             "regEx": true

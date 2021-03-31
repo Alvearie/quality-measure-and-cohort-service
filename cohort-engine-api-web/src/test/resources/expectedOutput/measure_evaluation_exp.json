@@ -1,0 +1,24 @@
+{
+	"resourceType": "MeasureReport",
+	"status": "complete",
+	"type": "individual",
+	"measure": "Measure/measureId",
+	"subject": {
+		"reference": "Patient/eb068c3f-3954-50c6-0c67-2b82d29865f0"
+	},
+	"period": {
+		"start": "2019-07-04T00:00:00-04:00",
+		"end": "2020-07-04T00:00:00-04:00"
+	},
+	"group": [{
+		"population": [{
+			"code": {
+				"coding": [{
+					"system": "http://hl7.org/fhir/measure-population",
+					"code": "initial-population"
+				}]
+			},
+			"count": 1
+		}]
+	}]
+}

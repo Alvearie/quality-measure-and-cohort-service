@@ -7,11 +7,20 @@ package com.ibm.cohort.engine.measure;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Map;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hl7.fhir.r4.model.Measure;
+import org.opencds.cqf.cql.engine.runtime.DateTime;
+
+import com.ibm.cohort.engine.parameter.DateParameter;
+import com.ibm.cohort.engine.parameter.DatetimeParameter;
+import com.ibm.cohort.engine.parameter.IntervalParameter;
+import com.ibm.cohort.engine.parameter.Parameter;
 
 /**
  * Provide a very basic implementation of a measurement period determination
@@ -30,11 +39,13 @@ import org.apache.commons.lang3.tuple.Pair;
  */
 public class DefaultMeasurementPeriodStrategy implements MeasurementPeriodStrategy {
 
+	public static final String DEFAULT_MEASUREMENT_PERIOD_PARAMETER = "Measurement Period";
 	public static final String TARGET_DATE_FORMAT = "yyyy-MM-dd";
 
 	private static final int DEFAULT_AMOUNT = -1;
 	private static final int DEFAULT_UNIT = Calendar.YEAR;
 
+	private String measurementPeriodParameter = DEFAULT_MEASUREMENT_PERIOD_PARAMETER;
 	private int unit;
 	private int amount;
 
@@ -59,14 +70,37 @@ public class DefaultMeasurementPeriodStrategy implements MeasurementPeriodStrate
 		this.unit = unit;
 		this.amount = amount;
 	}
+	
+	/**
+	 * Set the parameter name of the measurement period parameter. This is
+	 * optional and will default to <code>DEFAULT_MEASUREMENT_PERIOD_PARAMETER</code>
+	 * if not provided;
+	 * 
+	 * @param name parameter name
+	 * @return this
+	 */
+	public DefaultMeasurementPeriodStrategy setMeasurementPeriodParameter(String name) {
+		this.measurementPeriodParameter = name;
+		return this;
+	}
+	
+	/**
+	 * Get the parameter name of the measurement period parameter.
+	 * @return parameter name
+	 */
+	public String getMeasurementPeriodParameter() {
+		return this.measurementPeriodParameter;
+	}
 
 	/**
 	 * Allow the user to provide the "now" date as needed.
 	 * 
 	 * @param date the "now" date for the system timezone.
+	 * @return this
 	 */
-	public void setNow(Date date) {
+	public DefaultMeasurementPeriodStrategy setNow(Date date) {
 		this.now = date;
+		return this;
 	}
 
 	/**
@@ -85,7 +119,60 @@ public class DefaultMeasurementPeriodStrategy implements MeasurementPeriodStrate
 	}
 
 	@Override
-	public Pair<String, String> getMeasurementPeriod() {
+	public Pair<String, String> getMeasurementPeriod(Measure measure, Map<String,Parameter> parameterOverrides) {
+		Pair<String,String> result = null;
+		
+		if( parameterOverrides != null ) { 
+			Object measurementPeriod = parameterOverrides.get(measurementPeriodParameter);
+			if( measurementPeriod != null ) {
+				result = intervalToPair((IntervalParameter)measurementPeriod);
+			}
+		}
+		
+		if( result == null ) {
+			result = calculateMeasurementPeriod();
+		}
+		return result;
+	}
+
+	protected Pair<String, String> intervalToPair(IntervalParameter interval) {
+		String start = null;
+		String end = null; 
+		
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(TARGET_DATE_FORMAT);
+		//DateFormat formatter = new SimpleDateFormat(TARGET_DATE_FORMAT);
+		
+		// round tripping parameters through their cql-types deals with
+		// weird CQL-language formatting such as the "@" char.
+		if( interval.getStart() instanceof DatetimeParameter ) {
+			DateTime cqlType = null;
+			
+			DatetimeParameter dtStart = (DatetimeParameter) interval.getStart();
+			cqlType = (DateTime) dtStart.toCqlType();
+			start = formatter.format( cqlType.getDateTime() );
+			
+			DatetimeParameter dtEnd = (DatetimeParameter) interval.getEnd();
+			cqlType = (DateTime) dtEnd.toCqlType();
+			end = formatter.format( cqlType.getDateTime() );
+
+		} else if( interval.getStart() instanceof DateParameter ) {
+			org.opencds.cqf.cql.engine.runtime.Date cqlType = null;
+			
+			DateParameter dStart = (DateParameter) interval.getStart();
+			cqlType = (org.opencds.cqf.cql.engine.runtime.Date) dStart.toCqlType();
+			start = formatter.format( cqlType.getDate() );
+			
+			DateParameter dEnd = (DateParameter) interval.getEnd();
+			cqlType = (org.opencds.cqf.cql.engine.runtime.Date) dEnd.toCqlType();
+			end = formatter.format( cqlType.getDate() );
+		} else {
+			throw new IllegalArgumentException(String.format("Unexpected interval data type '%s'", interval.getStart().getClass()));
+		}
+		
+		return new ImmutablePair<String,String>( start, end );
+	}
+
+	protected Pair<String, String> calculateMeasurementPeriod() {
 		Calendar end = Calendar.getInstance();
 		end.setTime(getNow());
 

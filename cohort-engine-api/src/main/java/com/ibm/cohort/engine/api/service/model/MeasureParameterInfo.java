@@ -8,6 +8,7 @@ package com.ibm.cohort.engine.api.service.model;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.ibm.cohort.annotations.Generated;
 
 import io.swagger.annotations.ApiModelProperty;
 

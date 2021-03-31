@@ -145,7 +145,7 @@ public class CohortCLI extends BaseCLI {
 			}
 			wrapper.setLibraryLoader(new TranslatingLibraryLoader(sourceProvider, translationProvider, isForceTranslation));
 
-			Map<String, Object> parameters = null;
+			Map<String, com.ibm.cohort.engine.parameter.Parameter> parameters = null;
 			if (arguments.parameters != null) {
 				parameters = parseParameterArguments(arguments.parameters);
 			}

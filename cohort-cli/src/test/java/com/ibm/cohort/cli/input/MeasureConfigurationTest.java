@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
 
 public class MeasureConfigurationTest {
 	
@@ -26,19 +27,20 @@ public class MeasureConfigurationTest {
 	
 	@Test
 	public void testEmptyParameters_executionSucceeds() throws Exception {
-		MeasureConfiguration measureConfiguration = createMeasureIdWithParameters("{\"measureId\":\"1234\",\"parameters\":[]}");
+		MeasureConfiguration measureConfiguration = createMeasureIdWithParameters("{\"measureId\":\"1234\",\"parameters\":{}}");
 		measureConfiguration.validate();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = InvalidTypeIdException.class)
 	public void testInvalidSingleParameter_throwsException() throws Exception {
-		MeasureConfiguration measureConfiguration = createMeasureIdWithParameters("{\"measureId\":\"1234\",\"parameters\":[{\"name\":\"p1\"}]}");
+		MeasureConfiguration measureConfiguration = createMeasureIdWithParameters("{\"measureId\":\"1234\",\"parameters\":{\"invalid\":{\"type\": \"unknown\", \"name\":\"p1\"}}}");
 		measureConfiguration.validate();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = InvalidTypeIdException.class)
 	public void testValidAndInvalidParameters_throwsException() throws Exception {
-		MeasureConfiguration measureConfiguration = createMeasureIdWithParameters("{\"measureId\":\"1234\",\"parameters\":[{\"name\":\"p1\",\"type\":\"integer\",\"value\":\"1\"},{\"name\":\"p2\"}]}");
+
+		MeasureConfiguration measureConfiguration = createMeasureIdWithParameters("{\"measureId\":\"1234\",\"parameters\":{\"p1\": { \"type\":\"integer\",\"value\":1},\"p2\":{\"type\": \"unknown\"}}}");
 		measureConfiguration.validate();
 	}
 

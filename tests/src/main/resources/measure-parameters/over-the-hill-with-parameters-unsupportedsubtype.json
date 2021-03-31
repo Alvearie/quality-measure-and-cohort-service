@@ -2,15 +2,19 @@
   "measureConfigurations": [
     {
       "measureId": "wh-cohort-Over-the-Hill-1.0.0",
-      "parameters": [
-        {
-          "name": "Measurement Period",
+      "parameters": {
+        "Measurement Period": {
           "type": "interval",
-          "subtype": "timeperiod",
-          "start": "@2020-01-01T00:00:00.0",
-          "end": "@2021-01-01T00:00:00.0"
+          "start": {
+          	"type": "timeperiod",
+          	"value" : "@2020-01-01T00:00:00.0"
+          },
+          "end": {
+          	"type": "timeperiod",
+          	"value" : "@2021-01-01T00:00:00.0"
+          }
         }
-      ]
+      }
     }
   ]
 }
