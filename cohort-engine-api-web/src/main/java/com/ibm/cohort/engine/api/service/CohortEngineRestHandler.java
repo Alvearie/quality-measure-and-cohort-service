@@ -406,7 +406,7 @@ public class CohortEngineRestHandler {
 			@Extension(properties = {
 					@ExtensionProperty(
 							name = DarkFeatureSwaggerFilter.DARK_FEATURE_NAME
-							, value = CohortEngineRestConstants.DARK_LAUNCHED_MEASURE_EVALUATION)
+							, value = CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD)
 			})}
 			, authorizations = {@Authorization(value = "BasicAuth")
 	})
@@ -423,7 +423,7 @@ public class CohortEngineRestHandler {
 		String methodName = "createValueSet";
 		IGenericClient terminologyClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId, httpHeaders);
 		Response response;
-		ServiceBaseUtility.isDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_MEASURE_EVALUATION);
+		ServiceBaseUtility.isDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD);
 		try {
 			// Perform api setup
 			Response errorResponse = ServiceBaseUtility.apiSetup(version, logger, methodName);
