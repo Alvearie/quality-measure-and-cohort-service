@@ -427,7 +427,9 @@ public class CohortEngineRestHandler {
 
 			String valueSetId = ValueSetUtil.importArtifact(terminologyClient, artifact, updateIfExists);
 			if(valueSetId == null){
-				return Response.status(Response.Status.CONFLICT).header("Content-Type", "application/json").build();
+				return Response.status(Response.Status.CONFLICT).header("Content-Type", "application/json")
+						.entity("Value Set already exists! Rerun with updateIfExists set to true!")
+						.build();
 			}
 
 			response = Response.status(Response.Status.OK).header("Content-Type", "application/json").entity(valueSetId).build();
