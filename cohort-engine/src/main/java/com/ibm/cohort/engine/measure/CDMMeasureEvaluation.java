@@ -197,7 +197,21 @@ public class CDMMeasureEvaluation {
 			}
 		}
 	}
-	
+
+	/**
+	 * Set the measure reference on a MeasureReport to the id of a given Measure.
+	 * Attempt to normalize the id to just the portion after "Measure/" if possible
+	 *
+	 * Examples:
+	 *   Measure/id1234
+	 *   Measure/id1234/_history/10
+	 *
+	 * If the id does not contain "Measure/", then the report measure is set to the
+	 * full id of the measure.
+	 *
+	 * @param report MeasureReport on which to set the measure reference
+	 * @param measure Measure providing the id to normalize and set on the report
+	 */
 	protected static void setReportMeasureToMeasureId(MeasureReport report, Measure measure) {
 		int startOfId = measure.getId().indexOf("Measure/");
 
