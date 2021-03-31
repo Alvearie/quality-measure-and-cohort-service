@@ -28,15 +28,13 @@ import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Type;
 import org.junit.Test;
 
+import com.ibm.cohort.engine.BaseFhirTest;
 import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceHelper;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.IParser;
-
-public class CDMMeasureEvaluationTest {
+public class CDMMeasureEvaluationTest extends BaseFhirTest {
 	@Test
 	public void testDefinesOnMeasureReport() {
 		MeasureReport report = new MeasureReport();
@@ -93,11 +91,9 @@ public class CDMMeasureEvaluationTest {
 	public void testSetReportMeasureToMeasureId__noMetaVersion__noHistoryInMeasureOnReport() {
 		MeasureReport report = new MeasureReport();
 
-		FhirContext ctx = FhirContext.forR4();
 		String measureInput = "{\"resourceType\":\"Measure\",\"id\":\"id1\"}";
 
-		IParser parser = ctx.newJsonParser();
-		Measure measure = parser.parseResource(Measure.class, measureInput);
+		Measure measure = fhirParser.parseResource(Measure.class, measureInput);
 
 		CDMMeasureEvaluation.setReportMeasureToMeasureId(report, measure);
 
@@ -108,11 +104,9 @@ public class CDMMeasureEvaluationTest {
 	public void testSetReportMeasureToMeasureId__includesMetaVersion__hasHistoryInMeasureOnReport() {
 		MeasureReport report = new MeasureReport();
 
-		FhirContext ctx = FhirContext.forR4();
 		String measureInput = "{\"resourceType\":\"Measure\",\"id\":\"id1\",\"meta\":{\"versionId\":\"2\"}}";
 
-		IParser parser = ctx.newJsonParser();
-		Measure measure = parser.parseResource(Measure.class, measureInput);
+		Measure measure = fhirParser.parseResource(Measure.class, measureInput);
 
 		CDMMeasureEvaluation.setReportMeasureToMeasureId(report, measure);
 
