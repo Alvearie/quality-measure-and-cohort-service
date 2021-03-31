@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.cohort.engine.api.service.vt; 
+package com.ibm.cohort.engine.api.service.vt;
 
 import static net.javacrumbs.jsonunit.JsonAssert.assertJsonEquals;
 import static net.javacrumbs.jsonunit.JsonAssert.assertJsonStructureEquals;
@@ -24,14 +24,15 @@ import static org.junit.Assert.fail;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import java.io.File;
-import java.nio.charset.StandardCharsets;
+import net.javacrumbs.jsonunit.JsonAssert;
+import net.javacrumbs.jsonunit.core.Option;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpStatus;
@@ -51,8 +52,8 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.api.service.CohortEngineRestConstants;
-
 import com.ibm.cohort.engine.api.service.CohortEngineRestHandler;
+import com.ibm.cohort.engine.api.service.FHIRRestUtils;
 import com.ibm.cohort.engine.api.service.ServiceBuildConstants;
 import com.ibm.cohort.engine.api.service.TestHelper;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
@@ -61,9 +62,6 @@ import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.parameter.DateParameter;
 import com.ibm.cohort.engine.parameter.IntervalParameter;
 import com.ibm.cohort.engine.parameter.Parameter;
-import com.ibm.cohort.engine.api.service.CohortEngineRestHandler;
-import com.ibm.cohort.engine.api.service.FHIRRestUtils;
-import com.ibm.cohort.engine.api.service.ServiceBuildConstants;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import com.ibm.cohort.valueset.ValueSetUtil;
 import com.ibm.watson.common.service.base.utilities.BVT;
@@ -79,10 +77,6 @@ import com.jayway.restassured.specification.RequestSpecification;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
-import net.javacrumbs.jsonunit.JsonAssert;
-import net.javacrumbs.jsonunit.core.Option;
-
-import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 /*
@@ -392,11 +386,12 @@ public class DefaultVT extends ServiceVTBase {
     @Test
 	public void testValueSetUpload(){
 		final String RESOURCE = getUrlBase() + "/{version}/valueset";
+		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD));
 
 		String auth = dataServerConfig.getUser() + ":" + dataServerConfig.getPassword();
 		byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(StandardCharsets.ISO_8859_1));
 
-		RequestSpecification request = buildBaseRequest(new Headers(new Header("Authorization", new String(encodedAuth))))
+		RequestSpecification request = buildBaseRequest(new Headers(new Header("Authorization", "Basic " + new String(encodedAuth))))
 				.param("version", ServiceBuildConstants.DATE)
 				.queryParam("fhir_server_rest_endpoint", dataServerConfig.getEndpoint())
 				.queryParam("updateIfExists", false)
@@ -414,7 +409,7 @@ public class DefaultVT extends ServiceVTBase {
 		String auth = dataServerConfig.getUser() + ":" + dataServerConfig.getPassword();
 		byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(StandardCharsets.ISO_8859_1));
 
-		RequestSpecification request = buildBaseRequest(new Headers(new Header("Authorization", new String(encodedAuth))))
+		RequestSpecification request = buildBaseRequest(new Headers(new Header("Authorization", "Basic " + new String(encodedAuth))))
 				.param("version", ServiceBuildConstants.DATE)
 				.queryParam("fhir_server_rest_endpoint", dataServerConfig.getEndpoint())
 				.queryParam("updateIfExists", false)
@@ -432,7 +427,7 @@ public class DefaultVT extends ServiceVTBase {
 		String auth = dataServerConfig.getUser() + ":" + dataServerConfig.getPassword();
 		byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(StandardCharsets.ISO_8859_1));
 
-		RequestSpecification request = buildBaseRequest(new Headers(new Header("Authorization", new String(encodedAuth))))
+		RequestSpecification request = buildBaseRequest(new Headers(new Header("Authorization", "Basic " + new String(encodedAuth))))
 				.param("version", ServiceBuildConstants.DATE)
 				.queryParam("fhir_server_rest_endpoint", dataServerConfig.getEndpoint())
 				.queryParam("updateIfExists", true)
