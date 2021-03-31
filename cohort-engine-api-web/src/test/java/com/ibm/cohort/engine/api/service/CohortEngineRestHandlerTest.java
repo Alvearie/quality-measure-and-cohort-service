@@ -61,8 +61,6 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.BaseFhirTest;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
-import com.ibm.cohort.engine.BaseFhirTest;
-import com.ibm.cohort.engine.api.service.model.EvaluateMeasuresStatus;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
 import com.ibm.cohort.engine.measure.Identifier;

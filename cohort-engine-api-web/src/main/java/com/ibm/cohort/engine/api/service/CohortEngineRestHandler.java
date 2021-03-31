@@ -157,36 +157,17 @@ public class CohortEngineRestHandler {
 		@ApiImplicitParam(name=REQUEST_DATA_PART, value=REQUEST_DATA_PART_DESC, dataTypeClass = MeasureEvaluation.class, required=true, paramType="form"),
 		@ApiImplicitParam(name=MEASURE_PART, value=MEASURE_PART_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
-	@ApiResponses(value = { 
+	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful Operation"),
-			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class), 
-			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class) 
+			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
+			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
 	})
 	public Response evaluateMeasure(@Context HttpServletRequest request,
 
 			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
-			@ApiParam(value = "patients and the measures to run", required = true) MeasuresEvaluation body) {
-		// return delegate.evaluateMeasures(body, securityContext);
-		ResponseBuilder responseBuilder = Response.status(Response.Status.ACCEPTED).entity("12345")
-				.header("Content-Location", request.getRequestURL() + "/status/12345?version=" + version);
-
-		return responseBuilder.build();
-	}
-
-	@GET
-	@Path("/evaluation/status/{jobId}/results")
-	@Produces({ "application/json" })
-	@ApiOperation(value = "Measure evaluation job results", notes = "Retrieves the results of the asynchronous measure evaluation job", response = EvaluateMeasureResults.class, responseContainer = "List", tags = {
-			"measures" })
-	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "successful operation", response = EvaluateMeasureResults.class, responseContainer = "List"),
-			@ApiResponse(code = 404, message = "Measure evaluation job not found", response = Void.class),
-			@ApiResponse(code = 500, message = "Error getting job results", response = Void.class) })
-	public Response getEvaluateMeasuresResults(
-			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
-			@ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody) {		
+			@ApiParam(value = "patients and the measures to run", required = true) IMultipartBody multipartBody) {
 		final String methodName = "evaluateMeasure";
-		
+
 		Response response = null;
 		
 		// Error out if feature is not enabled
