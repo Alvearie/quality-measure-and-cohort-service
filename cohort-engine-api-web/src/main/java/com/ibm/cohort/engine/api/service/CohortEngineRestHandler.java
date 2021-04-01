@@ -364,7 +364,7 @@ public class CohortEngineRestHandler {
 		}
 	}
 
-	public static String VALUE_SET_PART = "VALUE_SET";
+	public final static String VALUE_SET_PART = "VALUE_SET";
 
 	@POST
 	@Path("/valueset/")
@@ -373,7 +373,7 @@ public class CohortEngineRestHandler {
 	@ApiImplicitParams({
 			// This is necessary for the dark launch feature
 			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
-			@ApiImplicitParam(name="multipartBody", dataTypeClass = File.class, required=true, paramType="form", type="file" )
+			@ApiImplicitParam(name=VALUE_SET_PART, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful Operation", response = String.class),
@@ -399,7 +399,7 @@ public class CohortEngineRestHandler {
 								   @ApiParam(value = CohortEngineRestHandler.FHIR_DS_HEADER_DESC, defaultValue = IBMFhirServerConfig.DEFAULT_DATASOURCE_ID_HEADER) @QueryParam("fhir_data_source_id_header") String fhirDataSourceIdHeader,
 								   @ApiParam(value = CohortEngineRestHandler.FHIR_DS_ID_DESC) @QueryParam("fhir_data_source_id") String fhirDataSourceId,
 								   @DefaultValue ("false") @QueryParam("updateIfExists") boolean updateIfExists,
-								   @ApiParam(value = "Multipart form request containing value set spreadsheets") IMultipartBody multipartBody
+								   @ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody
 								) {
 		String methodName = "createValueSet";
 		if(fhirEndpoint == null){
