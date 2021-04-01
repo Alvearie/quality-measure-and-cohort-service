@@ -30,15 +30,12 @@ import org.hl7.fhir.r4.model.CapabilityStatement;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
-import org.hl7.fhir.r4.model.Expression;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.IntegerType;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
-import org.hl7.fhir.r4.model.Measure.MeasureSupplementalDataComponent;
 import org.hl7.fhir.r4.model.MeasureReport;
-import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.ParameterDefinition;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.StringType;
@@ -50,6 +47,7 @@ import org.opencds.cqf.cql.engine.exception.InvalidOperatorArgument;
 
 import com.ibm.cohort.engine.LibraryFormat;
 import com.ibm.cohort.engine.cdm.CDMConstants;
+import com.ibm.cohort.engine.cqfruler.MeasureSupplementalDataEvaluation;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
 import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
@@ -629,59 +627,15 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
 
 		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
-		
-		MeasureSupplementalDataComponent supplementalDataComponent = new MeasureSupplementalDataComponent();
-		CodeableConcept genderCC = new CodeableConcept();
-		Coding genderCoding = new Coding();
-		genderCoding.setCode("supplemental-data-gender");
-		genderCC.setCoding(Arrays.asList(genderCoding));
-		genderCC.setText("sde-sex");
-		supplementalDataComponent.setCode(genderCC);
-		
-		CodeableConcept usage = new CodeableConcept();
-		Coding usageCoding = new Coding();
-		usageCoding.setCode("supplemental-data");
-		usage.setCoding(Arrays.asList(usageCoding));
-		supplementalDataComponent.setUsage(Arrays.asList(usage));
-		
-		Expression genderExpression = new Expression();
-		genderExpression.setExpression("SDE Sex");
-		genderExpression.setLanguage("text/cql.identifier");
-		
-		supplementalDataComponent.setCriteria(genderExpression);
-		
-		
-		List<MeasureSupplementalDataComponent> supplementalData = Arrays.asList(supplementalDataComponent);
-		
-		measure.setSupplementalData(supplementalData);
-		
+		measure.setSupplementalData(Arrays.asList(createSupplementalDataComponent("SDE Sex", MeasureSupplementalDataEvaluation.SDE_SEX)));
 		mockFhirResourceRetrieval(measure);
 
 		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());
 		assertNotNull(report);
 		
+		// EvaluatedResource should contain a reference to an observation record created for supplemental data, despite the evidence options indicating returning no evaluatedResources
 		assertEquals(1, report.getEvaluatedResource().size());
-		assertEquals(1, report.getContained().size());
-		assertTrue(report.getContained().get(0) instanceof Observation);
 		
-		Observation obs = (Observation) report.getContained().get(0);
-		assertEquals("sde-sex", obs.getCode().getText());
-		assertTrue(obs.getValue() instanceof CodeableConcept);
-		assertEquals("M", ((CodeableConcept)obs.getValue()).getCoding().get(0).getCode());
-		
-		Extension obsExt = obs.getExtensionByUrl("http://hl7.org/fhir/StructureDefinition/cqf-measureInfo");
-		assertTrue(obsExt != null);
-		assertTrue(obsExt.getValue() instanceof CodeableConcept);
-		
-		CodeableConcept obsExtValue = (CodeableConcept) obsExt.getValue();
-		
-		assertTrue(obsExtValue.getCoding().size() == 1);
-		
-		
-		
-		
-		assertEquals(null, obs.getExtensionByUrl("http://hl7.org/fhir/StructureDefinition/cqf-measureInfo"));
-		
-		assertEquals(null, report.getExtensionByUrl("http://hl7.org/fhir/StructureDefinition/cqf-measureInfo"));
+		// See MeasureSupplementalDataEvaluationTest for more details on what is returned here
 	}
 }

@@ -32,6 +32,12 @@ import org.opencds.cqf.cql.engine.runtime.Code;
 
 public class MeasureSupplementalDataEvaluation {
 	
+	public static final String SDE_SEX = "sde-sex";
+	public static final String CQF_MEASUREINFO_URL = "http://hl7.org/fhir/StructureDefinition/cqf-measureInfo";
+	public static final String CQFMEASURES_URL = "http://hl7.org/fhir/us/cqfmeasures/";
+	public static final String POPULATION_ID = "populationId";
+	public static final String MEASURE = "measure";
+	
 	private MeasureSupplementalDataEvaluation() {}
 	
 	public static void populateSDEAccumulators(Context context, Patient patient,
@@ -57,7 +63,7 @@ public class MeasureSupplementalDataEvaluation {
 						code = ((Code) sdeListItem).getCode();
 						break;
 					case "ArrayList":
-						if (((ArrayList<?>) sdeListItem).isEmpty()) {
+						if (!((ArrayList<?>) sdeListItem).isEmpty()) {
 							code = ((Coding) ((ArrayList<?>) sdeListItem).get(0)).getCode();
 						} else {
 							continue;
@@ -95,7 +101,7 @@ public class MeasureSupplementalDataEvaluation {
 				obs.setStatus(Observation.ObservationStatus.FINAL);
 				obs.setId(UUID.randomUUID().toString());
 				Coding valueCoding = new Coding();
-				if (sdeKey.equalsIgnoreCase("sde-sex")) {
+				if (sdeKey.equalsIgnoreCase(SDE_SEX)) {
 					valueCoding.setCode(sdeAccumulatorKey);
 				} else {
 					String coreCategory = sdeKey.substring(sdeKey.lastIndexOf('-'));
@@ -116,11 +122,11 @@ public class MeasureSupplementalDataEvaluation {
 				}
 				CodeableConcept obsCodeableConcept = new CodeableConcept();
 				Extension obsExtension = new Extension()
-						.setUrl("http://hl7.org/fhir/StructureDefinition/cqf-measureInfo");
-				Extension extExtMeasure = new Extension().setUrl("measure")
-						.setValue(new CanonicalType("http://hl7.org/fhir/us/cqfmeasures/" + report.getMeasure()));
+						.setUrl(CQF_MEASUREINFO_URL);
+				Extension extExtMeasure = new Extension().setUrl(MEASURE)
+						.setValue(new CanonicalType(CQFMEASURES_URL + report.getMeasure()));
 				obsExtension.addExtension(extExtMeasure);
-				Extension extExtPop = new Extension().setUrl("populationId").setValue(new StringType(sdeKey));
+				Extension extExtPop = new Extension().setUrl(POPULATION_ID).setValue(new StringType(sdeKey));
 				obsExtension.addExtension(extExtPop);
 				obs.addExtension(obsExtension);
 				obs.setValue(new IntegerType(sdeAccumulatorValue));
