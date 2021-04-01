@@ -211,7 +211,7 @@ public class CDMMeasureEvaluation {
 	 * If the id does not contain "Measure/", then the report measure is set to the
 	 * full id of the measure.
 	 *
-	 * Examples:
+	 * Example:
 	 *   id55432 stays id55432
 	 *
 	 * @param report MeasureReport on which to set the measure reference
