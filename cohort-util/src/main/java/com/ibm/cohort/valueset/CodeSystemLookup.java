@@ -11,6 +11,8 @@ package com.ibm.cohort.valueset;
 
 //taken from cqf-tooling's CodeSystemLookupDictionary.java
 public class CodeSystemLookup {
+	private CodeSystemLookup() {}
+	
 	public static  String getUrlFromName(String name) {
 		switch (name) {
 			case "ActCode": return "http://terminology.hl7.org/CodeSystem/v3-ActCode";
