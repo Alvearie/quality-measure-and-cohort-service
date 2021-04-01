@@ -28,14 +28,7 @@ public class CDMConstants {
 	
 	private static final String MEASURE_PARAMETER = "measure-parameter";
 	public static final String MEASURE_PARAMETER_URL = BASE_URL + STRUCTURE_DEFINITION + MEASURE_PARAMETER;
-	
+
 	private static final String PARAMETER_DEFAULT = "default-value";
 	public static final String PARAMETER_DEFAULT_URL = BASE_URL + STRUCTURE_DEFINITION + PARAMETER_DEFAULT;
-	
-	private static final String MEASURE_PARAMETER_VALUE = "measure-parameter-value";
-	public static final String MEASURE_PARAMETER_VALUE_URL = BASE_URL + STRUCTURE_DEFINITION + MEASURE_PARAMETER_VALUE;
-
-	private static final String PARAMETER_VALUE = "parameter-value";
-	public static final String PARAMETER_VALUE_URL = BASE_URL + STRUCTURE_DEFINITION + PARAMETER_VALUE;
-
 }
