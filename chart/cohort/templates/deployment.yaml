@@ -44,6 +44,10 @@ spec:
           env:
             - name: ENABLE_DARK_FEATURES
               value: {{ .Values.enableDarkFeatures }}
+            - name: LIBERTY_INITIAL_HEAP_SIZE
+              value: {{ .Values.libertyInitialHeapSize }}
+            - name: LIBERTY_MAX_HEAP_SIZE
+              value: {{ .Values.libertyMaxHeapSize }}
           ports:
           {{- range .Values.service.ports }}
           - containerPort: {{ . }}
