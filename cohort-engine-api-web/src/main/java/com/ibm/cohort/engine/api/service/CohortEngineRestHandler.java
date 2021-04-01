@@ -434,7 +434,7 @@ public class CohortEngineRestHandler {
 
 			response = Response.status(Response.Status.OK).header("Content-Type", "application/json").entity(valueSetId).build();
 		}
-		catch (IOException e){
+		catch (Throwable e){
 			return new CohortServiceExceptionMapper().toResponse(e);
 		}
 		finally {
