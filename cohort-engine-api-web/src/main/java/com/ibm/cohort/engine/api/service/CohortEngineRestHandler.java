@@ -364,7 +364,7 @@ public class CohortEngineRestHandler {
 		}
 	}
 
-	public final static String VALUE_SET_PART = "VALUE_SET";
+	public final static String VALUE_SET_PART = "valueSet";
 
 	@POST
 	@Path("/valueset/")
@@ -378,7 +378,7 @@ public class CohortEngineRestHandler {
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful Operation", response = String.class),
 			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
-			@ApiResponse(code = 409, message = "Bad Request", response = ServiceErrorList.class),
+			@ApiResponse(code = 409, message = "Conflict", response = ServiceErrorList.class),
 			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
 	})
 	@ApiOperation(value = "Insert a new value set to the fhir server or, if it already exists, update it in place"
@@ -405,7 +405,6 @@ public class CohortEngineRestHandler {
 		if(fhirEndpoint == null){
 			return Response.status(Response.Status.BAD_REQUEST).entity("fhirEndpoint must be specified").build();
 		}
-		IGenericClient terminologyClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId, httpHeaders);
 		Response response;
 		ServiceBaseUtility.isDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD);
 		try {
@@ -414,6 +413,7 @@ public class CohortEngineRestHandler {
 			if(errorResponse != null) {
 				return errorResponse;
 			}
+			IGenericClient terminologyClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId, httpHeaders);
 			IAttachment valueSetAttachment = multipartBody.getRootAttachment();
 			if (valueSetAttachment == null) {
 				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", VALUE_SET_PART));
