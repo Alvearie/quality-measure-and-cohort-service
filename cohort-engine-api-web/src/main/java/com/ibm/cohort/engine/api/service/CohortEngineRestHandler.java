@@ -6,7 +6,6 @@
 package com.ibm.cohort.engine.api.service;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
