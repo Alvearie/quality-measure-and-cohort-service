@@ -6,14 +6,12 @@
 <server description="cohortServer">
 
 	<!-- Enable features -->
-
 	<featureManager>
 		<feature>jsp-2.3</feature>
 		<feature>localConnector-1.0</feature>
 		<feature>jaxrs-2.1</feature>
 		<feature>servlet-4.0</feature>
 		<feature>transportSecurity-1.0</feature>
-		<!-- <feature>apiDiscovery-1.0</feature> -->
 		<feature>beanValidation-2.0</feature>
 	</featureManager>
 
@@ -26,7 +24,6 @@
 	<webContainer disableXPoweredBy="true"
 		displayTextWhenNoErrorPageDefined="Unexpected request/response. Please check the URL and try again."
 		deferServletLoad="false" />
-
 
 	<ssl id="defaultSSLConfig" keyStoreRef="defaultKeyStore" trustStoreRef="defaultTrustStore" clientAuthenticationSupported="true" sslProtocol="TLSv1.2" />
 	

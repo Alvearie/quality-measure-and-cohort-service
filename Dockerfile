@@ -9,7 +9,7 @@
 # base as builder until this is ready. For reference:
 # https://github.com/ibmruntimes/ci.docker/tree/master/ibmjava/8/sdk/ubi-min
 ####################
-FROM ibmjava:8-sdk AS builder
+FROM us.icr.io/cdt-common-rns/base-images/ubi8:latest AS builder
 
 WORKDIR /app
 ENV COHORT_DIST_SOLUTION=/app/cohortSolutionDistribution \
@@ -17,7 +17,7 @@ ENV COHORT_DIST_SOLUTION=/app/cohortSolutionDistribution \
 
 # We assume that a maven build has been completed and the docker build
 # is happening from the base diretory of the maven project.
-COPY --chown=1001:0 cohort-engine-distribution/target/solution /app/cohort-engine-distribution/target/solution
+COPY cohort-engine-distribution/target/solution /app/cohort-engine-distribution/target/solution
 
 # Using a builder image to avoid having to bundle the zip files into the
 # final docker image to reduce image size. Unzip in the builder image and
@@ -29,16 +29,8 @@ RUN mkdir -p $COHORT_DIST_SOLUTION && \
 # Multi-stage build. New build stage that uses the Liberty UBI as the base image.
 # Liberty document reference : https://hub.docker.com/_/websphere-liberty/
 ####################
-FROM us.icr.io/cdt-common-rns/base-images/ubi8-liberty:latest
-
-# The ARG maintainer is expected to be replaced by a value from the KeyProtect
-# instance configured for the starter app.
-# This integration depends on code in preDockerBuild.sh retrieving the value,
-# setting it as an ENV var and REPLACEARGS: "true" being set in the CI: section
-# of pipeline.config.
-# The keyprotect + replaceargs support is available starting in stable-3.0.2,
-# see https://github.ibm.com/whc-toolchain/whc-commons/tree/stable-3.0.4/docs/ready/ci-vault for more information.
-#ARG WH_COHORTING_APP_TOOLCHAIN_MAINTAINER=cohortTeamFunctionalIdReplacedByValueInCloudKeyProtect
+#TODO periodically update to the latest base image
+FROM us.icr.io/cdt-common-rns/base-images/ubi8-liberty:20210308.1322
 
 # Labels - certain labels are required if you want to have
 #          a Red Hat certified image (this is not a full set per se)
@@ -73,22 +65,17 @@ RUN microdnf update -y && rm -rf /var/cache/yum && \
     ln -sfn $WLP_HOME/usr/servers/$SERVER_NAME /config
 
 #Copy in war files, config files, etc. to final image
-USER whuser
-# copy webApp and files required for liberty server
-COPY --from=builder $COHORT_DIST_SOLUTION/solution/webapps/*.war /config/apps/
-COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/server.xml /config/
-COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/jvm.options /config/
+COPY --from=builder --chown=1001:1001 $COHORT_DIST_SOLUTION/solution/webapps/*.war /config/apps/
+COPY --from=builder --chown=1001:1001 $COHORT_DIST_SOLUTION/solution/bin/server.xml /config/
+COPY --from=builder --chown=1001:1001 $COHORT_DIST_SOLUTION/solution/bin/jvm.options /config/
 # copy the cohort engine uber jar (aka shaded jar)
-COPY --from=builder $COHORT_DIST_SOLUTION/solution/jars/*.jar $COHORT_ENGINE_HOME/
+COPY --from=builder --chown=1001:1001 $COHORT_DIST_SOLUTION/solution/jars/*.jar $COHORT_ENGINE_HOME/
 
 # Setup path
 ENV PATH="$JAVA_HOME/jre/bin:${PATH}"
 
 # Copy our startup script into the installed Liberty bin
 COPY --from=builder $COHORT_DIST_SOLUTION/solution/bin/*.sh $WLP_HOME/bin/
-
-# Change to root so we can do chmods to our WH user
-USER root
 
 # Grant write access to apps folder and startup script
 RUN chown -R --from=root whuser $WLP_HOME && \
