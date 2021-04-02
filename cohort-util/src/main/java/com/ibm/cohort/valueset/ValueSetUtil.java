@@ -95,7 +95,7 @@ public class ValueSetUtil {
 				try {
 					 display = currentRow.getCell(1).getStringCellValue();
 				}
-				catch (IllegalStateException e){
+				catch (Exception e){
 					throw new RuntimeException("Codes must be supplied when uploading Value Sets", e);
 				}
 				String codeSystem = CodeSystemLookup.getUrlFromName(currentRow.getCell(2).getStringCellValue());
