@@ -65,7 +65,7 @@ public class ValueSetUtil {
 			if (!code.equals("") && currentRow.getCell(1) != null && !inCodesSection ) {
 				String value = currentRow.getCell(1).getStringCellValue();
 				switch (currentRow.getCell(0).getStringCellValue().toLowerCase()) {
-					case "valueset set name":
+					case "value set name":
 						valueSet.setName(value);
 						valueSet.setTitle(value);
 						break;
