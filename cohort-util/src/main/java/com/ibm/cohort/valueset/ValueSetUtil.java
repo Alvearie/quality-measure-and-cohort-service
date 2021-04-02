@@ -63,7 +63,13 @@ public class ValueSetUtil {
 		for (Row currentRow : informationSheet) {
 			String code = currentRow.getCell(0) == null ? "" : currentRow.getCell(0).getStringCellValue();
 			if (!code.equals("") && currentRow.getCell(1) != null && !inCodesSection ) {
-				String value = currentRow.getCell(1).getStringCellValue();
+				String value;
+				try{
+					value = currentRow.getCell(1).getStringCellValue();
+				}
+				catch (IllegalArgumentException e){
+					throw new RuntimeException("Missing data must be supplied", e);
+				}
 				switch (currentRow.getCell(0).getStringCellValue().toLowerCase()) {
 					case "value set name":
 						valueSet.setName(value);
