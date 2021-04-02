@@ -32,6 +32,9 @@ public class ValueSetUtil {
 				//todo new kind of exception? Invalid Format? something specific
 				throw new IllegalArgumentException("URL must be supplied");
 			}
+			if(valueSetArtifact.getFhirResource() == null){
+				throw new IllegalArgumentException("Fhir Resource must be supplied");
+			}
 			if(valueSetArtifact.getFhirResource().getId() == null || valueSetArtifact.getFhirResource().getId().equals("")){
 				throw new IllegalArgumentException("Identifier must be supplied, ensure that either the OID or the ID field is filled in");
 			}
@@ -47,6 +50,9 @@ public class ValueSetUtil {
 		XSSFSheet informationSheet;
 		try (XSSFWorkbook wb = new XSSFWorkbook(is)) {
 			informationSheet = wb.getSheetAt(wb.getSheetIndex("Expansion List"));
+		}
+		catch (IllegalArgumentException e){
+			throw new RuntimeException("Spreadsheet is missing required sheet \"Expansion List\"", e);
 		}
 		ValueSet valueSet = new ValueSet();
 		boolean inCodesSection = false;
@@ -85,7 +91,13 @@ public class ValueSetUtil {
 				}
 			}
 			else if (inCodesSection) {
-				String display = currentRow.getCell(1).getStringCellValue();
+				String display;
+				try {
+					 display = currentRow.getCell(1).getStringCellValue();
+				}
+				catch (IllegalStateException e){
+					throw new RuntimeException("Codes must be supplied when uploading Value Sets", e);
+				}
 				String codeSystem = CodeSystemLookup.getUrlFromName(currentRow.getCell(2).getStringCellValue());
 				ValueSet.ConceptReferenceComponent concept = new ValueSet.ConceptReferenceComponent();
 				concept.setCode(code);
