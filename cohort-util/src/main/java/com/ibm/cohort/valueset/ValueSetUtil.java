@@ -67,7 +67,7 @@ public class ValueSetUtil {
 				try{
 					value = currentRow.getCell(1).getStringCellValue();
 				}
-				catch (IllegalArgumentException e){
+				catch (IllegalStateException e){
 					throw new RuntimeException("Missing data must be supplied", e);
 				}
 				switch (currentRow.getCell(0).getStringCellValue().toLowerCase()) {
