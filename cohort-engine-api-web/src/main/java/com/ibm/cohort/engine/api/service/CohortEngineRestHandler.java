@@ -164,7 +164,7 @@ public class CohortEngineRestHandler {
 	public Response evaluateMeasure(@Context HttpServletRequest request,
 
 			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
-			@ApiParam(value = "patients and the measures to run", required = true) IMultipartBody multipartBody) {
+			@ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody) {
 		final String methodName = "evaluateMeasure";
 
 		Response response = null;
