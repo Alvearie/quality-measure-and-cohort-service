@@ -65,7 +65,16 @@ public class ValueSetUtil {
 			if (!code.equals("") && currentRow.getCell(1) != null && !inCodesSection ) {
 				String value;
 				try{
-					value = currentRow.getCell(1).getStringCellValue();
+					switch(currentRow.getCell(1).getCellType()){
+						case NUMERIC:
+							value = Double.toString(currentRow.getCell(1).getNumericCellValue());
+							break;
+						case STRING:
+							value = currentRow.getCell(1).getStringCellValue();
+							break;
+						default:
+							throw new RuntimeException("Cell type does not match either String or Numeric for key " + code);
+					}
 				}
 				catch (IllegalStateException e){
 					throw new RuntimeException("Missing data must be supplied", e);
