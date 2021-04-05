@@ -114,6 +114,10 @@ public class CohortEngineRestHandler {
 			+ "<Major>.<Minor>.<Patch> format (ie if versions 1.0.0 and 2.0.0 both exist, the code will return the 2.0.0 version)";
 	private static final String MEASURE_API_NOTES = "Retrieves the parameter information for libraries linked to by a measure";
 
+	private static final String VALUE_SET_API_NOTES = "Uploads a value set described by the given xslx file";
+	private static final String VALUE_SET_UPDATE_IF_EXISTS_DESC = "The parameter that, if true, will force updates of value sets if the value set already exists";
+	private static final String VALUE_SET_DESC = "Spreadsheet containing the Value Set definition.";
+
 	private static final String DEFAULT_FHIR_URL = "https://fhir-internal.dev:9443/fhir-server/api/v4";
 
 	public static final String DELAY_DEFAULT = "3";
@@ -372,7 +376,7 @@ public class CohortEngineRestHandler {
 	@ApiImplicitParams({
 			// This is necessary for the dark launch feature
 			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
-			@ApiImplicitParam(name=VALUE_SET_PART, dataTypeClass = File.class, required=true, paramType="form", type="file" )
+			@ApiImplicitParam(name=VALUE_SET_PART, value= VALUE_SET_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful Operation", response = String.class),
@@ -381,6 +385,7 @@ public class CohortEngineRestHandler {
 			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
 	})
 	@ApiOperation(value = "Insert a new value set to the fhir server or, if it already exists, update it in place"
+			, notes = CohortEngineRestHandler.VALUE_SET_API_NOTES
 			, tags = {"valueSet" }
 			, extensions = {
 			@Extension(properties = {
@@ -397,7 +402,7 @@ public class CohortEngineRestHandler {
 								   @ApiParam(value = CohortEngineRestHandler.FHIR_TENANT_HEADER_DESC, defaultValue = IBMFhirServerConfig.DEFAULT_TENANT_ID_HEADER) @QueryParam("fhir_server_tenant_id_header") String fhirTenantIdHeader,
 								   @ApiParam(value = CohortEngineRestHandler.FHIR_DS_HEADER_DESC, defaultValue = IBMFhirServerConfig.DEFAULT_DATASOURCE_ID_HEADER) @QueryParam("fhir_data_source_id_header") String fhirDataSourceIdHeader,
 								   @ApiParam(value = CohortEngineRestHandler.FHIR_DS_ID_DESC) @QueryParam("fhir_data_source_id") String fhirDataSourceId,
-								   @DefaultValue ("false") @QueryParam("updateIfExists") boolean updateIfExists,
+								   @ApiParam(value = CohortEngineRestHandler.VALUE_SET_UPDATE_IF_EXISTS_DESC, defaultValue = "false") @DefaultValue ("false") @QueryParam("updateIfExists") boolean updateIfExists,
 								   @ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody
 								) {
 		String methodName = "createValueSet";
