@@ -303,7 +303,7 @@ public class MeasureSupplementalDataEvaluationTest extends BaseFhirTest {
 		CDMContext context = Mockito.mock(CDMContext.class);
         
 		Mockito.when(context.resolveExpressionRef(defineName)).thenReturn(mockExpressionDef);
-        Mockito.when(mockExpressionDef.evaluate(context)).thenReturn(expressionRetval);
+		Mockito.when(mockExpressionDef.evaluate(context)).thenReturn(expressionRetval);
         
 		MeasureSupplementalDataEvaluation.populateSDEAccumulators(context, mockPatient(), sdeAccumulators, Arrays.asList(createSupplementalDataComponent(defineName, text)));
 		
