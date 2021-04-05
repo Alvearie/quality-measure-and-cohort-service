@@ -9,7 +9,11 @@
 package com.ibm.cohort.valueset;
 
 
+import com.ibm.cohort.annotations.Generated;
+
 //taken from cqf-tooling's CodeSystemLookupDictionary.java
+//tagged to avoid coverage checks
+@Generated
 public class CodeSystemLookup {
 	private CodeSystemLookup() {}
 	
