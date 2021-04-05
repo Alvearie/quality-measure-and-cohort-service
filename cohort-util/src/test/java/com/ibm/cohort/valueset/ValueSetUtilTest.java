@@ -17,18 +17,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collections;
 
-import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeType;
-import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
-
-import ca.uhn.fhir.rest.api.MethodOutcome;
-import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 public class ValueSetUtilTest {
 
