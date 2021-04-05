@@ -30,11 +30,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Base64;
 
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpStatus;
 import org.custommonkey.xmlunit.Diff;
 import org.hl7.fhir.r4.model.Identifier;
@@ -389,7 +389,7 @@ public class DefaultVT extends ServiceVTBase {
 		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD));
 
 		String auth = dataServerConfig.getUser() + ":" + dataServerConfig.getPassword();
-		byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(StandardCharsets.ISO_8859_1));
+		byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.ISO_8859_1));
 
 		RequestSpecification request = buildBaseRequest(new Headers(new Header("Authorization", "Basic " + new String(encodedAuth))))
 				.param("version", ServiceBuildConstants.DATE)
@@ -407,7 +407,7 @@ public class DefaultVT extends ServiceVTBase {
 		final String RESOURCE = getUrlBase() + "/{version}/valueset";
 
 		String auth = dataServerConfig.getUser() + ":" + dataServerConfig.getPassword();
-		byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(StandardCharsets.ISO_8859_1));
+		byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.ISO_8859_1));
 
 		RequestSpecification request = buildBaseRequest(new Headers(new Header("Authorization", "Basic " + new String(encodedAuth))))
 				.param("version", ServiceBuildConstants.DATE)
@@ -425,7 +425,7 @@ public class DefaultVT extends ServiceVTBase {
 		final String RESOURCE = getUrlBase() + "/{version}/valueset";
 
 		String auth = dataServerConfig.getUser() + ":" + dataServerConfig.getPassword();
-		byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(StandardCharsets.ISO_8859_1));
+		byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.ISO_8859_1));
 
 		RequestSpecification request = buildBaseRequest(new Headers(new Header("Authorization", "Basic " + new String(encodedAuth))))
 				.param("version", ServiceBuildConstants.DATE)
