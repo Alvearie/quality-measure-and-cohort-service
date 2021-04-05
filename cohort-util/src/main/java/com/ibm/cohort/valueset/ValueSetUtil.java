@@ -64,7 +64,6 @@ public class ValueSetUtil {
 			String code = currentRow.getCell(0) == null ? "" : currentRow.getCell(0).getStringCellValue();
 			if (!code.equals("") && currentRow.getCell(1) != null && !inCodesSection ) {
 				String value;
-				try{
 					switch(currentRow.getCell(1).getCellType()){
 						case NUMERIC:
 							value = Double.toString(currentRow.getCell(1).getNumericCellValue());
@@ -75,10 +74,6 @@ public class ValueSetUtil {
 						default:
 							throw new RuntimeException("Cell type does not match either String or Numeric for key " + code);
 					}
-				}
-				catch (IllegalStateException e){
-					throw new RuntimeException("Missing data must be supplied", e);
-				}
 				switch (currentRow.getCell(0).getStringCellValue().toLowerCase()) {
 					case "value set name":
 						valueSet.setName(value);
@@ -106,13 +101,7 @@ public class ValueSetUtil {
 				}
 			}
 			else if (inCodesSection) {
-				String display;
-				try {
-					 display = currentRow.getCell(1).getStringCellValue();
-				}
-				catch (Exception e){
-					throw new RuntimeException("Codes must be supplied when uploading Value Sets", e);
-				}
+				String display = currentRow.getCell(1).getStringCellValue();
 				String codeSystem = CodeSystemLookup.getUrlFromName(currentRow.getCell(2).getStringCellValue());
 				ValueSet.ConceptReferenceComponent concept = new ValueSet.ConceptReferenceComponent();
 				concept.setCode(code);
