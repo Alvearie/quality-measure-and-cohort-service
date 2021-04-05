@@ -49,7 +49,7 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
  */
 public class CqlEngineWrapper {
 
-	public static final List<String> SUPPORTED_MODELS = Arrays.asList("http://hl7.org/fhir",
+	protected static final List<String> SUPPORTED_MODELS = Arrays.asList("http://hl7.org/fhir",
 			"http://hl7.org/fhir/us/core", "http://hl7.org/fhir/us/qicore", CDMConstants.BASE_URL);
 
 	/*
@@ -162,6 +162,15 @@ public class CqlEngineWrapper {
 	 */
 	public IGenericClient getTerminologyServerClient() {
 		return this.terminologyServerClient;
+	}
+	
+	/**
+	 * Memory leaks can occur when holding threads are re-used which is the case on application servers using pool of threads.
+	 * 
+	 * This method would allow the ThreadLocal variable to be cleaned up in such a scenario.
+	 */
+	public void unloadModelResolver() {
+		MODEL_RESOLVER.remove();
 	}
 
 	/**
@@ -286,8 +295,7 @@ public class CqlEngineWrapper {
 		retrieveProvider.setExpandValueSets(true);
 		CompositeDataProvider dataProvider = new CompositeDataProvider(MODEL_RESOLVER.get(), retrieveProvider);
 
-		Map<String, DataProvider> dataProviders = mapSupportedModelsToDataProvider(dataProvider);
-		return dataProviders;
+		return mapSupportedModelsToDataProvider(dataProvider);
 	}
 
 	/**
@@ -296,7 +304,7 @@ public class CqlEngineWrapper {
 	 * 
 	 * @param dataProvider DataProvider that will be used in support of the
 	 *                     SUPPORTED_MODELS
-	 * @return Map of model url to the <code>dataProvider</code>
+	 * @return Map of model URL to the <code>dataProvider</code>
 	 */
 	protected Map<String, DataProvider> mapSupportedModelsToDataProvider(DataProvider dataProvider) {
 		return mapSupportedModelsToDataProvider(SUPPORTED_MODELS, dataProvider);
@@ -309,7 +317,7 @@ public class CqlEngineWrapper {
 	 * @param supportedModels List of data models that are supported (i.e. base FHIR, QICore, etc)
 	 * @param dataProvider DataProvider that will be used in support of the
 	 *                     SUPPORTED_MODELS
-	 * @return Map of model url to the <code>dataProvider</code>
+	 * @return Map of model URL to the <code>dataProvider</code>
 	 */
 	protected Map<String, DataProvider> mapSupportedModelsToDataProvider(List<String> supportedModels,
 			DataProvider dataProvider) {

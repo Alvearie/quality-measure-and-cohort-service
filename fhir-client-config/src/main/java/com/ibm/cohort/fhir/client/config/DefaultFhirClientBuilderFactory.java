@@ -12,9 +12,6 @@ import ca.uhn.fhir.context.FhirContext;
  * instances and uses R4 as the default FhirContext.
  */
 public class DefaultFhirClientBuilderFactory extends FhirClientBuilderFactory {
-	public DefaultFhirClientBuilderFactory() {
-		
-	}
 	
 	@Override
 	public FhirClientBuilder newFhirClientBuilder() {

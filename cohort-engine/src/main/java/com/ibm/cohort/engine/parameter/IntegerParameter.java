@@ -31,6 +31,6 @@ public class IntegerParameter extends Parameter {
 	
 	@Override
 	public Object toCqlType() {
-		return Integer.valueOf(value);
+		return value;
 	}
 }

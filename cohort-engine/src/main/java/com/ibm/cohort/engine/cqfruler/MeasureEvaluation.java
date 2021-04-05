@@ -47,6 +47,8 @@ public class MeasureEvaluation {
 
     private static final Logger logger = LoggerFactory.getLogger(MeasureEvaluation.class);
 
+    public static final String PATIENT = "Patient";
+    
     private DataProvider provider;
     private Interval measurementPeriod;
 
@@ -66,7 +68,7 @@ public class MeasureEvaluation {
             throw new IllegalArgumentException("Must provide patient id");
         }
 
-        Iterable<Object> patientRetrieve = provider.retrieve("Patient", "id", patientId, "Patient", null, null, null,
+        Iterable<Object> patientRetrieve = provider.retrieve(PATIENT, "id", patientId, PATIENT, null, null, null,
                 null, null, null, null, null);
         Patient patient = null;
         if (patientRetrieve.iterator().hasNext()) {
@@ -86,7 +88,7 @@ public class MeasureEvaluation {
             return Collections.emptyList();
         }
 
-        context.setContextValue("Patient", patient.getIdElement().getIdPart());
+        context.setContextValue(PATIENT, patient.getIdElement().getIdPart());
 
         ExpressionDef populationExpressionDef = context.resolveExpressionRef(pop.getCriteria().getExpression());
         Object result = populationExpressionDef.evaluate(context);
