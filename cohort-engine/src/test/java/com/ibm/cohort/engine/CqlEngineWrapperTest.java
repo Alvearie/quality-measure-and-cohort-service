@@ -513,4 +513,46 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 				});
 		assertEquals(3, resultCount.get());
 	}
+	
+	@Test
+	/**
+	 * This test exists to validate the the engine correctly expands a valueset
+	 * and correctly determines resources that overlap the valueset membership.
+	 *  
+	 * @throws Exception on any error.
+	 */
+	public void testValueSetMembership() throws Exception {
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1983-12-02");
+
+		final AtomicInteger resultCount = new AtomicInteger(0);
+		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/valueset/Test-1.0.0.cql", "cql/valueset/FHIRHelpers-4.0.0.cql");
+		
+		Condition condition = new Condition();
+		condition.setId("Condition");
+		condition.setSubject(new Reference(patient));
+		condition.getCode().addCoding().setSystem("SNOMED-CT").setCode("1234");
+
+		// This stub works for [Condition] c where c.code in "ValueSet"
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", condition);
+		// These stub works for [Condition: "ValueSet"]
+		mockFhirResourceRetrieval("/Condition?code=SNOMED-CT%7C1234&subject=Patient%2F123", makeBundle(condition));
+		mockFhirResourceRetrieval("/Condition?code=SNOMED-CT%7C5678&subject=Patient%2F123", makeBundle());
+		
+		mockValueSetRetrieval("https://cts.nlm.nih.gov/fhir/ValueSet/1.2.3.4", "SNOMED-CT", "1234");
+		mockValueSetRetrieval("https://cts.nlm.nih.gov/fhir/ValueSet/5.6.7.8", "SNOMED-CT", "5678");
+		
+		wrapper.evaluate("Test", "1.0.0", /* parameters= */null, null,
+				Arrays.asList(patient.getId()), (p, e, r) -> {
+					if( e.endsWith("NotExists") ) {
+						assertEquals(Boolean.FALSE, r);
+					} else if( e.endsWith( "Exists") ) {
+						// you can use the *convert* function to change the
+						// units of a quantity to a known value
+						assertEquals(Boolean.TRUE, r); 
+					}
+					resultCount.incrementAndGet();
+				});
+		// The four checks + the patient
+		assertEquals(5, resultCount.get());
+	}
 }

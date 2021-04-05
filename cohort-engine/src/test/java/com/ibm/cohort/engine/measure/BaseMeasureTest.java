@@ -131,10 +131,15 @@ public class BaseMeasureTest extends BaseFhirTest {
 
 	protected Bundle getBundle(Resource... resources) {
 		Bundle bundle = new Bundle();
-		bundle.setId(UUID.randomUUID().toString());
-		bundle.setTotal(1);
-		for (Resource resource : resources) {
-			bundle.getEntry().add(new Bundle.BundleEntryComponent().setResource(resource));
+		if( resources != null && resources.length > 0 ) {
+			bundle.setId(UUID.randomUUID().toString());
+			bundle.setType(Bundle.BundleType.SEARCHSET);
+			bundle.setTotal( resources != null ? resources.length : 0 );
+			if( resources != null ) {
+				for (Resource resource : resources) {
+					bundle.getEntry().add(new Bundle.BundleEntryComponent().setResource(resource));
+				}
+			}
 		}
 		return bundle;
 	}
