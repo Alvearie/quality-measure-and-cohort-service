@@ -77,29 +77,14 @@ public class FHIRRestUtils {
 	 * Convenience method to get a FHIR client
 	 */
 	public static IGenericClient getFHIRClient(String fhirEndpoint, String userName, String password, String fhirTenantIdHeader, String fhirTenantId, String fhirDataSourceIdHeader, String fhirDataSourceId) {
-		IBMFhirServerConfig config = new IBMFhirServerConfig();
-		config.setEndpoint(fhirEndpoint);
+		IBMFhirServerConfig config = getPartialFHIRConfig(fhirEndpoint, fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId);
 		config.setUser(userName);
 		config.setPassword(password);
-
-		if(fhirTenantIdHeader == null || fhirTenantIdHeader.trim().isEmpty()) {
-			fhirTenantIdHeader = IBMFhirServerConfig.DEFAULT_TENANT_ID_HEADER;
-		}
-		config.setTenantIdHeader(fhirTenantIdHeader);
-		config.setTenantId(fhirTenantId);
-
-		if(fhirDataSourceIdHeader == null || fhirDataSourceIdHeader.trim().isEmpty()) {
-			fhirDataSourceIdHeader = IBMFhirServerConfig.DEFAULT_DATASOURCE_ID_HEADER;
-		}
-		config.setDataSourceIdHeader(fhirDataSourceIdHeader);
-		config.setDataSourceId(fhirDataSourceId);
 
 		FhirContext ctx = FhirContext.forR4();
 		DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(ctx);
 		
-		IGenericClient fhirClient = builder.createFhirClient(config);
-		
-		return fhirClient;
+		return builder.createFhirClient(config);
 	}
 	
 	/**
@@ -114,10 +99,19 @@ public class FHIRRestUtils {
 	 * Convenience method to get a FHIR client
 	 */
 	public static IGenericClient getFHIRClient(String fhirEndpoint, String bearerToken, String fhirTenantIdHeader, String fhirTenantId, String fhirDataSourceIdHeader, String fhirDataSourceId) {
-		IBMFhirServerConfig config = new IBMFhirServerConfig();
-		config.setEndpoint(fhirEndpoint);
+		IBMFhirServerConfig config = getPartialFHIRConfig(fhirEndpoint, fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId);
 		config.setToken(bearerToken);
 
+		FhirContext ctx = FhirContext.forR4();
+		DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(ctx);
+		
+		return builder.createFhirClient(config);
+	}
+	
+	private static IBMFhirServerConfig getPartialFHIRConfig(String fhirEndpoint, String fhirTenantIdHeader, String fhirTenantId, String fhirDataSourceIdHeader, String fhirDataSourceId) {
+		IBMFhirServerConfig config = new IBMFhirServerConfig();
+		config.setEndpoint(fhirEndpoint);
+		
 		if(fhirTenantIdHeader == null || fhirTenantIdHeader.trim().isEmpty()) {
 			fhirTenantIdHeader = IBMFhirServerConfig.DEFAULT_TENANT_ID_HEADER;
 		}
@@ -129,13 +123,8 @@ public class FHIRRestUtils {
 		}
 		config.setDataSourceIdHeader(fhirDataSourceIdHeader);
 		config.setDataSourceId(fhirDataSourceId);
-
-		FhirContext ctx = FhirContext.forR4();
-		DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(ctx);
 		
-		IGenericClient fhirClient = builder.createFhirClient(config);
-		
-		return fhirClient;
+		return config;
 	}
 	
 	/**
