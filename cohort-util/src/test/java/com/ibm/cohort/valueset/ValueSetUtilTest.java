@@ -20,10 +20,7 @@ import org.hl7.fhir.r4.model.ValueSet;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-<<<<<<< HEAD
 
-=======
->>>>>>> Cleanup so it can build
 
 public class ValueSetUtilTest {
 
