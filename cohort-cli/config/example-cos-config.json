@@ -1,0 +1,6 @@
+{
+  "serviceInstanceId": "replace-with-id",
+  "apiKey": "replace-with-key",
+  "endpointUrl": "https://s3.us-south.cloud-object-storage.appdomain.cloud",
+  "location": "us"
+}

@@ -13,8 +13,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
+import com.beust.jcommander.internal.DefaultConverterFactory;
+import com.ibm.cohort.cli.converter.json.JsonFileConverterInstanceFactory;
 import com.ibm.cohort.engine.cos.CosConfiguration;
 import com.ibm.cohort.engine.cos.CosDao;
 import com.ibm.cohort.engine.cos.CosDaoFactory;
@@ -33,14 +36,34 @@ public class CosExampleCLI {
 	}
 
 	private void runWithArgs(String[] args, PrintStream out) {
-		CosConfiguration configuration = new CosConfiguration();
+		CosExampleWrapper argsObject = new CosExampleWrapper();
 		Console console = new DefaultConsole(out);
-		JCommander jc = JCommander.newBuilder().programName("cos-example").console(console).addObject(configuration).build();
+		JCommander jc =
+				JCommander.newBuilder()
+						.programName("cos-example")
+						.console(console)
+						.addObject(argsObject)
+						.addConverterInstanceFactory(new JsonFileConverterInstanceFactory())
+						.addConverterFactory(new DefaultConverterFactory())
+						.build();
+
 		jc.parse(args);
 
-		CosDao cosDao = CosDaoFactory.from(configuration);
+		CosDao cosDao = CosDaoFactory.from(argsObject.getCosConfiguration());
 
 		List<String> buckets = cosDao.getBuckets();
 		logger.info("Listing of COS buckets: {}", String.join(", ", buckets));
+	}
+
+	private static class CosExampleWrapper {
+		@Parameter(names = {"--cos-config"}, description = "Path to COS configuration file (json format)")
+		private CosConfiguration cosConfiguration;
+
+		CosExampleWrapper() {
+		}
+
+		CosConfiguration getCosConfiguration() {
+			return cosConfiguration;
+		}
 	}
 }
