@@ -329,13 +329,17 @@ public class BaseFhirTest {
 	}
 
 	protected ValueSet mockValueSetRetrieval(String id, String version, String system, String code) throws UnsupportedEncodingException {
-		String theID = id;
-		String theURL = "urn:oid:" + id;
-		if( theID.startsWith("urn:oid:") ) {
-			theID = theID.replace("urn:oid:", "");
-		} else if( theID.startsWith("http") ) {
-			theURL = theID;
-			theID = theID.substring(theID.lastIndexOf("/") + 1);
+		String theID = null;
+		String theURL = null;
+		if( id.startsWith("urn:oid:") ) {
+			theURL = id;
+			theID = id.replace("urn:oid:", "");
+		} else if( id.startsWith("http") ) {
+			theURL = id;
+			theID = id.substring(id.lastIndexOf("/") + 1);
+		} else { 
+			theURL = "/ValueSet/" + theID;
+			theID = id;
 		}
 		
 		ValueSet resource = new ValueSet();
