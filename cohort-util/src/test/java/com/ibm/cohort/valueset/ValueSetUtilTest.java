@@ -36,7 +36,7 @@ public class ValueSetUtilTest {
 	}
 
 	@Test
-	public void testUnsuppiedIFhirResource(){
+	public void testUnsuppliedIFhirResource(){
 		thrown.expect(IllegalArgumentException.class);
 		thrown.expectMessage("Fhir Resource must be supplied");
 		ValueSetArtifact artifact = new ValueSetArtifact();
@@ -45,7 +45,7 @@ public class ValueSetUtilTest {
 	}
 
 	@Test
-	public void testUnsuppiedId(){
+	public void testUnsuppliedId(){
 		thrown.expect(IllegalArgumentException.class);
 		thrown.expectMessage("Identifier must be supplied, ensure that either the OID or the ID field is filled in");
 		ValueSetArtifact artifact = new ValueSetArtifact();
@@ -55,7 +55,7 @@ public class ValueSetUtilTest {
 	}
 
 	@Test
-	public void testUnsuppiedVersion(){
+	public void testUnsuppliedVersion(){
 		thrown.expect(IllegalArgumentException.class);
 		thrown.expectMessage("Value Set Version must be supplied");
 		ValueSetArtifact artifact = new ValueSetArtifact();
@@ -67,7 +67,7 @@ public class ValueSetUtilTest {
 	}
 
 	@Test
-	public void testUnsuppiedCodes(){
+	public void testUnsuppliedCodes(){
 		thrown.expect(IllegalArgumentException.class);
 		thrown.expectMessage("Value set must include codes but no codes were included.");
 		ValueSetArtifact artifact = new ValueSetArtifact();
