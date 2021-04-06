@@ -377,6 +377,7 @@ public class BaseFhirTest {
 		mockFhirResourceRetrieval("/ValueSet/" + theID + "/$validate-code?code=" + code + "&system=" + systemUrl, response);
 
 		return resource;
+	}
 
 	protected MeasureSupplementalDataComponent createSupplementalDataComponent(String defineName, String text) {
 		MeasureSupplementalDataComponent supplementalDataComponent = new MeasureSupplementalDataComponent();
