@@ -5,7 +5,7 @@
             "resource": "wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0",
             "params": null,
             "targets": ["eb068c3f-3954-50c6-0c67-2b82d29865f0", "01268c61-8f89-6d50-4414-9e50d367804d", "6b6120d0-36b9-d2d5-639d-b77033cf5cee", "768202e4-b073-98e7-f3ab-2b7f467fea0b"],
-            "response": "Evaluating: eb068c3f-3954-50c6-0c67-2b82d29865f0\nResult for Measure/wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0\nPopulation: initial-population = 1\n---\nEvaluating: 01268c61-8f89-6d50-4414-9e50d367804d\nResult for Measure/wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0\nPopulation: initial-population = 0\n---\nEvaluating: 6b6120d0-36b9-d2d5-639d-b77033cf5cee\nResult for Measure/wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0\nPopulation: initial-population = 1\n---\nEvaluating: 768202e4-b073-98e7-f3ab-2b7f467fea0b\nResult for Measure/wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0\nPopulation: initial-population = 0\n---",
+            "response": "Evaluating: eb068c3f-3954-50c6-0c67-2b82d29865f0\nResult for Measure/wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0/_history/37\nPopulation: initial-population = 1\n---\nEvaluating: 01268c61-8f89-6d50-4414-9e50d367804d\nResult for Measure/wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0/_history/37\nPopulation: initial-population = 0\n---\nEvaluating: 6b6120d0-36b9-d2d5-639d-b77033cf5cee\nResult for Measure/wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0/_history/37\nPopulation: initial-population = 1\n---\nEvaluating: 768202e4-b073-98e7-f3ab-2b7f467fea0b\nResult for Measure/wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0/_history/37\nPopulation: initial-population = 0\n---",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
             "filters": null,
             "regEx": false
@@ -15,7 +15,7 @@
             "resource": "wh-cohort-Over-the-Hill-1.0.0",
             "params": null,
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
-            "response": "Evaluating: a1637d9d-8de4-b8b8-be2e-94118c7f4d71\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0\nPopulation: initial-population = 1\n---",
+            "response": "Evaluating: a1637d9d-8de4-b8b8-be2e-94118c7f4d71\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0/_history/37\nPopulation: initial-population = 1\n---",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
             "filters": null,
             "regEx": false
@@ -25,7 +25,7 @@
             "resource": null,
             "params": null,
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71", "01268c61-8f89-6d50-4414-9e50d367804d"],
-            "response": "Evaluating: a1637d9d-8de4-b8b8-be2e-94118c7f4d71\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0\nPopulation: initial-population = 1\n---\nResult for Measure/wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0\nPopulation: initial-population = 1\n---\nEvaluating: 01268c61-8f89-6d50-4414-9e50d367804d\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0\nPopulation: initial-population = 1\n---\nResult for Measure/wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0\nPopulation: initial-population = 0\n---",
+            "response": "Evaluating: a1637d9d-8de4-b8b8-be2e-94118c7f4d71\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0/_history/37\nPopulation: initial-population = 1\n---\nResult for Measure/wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0/_history/37\nPopulation: initial-population = 1\n---\nEvaluating: 01268c61-8f89-6d50-4414-9e50d367804d\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0/_history/37\nPopulation: initial-population = 1\n---\nResult for Measure/wh-cohort-Colorectal-Cancer-Screening-Simple-1.0.0/_history/37\nPopulation: initial-population = 0\n---",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
             "filters": null,
             "regEx": false
@@ -35,7 +35,7 @@
             "resource": null,
             "params": null,
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
-            "response": "Evaluating: a1637d9d-8de4-b8b8-be2e-94118c7f4d71\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0\nPopulation: initial-population = 1\n---\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0\nPopulation: initial-population = 1\n---\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0\nPopulation: initial-population = 0\n---",
+            "response": "Evaluating: a1637d9d-8de4-b8b8-be2e-94118c7f4d71\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0/_history/37\nPopulation: initial-population = 1\n---\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0/_history/37\nPopulation: initial-population = 1\n---\nResult for Measure/wh-cohort-Over-the-Hill-1.0.0/_history/37\nPopulation: initial-population = 0\n---",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
             "filters": null,
             "regEx": false
@@ -125,7 +125,7 @@
             "resource": null,
             "params": null,
             "targets": ["47c883bb-160a-7117-c5df-9344041ef048"],
-            "response": "Evaluating: 47c883bb-160a-7117-c5df-9344041ef048\nResult for Measure/identifier-test-measure-2\nPopulation: initial-population = 0\n---\nResult for Measure/identifier-test-measure-1\nPopulation: initial-population = 1\n---\nResult for Measure/identifier-test-measure-2\nPopulation: initial-population = 0\n---\nResult for Measure/identifier-test-measure-2\nPopulation: initial-population = 1\n---",
+            "response": "Evaluating: 47c883bb-160a-7117-c5df-9344041ef048\nResult for Measure/identifier-test-measure-2/_history/1\nPopulation: initial-population = 0\n---\nResult for Measure/identifier-test-measure-1/_history/1\nPopulation: initial-population = 1\n---\nResult for Measure/identifier-test-measure-2/_history/1\nPopulation: initial-population = 0\n---\nResult for Measure/identifier-test-measure-2/_history/1\nPopulation: initial-population = 1\n---",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
             "filters": null,
             "regEx": false
@@ -145,7 +145,7 @@
             "resource": "http://ibm.com/health/Measure/MeasureYearlyColonoscopyOver65|1.1.1",
             "params": null,
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
-            "response": "Evaluating: a1637d9d-8de4-b8b8-be2e-94118c7f4d71\nResult for Measure/dx9ay2fEA2Qi1OrTkCSPpXGUqCT-nJj2yI0-gFk6dk0\nPopulation: initial-population = 1\nPopulation: numerator = 0\nPopulation: denominator = 0\n---",
+            "response": "Evaluating: a1637d9d-8de4-b8b8-be2e-94118c7f4d71\nResult for Measure/dx9ay2fEA2Qi1OrTkCSPpXGUqCT-nJj2yI0-gFk6dk0/_history/1\nPopulation: initial-population = 1\nPopulation: numerator = 0\nPopulation: denominator = 0\n---",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
             "filters": null,
             "regEx": false

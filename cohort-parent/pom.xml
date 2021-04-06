@@ -53,7 +53,7 @@
 		<slf4j.version>1.7.30</slf4j.version>
 		<swagger.version>1.6.2</swagger.version>
 		<ant.junit.version>1.10.9</ant.junit.version>
-		<cxf.version>3.4.1</cxf.version>
+		<cxf.version>3.4.3</cxf.version>
 
 		<!-- Default values for the jacoco-maven-plugin reports -->
 		<cohort.jacoco.classRatio>0.80</cohort.jacoco.classRatio>
@@ -638,12 +638,6 @@
 				<groupId>com.github.ben-manes.caffeine</groupId>
 				<artifactId>jcache</artifactId>
 				<version>2.9.0</version>
-			</dependency>
-			<!-- Our Swagger dependency needs the 1.1.0 version, so we are backleveled -->
-			<dependency>
-				<groupId>javax.validation</groupId>
-				<artifactId>validation-api</artifactId>
-				<version>1.1.0.Final</version>
 			</dependency>
 			<dependency>
 				<groupId>org.hibernate</groupId>

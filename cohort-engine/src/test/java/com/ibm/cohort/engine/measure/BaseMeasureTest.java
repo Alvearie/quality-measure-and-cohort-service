@@ -26,6 +26,7 @@ import org.hl7.fhir.r4.model.Expression;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
+import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.RelatedArtifact;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.codesystems.MeasureScoring;
@@ -53,6 +54,8 @@ public class BaseMeasureTest extends BaseFhirTest {
 	public static final String DENOMINATOR = "Denominator";
 
 	public static final String INITIAL_POPULATION = "Initial Population";
+
+	public static final String MEASURE_META_VERSION_ID = "5";
 
 	protected Map<MeasurePopulationType, String> expressionsByPopulationType;
 	protected Map<MeasurePopulationType, Integer> expectationsByPopulationType;
@@ -205,6 +208,7 @@ public class BaseMeasureTest extends BaseFhirTest {
 		measure.setDate(new Date());
 		measure.setLibrary(Arrays.asList(asCanonical(library)));
 		measure.setScoring(new CodeableConcept().addCoding(new Coding().setCode(scoring.toCode())));
+		measure.setMeta(new Meta().setVersionId(MEASURE_META_VERSION_ID));
 		return measure;
 	}
 }

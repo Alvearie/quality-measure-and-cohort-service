@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.cohort.engine.api.service.vt; 
+package com.ibm.cohort.engine.api.service.vt;
 
 import static net.javacrumbs.jsonunit.JsonAssert.assertJsonEquals;
 import static net.javacrumbs.jsonunit.JsonAssert.assertJsonStructureEquals;
@@ -24,11 +24,16 @@ import static org.junit.Assert.fail;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Base64;
+
+import net.javacrumbs.jsonunit.JsonAssert;
+import net.javacrumbs.jsonunit.core.Option;
 
 import org.apache.http.HttpStatus;
 import org.custommonkey.xmlunit.Diff;
@@ -36,6 +41,7 @@ import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.BeforeClass;
@@ -47,6 +53,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.api.service.CohortEngineRestConstants;
 import com.ibm.cohort.engine.api.service.CohortEngineRestHandler;
+import com.ibm.cohort.engine.api.service.FHIRRestUtils;
 import com.ibm.cohort.engine.api.service.ServiceBuildConstants;
 import com.ibm.cohort.engine.api.service.TestHelper;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
@@ -56,20 +63,21 @@ import com.ibm.cohort.engine.parameter.DateParameter;
 import com.ibm.cohort.engine.parameter.IntervalParameter;
 import com.ibm.cohort.engine.parameter.Parameter;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
+import com.ibm.cohort.valueset.ValueSetUtil;
 import com.ibm.watson.common.service.base.utilities.BVT;
 import com.ibm.watson.common.service.base.utilities.DVT;
 import com.ibm.watson.common.service.base.utilities.ServiceAPIGlobalSpec;
 import com.ibm.watson.common.service.base.utilities.UNDERCONSTRUCTION;
 import com.ibm.watson.common.service.base.vt.ServiceVTBase;
 import com.jayway.restassured.http.ContentType;
+import com.jayway.restassured.response.Header;
 import com.jayway.restassured.response.Headers;
 import com.jayway.restassured.response.ValidatableResponse;
 import com.jayway.restassured.specification.RequestSpecification;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
-import net.javacrumbs.jsonunit.JsonAssert;
-import net.javacrumbs.jsonunit.core.Option;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 /*
  * PLEASE READ THIS FIRST
@@ -108,8 +116,8 @@ public class DefaultVT extends ServiceVTBase {
 		if( System.getProperty("test.host") == null ) {
 			System.setProperty("test.host", "localhost");
 		}
-		
-		if(  System.getProperty("test.httpPort") == null ) { 
+
+		if(  System.getProperty("test.httpPort") == null ) {
 			System.setProperty("test.httpPort", "9080");
 		}
 		
@@ -124,14 +132,13 @@ public class DefaultVT extends ServiceVTBase {
 		if( System.getProperty("test.enabledDarkFeatures") == null ) {
 			System.setProperty("test.enabledDarkFeatures", SERVICE_ENABLED_DARK_FEATURES_ALL);
 		}
-		
 		ObjectMapper om = new ObjectMapper();
-		
+
 		String dataClientConfigPath = System.getProperty("test.dataConfig");
 		if( dataClientConfigPath != null ) {
 			File dataClientConfigFile = new File(dataClientConfigPath);
 			dataServerConfig = om.readValue(dataClientConfigFile, FhirServerConfig.class);
-		} else { 
+		} else {
 			fail("Missing required system property 'test.dataConfig'");
 		}
 		
@@ -142,7 +149,7 @@ public class DefaultVT extends ServiceVTBase {
 		} else {
 			termServerConfig = dataServerConfig;
 		}
-		
+
 	}
 
 	@AfterClass
@@ -376,9 +383,71 @@ public class DefaultVT extends ServiceVTBase {
         assertXpathValuesNotEqual("//jvm[2]/@current", "//jvm[3]/@current", myJavaFlavours);
     }
 
+    @Test
+	public void testValueSetUpload(){
+		final String RESOURCE = getUrlBase() + "/{version}/valueset";
+		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD));
+
+		String auth = dataServerConfig.getUser() + ":" + dataServerConfig.getPassword();
+		byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.ISO_8859_1));
+
+		RequestSpecification request = buildBaseRequest(new Headers(new Header("Authorization", "Basic " + new String(encodedAuth))))
+				.param("version", ServiceBuildConstants.DATE)
+				.queryParam("fhir_server_rest_endpoint", dataServerConfig.getEndpoint())
+				.queryParam("updateIfExists", false)
+				.multiPart(CohortEngineRestHandler.VALUE_SET_PART, new File("src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx"));
+
+		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
+		runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
+	}
+
+	@Test
+	public void testValueSetAlreadyExists(){
+		testValueSetUpload();
+		final String RESOURCE = getUrlBase() + "/{version}/valueset";
+
+		String auth = dataServerConfig.getUser() + ":" + dataServerConfig.getPassword();
+		byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.ISO_8859_1));
+
+		RequestSpecification request = buildBaseRequest(new Headers(new Header("Authorization", "Basic " + new String(encodedAuth))))
+				.param("version", ServiceBuildConstants.DATE)
+				.queryParam("fhir_server_rest_endpoint", dataServerConfig.getEndpoint())
+				.queryParam("updateIfExists", false)
+				.multiPart(CohortEngineRestHandler.VALUE_SET_PART, new File("src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx"));
+
+		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
+		runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_CONFLICT);
+	}
+
+	@Test
+	public void testValueSetOverride(){
+		testValueSetUpload();
+		final String RESOURCE = getUrlBase() + "/{version}/valueset";
+
+		String auth = dataServerConfig.getUser() + ":" + dataServerConfig.getPassword();
+		byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.ISO_8859_1));
+
+		RequestSpecification request = buildBaseRequest(new Headers(new Header("Authorization", "Basic " + new String(encodedAuth))))
+				.param("version", ServiceBuildConstants.DATE)
+				.queryParam("fhir_server_rest_endpoint", dataServerConfig.getEndpoint())
+				.queryParam("updateIfExists", true)
+				.multiPart(CohortEngineRestHandler.VALUE_SET_PART, new File("src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx"));
+
+		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
+		runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
+	}
+
 	@Override
 	protected Logger getLogger() {
 		return logger;
 	}
 
+
+	@After
+	public void cleanUp(){
+
+		IGenericClient terminologyClient = FHIRRestUtils.getFHIRClient(dataServerConfig.getEndpoint(), dataServerConfig.getUser(), dataServerConfig.getPassword(), null, null, null, null);
+		ValueSetUtil.deleteValueSet(terminologyClient, "http://cts.nlm.nih.gov/fhir/ValueSet/testValueSet");
+
+	}
 }

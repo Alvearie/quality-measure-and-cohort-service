@@ -42,8 +42,12 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CapabilityStatement;
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Enumerations;
+import org.hl7.fhir.r4.model.Expression;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
+import org.hl7.fhir.r4.model.Measure.MeasureSupplementalDataComponent;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.MetadataResource;
 import org.hl7.fhir.r4.model.OperationOutcome;
@@ -373,5 +377,28 @@ public class BaseFhirTest {
 		mockFhirResourceRetrieval("/ValueSet/" + theID + "/$validate-code?code=" + code + "&system=" + systemUrl, response);
 
 		return resource;
+
+	protected MeasureSupplementalDataComponent createSupplementalDataComponent(String defineName, String text) {
+		MeasureSupplementalDataComponent supplementalDataComponent = new MeasureSupplementalDataComponent();
+		CodeableConcept supplementalCC = new CodeableConcept();
+		Coding supplementalCoding = new Coding();
+		supplementalCoding.setCode("supplemental-data-coding");
+		supplementalCC.setCoding(Arrays.asList(supplementalCoding));
+		supplementalCC.setText(text);
+		supplementalDataComponent.setCode(supplementalCC);
+		
+		CodeableConcept usage = new CodeableConcept();
+		Coding usageCoding = new Coding();
+		usageCoding.setCode("supplemental-data");
+		usage.setCoding(Arrays.asList(usageCoding));
+		supplementalDataComponent.setUsage(Arrays.asList(usage));
+		
+		Expression supplementalExpression = new Expression();
+		supplementalExpression.setExpression(defineName);
+		supplementalExpression.setLanguage("text/cql.identifier");
+		
+		supplementalDataComponent.setCriteria(supplementalExpression);
+		
+		return supplementalDataComponent;
 	}
 }
