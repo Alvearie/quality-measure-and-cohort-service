@@ -64,14 +64,12 @@ public class ValueSetImporter {
 			IGenericClient client = FhirClientBuilderFactory.newInstance().newFhirClientBuilder(fhirContext)
 					.createFhirClient(config);
 
-
-			List<ValueSetArtifact> valueSetArtifacts = Lists.newArrayList();
 			for (String arg : arguments.spreadsheets) {
 				try (InputStream is = new FileInputStream(arg)) {
-					valueSetArtifacts.add(ValueSetUtil.createArtifact(is));
+					ValueSetArtifact artifact = ValueSetUtil.createArtifact(is);
+					ValueSetUtil.importArtifact(client, artifact, arguments.overrideValueSets);
 				}
 			}
-			ValueSetUtil.importArtifacts(client, valueSetArtifacts, arguments.overrideValueSets);
 		}
 	}
 

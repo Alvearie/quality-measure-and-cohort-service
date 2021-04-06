@@ -135,16 +135,6 @@ public class ValueSetUtil {
 		return artifact;
 	}
 
-	public static void importArtifacts(IGenericClient client, List<ValueSetArtifact> valueSetArtifacts, boolean updateIfExists) {
-		for(ValueSetArtifact valueSetArtifact : valueSetArtifacts) {
-			importArtifact(client, valueSetArtifact, updateIfExists);
-		}
-	}
-
-	public static void deleteValueSet(IGenericClient client, String url){
-		client.delete().resourceConditionalByType("ValueSet").where(ValueSet.URL.matches().value(url)).execute();
-	}
-
 	public static String importArtifact(IGenericClient client, ValueSetArtifact valueSetArtifact, boolean updateIfExists) {
 
 		Bundle bundle = client.search().forResource(ValueSet.class).where(ValueSet.URL.matches().value(valueSetArtifact.getUrl()))
