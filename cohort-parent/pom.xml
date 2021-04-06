@@ -1107,7 +1107,7 @@
 					<skipTests>${skip.unit.tests}</skipTests>
 					<redirectTestOutputToFile>true</redirectTestOutputToFile>
 					<!-- Required to allow powermockito test to work in Java 11 build -->
-					<argLine>-Djdk.attach.allowAttachSelf=true</argLine>
+					<argLine>${argLine} -Djdk.attach.allowAttachSelf=true</argLine>
 				</configuration>
 			</plugin>
 			<plugin>

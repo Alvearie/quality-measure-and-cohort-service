@@ -9,8 +9,14 @@
 package com.ibm.cohort.valueset;
 
 
+import com.ibm.cohort.annotations.Generated;
+
 //taken from cqf-tooling's CodeSystemLookupDictionary.java
+//tagged to avoid coverage checks
+@Generated
 public class CodeSystemLookup {
+	private CodeSystemLookup() {}
+	
 	public static  String getUrlFromName(String name) {
 		switch (name) {
 			case "ActCode": return "http://terminology.hl7.org/CodeSystem/v3-ActCode";

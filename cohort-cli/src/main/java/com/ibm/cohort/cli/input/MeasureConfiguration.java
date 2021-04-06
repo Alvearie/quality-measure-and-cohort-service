@@ -12,11 +12,7 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.ibm.cohort.engine.parameter.Parameter;
-import com.ibm.cohort.serialization.MapKeyFieldNameDeserializer;
-import com.ibm.cohort.serialization.MapKeyFieldNameSerializer;
 
 @JsonInclude(Include.NON_NULL)
 public class MeasureConfiguration {
@@ -24,8 +20,6 @@ public class MeasureConfiguration {
 	private String measureId;
 
 	@JsonProperty("parameters")
-	@JsonSerialize(keyUsing=MapKeyFieldNameSerializer.class)
-	@JsonDeserialize(keyUsing=MapKeyFieldNameDeserializer.class)
 	private Map<String,Parameter> parameters;
 
 	@JsonProperty("identifier")

@@ -12,8 +12,6 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.List;
 
-import org.apache.commons.compress.utils.Lists;
-
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.Console;
@@ -64,14 +62,12 @@ public class ValueSetImporter {
 			IGenericClient client = FhirClientBuilderFactory.newInstance().newFhirClientBuilder(fhirContext)
 					.createFhirClient(config);
 
-
-			List<ValueSetArtifact> valueSetArtifacts = Lists.newArrayList();
 			for (String arg : arguments.spreadsheets) {
 				try (InputStream is = new FileInputStream(arg)) {
-					valueSetArtifacts.add(ValueSetUtil.createArtifact(is));
+					ValueSetArtifact artifact = ValueSetUtil.createArtifact(is);
+					ValueSetUtil.importArtifact(client, artifact, arguments.overrideValueSets);
 				}
 			}
-			ValueSetUtil.importArtifacts(client, valueSetArtifacts, arguments.overrideValueSets);
 		}
 	}
 

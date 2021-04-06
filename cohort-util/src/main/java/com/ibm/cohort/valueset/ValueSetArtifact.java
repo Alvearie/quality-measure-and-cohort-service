@@ -11,6 +11,10 @@ package com.ibm.cohort.valueset;
 
 import org.hl7.fhir.r4.model.ValueSet;
 
+import com.ibm.cohort.annotations.Generated;
+
+//tagged to avoid coverage checks
+@Generated
 public class ValueSetArtifact {
 	private ValueSet fhirResource;
 	private String url;
