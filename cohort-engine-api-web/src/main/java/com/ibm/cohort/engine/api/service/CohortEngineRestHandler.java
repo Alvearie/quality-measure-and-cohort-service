@@ -6,6 +6,7 @@
 package com.ibm.cohort.engine.api.service;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,6 +18,7 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -50,6 +52,8 @@ import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
+import com.ibm.cohort.valueset.ValueSetArtifact;
+import com.ibm.cohort.valueset.ValueSetUtil;
 import com.ibm.watson.common.service.base.DarkFeatureSwaggerFilter;
 import com.ibm.watson.common.service.base.ServiceBaseConstants;
 import com.ibm.watson.common.service.base.ServiceBaseUtility;
@@ -110,6 +114,10 @@ public class CohortEngineRestHandler {
 			+ "<Major>.<Minor>.<Patch> format (ie if versions 1.0.0 and 2.0.0 both exist, the code will return the 2.0.0 version)";
 	private static final String MEASURE_API_NOTES = "Retrieves the parameter information for libraries linked to by a measure";
 
+	private static final String VALUE_SET_API_NOTES = "Uploads a value set described by the given xslx file";
+	private static final String VALUE_SET_UPDATE_IF_EXISTS_DESC = "The parameter that, if true, will force updates of value sets if the value set already exists";
+	private static final String VALUE_SET_DESC = "Spreadsheet containing the Value Set definition.";
+
 	private static final String DEFAULT_FHIR_URL = "https://fhir-internal.dev:9443/fhir-server/api/v4";
 
 	public static final String DELAY_DEFAULT = "3";
@@ -152,16 +160,17 @@ public class CohortEngineRestHandler {
 		@ApiImplicitParam(name=REQUEST_DATA_PART, value=REQUEST_DATA_PART_DESC, dataTypeClass = MeasureEvaluation.class, required=true, paramType="form"),
 		@ApiImplicitParam(name=MEASURE_PART, value=MEASURE_PART_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
-	@ApiResponses(value = { 
+	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful Operation"),
-			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class), 
-			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class) 
+			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
+			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
 	})
 	public Response evaluateMeasure(@Context HttpServletRequest request,
+
 			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
-			@ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody) {		
+			@ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody) {
 		final String methodName = "evaluateMeasure";
-		
+
 		Response response = null;
 		
 		// Error out if feature is not enabled
@@ -358,5 +367,88 @@ public class CohortEngineRestHandler {
 		}
 	}
 
+	public final static String VALUE_SET_PART = "valueSet";
+
+	@POST
+	@Path("/valueset/")
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces({ MediaType.APPLICATION_JSON })
+	@ApiImplicitParams({
+			// This is necessary for the dark launch feature
+			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
+			@ApiImplicitParam(name=VALUE_SET_PART, value= VALUE_SET_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" )
+	})
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successful Operation", response = String.class),
+			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
+			@ApiResponse(code = 409, message = "Conflict", response = ServiceErrorList.class),
+			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
+	})
+	@ApiOperation(value = "Insert a new value set to the fhir server or, if it already exists, update it in place"
+			, notes = CohortEngineRestHandler.VALUE_SET_API_NOTES
+			, tags = {"valueSet" }
+			, extensions = {
+			@Extension(properties = {
+					@ExtensionProperty(
+							name = DarkFeatureSwaggerFilter.DARK_FEATURE_NAME
+							, value = CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD)
+			})}
+			, authorizations = {@Authorization(value = "BasicAuth")
+	})
+	public Response createValueSet(@Context HttpHeaders httpHeaders,
+								   @DefaultValue(ServiceBuildConstants.DATE) @ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
+								   @ApiParam(value = CohortEngineRestHandler.FHIR_ENDPOINT_DESC, required = true, defaultValue = CohortEngineRestHandler.DEFAULT_FHIR_URL) @QueryParam("fhir_server_rest_endpoint") String fhirEndpoint,
+								   @DefaultValue("default") @ApiParam(value = CohortEngineRestHandler.FHIR_TENANT_ID_DESC, required = true, defaultValue = "default") @QueryParam("fhir_server_tenant_id") String fhirTenantId,
+								   @ApiParam(value = CohortEngineRestHandler.FHIR_TENANT_HEADER_DESC, defaultValue = IBMFhirServerConfig.DEFAULT_TENANT_ID_HEADER) @QueryParam("fhir_server_tenant_id_header") String fhirTenantIdHeader,
+								   @ApiParam(value = CohortEngineRestHandler.FHIR_DS_HEADER_DESC, defaultValue = IBMFhirServerConfig.DEFAULT_DATASOURCE_ID_HEADER) @QueryParam("fhir_data_source_id_header") String fhirDataSourceIdHeader,
+								   @ApiParam(value = CohortEngineRestHandler.FHIR_DS_ID_DESC) @QueryParam("fhir_data_source_id") String fhirDataSourceId,
+								   @ApiParam(value = CohortEngineRestHandler.VALUE_SET_UPDATE_IF_EXISTS_DESC, defaultValue = "false") @DefaultValue ("false") @QueryParam("updateIfExists") boolean updateIfExists,
+								   @ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody
+								) {
+		String methodName = "createValueSet";
+		if(fhirEndpoint == null){
+			return Response.status(Response.Status.BAD_REQUEST).entity("fhirEndpoint must be specified").build();
+		}
+		Response response;
+		ServiceBaseUtility.isDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD);
+		try {
+			// Perform api setup
+			Response errorResponse = ServiceBaseUtility.apiSetup(version, logger, methodName);
+			if(errorResponse != null) {
+				return errorResponse;
+			}
+			IGenericClient terminologyClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId, httpHeaders);
+			IAttachment valueSetAttachment = multipartBody.getRootAttachment();
+			if (valueSetAttachment == null) {
+				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", VALUE_SET_PART));
+			}
+
+			ValueSetArtifact artifact;
+			try (InputStream is = valueSetAttachment.getDataHandler().getInputStream()) {
+				artifact = ValueSetUtil.createArtifact(is);
+			}
+			ValueSetUtil.validateArtifact(artifact);
+
+			String valueSetId = ValueSetUtil.importArtifact(terminologyClient, artifact, updateIfExists);
+			if(valueSetId == null){
+				return Response.status(Response.Status.CONFLICT).header("Content-Type", "application/json")
+						.entity("Value Set already exists! Rerun with updateIfExists set to true!")
+						.build();
+			}
+
+			response = Response.status(Response.Status.OK).header("Content-Type", "application/json").entity(valueSetId).build();
+		}
+		catch (Throwable e){
+			return new CohortServiceExceptionMapper().toResponse(e);
+		}
+		finally {
+			// Perform api cleanup
+			Response errorResponse = ServiceBaseUtility.apiCleanup(logger, methodName);
+			if( errorResponse != null ) {
+				response = errorResponse;
+			}
+		}
+		return response;
+	}
 }
 

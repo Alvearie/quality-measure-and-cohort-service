@@ -9,20 +9,20 @@
 package com.ibm.cohort.valueset;
 
 
-import org.hl7.fhir.r4.model.MetadataResource;
+import org.hl7.fhir.r4.model.ValueSet;
 
 public class ValueSetArtifact {
-	private MetadataResource resource;
+	private ValueSet fhirResource;
 	private String url;
 	private String name;
 	private String id;
 
-	public MetadataResource getResource() {
-		return resource;
+	public ValueSet getFhirResource() {
+		return fhirResource;
 	}
 
-	public void setResource(MetadataResource resource) {
-		this.resource = resource;
+	public void setFhirResource(ValueSet fhirResource) {
+		this.fhirResource = fhirResource;
 	}
 
 	public String getUrl() {
@@ -54,17 +54,17 @@ public class ValueSetArtifact {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 
-		ValueSetArtifact that = (ValueSetArtifact) o;
+		ValueSetArtifact artifact = (ValueSetArtifact) o;
 
-		if (resource != null ? !resource.equals(that.resource) : that.resource != null) return false;
-		if (url != null ? !url.equals(that.url) : that.url != null) return false;
-		if (name != null ? !name.equals(that.name) : that.name != null) return false;
-		return id != null ? id.equals(that.id) : that.id == null;
+		if (fhirResource != null ? !fhirResource.equals(artifact.fhirResource) : artifact.fhirResource != null) return false;
+		if (url != null ? !url.equals(artifact.url) : artifact.url != null) return false;
+		if (name != null ? !name.equals(artifact.name) : artifact.name != null) return false;
+		return id != null ? id.equals(artifact.id) : artifact.id == null;
 	}
 
 	@Override
 	public int hashCode() {
-		int result = resource != null ? resource.hashCode() : 0;
+		int result = fhirResource != null ? fhirResource.hashCode() : 0;
 		result = 31 * result + (url != null ? url.hashCode() : 0);
 		result = 31 * result + (name != null ? name.hashCode() : 0);
 		result = 31 * result + (id != null ? id.hashCode() : 0);

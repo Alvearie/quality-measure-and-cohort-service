@@ -47,6 +47,7 @@ import org.opencds.cqf.cql.engine.exception.InvalidOperatorArgument;
 
 import com.ibm.cohort.engine.LibraryFormat;
 import com.ibm.cohort.engine.cdm.CDMConstants;
+import com.ibm.cohort.engine.cqfruler.MeasureSupplementalDataEvaluation;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
 import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
@@ -614,5 +615,33 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		parameterDefinition.addExtension(defaultValueExtension);
 
 		return measureParameter;
+	}
+	
+	@Test
+	public void in_populations_supplemental_data() throws Exception {
+		CapabilityStatement metadata = getCapabilityStatement();
+		mockFhirResourceRetrieval("/metadata", metadata);
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = setupDefineReturnLibrary();
+		
+		expressionsByPopulationType.clear();
+		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
+		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOR, DENOMINATOR);
+		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
+
+		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
+		measure.setSupplementalData(Arrays.asList(createSupplementalDataComponent("SDE Sex", MeasureSupplementalDataEvaluation.SDE_SEX)));
+		mockFhirResourceRetrieval(measure);
+
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());
+		assertNotNull(report);
+		
+		// EvaluatedResource should contain a reference to an observation record created for supplemental data, despite the evidence options indicating returning no evaluatedResources
+		assertEquals(1, report.getEvaluatedResource().size());
+		
+		// See MeasureSupplementalDataEvaluationTest for more details on what is returned here
 	}
 }

@@ -127,7 +127,7 @@
 			<artifactId>cohort-engine</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId> org.opencds.cqf.cql</groupId>
 			<artifactId>engine</artifactId>
@@ -149,7 +149,13 @@
 			<artifactId>fhir-client-config</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-util</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>com.ibm.watson.health.services</groupId>
 			<artifactId>service-base-os</artifactId>
@@ -200,6 +206,7 @@
 			<artifactId>httpcore</artifactId>
 		</dependency>
 
+		
 		<dependency>
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
@@ -248,7 +255,7 @@
 			<artifactId>json-unit</artifactId>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>net.minidev</groupId>
 			<artifactId>json-smart</artifactId>
@@ -311,13 +318,13 @@
 			<version>1.16.0</version>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.github.tomakehurst</groupId>
 			<artifactId>wiremock-jre8</artifactId>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
 			<artifactId>cohort-engine</artifactId>
@@ -326,7 +333,7 @@
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-validator</artifactId>
