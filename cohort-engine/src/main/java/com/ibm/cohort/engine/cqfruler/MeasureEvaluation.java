@@ -190,8 +190,9 @@ public class MeasureEvaluation {
             throw new RuntimeException("Measure scoring is required in order to calculate.");
         }
 
-        List<Measure.MeasureSupplementalDataComponent> sde = new ArrayList<>();
-        Map<String, Map<String, Integer>> sdeAccumulators = null;
+        List<Measure.MeasureSupplementalDataComponent> sde = measure.getSupplementalData();
+        Map<String, Map<String, Integer>> sdeAccumulators = new HashMap<>();
+        
         for (Measure.MeasureGroupComponent group : measure.getGroup()) {
             MeasureReport.MeasureReportGroupComponent reportGroup = new MeasureReport.MeasureReportGroupComponent();
             reportGroup.setId(group.getId());
@@ -273,9 +274,6 @@ public class MeasureEvaluation {
                     }
                 }
             }
-
-            sdeAccumulators = new HashMap<>();
-            sde = measure.getSupplementalData();
             
             switch (measureScoring) {
                 case PROPORTION:

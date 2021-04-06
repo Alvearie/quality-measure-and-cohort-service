@@ -47,6 +47,7 @@ import org.opencds.cqf.cql.engine.exception.InvalidOperatorArgument;
 
 import com.ibm.cohort.engine.LibraryFormat;
 import com.ibm.cohort.engine.cdm.CDMConstants;
+import com.ibm.cohort.engine.cqfruler.MeasureSupplementalDataEvaluation;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
 import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
@@ -239,11 +240,13 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 
 		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.cql");
 
-		Measure measure1 = getCareGapMeasure("ProportionMeasureName1", library, expressionsByPopulationType, "CareGap1",
+		String measure1Name = "ProportionMeasureName1";
+		Measure measure1 = getCareGapMeasure(measure1Name, library, expressionsByPopulationType, "CareGap1",
 											"CareGap2");
 		mockFhirResourceRetrieval(measure1);
 
-		Measure measure2 = getCareGapMeasure("ProportionMeasureName2", library, expressionsByPopulationType, "CareGap1",
+		String measure2Name = "ProportionMeasureName2";
+		Measure measure2 = getCareGapMeasure(measure2Name, library, expressionsByPopulationType, "CareGap1",
 											"CareGap2");
 		mockFhirResourceRetrieval(measure2);
 
@@ -257,7 +260,11 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		measureContexts.add(new MeasureContext(measure1.getId(), passingParameters));
 		measureContexts.add(new MeasureContext(measure2.getId(), failingParameters));
 
-		assertEquals(2, evaluator.evaluatePatientMeasures(patient.getId(), measureContexts).size());
+		List<MeasureReport> measureReports = evaluator.evaluatePatientMeasures(patient.getId(), measureContexts);
+		assertEquals(2, measureReports.size());
+		// Make sure reports have measure references with meta version included
+		assertEquals("Measure/" + measure1Name + "/_history/" + BaseMeasureTest.MEASURE_META_VERSION_ID, measureReports.get(0).getMeasure());
+		assertEquals("Measure/" + measure2Name + "/_history/" + BaseMeasureTest.MEASURE_META_VERSION_ID, measureReports.get(1).getMeasure());
 	}
 	
 	@Test
@@ -608,5 +615,33 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		parameterDefinition.addExtension(defaultValueExtension);
 
 		return measureParameter;
+	}
+	
+	@Test
+	public void in_populations_supplemental_data() throws Exception {
+		CapabilityStatement metadata = getCapabilityStatement();
+		mockFhirResourceRetrieval("/metadata", metadata);
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = setupDefineReturnLibrary();
+		
+		expressionsByPopulationType.clear();
+		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, INITIAL_POPULATION);
+		expressionsByPopulationType.put(MeasurePopulationType.DENOMINATOR, DENOMINATOR);
+		expressionsByPopulationType.put(MeasurePopulationType.NUMERATOR, NUMERATOR);
+
+		Measure measure = getProportionMeasure("ProportionMeasureName", library, expressionsByPopulationType);
+		measure.setSupplementalData(Arrays.asList(createSupplementalDataComponent("SDE Sex", MeasureSupplementalDataEvaluation.SDE_SEX)));
+		mockFhirResourceRetrieval(measure);
+
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions());
+		assertNotNull(report);
+		
+		// EvaluatedResource should contain a reference to an observation record created for supplemental data, despite the evidence options indicating returning no evaluatedResources
+		assertEquals(1, report.getEvaluatedResource().size());
+		
+		// See MeasureSupplementalDataEvaluationTest for more details on what is returned here
 	}
 }

@@ -13,6 +13,13 @@ parameter MeasurementPeriod Interval<DateTime>
 
 context Patient
 
+define "SDE Sex":
+  case
+    when Patient.gender = 'male' then Code { code: 'M', system: 'http://hl7.org/fhir/v3/AdministrativeGender', display: 'Male' }
+    when Patient.gender = 'female' then Code { code: 'F', system: 'http://hl7.org/fhir/v3/AdministrativeGender', display: 'Female' }
+    else null
+  end
+
 define "Initial Population":
 	"TestAdultMales2"."Over 18"
 
