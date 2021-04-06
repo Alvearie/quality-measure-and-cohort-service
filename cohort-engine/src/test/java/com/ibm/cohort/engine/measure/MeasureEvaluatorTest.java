@@ -240,11 +240,13 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 
 		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.cql");
 
-		Measure measure1 = getCareGapMeasure("ProportionMeasureName1", library, expressionsByPopulationType, "CareGap1",
+		String measure1Name = "ProportionMeasureName1";
+		Measure measure1 = getCareGapMeasure(measure1Name, library, expressionsByPopulationType, "CareGap1",
 											"CareGap2");
 		mockFhirResourceRetrieval(measure1);
 
-		Measure measure2 = getCareGapMeasure("ProportionMeasureName2", library, expressionsByPopulationType, "CareGap1",
+		String measure2Name = "ProportionMeasureName2";
+		Measure measure2 = getCareGapMeasure(measure2Name, library, expressionsByPopulationType, "CareGap1",
 											"CareGap2");
 		mockFhirResourceRetrieval(measure2);
 
@@ -258,7 +260,11 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		measureContexts.add(new MeasureContext(measure1.getId(), passingParameters));
 		measureContexts.add(new MeasureContext(measure2.getId(), failingParameters));
 
-		assertEquals(2, evaluator.evaluatePatientMeasures(patient.getId(), measureContexts).size());
+		List<MeasureReport> measureReports = evaluator.evaluatePatientMeasures(patient.getId(), measureContexts);
+		assertEquals(2, measureReports.size());
+		// Make sure reports have measure references with meta version included
+		assertEquals("Measure/" + measure1Name + "/_history/" + BaseMeasureTest.MEASURE_META_VERSION_ID, measureReports.get(0).getMeasure());
+		assertEquals("Measure/" + measure2Name + "/_history/" + BaseMeasureTest.MEASURE_META_VERSION_ID, measureReports.get(1).getMeasure());
 	}
 	
 	@Test
