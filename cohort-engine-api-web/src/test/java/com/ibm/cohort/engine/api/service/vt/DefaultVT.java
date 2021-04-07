@@ -41,6 +41,7 @@ import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
+import org.hl7.fhir.r4.model.ValueSet;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assume;
@@ -63,7 +64,6 @@ import com.ibm.cohort.engine.parameter.DateParameter;
 import com.ibm.cohort.engine.parameter.IntervalParameter;
 import com.ibm.cohort.engine.parameter.Parameter;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
-import com.ibm.cohort.valueset.ValueSetUtil;
 import com.ibm.watson.common.service.base.utilities.BVT;
 import com.ibm.watson.common.service.base.utilities.DVT;
 import com.ibm.watson.common.service.base.utilities.ServiceAPIGlobalSpec;
@@ -445,9 +445,7 @@ public class DefaultVT extends ServiceVTBase {
 
 	@After
 	public void cleanUp(){
-
 		IGenericClient terminologyClient = FHIRRestUtils.getFHIRClient(dataServerConfig.getEndpoint(), dataServerConfig.getUser(), dataServerConfig.getPassword(), null, null, null, null);
-		ValueSetUtil.deleteValueSet(terminologyClient, "http://cts.nlm.nih.gov/fhir/ValueSet/testValueSet");
-
+		terminologyClient.delete().resourceConditionalByType("ValueSet").where(ValueSet.URL.matches().value("http://cts.nlm.nih.gov/fhir/ValueSet/testValueSet")).execute();
 	}
 }

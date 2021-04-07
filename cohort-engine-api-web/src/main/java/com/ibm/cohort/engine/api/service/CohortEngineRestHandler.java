@@ -124,6 +124,24 @@ public class CohortEngineRestHandler {
 	
 	public static final String REQUEST_DATA_PART = "requestData";
 	public static final String MEASURE_PART = "measure";
+	
+	public enum MethodNames {
+		EVALUATE_MEASURE("evaluateMeasure"),
+		GET_MEASURE_PARAMETERS("getMeasureParameters"),
+		GET_MEASURE_PARAMETERS_BY_ID("getMeasureParametersById"),
+		CREATE_VALUE_SET("createValueSet")
+		;
+		
+		private String name;
+		
+		private MethodNames(String name) {
+			this.name = name;
+		}
+		
+		public String getName() {
+			return name;
+		}
+	}
 
 	static {
 		// Long and expensive initialization should occur here or
@@ -169,7 +187,7 @@ public class CohortEngineRestHandler {
 
 			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
 			@ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody) {
-		final String methodName = "evaluateMeasure";
+		final String methodName = MethodNames.EVALUATE_MEASURE.getName();
 
 		Response response = null;
 		
@@ -282,7 +300,7 @@ public class CohortEngineRestHandler {
 			@ApiParam(value = CohortEngineRestHandler.FHIR_DS_HEADER_DESC, required = false, defaultValue = IBMFhirServerConfig.DEFAULT_DATASOURCE_ID_HEADER) @QueryParam("fhir_data_source_id_header") String fhirDataSourceIdHeader,
 			@ApiParam(value = CohortEngineRestHandler.FHIR_DS_ID_DESC, required = false) @QueryParam("fhir_data_source_id") String fhirDataSourceId)
 			{
-		final String methodName = "getMeasureParameters";
+		final String methodName = MethodNames.GET_MEASURE_PARAMETERS.getName();
 
 		try {
 			// Perform api setup
@@ -337,7 +355,7 @@ public class CohortEngineRestHandler {
 			@ApiParam(value = CohortEngineRestHandler.FHIR_DS_HEADER_DESC, required = false, defaultValue = IBMFhirServerConfig.DEFAULT_DATASOURCE_ID_HEADER) @QueryParam("fhir_data_source_id_header") String fhirDataSourceIdHeader,
 			@ApiParam(value = CohortEngineRestHandler.FHIR_DS_ID_DESC, required = false) @QueryParam("fhir_data_source_id") String fhirDataSourceId)
 			{
-		final String methodName = "getMeasureParametersById";
+		final String methodName = MethodNames.GET_MEASURE_PARAMETERS_BY_ID.getName();
 
 		try {
 			// Perform api setup
@@ -405,7 +423,7 @@ public class CohortEngineRestHandler {
 								   @ApiParam(value = CohortEngineRestHandler.VALUE_SET_UPDATE_IF_EXISTS_DESC, defaultValue = "false") @DefaultValue ("false") @QueryParam("updateIfExists") boolean updateIfExists,
 								   @ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody
 								) {
-		String methodName = "createValueSet";
+		String methodName = MethodNames.CREATE_VALUE_SET.getName();
 		if(fhirEndpoint == null){
 			return Response.status(Response.Status.BAD_REQUEST).entity("fhirEndpoint must be specified").build();
 		}
