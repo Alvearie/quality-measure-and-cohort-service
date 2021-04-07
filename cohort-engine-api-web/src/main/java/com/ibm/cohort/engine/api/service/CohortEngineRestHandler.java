@@ -413,6 +413,8 @@ public class CohortEngineRestHandler {
 		return response;
 	}
 
+	public final static String CUSTOM_CODE_SYSTEM = "customCodeSystem";
+
 	@POST
 	@Path("/valueset/")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -421,7 +423,7 @@ public class CohortEngineRestHandler {
 			// This is necessary for the dark launch feature
 			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
 			@ApiImplicitParam(name=FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
-			@ApiImplicitParam(name=VALUE_SET_PART, value= VALUE_SET_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" )
+			@ApiImplicitParam(name=CUSTOM_CODE_SYSTEM, value= "TODO", dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful Operation"),
@@ -476,9 +478,15 @@ public class CohortEngineRestHandler {
 				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", VALUE_SET_PART));
 			}
 
+			IAttachment customCodes = multipartBody.getAttachment(CUSTOM_CODE_SYSTEM);
+			Map<String, String> customCodeMap = null;
+			if(customCodes != null){
+				customCodeMap = ValueSetUtil.getMapFromInputStream(customCodes.getDataHandler().getInputStream());
+			}
+
 			ValueSetArtifact artifact;
 			try (InputStream is = valueSetAttachment.getDataHandler().getInputStream()) {
-				artifact = ValueSetUtil.createArtifact(is);
+				artifact = ValueSetUtil.createArtifact(is, customCodeMap);
 			}
 			ValueSetUtil.validateArtifact(artifact);
 

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.List;
+import java.util.Map;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -61,10 +62,14 @@ public class ValueSetImporter {
 			FhirServerConfig config = om.readValue(arguments.measureServerConfigFile, FhirServerConfig.class);
 			IGenericClient client = FhirClientBuilderFactory.newInstance().newFhirClientBuilder(fhirContext)
 					.createFhirClient(config);
+			Map<String, String> codeSystemMappings = null;
+			if(arguments.filename != null) {
+				codeSystemMappings = ValueSetUtil.getMapFromInputStream(new FileInputStream(new File(arguments.filename)));
+			}
 
 			for (String arg : arguments.spreadsheets) {
 				try (InputStream is = new FileInputStream(arg)) {
-					ValueSetArtifact artifact = ValueSetUtil.createArtifact(is);
+					ValueSetArtifact artifact = ValueSetUtil.createArtifact(is, codeSystemMappings);
 					ValueSetUtil.importArtifact(client, artifact, arguments.overrideValueSets);
 				}
 			}

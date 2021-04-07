@@ -8,12 +8,15 @@
 //todo this possibly wants it's own module, since this will only be used by two modules? idk.
 package com.ibm.cohort.valueset;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -46,7 +49,8 @@ public class ValueSetUtil {
 			}
 	}
 
-	public static ValueSetArtifact createArtifact(InputStream is) throws IOException {
+	//todo should new map be passed in here, or somewhere else? do we want to limit this to one custom code system, or multiple? If there are multiple
+	public static ValueSetArtifact createArtifact(InputStream is, Map<String, String> customCodeSystem) throws IOException {
 		XSSFSheet informationSheet;
 		try (XSSFWorkbook wb = new XSSFWorkbook(is)) {
 			informationSheet = wb.getSheetAt(wb.getSheetIndex("Expansion List"));
@@ -102,7 +106,19 @@ public class ValueSetUtil {
 			}
 			else if (inCodesSection) {
 				String display = currentRow.getCell(1).getStringCellValue();
-				String codeSystem = CodeSystemLookup.getUrlFromName(currentRow.getCell(2).getStringCellValue());
+				//todo allow a full url or user defined map of some kind to be used for the lookup, user the default as last resort
+				//use a different argument for literal url? Or do string checking? (i.e. if it starts with http its a literal url?
+				String codeSystemEntry = currentRow.getCell(2).getStringCellValue();
+				String codeSystem;
+				if(codeSystemEntry.startsWith("http://") || codeSystemEntry.startsWith("https://")){
+					codeSystem = codeSystemEntry;
+				}
+				else if(customCodeSystem != null){
+					codeSystem = customCodeSystem.get(codeSystemEntry);
+				}
+				else {
+					codeSystem = CodeSystemLookup.getUrlFromName(codeSystemEntry);
+				}
 				ValueSet.ConceptReferenceComponent concept = new ValueSet.ConceptReferenceComponent();
 				concept.setCode(code);
 				concept.setDisplay(display);
@@ -158,5 +174,11 @@ public class ValueSetUtil {
 
 		return valueSetArtifact.getId();
 
+	}
+
+	public static Map<String, String> getMapFromInputStream(InputStream is) throws IOException {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))){
+			return reader.lines().map(x -> x.split("=")).collect(Collectors.toMap(x -> x[0], x -> x[1]));
+		}
 	}
 }
