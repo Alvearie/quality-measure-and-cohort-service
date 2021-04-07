@@ -131,6 +131,18 @@ public class BaseFhirTest {
 		mockFhirResourceRetrieval( builder, encoder, resource, fhirConfig, 200);
 	}
 	
+	protected void mockeDelayedFhirResourceRetrieval(MappingBuilder builder, IParser encoder, Resource resource,
+													 FhirServerConfig fhirConfig, int statusCode, int delayMillis) {
+		String body = null;
+		if( resource != null ) {
+			body = encoder.encodeResourceToString(resource);
+		}
+
+		builder = setAuthenticationParameters(fhirConfig, builder);
+		stubFor(builder.willReturn(aResponse().withStatus(statusCode).withHeader("Content-Type", "application/json")
+										   .withBody(body).withFixedDelay(delayMillis)));
+	}
+	
 	protected void mockFhirResourceRetrieval(MappingBuilder builder, IParser encoder, Resource resource,
 			FhirServerConfig fhirConfig, int statusCode) {
 		
@@ -205,6 +217,19 @@ public class BaseFhirTest {
 	protected Patient mockPatientRetrieval(String id, AdministrativeGender gender, int ageInYears) {
 		Patient patient = getPatient(id, gender, ageInYears);
 		mockFhirResourceRetrieval(patient);
+		return patient;
+	}
+
+	protected Patient mockPatientRetrievalTimeout(String id, AdministrativeGender gender, int ageInYears, int delayMillis) {
+		Patient patient = getPatient(id, gender, ageInYears);
+		mockeDelayedFhirResourceRetrieval(
+				get(urlEqualTo("/" + patient.getClass().getSimpleName() + "/" + patient.getId())),
+				getFhirParser(),
+				patient,
+				getFhirServerConfig(),
+				200,
+				20 * 1000
+		);
 		return patient;
 	}
 
