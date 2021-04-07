@@ -32,7 +32,7 @@
 
 		<dependency>
 			<groupId>com.ibm.cos</groupId>
-			<artifactId>ibm-cos-java-sdk</artifactId>
+			<artifactId>ibm-cos-java-sdk-s3</artifactId>
 		</dependency>
 
 		<dependency>
