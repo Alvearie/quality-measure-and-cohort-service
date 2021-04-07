@@ -41,6 +41,12 @@ public class FhirServerConfig {
 	private List<String> cookies;
 	@JsonInclude(Include.NON_NULL)
 	private List<LogInfo> logInfo;
+	@JsonInclude(Include.NON_NULL)
+	private Integer socketTimeout;
+	@JsonInclude(Include.NON_NULL)
+	private Integer connectTimeout;
+	@JsonInclude(Include.NON_NULL)
+	private Integer connectionRequestTimeout;
 
 	public String getEndpoint() {
 		return endpoint;
@@ -96,6 +102,30 @@ public class FhirServerConfig {
 
 	public void setLogInfo(List<LogInfo> logInfo) {
 		this.logInfo = logInfo;
+	}
+
+	public Integer getSocketTimeout() {
+		return socketTimeout;
+	}
+
+	public void setSocketTimeout(Integer socketTimeout) {
+		this.socketTimeout = socketTimeout;
+	}
+
+	public Integer getConnectTimeout() {
+		return connectTimeout;
+	}
+
+	public void setConnectTimeout(Integer connectTimeout) {
+		this.connectTimeout = connectTimeout;
+	}
+
+	public Integer getConnectionRequestTimeout() {
+		return connectionRequestTimeout;
+	}
+
+	public void setConnectionRequestTimeout(Integer connectionRequestTimeout) {
+		this.connectionRequestTimeout = connectionRequestTimeout;
 	}
 
 	@JsonIgnore

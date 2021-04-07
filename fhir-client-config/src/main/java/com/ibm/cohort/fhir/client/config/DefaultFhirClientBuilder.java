@@ -10,6 +10,7 @@ import java.util.Map;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IClientInterceptor;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
+import ca.uhn.fhir.rest.client.api.IRestfulClientFactory;
 import ca.uhn.fhir.rest.client.interceptor.AdditionalRequestHeadersInterceptor;
 import ca.uhn.fhir.rest.client.interceptor.BasicAuthInterceptor;
 import ca.uhn.fhir.rest.client.interceptor.BearerTokenAuthInterceptor;
@@ -45,6 +46,24 @@ public class DefaultFhirClientBuilder implements FhirClientBuilder {
 	 */
 	@Override
 	public IGenericClient createFhirClient(FhirServerConfig config) {
+
+		if (config.getSocketTimeout() != null) {
+			fhirContext.getRestfulClientFactory().setSocketTimeout(config.getSocketTimeout());
+		} else {
+			fhirContext.getRestfulClientFactory().setSocketTimeout(IRestfulClientFactory.DEFAULT_SOCKET_TIMEOUT);
+		}
+
+		if (config.getConnectTimeout() != null) {
+			fhirContext.getRestfulClientFactory().setConnectTimeout(config.getConnectTimeout());
+		} else {
+			fhirContext.getRestfulClientFactory().setConnectTimeout(IRestfulClientFactory.DEFAULT_CONNECT_TIMEOUT);
+		}
+
+		if (config.getConnectionRequestTimeout() != null) {
+			fhirContext.getRestfulClientFactory().setConnectionRequestTimeout(config.getConnectionRequestTimeout());
+		} else {
+			fhirContext.getRestfulClientFactory().setConnectionRequestTimeout(IRestfulClientFactory.DEFAULT_CONNECTION_REQUEST_TIMEOUT);
+		}
 
 		IGenericClient client = fhirContext.newRestfulGenericClient(config.getEndpoint());
 
