@@ -76,21 +76,6 @@
 
 	<build>
 		<plugins>
-			<!-- maven-shade-plugin used to compile into a single executable jar -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<executions>
-					<execution>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<shadedArtifactAttached>true</shadedArtifactAttached>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
