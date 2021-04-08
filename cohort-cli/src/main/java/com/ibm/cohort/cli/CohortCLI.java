@@ -98,7 +98,7 @@ public class CohortCLI extends BaseCLI {
 	 * @param out  location where contents that would normally go to stdout should
 	 *             be written
 	 * @return CQLEngineWrapper
-	 * @throws IOException 
+	 * @throws IOException IOException
 	 */
 	public CqlEngineWrapper runWithArgs(String[] args, PrintStream out) throws IOException {
 		Arguments arguments = new Arguments();
