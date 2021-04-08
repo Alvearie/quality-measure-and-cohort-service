@@ -36,8 +36,7 @@ public class FhirClientTimeoutTest extends BaseFhirTest {
 				.withDefaultClient(fhirServerConfig)
 				.build();
 		
-		fhirClientContext.getDataClient()
-				.read()
+		fhirClientContext.getDataClient().read()
 				.resource(Patient.class)
 				.withId(PATIENT_ID)
 				.execute();
@@ -52,14 +51,45 @@ public class FhirClientTimeoutTest extends BaseFhirTest {
 				.withDefaultClient(fhirServerConfig)
 				.build();
 
-		Patient patient = fhirClientContext.getDataClient()
-				.read()
+		Patient patient = fhirClientContext.getDataClient().read()
 				.resource(Patient.class)
 				.withId(PATIENT_ID)
 				.execute();
 		
 		Enumerations.AdministrativeGender actual = patient.getGender();
 		Assert.assertEquals(Enumerations.AdministrativeGender.OTHER, actual);
+	}
+
+	@Test
+	public void testFhirClientContext_handlesDelayDefault() {
+		FhirServerConfig fhirServerConfig = getFhirServerConfig();
+		fhirServerConfig.setSocketTimeout(null);
+
+		FHIRClientContext fhirClientContext = new FHIRClientContext.Builder()
+				.withDefaultClient(fhirServerConfig)
+				.build();
+
+		Patient patient = fhirClientContext.getDataClient().read()
+				.resource(Patient.class)
+				.withId(PATIENT_ID)
+				.execute();
+
+		Enumerations.AdministrativeGender actual = patient.getGender();
+		Assert.assertEquals(Enumerations.AdministrativeGender.OTHER, actual);
+	}
+
+	@Test(expected = FhirClientConnectionException.class)
+	public void testDefaultFhirClientBuilder_requestTimesOut() {
+		FhirServerConfig fhirServerConfig = getFhirServerConfig();
+		fhirServerConfig.setSocketTimeout(CONFIG_TIMEOUT_MILLIS);
+
+		DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(fhirContext);
+		IGenericClient client = builder.createFhirClient(fhirServerConfig);
+
+		client.read()
+				.resource(Patient.class)
+				.withId(PATIENT_ID)
+				.execute();
 	}
 
 	@Test
@@ -70,13 +100,29 @@ public class FhirClientTimeoutTest extends BaseFhirTest {
 		DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(fhirContext);
 		IGenericClient client = builder.createFhirClient(fhirServerConfig);
 
-		Patient patient = client
-				.read()
+		Patient patient = client.read()
 				.resource(Patient.class)
 				.withId(PATIENT_ID)
 				.execute();
 
 		Enumerations.AdministrativeGender actual = patient.getGender();
 		Assert.assertEquals(Enumerations.AdministrativeGender.OTHER, actual);
-	}	
+	}
+
+	@Test
+	public void testDefaultFhirClientBuilder_handlesDelayDefault() {
+		FhirServerConfig fhirServerConfig = getFhirServerConfig();
+		fhirServerConfig.setSocketTimeout(null);
+
+		DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(fhirContext);
+		IGenericClient client = builder.createFhirClient(fhirServerConfig);
+
+		Patient patient = client.read()
+				.resource(Patient.class)
+				.withId(PATIENT_ID)
+				.execute();
+
+		Enumerations.AdministrativeGender actual = patient.getGender();
+		Assert.assertEquals(Enumerations.AdministrativeGender.OTHER, actual);
+	}
 }
