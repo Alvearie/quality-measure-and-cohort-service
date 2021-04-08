@@ -17,7 +17,9 @@ import ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException;
 public class FhirClientTimeoutTest extends BaseFhirTest {
 
 	private static final String PATIENT_ID = "TimeoutTest-PatientId";
-	private static final int PATIENT_RETRIEVAL_DELAY_MILLIS = 15 * 1000;
+	private static final int PATIENT_RETRIEVAL_DELAY_MILLIS = 3 * 1000;
+	private static final int CONFIG_TIMEOUT_MILLIS = 1000;
+	private static final int CONFIG_NO_TIMEOUT_MILLIS = 20 * 1000;
 	
 	@Before
 	public void setup() {
@@ -26,8 +28,9 @@ public class FhirClientTimeoutTest extends BaseFhirTest {
 	}
 	
 	@Test(expected = FhirClientConnectionException.class)
-	public void testFhirClientContext_timesOutWithDefaults() {
+	public void testFhirClientContext_requestTimesOut() {
 		FhirServerConfig fhirServerConfig = getFhirServerConfig();
+		fhirServerConfig.setSocketTimeout(CONFIG_TIMEOUT_MILLIS);
 
 		FHIRClientContext fhirClientContext = new FHIRClientContext.Builder()
 				.withDefaultClient(fhirServerConfig)
@@ -43,7 +46,7 @@ public class FhirClientTimeoutTest extends BaseFhirTest {
 	@Test
 	public void testFhirClientContext_handlesDelayWithConfiguration() {
 		FhirServerConfig fhirServerConfig = getFhirServerConfig();
-		fhirServerConfig.setSocketTimeout(60 * 1000);
+		fhirServerConfig.setSocketTimeout(CONFIG_NO_TIMEOUT_MILLIS);
 
 		FHIRClientContext fhirClientContext = new FHIRClientContext.Builder()
 				.withDefaultClient(fhirServerConfig)
@@ -62,7 +65,7 @@ public class FhirClientTimeoutTest extends BaseFhirTest {
 	@Test
 	public void testDefaultFhirClientBuilder_handlesDelayWithConfiguration() {
 		FhirServerConfig fhirServerConfig = getFhirServerConfig();
-		fhirServerConfig.setSocketTimeout(60 * 1000);
+		fhirServerConfig.setSocketTimeout(CONFIG_NO_TIMEOUT_MILLIS);
 
 		DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(fhirContext);
 		IGenericClient client = builder.createFhirClient(fhirServerConfig);

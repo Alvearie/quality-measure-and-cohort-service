@@ -228,7 +228,7 @@ public class BaseFhirTest {
 				patient,
 				getFhirServerConfig(),
 				200,
-				20 * 1000
+				delayMillis
 		);
 		return patient;
 	}
