@@ -33,7 +33,7 @@
 
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-cos-cache</artifactId>
+			<artifactId>cohort-cache-cos</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		

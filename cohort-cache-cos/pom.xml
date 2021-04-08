@@ -15,7 +15,7 @@
 		<relativePath>../cohort-parent</relativePath>
 	</parent>
 
-	<artifactId>cohort-cos-cache</artifactId>
+	<artifactId>cohort-cache-cos</artifactId>
 	<packaging>jar</packaging>
 
 	<scm>
