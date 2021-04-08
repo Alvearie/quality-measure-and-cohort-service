@@ -115,7 +115,7 @@ public class R4RestFhirTerminologyProviderTest extends BaseFhirTest {
 		Parameters parameters = new Parameters();
 		parameters.getParameterFirstRep().setName("return").setResource(valueSet);
 
-		mockFhirResourceRetrieval(post(urlEqualTo("/ValueSet/Test/$expand")), parameters);
+		mockFhirResourceRetrieval("/ValueSet/Test/$expand", parameters);
 
 		Iterable<Code> codes = provider.expand(info);
 

@@ -7,7 +7,6 @@
 package com.ibm.cohort.engine.measure;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
@@ -102,7 +101,7 @@ public class R4MeasureEvaluatorBuilderTest extends BaseMeasureTest {
 			validateMeasureEvaluator(evaluator);
 		}
 		
-		verify(1, postRequestedFor(urlMatching("/ValueSet/Type2Diabetes/.*")));
+		verify(1, getRequestedFor(urlMatching("/ValueSet/Type2Diabetes/.*")));
 		verify(1, getRequestedFor(urlMatching("/Condition\\?code=" + DIABETES_CODESYSTEM + ".*")));
 		verify(0, getRequestedFor(urlMatching("/Condition\\?code=Type2Diabetes.*")));
 	}
@@ -118,7 +117,7 @@ public class R4MeasureEvaluatorBuilderTest extends BaseMeasureTest {
 			validateMeasureEvaluator(evaluator);
 		}
 		
-		verify(0, postRequestedFor(urlMatching("/ValueSet/Type2Diabetes/.*")));
+		verify(0, getRequestedFor(urlMatching("/ValueSet/Type2Diabetes/$expand.*")));
 		verify(0, getRequestedFor(urlMatching("/Condition\\?code=" + DIABETES_CODESYSTEM + ".*")));
 		verify(1, getRequestedFor(urlMatching("/Condition\\?code=Type2Diabetes.*")));
 	}

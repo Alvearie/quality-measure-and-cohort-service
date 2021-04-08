@@ -7,9 +7,14 @@
 package com.ibm.cohort.engine.terminology;
 
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.CodeType;
+import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.UriType;
@@ -114,5 +119,36 @@ public class R4RestFhirTerminologyProvider extends R4FhirTerminologyProvider {
         }
 
         return code.withSystem(codeSystem.getId());
+    }
+    
+    /**
+	 * This is a small patch to the OSS implementation to use a GET request vs. a
+	 * POST request with { "resource": "Parameters" } as the body in order to bypass
+	 * IBM FHIR failing to parse the empty parameters object.
+	 */
+    @Override
+    public Iterable<Code> expand(ValueSetInfo valueSet) throws ResourceNotFoundException {
+        if (resolveByUrl(valueSet) == null) {
+            return Collections.emptyList();
+        }
+        Parameters respParam = fhirClient
+                .operation()
+                .onInstance(new IdType("ValueSet", valueSet.getId()))
+                .named("expand")
+                .withNoParameters(Parameters.class)
+                .useHttpGet()
+                .execute();
+
+        ValueSet expanded = (ValueSet) respParam.getParameter().get(0).getResource();
+        List<Code> codes = new ArrayList<>();
+        for (ValueSet.ValueSetExpansionContainsComponent codeInfo : expanded.getExpansion().getContains()) {
+            Code nextCode = new Code()
+                    .withCode(codeInfo.getCode())
+                    .withSystem(codeInfo.getSystem())
+                    .withVersion(codeInfo.getVersion())
+                    .withDisplay(codeInfo.getDisplay());
+            codes.add(nextCode);
+        }
+        return codes;
     }
 }
