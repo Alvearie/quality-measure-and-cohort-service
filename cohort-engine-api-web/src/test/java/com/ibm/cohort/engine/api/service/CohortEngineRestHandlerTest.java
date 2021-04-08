@@ -56,7 +56,6 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.BaseFhirTest;
 import com.ibm.cohort.engine.api.service.CohortEngineRestHandler.MethodNames;
-import com.ibm.cohort.engine.api.service.model.FHIRDataServerConfig;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
@@ -694,12 +693,9 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 	}
 	
 	private IMultipartBody getFhirConfigFileBody() throws Exception {
-		FHIRDataServerConfig fhirDataServerConfig = new FHIRDataServerConfig();
-		fhirDataServerConfig.setDataServerConfig(getFhirServerConfig());
-				
 		// Create the metadata part of the request
 		ObjectMapper om = new ObjectMapper();
-		String json = om.writeValueAsString(fhirDataServerConfig);
+		String json = om.writeValueAsString(getFhirServerConfig());
 		ByteArrayInputStream jsonIs = new ByteArrayInputStream(json.getBytes());
 		IAttachment rootPart = mockAttachment(jsonIs);
 		

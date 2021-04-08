@@ -37,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.api.service.model.FHIRDataServerConfig;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfoList;
@@ -51,6 +50,7 @@ import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
+import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import com.ibm.cohort.valueset.ValueSetArtifact;
 import com.ibm.cohort.valueset.ValueSetUtil;
 import com.ibm.watson.common.service.base.DarkFeatureSwaggerFilter;
@@ -121,19 +121,18 @@ public class CohortEngineRestHandler {
 	
 	public final static String VALUE_SET_PART = "value_set";
 	
-	public static final String EXAMPLE_DATA_SERVER_CONFIG_JSON = "Example Contents: \n <pre>{\n" + 
-			"    \"dataServerConfig\": {\n" + 
-			"        \"@class\": \"com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\",\n" + 
-			"        \"endpoint\": \"https://fhir-internal.dev:9443/fhir-server/api/v4\",\n" + 
-			"        \"user\": \"fhiruser\",\n" + 
-			"        \"password\": \"replaceWithfhiruserPassword\",\n" + 
-			"        \"logInfo\": [\n" + 
-			"            \"REQUEST_SUMMARY\",\n" + 
-			"            \"RESPONSE_SUMMARY\"\n" + 
-			"        ],\n" + 
-			"        \"tenantId\": \"default\"\n" + 
-			"    }\n"
-			+ "}</pre>";
+	public static final String EXAMPLE_DATA_SERVER_CONFIG_JSON = "A configuration file containing information needed to connect to the FHIR server. "
+			+ "See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/getting-started.md#fhir-server-configuration for more details. \n"
+			+ "Example Contents: \n <pre>{\n" + 
+			"    \"@class\": \"com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\",\n" + 
+			"    \"endpoint\": \"https://fhir-internal.dev:9443/fhir-server/api/v4\",\n" + 
+			"    \"user\": \"fhiruser\",\n" + 
+			"    \"password\": \"replaceWithfhiruserPassword\",\n" + 
+			"    \"logInfo\": [\n" + 
+			"        \"ALL\"\n" + 
+			"    ],\n" + 
+			"    \"tenantId\": \"default\"\n" + 
+			"}</pre>";
 	
 	public enum MethodNames {
 		EVALUATE_MEASURE("evaluateMeasure"),
@@ -280,7 +279,7 @@ public class CohortEngineRestHandler {
 	@ApiOperation(value = "Get measure parameters", notes = CohortEngineRestHandler.MEASURE_API_NOTES, response = MeasureParameterInfoList.class, authorizations = {@Authorization(value = "BasicAuth")   }, responseContainer = "List", tags = {
 			"FHIR Measures" })
 	@ApiImplicitParams({
-		@ApiImplicitParam(name=FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FHIRDataServerConfig.class, required=true, paramType="form", type="file")
+		@ApiImplicitParam(name=FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file")
 	})
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful Operation", response = MeasureParameterInfoList.class),
@@ -309,15 +308,15 @@ public class CohortEngineRestHandler {
 			
 			// deserialize the MeasuresEvaluation request
 			ObjectMapper om = new ObjectMapper();
-			FHIRDataServerConfig fhirDataServerConfig = om.readValue( dataSourceAttachment.getDataHandler().getInputStream(), FHIRDataServerConfig.class );		
+			FhirServerConfig fhirServerConfig = om.readValue( dataSourceAttachment.getDataHandler().getInputStream(), FhirServerConfig.class );		
 			
-			//validate the contents of the fhirDataServerConfig
-			validateBean(fhirDataServerConfig);
+			//validate the contents of the fhirServerConfig
+			validateBean(fhirServerConfig);
 			
 			//get the fhir client object used to call to FHIR
 			FhirContext ctx = FhirContext.forR4();
 			DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(ctx);
-			IGenericClient measureClient = builder.createFhirClient(fhirDataServerConfig.getDataServerConfig());
+			IGenericClient measureClient = builder.createFhirClient(fhirServerConfig);
 			
 			//build the identifier object which is used by the fhir client
 			//to find the measure
@@ -351,7 +350,7 @@ public class CohortEngineRestHandler {
 	@ApiOperation(value = "Get measure parameters by id", notes = CohortEngineRestHandler.MEASURE_API_NOTES, response = MeasureParameterInfoList.class, nickname = "get_measure_parameters_by_id", tags = {
 			"FHIR Measures" })
 	@ApiImplicitParams({
-		@ApiImplicitParam(name=FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FHIRDataServerConfig.class, required=true, paramType="form", type="file"),
+		@ApiImplicitParam(name=FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
 	})
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful Operation", response = MeasureParameterInfoList.class),
@@ -378,15 +377,15 @@ public class CohortEngineRestHandler {
 			
 			// deserialize the MeasuresEvaluation request
 			ObjectMapper om = new ObjectMapper();
-			FHIRDataServerConfig fhirDataServerConfig = om.readValue( dataSourceAttachment.getDataHandler().getInputStream(), FHIRDataServerConfig.class );		
+			FhirServerConfig fhirServerConfig = om.readValue( dataSourceAttachment.getDataHandler().getInputStream(), FhirServerConfig.class );		
 
-			//validate the contents of the fhirDataServerConfig
-			validateBean(fhirDataServerConfig);
+			//validate the contents of the fhirServerConfig
+			validateBean(fhirServerConfig);
 			
 			//get the fhir client object used to call to FHIR
 			FhirContext ctx = FhirContext.forR4();
 			DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(ctx);
-			IGenericClient measureClient = builder.createFhirClient(fhirDataServerConfig.getDataServerConfig());
+			IGenericClient measureClient = builder.createFhirClient(fhirServerConfig);
 
 			//resolve the measure, and return the parameter info for all the libraries linked to by the measure
 			List<MeasureParameterInfo> parameterInfoList = FHIRRestUtils.getParametersForMeasureId(measureClient, measureId);
@@ -413,7 +412,7 @@ public class CohortEngineRestHandler {
 	@ApiImplicitParams({
 			// This is necessary for the dark launch feature
 			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
-			@ApiImplicitParam(name=FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FHIRDataServerConfig.class, required=true, paramType="form", type="file"),
+			@ApiImplicitParam(name=FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
 			@ApiImplicitParam(name=VALUE_SET_PART, value= VALUE_SET_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
@@ -454,15 +453,15 @@ public class CohortEngineRestHandler {
 			
 			// deserialize the MeasuresEvaluation request
 			ObjectMapper om = new ObjectMapper();
-			FHIRDataServerConfig fhirDataServerConfig = om.readValue( dataSourceAttachment.getDataHandler().getInputStream(), FHIRDataServerConfig.class );		
+			FhirServerConfig fhirServerConfig = om.readValue( dataSourceAttachment.getDataHandler().getInputStream(), FhirServerConfig.class );		
 			
-			//validate the contents of the fhirDataServerConfig
-			validateBean(fhirDataServerConfig);
+			//validate the contents of the fhirServerConfig
+			validateBean(fhirServerConfig);
 
 			//get the fhir client object used to call to FHIR
 			FhirContext ctx = FhirContext.forR4();
 			DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(ctx);
-			IGenericClient terminologyClient = builder.createFhirClient(fhirDataServerConfig.getDataServerConfig());
+			IGenericClient terminologyClient = builder.createFhirClient(fhirServerConfig);
 			
 			IAttachment valueSetAttachment = multipartBody.getAttachment(VALUE_SET_PART);
 			if (valueSetAttachment == null) {

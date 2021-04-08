@@ -52,7 +52,6 @@ import com.ibm.cohort.engine.api.service.CohortEngineRestConstants;
 import com.ibm.cohort.engine.api.service.CohortEngineRestHandler;
 import com.ibm.cohort.engine.api.service.ServiceBuildConstants;
 import com.ibm.cohort.engine.api.service.TestHelper;
-import com.ibm.cohort.engine.api.service.model.FHIRDataServerConfig;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
@@ -386,14 +385,11 @@ public class DefaultVT extends ServiceVTBase {
 		final String RESOURCE = getUrlBase() + "/{version}/valueset";
 		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD));
 
-		FHIRDataServerConfig fhirDataServerConfig = new FHIRDataServerConfig();
-		fhirDataServerConfig.setDataServerConfig(dataServerConfig);
-				
 		// Create the metadata part of the request
 		ObjectMapper om = new ObjectMapper();
 		String fhirConfigjson = "";
 		try {
-			fhirConfigjson = om.writeValueAsString(fhirDataServerConfig);
+			fhirConfigjson = om.writeValueAsString(dataServerConfig);
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 			fail();
@@ -413,15 +409,12 @@ public class DefaultVT extends ServiceVTBase {
 	public void testValueSetAlreadyExists(){
 		testValueSetUpload();
 		final String RESOURCE = getUrlBase() + "/{version}/valueset";
-
-		FHIRDataServerConfig fhirDataServerConfig = new FHIRDataServerConfig();
-		fhirDataServerConfig.setDataServerConfig(dataServerConfig);
-				
+		
 		// Create the metadata part of the request
 		ObjectMapper om = new ObjectMapper();
 		String fhirConfigjson = "";
 		try {
-			fhirConfigjson = om.writeValueAsString(fhirDataServerConfig);
+			fhirConfigjson = om.writeValueAsString(dataServerConfig);
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 			fail();
@@ -441,15 +434,12 @@ public class DefaultVT extends ServiceVTBase {
 	public void testValueSetOverride(){
 		testValueSetUpload();
 		final String RESOURCE = getUrlBase() + "/{version}/valueset";
-		
-		FHIRDataServerConfig fhirDataServerConfig = new FHIRDataServerConfig();
-		fhirDataServerConfig.setDataServerConfig(dataServerConfig);
-				
+
 		// Create the metadata part of the request
 		ObjectMapper om = new ObjectMapper();
 		String fhirConfigjson = "";
 		try {
-			fhirConfigjson = om.writeValueAsString(fhirDataServerConfig);
+			fhirConfigjson = om.writeValueAsString(dataServerConfig);
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 			fail();
