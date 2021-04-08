@@ -4,7 +4,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-package com.ibm.cohort.engine.cos;
+package com.ibm.cohort.cache.cos;
 
 import com.ibm.cloud.objectstorage.ClientConfiguration;
 import com.ibm.cloud.objectstorage.auth.AWSCredentials;

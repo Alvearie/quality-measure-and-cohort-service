@@ -17,10 +17,10 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
 import com.beust.jcommander.internal.DefaultConverterFactory;
+import com.ibm.cohort.cache.cos.CosConfiguration;
+import com.ibm.cohort.cache.cos.CosDao;
+import com.ibm.cohort.cache.cos.CosDaoFactory;
 import com.ibm.cohort.cli.converter.json.JsonFileConverterInstanceFactory;
-import com.ibm.cohort.engine.cos.CosConfiguration;
-import com.ibm.cohort.engine.cos.CosDao;
-import com.ibm.cohort.engine.cos.CosDaoFactory;
 
 public class CosExampleCLI {
 	private static final Logger logger = LoggerFactory.getLogger(CosExampleCLI.class);

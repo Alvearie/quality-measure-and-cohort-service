@@ -4,7 +4,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  */
 
-package com.ibm.cohort.engine.cos;
+package com.ibm.cohort.cache.cos;
 
 public class CosConfiguration {
 
