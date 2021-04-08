@@ -298,7 +298,7 @@ Outer Structure:
     * *Note*: *Is required when `identifier` is not specified.
 * `measureConfigurations.parameters` (Optional):
     * Description: An optional list of one or more `Parameter` objects to use during evaluation for the corresponding measure.
-    * Type: `Parameter` (see structure below)
+    * Type: `Parameter` (see section below)
 * `measureConfigurations.identifier.value` (Optional*):
     * Description: Identifier value of the measure to evaluate.
     * Type: String
@@ -370,20 +370,25 @@ The measure with resource id `measure-with-id-1` will be executed for each patie
    "measureConfigurations" : [
       {
          "measureId" : "measure-with-id-2",
-         "parameters" : [
-            {
-               "name" : "param1",
+         "parameters" : {
+            "param1": {
                "type" : "integer",
-               "value" : "20"
+               "value" : 20
             },
-            {
-               "name" : "param2",
+            "param2": {
                "type" : "interval",
-               "subtype" : "decimal",
-               "start" : "4.0",
-               "end" : "7.5"
+               "start" : {
+                  "type": "decimal",
+                  "value": "4.0"
+               },
+               "startInclusive" : true,
+               "end" : {
+                  "type": "decimal",
+                  "value": "7.5"
+              },
+              "endInclusive" : true
             }
-         ]
+         }
       }
    ]
 }
@@ -397,13 +402,12 @@ and `param2`.
    "measureConfigurations" : [
       {
          "measureId" : "measure-with-id-3",
-         "parameters" : [
-            {
-               "name" : "param1",
+         "parameters" : {
+            "param1": {
                "type" : "integer",
                "value" : "20"
             }
-         ]
+         }
       },
       {
          "measureId" : "measure-with-id-4"
@@ -470,18 +474,14 @@ can cause this:
 * `measureConfigurations` is missing or is an empty list.
 * Neither `measureId` nor `identifier.value` is specified for an entry in the `measureConfigurations` list.
 * Both `measureId` and `identifier.value` are specified for a single entry in the `measureConfigurations` list.
-* `identifier` is specified, but is missing `value` for an entry in the `measureConfigurations` list .
-* One or more parameters is missing a required field:
-    * Either `name` or `type` is missing or empty.
-    * The `type` for a parameter is set to `interval`, but `subtype`, `start`, or `end` are missing or empty.
-    * The `type` for a parameter is a non-interval type, but `value` is missing or empty.
+* `identifier` is specified, but is missing `value` for an entry in the `measureConfigurations` list.
+* One or more parameters is missing a required field.
 
 #### Unsupported type and subtype values
-If an unsupported `type` or `subtype` is specified for a `Parameter`, then an `IllegalArgumentException` will be thrown.
+If an unsupported `type` specified for a `Parameter`, then an `InvalidTypeIdException` will be thrown.
 
 #### Incompatible values for a type
-Various exceptions can be thrown when a `value` cannot be converted to the corresponding `type` or when
-`start` or `end` values cannot be converted to the corresponding `subtype`.
+Various exceptions can be thrown when a `value` cannot be converted to the corresponding `type`.
 
 
 ## Running measure evaluation
