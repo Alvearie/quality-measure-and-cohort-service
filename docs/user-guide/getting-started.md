@@ -311,9 +311,9 @@ Outer Structure:
       when combined with `identifier`.
     * Type: String
 
-### Parameter Structure:
+### Parameter Structure and Supported Types
 Each entry in `measureConfigurations.parameters` must specify a key-value pair. The key is a string containing
-the name of the parameter. The value is a JSON object of the following format:
+the name of the parameter. The value is a JSON `Parameter` object of the following format:
 ```text
 {
   "type": "PARAMETER_TYPE_STRING",
@@ -323,12 +323,11 @@ the name of the parameter. The value is a JSON object of the following format:
 }
 ```
 
-### Supported Parameter Types:
 Each parameter will specify its type, and then one or more other fields depending on the type of parameter.
 Supported parameter types are `integer`, `decimal`, `string`, `boolean`, `datetime`, `date`, `time`, `quantity`,
 `ratio`, `interval`, `code`, and `concept`.
 
-See [here](./parameter-formats.md) for details about how to format each parameter type.
+See [here](user-guide/parameter-formats.md#parameter-formats) for details about how to format each parameter type.
 
 ### Measure Retrieval for Evaluation
 Each entry in `measureConfigurations` may identify a measure to evaluate using either `measureId` or a combination of `identifier`
