@@ -19,14 +19,12 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -39,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.cohort.engine.api.service.model.FHIRDataServerConfig;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfoList;
@@ -49,9 +48,9 @@ import com.ibm.cohort.engine.measure.ZipResourceResolutionProvider;
 import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
+import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
-import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
 import com.ibm.cohort.valueset.ValueSetArtifact;
 import com.ibm.cohort.valueset.ValueSetUtil;
 import com.ibm.watson.common.service.base.DarkFeatureSwaggerFilter;
@@ -60,6 +59,7 @@ import com.ibm.watson.common.service.base.ServiceBaseUtility;
 import com.ibm.websphere.jaxrs20.multipart.IAttachment;
 import com.ibm.websphere.jaxrs20.multipart.IMultipartBody;
 
+import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import io.swagger.annotations.Api;
@@ -70,10 +70,8 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.Authorization;
-import io.swagger.annotations.BasicAuthDefinition;
 import io.swagger.annotations.Extension;
 import io.swagger.annotations.ExtensionProperty;
-import io.swagger.annotations.SecurityDefinition;
 import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
 
@@ -83,26 +81,16 @@ import io.swagger.annotations.Tag;
  *
  */
 @Path(CohortEngineRestConstants.SERVICE_MAJOR_VERSION)
-@Api(value = "cohort")
-//Need this securityDefinition to get the "Authorize" button on the swagger UI to show up
-@SwaggerDefinition(securityDefinition = @SecurityDefinition(basicAuthDefinitions = { @BasicAuthDefinition(key = "BasicAuth") }),
-tags={@Tag(name = "FHIR Measures", description = "IBM Cohort Engine FHIR Measure Information"),
-						@Tag(name = "measures", description = "IBM Cohort Engine Measure Evaluation")})
+@Api()
+@SwaggerDefinition(
+tags={	@Tag(name = "FHIR Measures", description = "IBM Cohort Engine FHIR Measure Information"),
+		@Tag(name = "Measure Evaluation", description = "IBM Cohort Engine Measure Evaluation"),
+		@Tag(name = "ValueSet", description = "IBM Cohort Engine ValueSet Operations")})
 public class CohortEngineRestHandler {
 	private static final String MEASURE_PART_DESC = "ZIP archive containing the FHIR Measure and Library resources used in the evaluation.";
 	private static final String REQUEST_DATA_PART_DESC = "Metadata describing the evaluation to perform.";
-	private static final String EVALUATION_API_NOTES = "The body of the request is a multipart/form-data request with an application/json attachment named 'requestData' that describes the measure evaluation that will be performed and an application/zip attachment named 'measure' that contains the measure and library artifacts to be evaluated. Valueset resources required for Measure evaluation must be loaded to the FHIR server in advance of an evaluation request. ";
+	private static final String EVALUATION_API_NOTES = "The body of the request is a multipart/form-data request with an application/json attachment named 'request_data' that describes the measure evaluation that will be performed and an application/zip attachment named 'measure' that contains the measure and library artifacts to be evaluated. Valueset resources required for Measure evaluation must be loaded to the FHIR server in advance of an evaluation request. ";
 	private static final Logger logger = LoggerFactory.getLogger(CohortEngineRestHandler.class.getName());
-	private static final String FHIR_ENDPOINT_DESC = "The REST endpoint of the FHIR server the measure/libraries are stored in. For example: "
-			+ "https://localhost:9443/fhir-server/api/v4";
-	private static final String FHIR_TENANT_HEADER_DESC = "IBM FHIR Server uses HTTP headers to control which underlying tenant contains "
-			+ "the data being retrieved. The default header name used to identify the tenant can be changed by the user as needed for their "
-			+ "execution environment. If no value is provided, the value in the base configuration files (X-FHIR-TENANT-ID) is used.";
-	private static final String FHIR_TENANT_ID_DESC = "The id of the tenant used to store the measure/library information in the FHIR server. ";
-	private static final String FHIR_DS_HEADER_DESC = "IBM FHIR Server uses HTTP headers to control which underlying datasource contains "
-			+ "the data being retrieved. The default header can be changed by the user as needed for their "
-			+ "execution environment. If no value is provided, the value in the base configuration files (X-FHIR-DSID) is used.";
-	private static final String FHIR_DS_ID_DESC = "The id of the underlying datasource used by the FHIR server to contain the data.";
 	private static final String MEASURE_IDENTIFIER_VALUE_DESC = "Used to identify the FHIR measure resource you would like the parameter information "
 			+ "for using the Measure.Identifier.Value field.";
 	private static final String MEASURE_ID_DESC = "FHIR measure resource id for the measure you would like the parameter information "
@@ -118,12 +106,34 @@ public class CohortEngineRestHandler {
 	private static final String VALUE_SET_UPDATE_IF_EXISTS_DESC = "The parameter that, if true, will force updates of value sets if the value set already exists";
 	private static final String VALUE_SET_DESC = "Spreadsheet containing the Value Set definition.";
 
-	private static final String DEFAULT_FHIR_URL = "https://fhir-internal.dev:9443/fhir-server/api/v4";
-
 	public static final String DELAY_DEFAULT = "3";
 	
-	public static final String REQUEST_DATA_PART = "requestData";
+	public static final String REQUEST_DATA_PART = "request_data";
 	public static final String MEASURE_PART = "measure";
+	public static final String FHIR_DATA_SERVER_CONFIG_PART = "fhir_data_server_config";
+	public static final String UPDATE_IF_EXISTS_PARM = "update_if_exists";
+	public static final String VERSION = "version";
+	public static final String MEASURE_IDENTIFIER_VALUE = "measure_identifier_value";
+	public static final String MEASURE_IDENTIFIER_SYSTEM = "measure_identifier_system";
+	public static final String MEASURE_VERSION = "measure_version";
+	public static final String MEASURE_ID = "measure_id";
+	
+	
+	public final static String VALUE_SET_PART = "value_set";
+	
+	public static final String EXAMPLE_DATA_SERVER_CONFIG_JSON = "Example Contents: \n <pre>{\n" + 
+			"    \"dataServerConfig\": {\n" + 
+			"        \"@class\": \"com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\",\n" + 
+			"        \"endpoint\": \"https://fhir-internal.dev:9443/fhir-server/api/v4\",\n" + 
+			"        \"user\": \"fhiruser\",\n" + 
+			"        \"password\": \"replaceWithfhiruserPassword\",\n" + 
+			"        \"logInfo\": [\n" + 
+			"            \"REQUEST_SUMMARY\",\n" + 
+			"            \"RESPONSE_SUMMARY\"\n" + 
+			"        ],\n" + 
+			"        \"tenantId\": \"default\"\n" + 
+			"    }\n"
+			+ "}</pre>";
 	
 	public enum MethodNames {
 		EVALUATE_MEASURE("evaluateMeasure"),
@@ -162,7 +172,8 @@ public class CohortEngineRestHandler {
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "Evaluates a measure bundle for a single patient"
 		, notes = EVALUATION_API_NOTES, response = String.class
-		, tags = {"measures" }
+		, tags = {"Measure Evaluation"}
+		, nickname = "evaluate_measure"
 		, extensions = {
 				@Extension(properties = {
 						@ExtensionProperty(
@@ -175,7 +186,7 @@ public class CohortEngineRestHandler {
 		// This is necessary for the dark launch feature
 		@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
 		// These are necessary to create a proper view of the request body that is all wrapped up in the Liberty IMultipartBody parameter
-		@ApiImplicitParam(name=REQUEST_DATA_PART, value=REQUEST_DATA_PART_DESC, dataTypeClass = MeasureEvaluation.class, required=true, paramType="form"),
+		@ApiImplicitParam(name=REQUEST_DATA_PART, value=REQUEST_DATA_PART_DESC, dataTypeClass = MeasureEvaluation.class, required=true, paramType="form", type="file"),
 		@ApiImplicitParam(name=MEASURE_PART, value=MEASURE_PART_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
@@ -185,7 +196,7 @@ public class CohortEngineRestHandler {
 	})
 	public Response evaluateMeasure(@Context HttpServletRequest request,
 
-			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
+			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam(CohortEngineRestHandler.VERSION) String version,
 			@ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody) {
 		final String methodName = MethodNames.EVALUATE_MEASURE.getName();
 
@@ -219,26 +230,8 @@ public class CohortEngineRestHandler {
 			ObjectMapper om = new ObjectMapper();
 			MeasureEvaluation evaluationRequest = om.readValue( metadataAttachment.getDataHandler().getInputStream(), MeasureEvaluation.class );
 			
-			// See https://openliberty.io/guides/bean-validation.html
-			//TODO: The validator below is recommended to be injected using CDI in the guide
-			ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-			try {
-				Validator validator = factory.getValidator();
-				
-				Set<ConstraintViolation<MeasureEvaluation>> violations = validator.validate( evaluationRequest );
-				if( ! violations.isEmpty() ) {
-					StringBuilder sb = new StringBuilder("Invalid request metadata: ");
-					for( ConstraintViolation<MeasureEvaluation> violation : violations ) { 
-						sb.append(System.lineSeparator())
-							.append(violation.getPropertyPath().toString())
-							.append(": ")
-							.append(violation.getMessage());
-					}
-					throw new IllegalArgumentException(sb.toString());
-				}
-			} finally { 
-				factory.close();
-			}
+			//validate the contents of the evaluationRequest
+			validateBean(evaluationRequest);
 			
 			FhirClientBuilder clientBuilder = FhirClientBuilderFactory.newInstance().newFhirClientBuilder();
 			IGenericClient dataClient = clientBuilder.createFhirClient(evaluationRequest.getDataServerConfig());
@@ -280,25 +273,25 @@ public class CohortEngineRestHandler {
 		return response;
 	}
 	
-	@GET
+	@POST
 	@Path("/fhir/measure/identifier/{measure_identifier_value}/parameters")
-	@Produces({ "application/json" })
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@ApiOperation(value = "Get measure parameters", notes = CohortEngineRestHandler.MEASURE_API_NOTES, response = MeasureParameterInfoList.class, authorizations = {@Authorization(value = "BasicAuth")   }, responseContainer = "List", tags = {
 			"FHIR Measures" })
+	@ApiImplicitParams({
+		@ApiImplicitParam(name=FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FHIRDataServerConfig.class, required=true, paramType="form", type="file")
+	})
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successful Operation", response = MeasureParameterInfoList.class, responseContainer = "List"),
+			@ApiResponse(code = 200, message = "Successful Operation", response = MeasureParameterInfoList.class),
 			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
 			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class) })
-	public Response getMeasureParameters(@Context HttpHeaders httpHeaders,
-			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
-			@ApiParam(value = CohortEngineRestHandler.FHIR_ENDPOINT_DESC, required = true, defaultValue = CohortEngineRestHandler.DEFAULT_FHIR_URL) @QueryParam("fhir_server_rest_endpoint") String fhirEndpoint,
-			@ApiParam(value = CohortEngineRestHandler.FHIR_TENANT_ID_DESC, required = true, defaultValue = "default") @QueryParam("fhir_server_tenant_id") String fhirTenantId,
-			@ApiParam(value = CohortEngineRestHandler.MEASURE_IDENTIFIER_VALUE_DESC, required = true) @PathParam("measure_identifier_value") String measureIdentifierValue,
-			@ApiParam(value = CohortEngineRestHandler.MEASURE_IDENTIFIER_SYSTEM_DESC, required = false) @QueryParam("measure_identifier_system") String measureIdentifierSystem,
-			@ApiParam(value = CohortEngineRestHandler.MEASURE_VERSION_DESC, required = false) @QueryParam("measure_version") String measureVersion,
-			@ApiParam(value = CohortEngineRestHandler.FHIR_TENANT_HEADER_DESC, required = false, defaultValue = IBMFhirServerConfig.DEFAULT_TENANT_ID_HEADER) @QueryParam("fhir_server_tenant_id_header") String fhirTenantIdHeader,
-			@ApiParam(value = CohortEngineRestHandler.FHIR_DS_HEADER_DESC, required = false, defaultValue = IBMFhirServerConfig.DEFAULT_DATASOURCE_ID_HEADER) @QueryParam("fhir_data_source_id_header") String fhirDataSourceIdHeader,
-			@ApiParam(value = CohortEngineRestHandler.FHIR_DS_ID_DESC, required = false) @QueryParam("fhir_data_source_id") String fhirDataSourceId)
+	public Response getMeasureParameters(
+			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam(CohortEngineRestHandler.VERSION) String version,
+			@ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody,
+			@ApiParam(value = CohortEngineRestHandler.MEASURE_IDENTIFIER_VALUE_DESC, required = true) @PathParam(CohortEngineRestHandler.MEASURE_IDENTIFIER_VALUE) String measureIdentifierValue,
+			@ApiParam(value = CohortEngineRestHandler.MEASURE_IDENTIFIER_SYSTEM_DESC, required = false) @QueryParam(CohortEngineRestHandler.MEASURE_IDENTIFIER_SYSTEM) String measureIdentifierSystem,
+			@ApiParam(value = CohortEngineRestHandler.MEASURE_VERSION_DESC, required = false) @QueryParam(CohortEngineRestHandler.MEASURE_VERSION) String measureVersion)
 			{
 		final String methodName = MethodNames.GET_MEASURE_PARAMETERS.getName();
 
@@ -309,8 +302,22 @@ public class CohortEngineRestHandler {
 				return errorResponse;
 			}
 			
+			IAttachment dataSourceAttachment = multipartBody.getAttachment(FHIR_DATA_SERVER_CONFIG_PART);
+			if( dataSourceAttachment == null ) {
+				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", FHIR_DATA_SERVER_CONFIG_PART));
+			}
+			
+			// deserialize the MeasuresEvaluation request
+			ObjectMapper om = new ObjectMapper();
+			FHIRDataServerConfig fhirDataServerConfig = om.readValue( dataSourceAttachment.getDataHandler().getInputStream(), FHIRDataServerConfig.class );		
+			
+			//validate the contents of the fhirDataServerConfig
+			validateBean(fhirDataServerConfig);
+			
 			//get the fhir client object used to call to FHIR
-			IGenericClient measureClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId, httpHeaders);
+			FhirContext ctx = FhirContext.forR4();
+			DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(ctx);
+			IGenericClient measureClient = builder.createFhirClient(fhirDataServerConfig.getDataServerConfig());
 			
 			//build the identifier object which is used by the fhir client
 			//to find the measure
@@ -337,23 +344,23 @@ public class CohortEngineRestHandler {
 
 	}
 	
-	@GET
+	@POST
 	@Path("/fhir/measure/{measure_id}/parameters")
-	@Produces({ "application/json" })
-	@ApiOperation(value = "Get measure parameters by id", notes = CohortEngineRestHandler.MEASURE_API_NOTES, response = MeasureParameterInfoList.class, authorizations = {@Authorization(value = "BasicAuth")   }, responseContainer = "List", tags = {
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@ApiOperation(value = "Get measure parameters by id", notes = CohortEngineRestHandler.MEASURE_API_NOTES, response = MeasureParameterInfoList.class, nickname = "get_measure_parameters_by_id", tags = {
 			"FHIR Measures" })
+	@ApiImplicitParams({
+		@ApiImplicitParam(name=FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FHIRDataServerConfig.class, required=true, paramType="form", type="file"),
+	})
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successful Operation", response = MeasureParameterInfoList.class, responseContainer = "List"),
+			@ApiResponse(code = 200, message = "Successful Operation", response = MeasureParameterInfoList.class),
 			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
 			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class) })
-	public Response getMeasureParametersById(@Context HttpHeaders httpHeaders,
-			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
-			@ApiParam(value = CohortEngineRestHandler.FHIR_ENDPOINT_DESC, required = true, defaultValue = CohortEngineRestHandler.DEFAULT_FHIR_URL) @QueryParam("fhir_server_rest_endpoint") String fhirEndpoint,
-			@ApiParam(value = CohortEngineRestHandler.FHIR_TENANT_ID_DESC, required = true, defaultValue = "default") @QueryParam("fhir_server_tenant_id") String fhirTenantId,
-			@ApiParam(value = CohortEngineRestHandler.MEASURE_ID_DESC, required = true) @PathParam("measure_id") String measureId,
-			@ApiParam(value = CohortEngineRestHandler.FHIR_TENANT_HEADER_DESC, required = false, defaultValue = IBMFhirServerConfig.DEFAULT_TENANT_ID_HEADER) @QueryParam("fhir_server_tenant_id_header") String fhirTenantIdHeader,
-			@ApiParam(value = CohortEngineRestHandler.FHIR_DS_HEADER_DESC, required = false, defaultValue = IBMFhirServerConfig.DEFAULT_DATASOURCE_ID_HEADER) @QueryParam("fhir_data_source_id_header") String fhirDataSourceIdHeader,
-			@ApiParam(value = CohortEngineRestHandler.FHIR_DS_ID_DESC, required = false) @QueryParam("fhir_data_source_id") String fhirDataSourceId)
+	public Response getMeasureParametersById(
+			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam(CohortEngineRestHandler.VERSION) String version,
+			@ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody,
+			@ApiParam(value = CohortEngineRestHandler.MEASURE_ID_DESC, required = true) @PathParam(CohortEngineRestHandler.MEASURE_ID) String measureId)
 			{
 		final String methodName = MethodNames.GET_MEASURE_PARAMETERS_BY_ID.getName();
 
@@ -363,9 +370,23 @@ public class CohortEngineRestHandler {
 			if(errorResponse != null) {
 				return errorResponse;
 			}
+
+			IAttachment dataSourceAttachment = multipartBody.getAttachment(FHIR_DATA_SERVER_CONFIG_PART);
+			if( dataSourceAttachment == null ) {
+				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", FHIR_DATA_SERVER_CONFIG_PART));
+			}
+			
+			// deserialize the MeasuresEvaluation request
+			ObjectMapper om = new ObjectMapper();
+			FHIRDataServerConfig fhirDataServerConfig = om.readValue( dataSourceAttachment.getDataHandler().getInputStream(), FHIRDataServerConfig.class );		
+
+			//validate the contents of the fhirDataServerConfig
+			validateBean(fhirDataServerConfig);
 			
 			//get the fhir client object used to call to FHIR
-			IGenericClient measureClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId, httpHeaders);
+			FhirContext ctx = FhirContext.forR4();
+			DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(ctx);
+			IGenericClient measureClient = builder.createFhirClient(fhirDataServerConfig.getDataServerConfig());
 
 			//resolve the measure, and return the parameter info for all the libraries linked to by the measure
 			List<MeasureParameterInfo> parameterInfoList = FHIRRestUtils.getParametersForMeasureId(measureClient, measureId);
@@ -385,8 +406,6 @@ public class CohortEngineRestHandler {
 		}
 	}
 
-	public final static String VALUE_SET_PART = "valueSet";
-
 	@POST
 	@Path("/valueset/")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -394,39 +413,31 @@ public class CohortEngineRestHandler {
 	@ApiImplicitParams({
 			// This is necessary for the dark launch feature
 			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
+			@ApiImplicitParam(name=FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FHIRDataServerConfig.class, required=true, paramType="form", type="file"),
 			@ApiImplicitParam(name=VALUE_SET_PART, value= VALUE_SET_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successful Operation", response = String.class),
+			@ApiResponse(code = 200, message = "Successful Operation"),
 			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
 			@ApiResponse(code = 409, message = "Conflict", response = ServiceErrorList.class),
 			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
 	})
 	@ApiOperation(value = "Insert a new value set to the fhir server or, if it already exists, update it in place"
 			, notes = CohortEngineRestHandler.VALUE_SET_API_NOTES
-			, tags = {"valueSet" }
+			, tags = {"ValueSet" }
+			, nickname = "create_value_set"
 			, extensions = {
 			@Extension(properties = {
 					@ExtensionProperty(
 							name = DarkFeatureSwaggerFilter.DARK_FEATURE_NAME
 							, value = CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD)
 			})}
-			, authorizations = {@Authorization(value = "BasicAuth")
-	})
-	public Response createValueSet(@Context HttpHeaders httpHeaders,
-								   @DefaultValue(ServiceBuildConstants.DATE) @ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam("version") String version,
-								   @ApiParam(value = CohortEngineRestHandler.FHIR_ENDPOINT_DESC, required = true, defaultValue = CohortEngineRestHandler.DEFAULT_FHIR_URL) @QueryParam("fhir_server_rest_endpoint") String fhirEndpoint,
-								   @DefaultValue("default") @ApiParam(value = CohortEngineRestHandler.FHIR_TENANT_ID_DESC, required = true, defaultValue = "default") @QueryParam("fhir_server_tenant_id") String fhirTenantId,
-								   @ApiParam(value = CohortEngineRestHandler.FHIR_TENANT_HEADER_DESC, defaultValue = IBMFhirServerConfig.DEFAULT_TENANT_ID_HEADER) @QueryParam("fhir_server_tenant_id_header") String fhirTenantIdHeader,
-								   @ApiParam(value = CohortEngineRestHandler.FHIR_DS_HEADER_DESC, defaultValue = IBMFhirServerConfig.DEFAULT_DATASOURCE_ID_HEADER) @QueryParam("fhir_data_source_id_header") String fhirDataSourceIdHeader,
-								   @ApiParam(value = CohortEngineRestHandler.FHIR_DS_ID_DESC) @QueryParam("fhir_data_source_id") String fhirDataSourceId,
-								   @ApiParam(value = CohortEngineRestHandler.VALUE_SET_UPDATE_IF_EXISTS_DESC, defaultValue = "false") @DefaultValue ("false") @QueryParam("updateIfExists") boolean updateIfExists,
-								   @ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody
+	)
+	public Response createValueSet(@DefaultValue(ServiceBuildConstants.DATE) @ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam(CohortEngineRestHandler.VERSION) String version,
+								   @ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody,
+								   @ApiParam(value = CohortEngineRestHandler.VALUE_SET_UPDATE_IF_EXISTS_DESC, defaultValue = "false") @DefaultValue ("false") @QueryParam(CohortEngineRestHandler.UPDATE_IF_EXISTS_PARM) boolean updateIfExists
 								) {
 		String methodName = MethodNames.CREATE_VALUE_SET.getName();
-		if(fhirEndpoint == null){
-			return Response.status(Response.Status.BAD_REQUEST).entity("fhirEndpoint must be specified").build();
-		}
 		Response response;
 		ServiceBaseUtility.isDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD);
 		try {
@@ -435,8 +446,25 @@ public class CohortEngineRestHandler {
 			if(errorResponse != null) {
 				return errorResponse;
 			}
-			IGenericClient terminologyClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, fhirTenantIdHeader, fhirTenantId, fhirDataSourceIdHeader, fhirDataSourceId, httpHeaders);
-			IAttachment valueSetAttachment = multipartBody.getRootAttachment();
+
+			IAttachment dataSourceAttachment = multipartBody.getAttachment(FHIR_DATA_SERVER_CONFIG_PART);
+			if( dataSourceAttachment == null ) {
+				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", FHIR_DATA_SERVER_CONFIG_PART));
+			}
+			
+			// deserialize the MeasuresEvaluation request
+			ObjectMapper om = new ObjectMapper();
+			FHIRDataServerConfig fhirDataServerConfig = om.readValue( dataSourceAttachment.getDataHandler().getInputStream(), FHIRDataServerConfig.class );		
+			
+			//validate the contents of the fhirDataServerConfig
+			validateBean(fhirDataServerConfig);
+
+			//get the fhir client object used to call to FHIR
+			FhirContext ctx = FhirContext.forR4();
+			DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(ctx);
+			IGenericClient terminologyClient = builder.createFhirClient(fhirDataServerConfig.getDataServerConfig());
+			
+			IAttachment valueSetAttachment = multipartBody.getAttachment(VALUE_SET_PART);
 			if (valueSetAttachment == null) {
 				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", VALUE_SET_PART));
 			}
@@ -467,6 +495,28 @@ public class CohortEngineRestHandler {
 			}
 		}
 		return response;
+	}
+	
+	private <T> void validateBean(T beanInput) {
+		// See https://openliberty.io/guides/bean-validation.html
+		// TODO: The validator below is recommended to be injected using CDI in the
+		// guide
+		ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+		try {
+			Validator validator = factory.getValidator();
+
+			Set<ConstraintViolation<T>> violations = validator.validate(beanInput);
+			if (!violations.isEmpty()) {
+				StringBuilder sb = new StringBuilder("Invalid request metadata: ");
+				for (ConstraintViolation<T> violation : violations) {
+					sb.append(System.lineSeparator()).append(violation.getPropertyPath().toString()).append(": ")
+							.append(violation.getMessage());
+				}
+				throw new IllegalArgumentException(sb.toString());
+			}
+		} finally {
+			factory.close();
+		}
 	}
 }
 

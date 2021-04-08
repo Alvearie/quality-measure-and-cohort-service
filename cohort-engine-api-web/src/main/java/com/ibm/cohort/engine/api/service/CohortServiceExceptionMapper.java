@@ -19,6 +19,7 @@ import org.opencds.cqf.cql.engine.exception.CqlException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
 import com.ibm.watson.service.base.model.ServiceError;
@@ -93,6 +94,11 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 			else if (ex instanceof MismatchedInputException) {
 				serviceErrorCode = Status.BAD_REQUEST.getStatusCode();
 				serviceErrorListCode = serviceErrorCode;
+			}
+			else if (ex instanceof JsonParseException) {
+				serviceErrorCode = Status.BAD_REQUEST.getStatusCode();
+				serviceErrorListCode = serviceErrorCode;
+				description = "Invalid JSON input";
 			}
 			//will get thrown by HAPI FHIR when a requested resource is not found in the target FHIR server
 			else if (ex instanceof BaseServerResponseException) { 
