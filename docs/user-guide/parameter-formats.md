@@ -1,5 +1,6 @@
 # Parameter Formats
-Here are the required fields for each type of parameter and examples of how to specify each parameter type.
+This page contains the fields for each type of parameter and examples of how to specify each parameter type in JSON.
+Each field is required unless marked with `(Optional)`.
 
 ## Integer
 * `value`: Integer value of the parameter.
