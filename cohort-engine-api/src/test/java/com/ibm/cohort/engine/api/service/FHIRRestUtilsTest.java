@@ -5,7 +5,7 @@
  */
 package com.ibm.cohort.engine.api.service;
 
-import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
@@ -17,7 +17,6 @@ import java.util.List;
 import javax.ws.rs.core.HttpHeaders;
 
 import org.hl7.fhir.r4.model.Identifier;
-import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.junit.Before;
 import org.junit.Rule;
@@ -108,12 +107,10 @@ public class FHIRRestUtilsTest {
 			"}\n";
 
 	@Mock
-	private static DefaultFhirClientBuilder mockDefaultFhirClientBuilder;
-	@Mock
 	private static HttpHeaders mockHttpHeaders;
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		MockitoAnnotations.initMocks(this);
 	}
 
@@ -330,13 +327,6 @@ public class FHIRRestUtilsTest {
 		ca.uhn.fhir.parser.IParser parser = ctx.newJsonParser();
 		// Parse it
 		return parser.parseResource(Measure.class, inputString);
-	}
-
-	private Library createLibrary(String inputString) throws JsonProcessingException {
-		// Instantiate a new parser
-		ca.uhn.fhir.parser.IParser parser = ctx.newJsonParser();
-		// Parse it
-		return parser.parseResource(Library.class, inputString);
 	}
 
 }
