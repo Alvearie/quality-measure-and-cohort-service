@@ -17,9 +17,9 @@ import ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException;
 public class FhirClientTimeoutTest extends BaseFhirTest {
 
 	private static final String PATIENT_ID = "TimeoutTest-PatientId";
-	private static final int PATIENT_RETRIEVAL_DELAY_MILLIS = 3 * 1000;
-	private static final int CONFIG_TIMEOUT_MILLIS = 1000;
-	private static final int CONFIG_NO_TIMEOUT_MILLIS = 20 * 1000;
+	private static final int PATIENT_RETRIEVAL_DELAY_MILLIS = 3_000;
+	private static final int CONFIG_TIMEOUT_MILLIS = 1_000;
+	private static final int CONFIG_NO_TIMEOUT_MILLIS = 20_000;
 	
 	@Before
 	public void setup() {
