@@ -12,9 +12,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -32,6 +35,7 @@ import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Reference;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.opencds.cqf.cql.engine.exception.CqlException;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.ibm.cohort.engine.parameter.DatetimeParameter;
@@ -554,5 +558,61 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 				});
 		// The four checks + the patient
 		assertEquals(5, resultCount.get());
+	}
+	
+	@Test
+	public void testUnsupportedValueSetVersionFeature() throws Exception {
+		runUnsupportedValueSetPropertyTest("UsesVersionVSInOperator");
+	}
+	
+	@Test
+	public void testUnsupportedValueSetCodeSystemsFeature() throws Exception {
+		runUnsupportedValueSetPropertyTest("UsesCodeSystemsVSInOperator");
+	}
+	
+	@Test
+	public void testUnsupportedValueSetFeaturesCombined() throws Exception {
+		runUnsupportedValueSetPropertyTest("UsesBothVSInOperator");
+	}
+
+	@Test
+	@Ignore // waiting on fix in RestFhirRetrieveProvider	
+	public void testUnsupportedValueSetVersionFeatureFilteredRetrieve() throws Exception {
+		runUnsupportedValueSetPropertyTest("UsesVersionVS");
+	}
+	
+	@Test
+	@Ignore // waiting on fix in RestFhirRetrieveProvider
+	public void testUnsupportedValueSetCodeSystemsFeatureFilteredRetrieve() throws Exception {
+		runUnsupportedValueSetPropertyTest("UsesCodeSystemsVS");
+	}
+	
+	@Test
+	@Ignore // waiting on fix in RestFhirRetrieveProvider
+	public void testUnsupportedValueSetFeaturesCombinedFilteredRetrieve() throws Exception {
+		runUnsupportedValueSetPropertyTest("UsesBothVS");
+	}
+
+	private void runUnsupportedValueSetPropertyTest(String expression) throws ParseException, Exception {
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1983-12-02");
+
+		Condition condition = new Condition();
+		condition.setId("Condition");
+		condition.setSubject(new Reference(patient));
+		condition.getCode().addCoding().setSystem("SNOMED-CT").setCode("1234");
+
+		// This stub works for [Condition] c where c.code in "ValueSet"
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", condition);		
+		
+		final AtomicInteger resultCount = new AtomicInteger(0);
+		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/valueset/TestUnsupported-1.0.0.cql", "cql/valueset/FHIRHelpers-4.0.0.cql");
+		
+		CqlException ex = assertThrows("Missing expected exception", CqlException.class, () -> {
+				wrapper.evaluate("TestUnsupported", "1.0.0", /* parameters= */null, new HashSet<>(Arrays.asList(expression)),
+						Arrays.asList(patient.getId()), (p, e, r) -> {
+							resultCount.incrementAndGet();
+						});
+			});
+		assertTrue( "Unexpected exception message: " + ex.getMessage(), ex.getMessage().contains("version and code system bindings are not supported at this time") );
 	}
 }
