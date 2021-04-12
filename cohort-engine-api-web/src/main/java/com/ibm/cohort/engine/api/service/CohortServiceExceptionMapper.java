@@ -15,6 +15,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
+import org.opencds.cqf.cql.engine.exception.CqlException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,7 +79,12 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 			}
 			//will get thrown is invalid measure ids are input or
 			//library ids don't resolve properly
-			else if (ex instanceof IllegalArgumentException){
+			else if (ex instanceof IllegalArgumentException || ex instanceof UnsupportedOperationException){
+				serviceErrorCode = Status.BAD_REQUEST.getStatusCode();
+				serviceErrorListCode = serviceErrorCode;
+			}
+			//will get thrown by the CQL engine generally due to language-related issues
+			else if( ex instanceof CqlException ) {
 				serviceErrorCode = Status.BAD_REQUEST.getStatusCode();
 				serviceErrorListCode = serviceErrorCode;
 			}

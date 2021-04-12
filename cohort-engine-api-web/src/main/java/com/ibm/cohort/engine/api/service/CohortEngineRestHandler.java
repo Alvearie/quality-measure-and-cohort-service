@@ -34,7 +34,6 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.MeasureReport;
 import org.opencds.cqf.cql.engine.data.DataProvider;
-import org.opencds.cqf.cql.engine.fhir.terminology.R4FhirTerminologyProvider;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +48,7 @@ import com.ibm.cohort.engine.measure.R4DataProviderFactory;
 import com.ibm.cohort.engine.measure.ZipResourceResolutionProvider;
 import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
+import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
@@ -252,7 +252,7 @@ public class CohortEngineRestHandler {
 			String [] searchPaths = new String[] { "fhirResources", "fhirResources/libraries" };
 			ZipResourceResolutionProvider provider = new ZipResourceResolutionProvider(new ZipInputStream( measureAttachment.getDataHandler().getInputStream()), parser, searchPaths);;
 			
-			TerminologyProvider terminologyProvider = new R4FhirTerminologyProvider(terminologyClient);
+			TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(terminologyClient);
 			try (RetrieveCacheContext retrieveCacheContext = new DefaultRetrieveCacheContext()) {
 				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataClient, terminologyProvider, retrieveCacheContext);
 				

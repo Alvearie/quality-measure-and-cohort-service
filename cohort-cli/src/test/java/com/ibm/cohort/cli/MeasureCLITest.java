@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.time.OffsetDateTime;
 import java.util.Date;
@@ -496,11 +497,12 @@ public class MeasureCLITest extends BaseMeasureTest {
 		Patient patient = getPatient("123", AdministrativeGender.MALE, 65);
 		mockFhirResourceRetrieval(patient);
 		
-		
 		Bundle emptyBundle = getBundle();
+		assertTrue( "Bundle should be empty", emptyBundle.isEmpty() );
 		mockFhirResourceRetrieval(get(urlMatching("/Condition.*")), emptyBundle);
 		mockFhirResourceRetrieval(get(urlMatching("/Procedure.*")), emptyBundle);
 		mockFhirResourceRetrieval(get(urlMatching("/Observation.*")), emptyBundle);
+		mockSampleValueSets();
 		
 		File tmpFile = createFhirConfigFile();
 
@@ -524,6 +526,16 @@ public class MeasureCLITest extends BaseMeasureTest {
 		System.out.println(output);
 		assertTrue( output.contains("\"resourceType\": \"MeasureReport\"") );
 		assertFalse( "Found null string in output", output.contains("null/") );
+	}
+
+	private void mockSampleValueSets() throws UnsupportedEncodingException {
+		mockValueSetRetrieval("https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.108.12.1001", "SNOMED-CT", "1111");
+		mockValueSetRetrieval("https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.198.12.1019", "SNOMED-CT", "2222");
+		mockValueSetRetrieval("https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.198.11.1020", "SNOMED-CT", "3333");
+		mockValueSetRetrieval("https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.108.11.1145", "SNOMED-CT", "4444");
+		mockValueSetRetrieval("https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.198.12.1010", "SNOMED-CT", "5555");
+		mockValueSetRetrieval("https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.108.12.1038", "SNOMED-CT", "6666");
+		mockValueSetRetrieval("https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.108.12.1020", "SNOMED-CT", "6666");
 	}
 	
 	@Test
@@ -575,6 +587,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		mockFhirResourceRetrieval(get(urlMatching("/Condition.*")), emptyBundle);
 		mockFhirResourceRetrieval(get(urlMatching("/Procedure.*")), emptyBundle);
 		mockFhirResourceRetrieval(get(urlMatching("/Observation.*")), emptyBundle);
+		mockSampleValueSets();
 		
 		File tmpFile = createFhirConfigFile();
 

@@ -12,9 +12,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -32,6 +35,7 @@ import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Reference;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.opencds.cqf.cql.engine.exception.CqlException;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.ibm.cohort.engine.parameter.DatetimeParameter;
@@ -512,5 +516,103 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 					resultCount.incrementAndGet();
 				});
 		assertEquals(3, resultCount.get());
+	}
+	
+	@Test
+	/**
+	 * This test exists to validate the the engine correctly expands a valueset
+	 * and correctly determines resources that overlap the valueset membership.
+	 *  
+	 * @throws Exception on any error.
+	 */
+	public void testValueSetMembership() throws Exception {
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1983-12-02");
+
+		final AtomicInteger resultCount = new AtomicInteger(0);
+		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/valueset/Test-1.0.0.cql", "cql/valueset/FHIRHelpers-4.0.0.cql");
+		
+		Condition condition = new Condition();
+		condition.setId("Condition");
+		condition.setSubject(new Reference(patient));
+		condition.getCode().addCoding().setSystem("SNOMED-CT").setCode("1234");
+
+		// This stub works for [Condition] c where c.code in "ValueSet"
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", condition);
+		// These stub works for [Condition: "ValueSet"]
+		mockFhirResourceRetrieval("/Condition?code=SNOMED-CT%7C1234&subject=Patient%2F123", makeBundle(condition));
+		mockFhirResourceRetrieval("/Condition?code=SNOMED-CT%7C5678&subject=Patient%2F123", makeBundle());
+		
+		mockValueSetRetrieval("https://cts.nlm.nih.gov/fhir/ValueSet/1.2.3.4", "SNOMED-CT", "1234");
+		mockValueSetRetrieval("https://cts.nlm.nih.gov/fhir/ValueSet/5.6.7.8", "SNOMED-CT", "5678");
+		
+		wrapper.evaluate("Test", "1.0.0", /* parameters= */null, null,
+				Arrays.asList(patient.getId()), (p, e, r) -> {
+					if( e.endsWith("NotExists") ) {
+						assertEquals(Boolean.FALSE, r);
+					} else if( e.endsWith( "Exists") ) {
+						// you can use the *convert* function to change the
+						// units of a quantity to a known value
+						assertEquals(Boolean.TRUE, r); 
+					}
+					resultCount.incrementAndGet();
+				});
+		// The four checks + the patient
+		assertEquals(5, resultCount.get());
+	}
+	
+	@Test
+	public void testUnsupportedValueSetVersionFeature() throws Exception {
+		runUnsupportedValueSetPropertyTest("UsesVersionVSInOperator");
+	}
+	
+	@Test
+	public void testUnsupportedValueSetCodeSystemsFeature() throws Exception {
+		runUnsupportedValueSetPropertyTest("UsesCodeSystemsVSInOperator");
+	}
+	
+	@Test
+	public void testUnsupportedValueSetFeaturesCombined() throws Exception {
+		runUnsupportedValueSetPropertyTest("UsesBothVSInOperator");
+	}
+
+	@Test
+	@Ignore // waiting on fix in RestFhirRetrieveProvider	
+	public void testUnsupportedValueSetVersionFeatureFilteredRetrieve() throws Exception {
+		runUnsupportedValueSetPropertyTest("UsesVersionVS");
+	}
+	
+	@Test
+	@Ignore // waiting on fix in RestFhirRetrieveProvider
+	public void testUnsupportedValueSetCodeSystemsFeatureFilteredRetrieve() throws Exception {
+		runUnsupportedValueSetPropertyTest("UsesCodeSystemsVS");
+	}
+	
+	@Test
+	@Ignore // waiting on fix in RestFhirRetrieveProvider
+	public void testUnsupportedValueSetFeaturesCombinedFilteredRetrieve() throws Exception {
+		runUnsupportedValueSetPropertyTest("UsesBothVS");
+	}
+
+	private void runUnsupportedValueSetPropertyTest(String expression) throws ParseException, Exception {
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1983-12-02");
+
+		Condition condition = new Condition();
+		condition.setId("Condition");
+		condition.setSubject(new Reference(patient));
+		condition.getCode().addCoding().setSystem("SNOMED-CT").setCode("1234");
+
+		// This stub works for [Condition] c where c.code in "ValueSet"
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", condition);		
+		
+		final AtomicInteger resultCount = new AtomicInteger(0);
+		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/valueset/TestUnsupported-1.0.0.cql", "cql/valueset/FHIRHelpers-4.0.0.cql");
+		
+		CqlException ex = assertThrows("Missing expected exception", CqlException.class, () -> {
+				wrapper.evaluate("TestUnsupported", "1.0.0", /* parameters= */null, new HashSet<>(Arrays.asList(expression)),
+						Arrays.asList(patient.getId()), (p, e, r) -> {
+							resultCount.incrementAndGet();
+						});
+			});
+		assertTrue( "Unexpected exception message: " + ex.getMessage(), ex.getMessage().contains("version and code system bindings are not supported at this time") );
 	}
 }

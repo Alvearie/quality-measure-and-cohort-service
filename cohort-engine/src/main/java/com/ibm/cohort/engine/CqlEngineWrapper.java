@@ -28,14 +28,13 @@ import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
 import org.opencds.cqf.cql.engine.fhir.retrieve.RestFhirRetrieveProvider;
 import org.opencds.cqf.cql.engine.fhir.searchparam.SearchParameterResolver;
-import org.opencds.cqf.cql.engine.fhir.terminology.R4FhirTerminologyProvider;
 import org.opencds.cqf.cql.engine.model.ModelResolver;
-import org.opencds.cqf.cql.engine.retrieve.RetrieveProvider;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
@@ -203,9 +202,9 @@ public class CqlEngineWrapper {
 					"Missing one or more required input parameters (libraryName, contextIds)");
 		}
 
-		Map<String, DataProvider> dataProviders = getDataProviders();
-
 		TerminologyProvider termProvider = getTerminologyProvider();
+		
+		Map<String, DataProvider> dataProviders = getDataProviders(termProvider);
 
 		VersionedIdentifier libraryId = new VersionedIdentifier().withId(libraryName);
 		if (libraryVersion != null) {
@@ -268,13 +267,23 @@ public class CqlEngineWrapper {
 	}
 
 	/**
-	 * Initialize the data providers for the CQL Engine
+	 * Initialize the data providers for the CQL Engine. By default this will perform
+	 * ValueSet expansion during the retrieve operation using the terminology provider 
+	 * instead of trying to use the FHIR :in token modifier because IBM FHIR does not
+	 * yet support the :in modifier. Consumers should override this method with their
+	 * own implementation if they wish to use the :in modifier.  
 	 * 
+	 * @param terminologyProvider TerminologyProvider that will be used to support
+	 * retrieve operations that test valueset membership.
 	 * @return Map of supported model URL to data provider
 	 */
-	protected Map<String, DataProvider> getDataProviders() {
+	protected Map<String, DataProvider> getDataProviders(TerminologyProvider terminologyProvider) {
 		SearchParameterResolver resolver = new SearchParameterResolver(this.dataServerClient.getFhirContext());
-		RetrieveProvider retrieveProvider = new RestFhirRetrieveProvider(resolver, this.dataServerClient);
+		RestFhirRetrieveProvider retrieveProvider = new RestFhirRetrieveProvider(resolver, this.dataServerClient);
+		retrieveProvider.setTerminologyProvider(terminologyProvider);
+		//Ideally, we would determine this using the FHIR CapabilityStatement, but there isn't a strongly
+		//reliable way to do that right now using HAPI and IBM FHIR as examples.
+		retrieveProvider.setExpandValueSets(true);
 		CompositeDataProvider dataProvider = new CompositeDataProvider(MODEL_RESOLVER.get(), retrieveProvider);
 
 		Map<String, DataProvider> dataProviders = mapSupportedModelsToDataProvider(dataProvider);
@@ -315,7 +324,7 @@ public class CqlEngineWrapper {
 	 * @return terminology provider
 	 */
 	protected TerminologyProvider getTerminologyProvider() {
-		return new R4FhirTerminologyProvider(this.terminologyServerClient);
+		return new R4RestFhirTerminologyProvider(this.terminologyServerClient);
 	}
 
 	/**
@@ -349,10 +358,11 @@ public class CqlEngineWrapper {
 			throw new IllegalArgumentException(
 					"Missing one or more required input parameters (libraryName, contextIds)");
 		}
-
-		Map<String, DataProvider> dataProviders = getDataProviders();
-
+		
 		TerminologyProvider termProvider = getTerminologyProvider();
+
+		Map<String, DataProvider> dataProviders = getDataProviders(termProvider);
+
 
 		VersionedIdentifier libraryId = new VersionedIdentifier().withId(libraryName);
 		if (libraryVersion != null) {
