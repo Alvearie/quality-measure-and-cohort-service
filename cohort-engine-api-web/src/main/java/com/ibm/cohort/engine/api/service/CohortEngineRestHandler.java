@@ -105,6 +105,7 @@ public class CohortEngineRestHandler {
 	private static final String VALUE_SET_API_NOTES = "Uploads a value set described by the given xslx file";
 	private static final String VALUE_SET_UPDATE_IF_EXISTS_DESC = "The parameter that, if true, will force updates of value sets if the value set already exists";
 	private static final String VALUE_SET_DESC = "Spreadsheet containing the Value Set definition.";
+	private static final String CUSTOM_CODE_SYSTEM_DESC = "A custom mapping of code systems to urls";
 
 	public static final String DELAY_DEFAULT = "3";
 	
@@ -423,7 +424,8 @@ public class CohortEngineRestHandler {
 			// This is necessary for the dark launch feature
 			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
 			@ApiImplicitParam(name=FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
-			@ApiImplicitParam(name=CUSTOM_CODE_SYSTEM, value= "TODO", dataTypeClass = File.class, required=true, paramType="form", type="file" )
+			@ApiImplicitParam(name=VALUE_SET_PART, value= VALUE_SET_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" ),
+			@ApiImplicitParam(name=CUSTOM_CODE_SYSTEM, value= CUSTOM_CODE_SYSTEM_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful Operation"),

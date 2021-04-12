@@ -106,8 +106,6 @@ public class ValueSetUtil {
 			}
 			else if (inCodesSection) {
 				String display = currentRow.getCell(1).getStringCellValue();
-				//todo allow a full url or user defined map of some kind to be used for the lookup, user the default as last resort
-				//use a different argument for literal url? Or do string checking? (i.e. if it starts with http its a literal url?
 				String codeSystemEntry = currentRow.getCell(2).getStringCellValue();
 				String codeSystem;
 				if(codeSystemEntry.startsWith("http://") || codeSystemEntry.startsWith("https://")){
