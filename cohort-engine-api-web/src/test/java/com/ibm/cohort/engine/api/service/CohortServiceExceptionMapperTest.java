@@ -18,6 +18,7 @@ import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.opencds.cqf.cql.engine.exception.CqlException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
@@ -59,6 +60,25 @@ public class CohortServiceExceptionMapperTest {
 		assertEquals(2, serviceErrorList.getErrors().size());
 		assertEquals("Something bad got input", serviceErrorList.getErrors().get(0).getMessage());
 		assertEquals("Nested exception", serviceErrorList.getErrors().get(1).getMessage());
+	}
+	
+	@Test
+	public void testToResponseUnsupportedOperationException() throws Exception {
+		Response response = exMapper.toResponse(new UnsupportedOperationException("No support for that yet."));
+		ServiceErrorList serviceErrorList = (ServiceErrorList) response.getEntity();
+		assertEquals(new Integer(400), serviceErrorList.getStatusCode());
+		assertEquals(1, serviceErrorList.getErrors().size());
+		assertEquals("No support for that yet.", serviceErrorList.getErrors().get(0).getMessage());
+	}
+	
+	@Test
+	public void testToResponseCqlException() throws Exception {
+		Response response = exMapper.toResponse(new CqlException("Unexpected exception caught during execution", new IllegalArgumentException("Failed to resolve ValueSet")));
+		ServiceErrorList serviceErrorList = (ServiceErrorList) response.getEntity();
+		assertEquals(new Integer(400), serviceErrorList.getStatusCode());
+		assertEquals(2, serviceErrorList.getErrors().size());
+		assertEquals("Unexpected exception caught during execution", serviceErrorList.getErrors().get(0).getMessage());
+		assertEquals("Failed to resolve ValueSet", serviceErrorList.getErrors().get(1).getMessage());
 	}
 
 	@Test
