@@ -121,6 +121,7 @@ public class CohortEngineRestHandler {
 	
 	
 	public final static String VALUE_SET_PART = "value_set";
+	public final static String CUSTOM_CODE_SYSTEM = "custom_code_system";
 	
 	public static final String EXAMPLE_DATA_SERVER_CONFIG_JSON = "A configuration file containing information needed to connect to the FHIR server. "
 			+ "See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/getting-started.md#fhir-server-configuration for more details. \n"
@@ -414,7 +415,6 @@ public class CohortEngineRestHandler {
 		return response;
 	}
 
-	public final static String CUSTOM_CODE_SYSTEM = "customCodeSystem";
 
 	@POST
 	@Path("/valueset/")
