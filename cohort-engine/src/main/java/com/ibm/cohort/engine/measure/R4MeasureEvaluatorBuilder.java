@@ -6,15 +6,16 @@
 
 package com.ibm.cohort.engine.measure;
 
-import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
+import java.util.Map;
+
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
-import org.opencds.cqf.cql.engine.fhir.terminology.R4FhirTerminologyProvider;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
-import java.util.Map;
+import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
+import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 
 /**
  * A builder intended to allow for easy creation of {@link MeasureEvaluator} instances tailored for use
@@ -24,6 +25,7 @@ public class R4MeasureEvaluatorBuilder {
 
 	private FHIRClientContext clientContext;
 	private RetrieveCacheContext cacheContext;
+	private boolean isExpandValueSets = R4DataProviderFactory.DEFAULT_IS_EXPAND_VALUE_SETS;
 
 	public R4MeasureEvaluatorBuilder withClientContext(FHIRClientContext value) {
 		this.clientContext = value;
@@ -34,17 +36,23 @@ public class R4MeasureEvaluatorBuilder {
 		this.cacheContext = value;
 		return this;
 	}
+	
+	public R4MeasureEvaluatorBuilder withExpandValueSets(boolean value) {
+		this.isExpandValueSets = value;
+		return this;
+	}
 
 	public MeasureEvaluator build() {
 		if (clientContext == null) {
 			throw new IllegalArgumentException("Client context not provided");
 		}
 
-		TerminologyProvider terminologyProvider = new R4FhirTerminologyProvider(clientContext.getTerminologyClient());
+		TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(clientContext.getTerminologyClient());
 		Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(
 				clientContext.getDataClient(),
 				terminologyProvider,
-				cacheContext
+				cacheContext,
+				isExpandValueSets
 		);
 		MeasureResolutionProvider<Measure> measureProvider = new RestFhirMeasureResolutionProvider(clientContext.getMeasureClient());
 		LibraryResolutionProvider<Library> libraryProvider = new RestFhirLibraryResolutionProvider(clientContext.getLibraryClient());

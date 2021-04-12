@@ -6,23 +6,25 @@
 
 package com.ibm.cohort.engine.measure;
 
-import ca.uhn.fhir.rest.client.api.IGenericClient;
-import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
-import com.ibm.cohort.engine.BaseFhirTest;
-import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
-import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Patient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.opencds.cqf.cql.engine.data.DataProvider;
-import org.opencds.cqf.cql.engine.fhir.terminology.R4FhirTerminologyProvider;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
+import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
+import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
+import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
+
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 public class R4DataProviderFactoryTest extends BaseFhirTest {
 
@@ -40,7 +42,7 @@ public class R4DataProviderFactoryTest extends BaseFhirTest {
 				.withDefaultClient(getFhirServerConfig())
 				.build()
 				.getDataClient();
-		TerminologyProvider terminologyProvider = new R4FhirTerminologyProvider(client);
+		TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(client);
 		Map<String, DataProvider> map = R4DataProviderFactory.createDataProviderMap(
 				client,
 				terminologyProvider,
@@ -55,7 +57,7 @@ public class R4DataProviderFactoryTest extends BaseFhirTest {
 				.withDefaultClient(getFhirServerConfig())
 				.build()
 				.getDataClient();
-		TerminologyProvider terminologyProvider = new R4FhirTerminologyProvider(client);
+		TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(client);
 		try(RetrieveCacheContext cacheContext = new DefaultRetrieveCacheContext(new CaffeineConfiguration<>())) {
 			Map<String, DataProvider> map = R4DataProviderFactory.createDataProviderMap(
 					client,

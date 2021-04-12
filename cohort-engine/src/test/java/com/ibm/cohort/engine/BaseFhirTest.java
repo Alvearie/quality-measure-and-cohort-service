@@ -21,8 +21,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.ServerSocket;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -35,6 +37,7 @@ import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.hl7.fhir.r4.model.Attachment;
+import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.CanonicalType;
@@ -48,10 +51,12 @@ import org.hl7.fhir.r4.model.Measure.MeasureSupplementalDataComponent;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.MetadataResource;
 import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.ValueSet;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 
@@ -59,11 +64,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig.LogInfo;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 public class BaseFhirTest {
 
@@ -88,6 +95,11 @@ public class BaseFhirTest {
 
 	protected FhirContext fhirContext = FhirContext.forR4();
 	protected IParser fhirParser = fhirContext.newJsonParser().setPrettyPrint(true);
+	
+	protected IGenericClient newClient() {
+		return FhirClientBuilderFactory.newInstance().newFhirClientBuilder(fhirContext)
+				.createFhirClient(getFhirServerConfig());
+	}
 
 	protected void mockFhirResourceRetrieval(Resource resource) {
 		String resourcePath = "/" + resource.getClass().getSimpleName() + "/" + resource.getId();
@@ -341,6 +353,57 @@ public class BaseFhirTest {
 		return tmpFile;
 	}
 	
+	protected ValueSet mockValueSetRetrieval(String id, String system, String code) throws UnsupportedEncodingException {
+		return mockValueSetRetrieval(id, null, system, code);
+	}
+
+	protected ValueSet mockValueSetRetrieval(String id, String version, String system, String code) throws UnsupportedEncodingException {
+		String theID = null;
+		String theURL = null;
+		if( id.startsWith("urn:oid:") ) {
+			theURL = id;
+			theID = id.replace("urn:oid:", "");
+		} else if( id.startsWith("http") ) {
+			theURL = id;
+			theID = id.substring(id.lastIndexOf("/") + 1);
+		} else { 
+			theURL = "/ValueSet/" + theID;
+			theID = id;
+		}
+		
+		ValueSet resource = new ValueSet();
+		resource.setId(theID);
+		resource.setVersion(version);
+		resource.setUrl(theURL);
+		resource.getCompose().getIncludeFirstRep().setSystem(system).getConceptFirstRep().setCode(code);
+		resource.getExpansion().getContainsFirstRep().setSystem(system).setCode(code);
+		mockFhirResourceRetrieval(resource);
+		
+		// When you specify the VS as the right hand side of a retrieve (e.g. [Condition : "ValueSet"])
+		// the urn:oid prefix is stripped off
+		mockFhirResourceRetrieval("/ValueSet?url=" + theID, makeBundle(resource));
+		
+		// When you specify the VS as the right hand side of an "in" expression (e.g. Condition.code in "ValueSet")
+		// the urn:oid prefix is preserved
+		String url = URLEncoder.encode( resource.getUrl(), StandardCharsets.UTF_8.toString() );
+		mockFhirResourceRetrieval("/ValueSet?url=" + url, makeBundle(resource));
+		if( version != null ) {
+			mockFhirResourceRetrieval("/ValueSet?url=" + url + "&version=" + resource.getVersion(), makeBundle(resource));
+		}
+		
+		String expandUrl = "/ValueSet/" + theID + "/$expand";
+		mockFhirResourceRetrieval(expandUrl, resource);
+		mockFhirResourceRetrieval(post(urlEqualTo(expandUrl)), resource);
+		
+		Parameters response = new Parameters();
+		response.addParameter().setValue(new BooleanType(true));
+		
+		String systemUrl = URLEncoder.encode( system, StandardCharsets.UTF_8.toString() );
+		mockFhirResourceRetrieval("/ValueSet/" + theID + "/$validate-code?code=" + code + "&system=" + systemUrl, response);
+
+		return resource;
+	}
+
 	protected MeasureSupplementalDataComponent createSupplementalDataComponent(String defineName, String text) {
 		MeasureSupplementalDataComponent supplementalDataComponent = new MeasureSupplementalDataComponent();
 		CodeableConcept supplementalCC = new CodeableConcept();

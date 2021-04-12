@@ -285,9 +285,12 @@ Outer Structure:
 {
    "measureConfigurations" : [
       {
-         "parameters" : [
-            {PARAMETER_1}, {PARAMETER_2}, ... {PARAMETER_N}
-         ],
+         "parameters" : {
+            "ParameterName1" : {PARAMETER_1},
+            "ParameterName2" : {PARAMETER_2},
+                 ...
+            "ParameterNameN" : {PARAMETER_N}
+         },
          "measureId" : "STRING_IDENTIFIER",
          "identifier": {
             "value": "STRING_VALUE",
@@ -307,7 +310,7 @@ Outer Structure:
     * *Note*: *Is required when `identifier` is not specified.
 * `measureConfigurations.parameters` (Optional):
     * Description: An optional list of one or more `Parameter` objects to use during evaluation for the corresponding measure.
-    * Type: `Parameter` (see structure below)
+    * Type: `Parameter` (see section below)
 * `measureConfigurations.identifier.value` (Optional*):
     * Description: Identifier value of the measure to evaluate.
     * Type: String
@@ -320,43 +323,23 @@ Outer Structure:
       when combined with `identifier`.
     * Type: String
 
-Parameter Structure:
+### Parameter Structure and Supported Types
+Each entry in `measureConfigurations.parameters` must specify a key-value pair. The key is a string containing
+the name of the parameter. The value is a JSON `Parameter` object of the following format:
 ```text
 {
-  "name": "STRING_NAME",
-  "type": "STRING_TYPE",
-  "value": "STRING_VALUE",
-  "subtype": "STRING_SUBTYPE",
-  "start": "STRING_START",
-  "end": "STRING_END"
+  "type": "PARAMETER_TYPE_STRING",
+  "parameter-field-1": "value-1",
+      ...
+  "parameter-field-N": "value-N"
 }
 ```
 
-**NOTE: All Parameter fields have type string.**
+Each parameter will specify its type, and then one or more other fields depending on the type of parameter.
+Supported parameter types are `integer`, `decimal`, `string`, `boolean`, `datetime`, `date`, `time`, `quantity`,
+`ratio`, `interval`, `code`, and `concept`.
 
-* `name` (Required):
-    * Description: Name of the parameter to use during measure evaluation.
-* `type` (Required):
-    * Description: CQL parameter type.
-    * Currently supported values: `integer`, `decimal`, `boolean`, `string`, `datetime`, `time`, `quantity`, `code`,
-    `concept`, and `interval`.
-* `value` (Required for non-interval parameters, see below):
-    * Description: String representation of the value that will be converted to the appropriate type as specified in the
-    `type` field.
-    * Usage: For `interval` parameters, this field will be ignored (or it can be omitted). Otherwise, the value should
-    be a string representation of the value of the corresponding type.
-* `subtype` (Required for interval type parameters, see below):
-    * Description: CQL parameter type of the interval start and end. Currently supported values: `integer`, `decimal`,
-    `quantity`, `datetime`, and `time`.
-    * Usage: Required for parameters of type `interval`. Otherwise `subtype` will be  ignored or can be omitted.
-* `start` (Required for interval parameters, see below):
-    * Description: Value representing the start of the interval. Value should be able to convert to the type specified
-    by the `subtype` of the parameter.
-    * Usage: Required for parameters of type `interval`. Otherwise `start` will be  ignored or can be omitted.
-* `end` (Required for interval parameters, see below):
-    * Description: Value representing the end of the interval. Value should be able to convert to the type specified
-    by the `subtype` of the parameter.
-    * Usage: Required for parameters of type `interval`. Otherwise `end` will be  ignored or can be omitted.
+See [here](user-guide/parameter-formats.md#parameter-formats) for details about how to format each parameter type.
 
 ### Measure Retrieval for Evaluation
 Each entry in `measureConfigurations` may identify a measure to evaluate using either `measureId` or a combination of `identifier`
@@ -398,20 +381,25 @@ The measure with resource id `measure-with-id-1` will be executed for each patie
    "measureConfigurations" : [
       {
          "measureId" : "measure-with-id-2",
-         "parameters" : [
-            {
-               "name" : "param1",
+         "parameters" : {
+            "param1": {
                "type" : "integer",
-               "value" : "20"
+               "value" : 20
             },
-            {
-               "name" : "param2",
+            "param2": {
                "type" : "interval",
-               "subtype" : "decimal",
-               "start" : "4.0",
-               "end" : "7.5"
+               "start" : {
+                  "type": "decimal",
+                  "value": "4.0"
+               },
+               "startInclusive" : true,
+               "end" : {
+                  "type": "decimal",
+                  "value": "7.5"
+              },
+              "endInclusive" : true
             }
-         ]
+         }
       }
    ]
 }
@@ -425,13 +413,12 @@ and `param2`.
    "measureConfigurations" : [
       {
          "measureId" : "measure-with-id-3",
-         "parameters" : [
-            {
-               "name" : "param1",
+         "parameters" : {
+            "param1": {
                "type" : "integer",
                "value" : "20"
             }
-         ]
+         }
       },
       {
          "measureId" : "measure-with-id-4"
@@ -498,18 +485,14 @@ can cause this:
 * `measureConfigurations` is missing or is an empty list.
 * Neither `measureId` nor `identifier.value` is specified for an entry in the `measureConfigurations` list.
 * Both `measureId` and `identifier.value` are specified for a single entry in the `measureConfigurations` list.
-* `identifier` is specified, but is missing `value` for an entry in the `measureConfigurations` list .
-* One or more parameters is missing a required field:
-    * Either `name` or `type` is missing or empty.
-    * The `type` for a parameter is set to `interval`, but `subtype`, `start`, or `end` are missing or empty.
-    * The `type` for a parameter is a non-interval type, but `value` is missing or empty.
+* `identifier` is specified, but is missing `value` for an entry in the `measureConfigurations` list.
+* One or more parameters is missing a required field.
 
 #### Unsupported type and subtype values
-If an unsupported `type` or `subtype` is specified for a `Parameter`, then an `IllegalArgumentException` will be thrown.
+If an unsupported `type` specified for a `Parameter`, then an `InvalidTypeIdException` will be thrown.
 
 #### Incompatible values for a type
-Various exceptions can be thrown when a `value` cannot be converted to the corresponding `type` or when
-`start` or `end` values cannot be converted to the corresponding `subtype`.
+Various exceptions can be thrown when a `value` cannot be converted to the corresponding `type`.
 
 
 ## Running measure evaluation
