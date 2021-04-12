@@ -30,9 +30,10 @@ public class DefaultFhirClientBuilderTest {
 	static FhirContext ctx;
 	DefaultFhirClientBuilder builder;
 
-	private static final int socketTimeout = 1;
-	private static final int connectTimeout = 2;
-	private static final int connectionRequestTimeout = 3;
+	private static final int SOCKET_TIMEOUT = 1;
+	private static final int CONNECT_TIMEOUT = 2;
+	private static final int CONNECTION_REQUEST_TIMEOUT = 3;
+	private static final int NEGATIVE_TIMEOUT = -10;
 
 	@BeforeClass
 	public static void setUpBeforeClass() {
@@ -93,9 +94,9 @@ public class DefaultFhirClientBuilderTest {
 	@Test
 	public void testAllTimeoutConfigs() {
 		FhirServerConfig config = new FhirServerConfig();
-		config.setSocketTimeout(socketTimeout);
-		config.setConnectionRequestTimeout(connectionRequestTimeout);
-		config.setConnectTimeout(connectTimeout);
+		config.setSocketTimeout(SOCKET_TIMEOUT);
+		config.setConnectionRequestTimeout(CONNECTION_REQUEST_TIMEOUT);
+		config.setConnectTimeout(CONNECT_TIMEOUT);
 
 		IRestfulClientFactory mockClientFactory = mock(IRestfulClientFactory.class);
 
@@ -106,9 +107,9 @@ public class DefaultFhirClientBuilderTest {
 
 		builder.createFhirClient(config);
 
-		verify(mockClientFactory, times(1)).setSocketTimeout(socketTimeout);
-		verify(mockClientFactory, times(1)).setConnectionRequestTimeout(connectionRequestTimeout);
-		verify(mockClientFactory, times(1)).setConnectTimeout(connectTimeout);
+		verify(mockClientFactory, times(1)).setSocketTimeout(SOCKET_TIMEOUT);
+		verify(mockClientFactory, times(1)).setConnectionRequestTimeout(CONNECTION_REQUEST_TIMEOUT);
+		verify(mockClientFactory, times(1)).setConnectTimeout(CONNECT_TIMEOUT);
 
 		verify(mockClientFactory, times(0)).setSocketTimeout(IRestfulClientFactory.DEFAULT_SOCKET_TIMEOUT);
 		verify(mockClientFactory, times(0)).setConnectionRequestTimeout(IRestfulClientFactory.DEFAULT_CONNECTION_REQUEST_TIMEOUT);
@@ -136,13 +137,13 @@ public class DefaultFhirClientBuilderTest {
 	@Test
 	public void testReuseBuilderMultipleConfigs() {
 		FhirServerConfig socketTimeoutConfig = new FhirServerConfig();
-		socketTimeoutConfig.setSocketTimeout(socketTimeout);
+		socketTimeoutConfig.setSocketTimeout(SOCKET_TIMEOUT);
 
 		FhirServerConfig connectTimeoutConfig = new FhirServerConfig();
-		connectTimeoutConfig.setConnectTimeout(connectTimeout);
+		connectTimeoutConfig.setConnectTimeout(CONNECT_TIMEOUT);
 
 		FhirServerConfig connectionRequestTimeoutConfig = new FhirServerConfig();
-		connectionRequestTimeoutConfig.setConnectionRequestTimeout(connectionRequestTimeout);
+		connectionRequestTimeoutConfig.setConnectionRequestTimeout(CONNECTION_REQUEST_TIMEOUT);
 
 		IRestfulClientFactory mockClientFactory = mock(IRestfulClientFactory.class);
 
@@ -155,12 +156,57 @@ public class DefaultFhirClientBuilderTest {
 		builder.createFhirClient(connectTimeoutConfig);
 		builder.createFhirClient(connectionRequestTimeoutConfig);
 
-		verify(mockClientFactory, times(1)).setSocketTimeout(socketTimeout);
-		verify(mockClientFactory, times(1)).setConnectionRequestTimeout(connectionRequestTimeout);
-		verify(mockClientFactory, times(1)).setConnectTimeout(connectTimeout);
+		verify(mockClientFactory, times(1)).setSocketTimeout(SOCKET_TIMEOUT);
+		verify(mockClientFactory, times(1)).setConnectionRequestTimeout(CONNECTION_REQUEST_TIMEOUT);
+		verify(mockClientFactory, times(1)).setConnectTimeout(CONNECT_TIMEOUT);
 
 		verify(mockClientFactory, times(2)).setSocketTimeout(IRestfulClientFactory.DEFAULT_SOCKET_TIMEOUT);
 		verify(mockClientFactory, times(2)).setConnectionRequestTimeout(IRestfulClientFactory.DEFAULT_CONNECTION_REQUEST_TIMEOUT);
 		verify(mockClientFactory, times(2)).setConnectTimeout(IRestfulClientFactory.DEFAULT_CONNECT_TIMEOUT);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testNegativeSocketTimeout() {
+		FhirServerConfig fhirServerConfig = new FhirServerConfig();
+		fhirServerConfig.setSocketTimeout(NEGATIVE_TIMEOUT);
+
+		IRestfulClientFactory mockClientFactory = mock(IRestfulClientFactory.class);
+
+		FhirContext mockContext = mock(FhirContext.class);
+		when(mockContext.getRestfulClientFactory()).thenReturn(mockClientFactory);
+
+		DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(mockContext);
+
+		builder.createFhirClient(fhirServerConfig);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testNegativeConnectTimeout() {
+		FhirServerConfig fhirServerConfig = new FhirServerConfig();
+		fhirServerConfig.setConnectTimeout(NEGATIVE_TIMEOUT);
+
+		IRestfulClientFactory mockClientFactory = mock(IRestfulClientFactory.class);
+
+		FhirContext mockContext = mock(FhirContext.class);
+		when(mockContext.getRestfulClientFactory()).thenReturn(mockClientFactory);
+
+		DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(mockContext);
+
+		builder.createFhirClient(fhirServerConfig);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testNegativeConnectionRequestTimeout() {
+		FhirServerConfig fhirServerConfig = new FhirServerConfig();
+		fhirServerConfig.setConnectionRequestTimeout(NEGATIVE_TIMEOUT);
+
+		IRestfulClientFactory mockClientFactory = mock(IRestfulClientFactory.class);
+
+		FhirContext mockContext = mock(FhirContext.class);
+		when(mockContext.getRestfulClientFactory()).thenReturn(mockClientFactory);
+
+		DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(mockContext);
+
+		builder.createFhirClient(fhirServerConfig);
 	}
 }

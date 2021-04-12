@@ -47,23 +47,9 @@ public class DefaultFhirClientBuilder implements FhirClientBuilder {
 	@Override
 	public IGenericClient createFhirClient(FhirServerConfig config) {
 
-		if (config.getSocketTimeout() != null) {
-			fhirContext.getRestfulClientFactory().setSocketTimeout(config.getSocketTimeout());
-		} else {
-			fhirContext.getRestfulClientFactory().setSocketTimeout(IRestfulClientFactory.DEFAULT_SOCKET_TIMEOUT);
-		}
-
-		if (config.getConnectTimeout() != null) {
-			fhirContext.getRestfulClientFactory().setConnectTimeout(config.getConnectTimeout());
-		} else {
-			fhirContext.getRestfulClientFactory().setConnectTimeout(IRestfulClientFactory.DEFAULT_CONNECT_TIMEOUT);
-		}
-
-		if (config.getConnectionRequestTimeout() != null) {
-			fhirContext.getRestfulClientFactory().setConnectionRequestTimeout(config.getConnectionRequestTimeout());
-		} else {
-			fhirContext.getRestfulClientFactory().setConnectionRequestTimeout(IRestfulClientFactory.DEFAULT_CONNECTION_REQUEST_TIMEOUT);
-		}
+		fhirContext.getRestfulClientFactory().setSocketTimeout(validateAndGetTimeoutConfig(config.getSocketTimeout(), IRestfulClientFactory.DEFAULT_SOCKET_TIMEOUT));
+		fhirContext.getRestfulClientFactory().setConnectTimeout(validateAndGetTimeoutConfig(config.getConnectTimeout(), IRestfulClientFactory.DEFAULT_CONNECT_TIMEOUT));
+		fhirContext.getRestfulClientFactory().setConnectionRequestTimeout(validateAndGetTimeoutConfig(config.getConnectionRequestTimeout(), IRestfulClientFactory.DEFAULT_CONNECTION_REQUEST_TIMEOUT));
 
 		IGenericClient client = fhirContext.newRestfulGenericClient(config.getEndpoint());
 
@@ -155,5 +141,15 @@ public class DefaultFhirClientBuilder implements FhirClientBuilder {
 		}
 
 		return client;
+	}
+
+	private Integer validateAndGetTimeoutConfig(Integer configValue, Integer defaultValue) {
+		if (configValue == null) {
+			return defaultValue;
+		} else if (configValue >= 0) {
+			return configValue;
+		} else {
+			throw new IllegalArgumentException("FHIR client config timeout values must be >= 0");
+		}
 	}
 }
