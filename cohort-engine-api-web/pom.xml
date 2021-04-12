@@ -214,8 +214,13 @@
 		
 		<dependency>
 			<groupId>jakarta.activation</groupId>
-	    	<artifactId>jakarta.activation-api</artifactId>
-	    </dependency>
+			<artifactId>jakarta.activation-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>com.github.ben-manes.caffeine</groupId>

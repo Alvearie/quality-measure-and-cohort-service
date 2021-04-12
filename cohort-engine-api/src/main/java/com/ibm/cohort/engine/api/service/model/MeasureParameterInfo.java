@@ -10,9 +10,11 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ibm.cohort.annotations.Generated;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 @Generated
+@ApiModel(value="MeasureParameterInfo", description="Parameter information objects for libraries referenced by the input measure")
 public class MeasureParameterInfo {
 
 	private String name = null;
