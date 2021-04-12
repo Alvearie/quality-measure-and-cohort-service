@@ -7,11 +7,14 @@ package com.ibm.cohort.engine.measure;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.AbstractMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -273,27 +276,47 @@ public abstract class ResourceResolutionProvider
 	public Measure resolveMeasureByIdentifier(Identifier identifier, String version) {
 		Measure result = null;
 
-		for (MetadataResource resource : resourcesByIdByResourceType.get(MEASURE).values()) {
+		List<MetadataResource> matchesByIdentifier = resourcesByIdByResourceType.get(MEASURE).values().stream().filter( resource -> {
+			return ((Measure)resource).getIdentifier().stream().anyMatch( candidate -> {
+				return new EqualsBuilder()
+					.append(candidate.getSystem(), identifier.getSystem())
+					.append(candidate.getValue(), identifier.getValue())
+					.isEquals();
+				
+			});
+		}).collect(Collectors.toList());
 		
-			Measure measure = (Measure) resource;
-
-			boolean hasId = false;
-			for (Identifier candidate : measure.getIdentifier()) {
-				if (EqualsBuilder.reflectionEquals(candidate, identifier, "system", "value")) {
-					hasId = true;
-					break;
+		if( matchesByIdentifier.size() > 0 ) {
+			if( version != null ) {
+				// The user requested a specific version, so find it in the list.
+				List<MetadataResource> matchesByVersion = matchesByIdentifier.stream()
+						.filter( resource -> { 
+								return version.equals( resource.getVersion() );
+							})
+						.collect(Collectors.toList());
+				
+				if( matchesByVersion.size() == 1 ) {
+					result = (Measure) matchesByVersion.get(0);
+				} else if( matchesByVersion.size() > 1 ) { 
+					throw new IllegalArgumentException(String.format(
+							"Failed to resolve measure by identifier; found unexpected number of rows %d matching provided values",
+							matchesByVersion.size()));
 				}
-			}
-
-			if (hasId) {
-				if (version != null && version.equals(measure.getVersion())) {
-					result = measure;
-					break;
-				} else {
-					Optional<SemanticVersion> candidateVersion = SemanticVersion.create(measure.getVersion());
-					if (candidateVersion.isPresent()) {
-						result = measure;
-					}
+			} else {
+				// Otherwise, find the resource with the newest semantic version. Resources
+				// with a null version are discarded.
+				Optional<MetadataResource> optional = matchesByIdentifier.stream()
+					.map( resource -> {
+							return new AbstractMap.SimpleEntry<>(SemanticVersion.create(resource.getVersion()), resource); 
+						})
+					.filter( entry -> entry.getKey().isPresent() )
+					.sorted( (x,y) -> x.getKey().get().compareTo(y.getKey().get()) )
+					.map( entry -> entry.getValue() )
+					.reduce( (x,y) -> y );
+				if( optional.isPresent() ) {
+					result = (Measure) optional.get();
+				} else { 
+					throw new IllegalArgumentException("Failed to resolve measure by identifier; matched identifier, but found no records with non-null version");
 				}
 			}
 		}
