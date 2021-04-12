@@ -77,6 +77,7 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
+
 /**
  * Junit class to test the CohortEngineRestHandler.
  */
@@ -489,26 +490,18 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 	 * Test the successful building of a response.
 	 */
 
-	@PrepareForTest({ TenantManager.class, ServiceBaseUtility.class, DefaultFhirClientBuilder.class,
-			FHIRRestUtils.class })
+	@PrepareForTest({ TenantManager.class, ServiceBaseUtility.class, DefaultFhirClientBuilder.class, FHIRRestUtils.class })
 	@Test
 	public void testGetMeasureParameters() throws Exception {
 		prepMocks(false);
 		PowerMockito.mockStatic(ServiceBaseUtility.class);
-		PowerMockito.mockStatic(FHIRRestUtils.class);
 		PowerMockito.mockStatic(DefaultFhirClientBuilder.class);
+		PowerMockito.mockStatic(FHIRRestUtils.class);
 		PowerMockito.when(ServiceBaseUtility.apiSetup(VERSION, logger, MethodNames.GET_MEASURE_PARAMETERS.getName())).thenReturn(null);
-		PowerMockito.when(FHIRRestUtils.parseAuthenticationHeaderInfo(ArgumentMatchers.any())).thenReturn(authParts);
-		PowerMockito.when(
-				FHIRRestUtils.getFHIRClient(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(),
-						ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
-				.thenReturn(measureClient);
 		PowerMockito.when(FHIRRestUtils.getParametersForMeasureIdentifier(ArgumentMatchers.any(),
 				ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(parameterInfoList);
 
-		Response loadResponse = restHandler.getMeasureParameters(mockHttpHeaders, VERSION, "fhirEndpoint",
-				"fhirTenantId", "measureIdentifierValue", "measureIdentifierSystem", "measureVersion",
-				"fhirTenantIdHeader", "fhirDataSourceIdHeader", "fhirDataSourceId");
+		Response loadResponse = restHandler.getMeasureParameters( VERSION, getFhirConfigFileBody(), "measureIdentifierValue", "measureIdentifierSystem", "measureVersion");
 		validateParameterResponse(loadResponse);
 	}
 	
@@ -518,16 +511,14 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 	
 	@PrepareForTest({ServiceBaseUtility.class})
 	@Test
-	public void testGetMeasureParameters_apiSetupFailure() {
+	public void testGetMeasureParameters_apiSetupFailure() throws Exception{
 		prepMocks(false);
 		PowerMockito.mockStatic(ServiceBaseUtility.class);
 			
 		Response badResponse = Response.status(Status.BAD_REQUEST).build();
 		PowerMockito.when(ServiceBaseUtility.apiSetup(VERSION, logger, MethodNames.GET_MEASURE_PARAMETERS.getName())).thenReturn(badResponse);
 		
-		Response loadResponse = restHandler.getMeasureParameters(mockHttpHeaders, VERSION, "fhirEndpoint",
-				"fhirTenantId", "measureIdentifierValue", "measureIdentifierSystem", "measureVersion",
-				"fhirTenantIdHeader", "fhirDataSourceIdHeader", "fhirDataSourceId");
+		Response loadResponse = restHandler.getMeasureParameters( VERSION, getFhirConfigFileBody(), "measureIdentifierValue", "measureIdentifierSystem", "measureVersion");
 		
 		assertEquals(badResponse, loadResponse);
 	}
@@ -536,30 +527,22 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 	 * Test API Cleanup failure
 	 */
 	
-	@PrepareForTest({ TenantManager.class, ServiceBaseUtility.class, DefaultFhirClientBuilder.class,
-			FHIRRestUtils.class })
+	@PrepareForTest({ TenantManager.class, ServiceBaseUtility.class, DefaultFhirClientBuilder.class, FHIRRestUtils.class })
 	@Test
 	public void testGetMeasureParameters_apiCleanupFailure() throws Exception {
 		prepMocks(false);
 		PowerMockito.mockStatic(ServiceBaseUtility.class);
-		PowerMockito.mockStatic(FHIRRestUtils.class);
 		PowerMockito.mockStatic(DefaultFhirClientBuilder.class);
+		PowerMockito.mockStatic(FHIRRestUtils.class);
 		PowerMockito.when(ServiceBaseUtility.apiSetup(VERSION, logger, MethodNames.GET_MEASURE_PARAMETERS.getName())).thenReturn(null);
 		
 		Response badResponse = Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		PowerMockito.when(ServiceBaseUtility.apiCleanup(logger, MethodNames.GET_MEASURE_PARAMETERS.getName())).thenReturn(badResponse);
 		
-		PowerMockito.when(FHIRRestUtils.parseAuthenticationHeaderInfo(ArgumentMatchers.any())).thenReturn(authParts);
-		PowerMockito.when(
-				FHIRRestUtils.getFHIRClient(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(),
-						ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
-				.thenReturn(measureClient);
 		PowerMockito.when(FHIRRestUtils.getParametersForMeasureIdentifier(ArgumentMatchers.any(),
 				ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(parameterInfoList);
 
-		Response loadResponse = restHandler.getMeasureParameters(mockHttpHeaders, VERSION, "fhirEndpoint",
-				"fhirTenantId", "measureIdentifierValue", "measureIdentifierSystem", "measureVersion",
-				"fhirTenantIdHeader", "fhirDataSourceIdHeader", "fhirDataSourceId");
+		Response loadResponse = restHandler.getMeasureParameters( VERSION, getFhirConfigFileBody(), "measureIdentifierValue", "measureIdentifierSystem", "measureVersion");
 		
 		assertEquals(badResponse, loadResponse);
 	}
@@ -577,16 +560,12 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		PowerMockito.mockStatic(FHIRRestUtils.class);
 		PowerMockito.mockStatic(DefaultFhirClientBuilder.class);
 		PowerMockito.when(ServiceBaseUtility.apiSetup(VERSION, logger, MethodNames.GET_MEASURE_PARAMETERS_BY_ID.getName())).thenReturn(null);
-		PowerMockito.when(FHIRRestUtils.parseAuthenticationHeaderInfo(ArgumentMatchers.any())).thenReturn(authParts);
-		PowerMockito.when(
-				FHIRRestUtils.getFHIRClient(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(),
-						ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
-				.thenReturn(measureClient);
+		PowerMockito.whenNew(DefaultFhirClientBuilder.class).withArguments(Mockito.any()).thenReturn(mockDefaultFhirClientBuilder);
+
 		PowerMockito.when(FHIRRestUtils.getParametersForMeasureId(ArgumentMatchers.any(), ArgumentMatchers.any()))
 				.thenReturn(parameterInfoList);
 
-		Response loadResponse = restHandler.getMeasureParametersById(mockHttpHeaders, "version", "fhirEndpoint",
-				"fhirTenantId", "measureId", "fhirTenantIdHeader", "fhirDataSourceIdHeader", "fhirDataSourceId");
+		Response loadResponse = restHandler.getMeasureParametersById(VERSION, getFhirConfigFileBody(), "measureId");
 		validateParameterResponse(loadResponse);
 	}
 	
@@ -596,15 +575,14 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 	
 	@PrepareForTest({ ServiceBaseUtility.class })
 	@Test
-	public void testGetMeasureParametersById_apiSetupFailure() {
+	public void testGetMeasureParametersById_apiSetupFailure() throws Exception{
 		prepMocks(false);
 		PowerMockito.mockStatic(ServiceBaseUtility.class);
 		
 		Response badResponse = Response.status(Status.BAD_REQUEST).build();
 		PowerMockito.when(ServiceBaseUtility.apiSetup(VERSION, logger, MethodNames.GET_MEASURE_PARAMETERS_BY_ID.getName())).thenReturn(badResponse);
 		
-		Response loadResponse = restHandler.getMeasureParametersById(mockHttpHeaders, "version", "fhirEndpoint",
-				"fhirTenantId", "measureId", "fhirTenantIdHeader", "fhirDataSourceIdHeader", "fhirDataSourceId");
+		Response loadResponse = restHandler.getMeasureParametersById(VERSION, getFhirConfigFileBody(), "measureId");
 		
 		assertEquals(badResponse, loadResponse);
 	}
@@ -624,46 +602,27 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		PowerMockito.when(ServiceBaseUtility.apiSetup(VERSION, logger, MethodNames.GET_MEASURE_PARAMETERS_BY_ID.getName())).thenReturn(null);
 		
 		Response badResponse = Response.status(Status.INTERNAL_SERVER_ERROR).build();
-		PowerMockito.when(ServiceBaseUtility.apiCleanup(logger, MethodNames.GET_MEASURE_PARAMETERS_BY_ID.getName())).thenReturn(badResponse);
+		PowerMockito.when(ServiceBaseUtility.apiCleanup(logger, MethodNames.GET_MEASURE_PARAMETERS_BY_ID.getName())).thenReturn(badResponse);	
+		PowerMockito.whenNew(DefaultFhirClientBuilder.class).withArguments(Mockito.any()).thenReturn(mockDefaultFhirClientBuilder);
 		
-		PowerMockito.when(FHIRRestUtils.parseAuthenticationHeaderInfo(ArgumentMatchers.any())).thenReturn(authParts);
-		PowerMockito.when(
-				FHIRRestUtils.getFHIRClient(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(),
-						ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
-				.thenReturn(measureClient);
 		PowerMockito.when(FHIRRestUtils.getParametersForMeasureIdentifier(ArgumentMatchers.any(),
 				ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(parameterInfoList);
 
-		Response loadResponse = restHandler.getMeasureParametersById(mockHttpHeaders, "version", "fhirEndpoint",
-				"fhirTenantId", "measureId", "fhirTenantIdHeader", "fhirDataSourceIdHeader", "fhirDataSourceId");
+		Response loadResponse = restHandler.getMeasureParametersById(VERSION, getFhirConfigFileBody(), "measureId");
 		
 		assertEquals(badResponse, loadResponse);
 	}
 
-	private void validateParameterResponse(Response loadResponse) {
-		assertEquals(Status.OK.getStatusCode(), loadResponse.getStatus());
-		String validResp = "class MeasureParameterInfoList {\n"
-				+ "    parameterInfoList: [class MeasureParameterInfo {\n" + "        name: name\n"
-				+ "        use: IN\n" + "        min: 0\n" + "        max: max\n" + "        type: type\n"
-				+ "        defaultValue: null\n"
-				+ "        documentation: documentation\n" + "    ]\n" + "}";
-		assertEquals(validResp, loadResponse.getEntity().toString());
-	}
 
-	@PrepareForTest({ Response.class, ValueSetUtil.class, FHIRRestUtils.class })
+	@PrepareForTest({ Response.class, ValueSetUtil.class })
 	@Test
-	public void testLoadValueSets() throws IOException {
+	public void testLoadValueSets() throws Exception {
 		prepMocks();
 		mockResponseClasses();
-
-		PowerMockito.mockStatic(FHIRRestUtils.class);
+		
 		PowerMockito.mockStatic(ValueSetUtil.class);
-		PowerMockito.when(FHIRRestUtils.parseAuthenticationHeaderInfo(ArgumentMatchers.any())).thenReturn(authParts);
+		PowerMockito.whenNew(DefaultFhirClientBuilder.class).withArguments(Mockito.any()).thenReturn(mockDefaultFhirClientBuilder);
 
-		PowerMockito.when(
-				FHIRRestUtils.getFHIRClient(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(),
-						ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
-				.thenReturn(measureClient);
 		PowerMockito.when(ValueSetUtil.importArtifact(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.eq(false)))
 				.thenReturn("ID");
 
@@ -674,19 +633,13 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		when(dataHandler.getInputStream())
 					.thenReturn(new ByteArrayInputStream(Files.readAllBytes(Paths.get(tempFile.getAbsolutePath()))));
 
-		IMultipartBody body = PowerMockito.mock(IMultipartBody.class);
-		when(body.getRootAttachment()).thenReturn(spreadsheetPart);
+		IMultipartBody body = getFhirConfigFileBody();
+		when(body.getAttachment(CohortEngineRestHandler.VALUE_SET_PART)).thenReturn(spreadsheetPart);
 
 		Response loadResponse = restHandler.createValueSet(
-				mockHttpHeaders,
 				VERSION,
-				"fhirEndpoint",
-				"fhirTenantId",
-				"fhirTenantIdHeader",
-				"fhirDataSourceIdHeader",
-				"fhirDataSourceId",
-				false,
-				body
+				body,
+				false
 		);
 		assertNotNull(loadResponse);
 		PowerMockito.verifyStatic(Response.class);
@@ -695,7 +648,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 
 	@PrepareForTest({ Response.class, ValueSetUtil.class, FHIRRestUtils.class })
 	@Test
-	public void testValueSetExists() throws IOException {
+	public void testValueSetExists() throws Exception {
 		prepMocks();
 		mockResponseClasses();
 
@@ -704,12 +657,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		PowerMockito.mockStatic(ValueSetUtil.class);
 		PowerMockito.mockStatic(DefaultFhirClientBuilder.class);
 		PowerMockito.when(ServiceBaseUtility.apiSetup(VERSION, logger, MethodNames.CREATE_VALUE_SET.getName())).thenReturn(null);
-		PowerMockito.when(FHIRRestUtils.parseAuthenticationHeaderInfo(ArgumentMatchers.any())).thenReturn(authParts);
-
-		PowerMockito.when(
-				FHIRRestUtils.getFHIRClient(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(),
-						ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
-				.thenReturn(measureClient);
+		PowerMockito.whenNew(DefaultFhirClientBuilder.class).withArguments(Mockito.any()).thenReturn(mockDefaultFhirClientBuilder);
 		PowerMockito.when(ValueSetUtil.importArtifact(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.eq(true)))
 				.thenReturn("ID");
 
@@ -721,23 +669,41 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		when(dataHandler.getInputStream())
 				.thenReturn(new ByteArrayInputStream(x));
 
-		IMultipartBody body = PowerMockito.mock(IMultipartBody.class);
-		when(body.getRootAttachment()).thenReturn(spreadsheetPart);
+		IMultipartBody body = getFhirConfigFileBody();
+		when(body.getAttachment(CohortEngineRestHandler.VALUE_SET_PART)).thenReturn(spreadsheetPart);
 
 		Response loadResponse = restHandler.createValueSet(
-				mockHttpHeaders,
 				VERSION,
-				"fhirEndpoint",
-				"fhirTenantId",
-				"fhirTenantIdHeader",
-				"fhirDataSourceIdHeader",
-				"fhirDataSourceId",
-				false,
-				body
+				body,
+				false
 		);
 		assertNotNull(loadResponse);
 		PowerMockito.verifyStatic(Response.class);
 		Response.status(Status.CONFLICT);
+	}
+	
+	private void validateParameterResponse(Response loadResponse) {
+		assertEquals(Status.OK.getStatusCode(), loadResponse.getStatus());
+		String validResp = "class MeasureParameterInfoList {\n"
+				+ "    parameterInfoList: [class MeasureParameterInfo {\n" + "        name: name\n"
+				+ "        use: IN\n" + "        min: 0\n" + "        max: max\n" + "        type: type\n"
+				+ "        defaultValue: null\n"
+				+ "        documentation: documentation\n" + "    ]\n" + "}";
+		assertEquals(validResp, loadResponse.getEntity().toString());
+	}
+	
+	private IMultipartBody getFhirConfigFileBody() throws Exception {
+		// Create the metadata part of the request
+		ObjectMapper om = new ObjectMapper();
+		String json = om.writeValueAsString(getFhirServerConfig());
+		ByteArrayInputStream jsonIs = new ByteArrayInputStream(json.getBytes());
+		IAttachment rootPart = mockAttachment(jsonIs);
+		
+		// Assemble them together into a reasonable facsimile of the real request
+		IMultipartBody body = mock(IMultipartBody.class);
+		when( body.getAttachment(CohortEngineRestHandler.FHIR_DATA_SERVER_CONFIG_PART) ).thenReturn(rootPart);
+		
+		return body;
 	}
 
 }

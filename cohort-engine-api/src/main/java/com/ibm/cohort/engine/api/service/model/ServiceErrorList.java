@@ -98,8 +98,8 @@ public ServiceErrorList statusCode(Integer statusCode) {
   }
 
   
-  @ApiModelProperty(value = "respone code")
-  @JsonProperty("status_code")
+  @ApiModelProperty(value = "response code")
+  @JsonProperty("statusCode")
   public Integer getStatusCode() {
     return statusCode;
   }
