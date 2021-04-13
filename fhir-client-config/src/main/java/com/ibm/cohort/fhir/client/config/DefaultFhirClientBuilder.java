@@ -27,6 +27,17 @@ import ca.uhn.fhir.rest.client.interceptor.LoggingInterceptor;
  * instance, if the client provides both user/password authentication parameters
  * and a bearer authorization token, both interceptors are created and attached
  * to the client object.
+ * 
+ * Note that a FhirContext object used to create a DefaultFhirClientBuilder contains
+ * static state that will be shared across any IGenericClient objects created from
+ * the context. Reusing FhirContext objects across multiple instances of DefaultFhirClientBuilder
+ * or creating multiple IGenericClient objects from a single DefaultFhirClientBuilder may
+ * result in client configuration states that are unexpected.
+ * 
+ * It is recommended to create only a single IGenericClient from each instance of
+ * DefaultFhirClientBuilder and to always provide a new FhirContext object to each
+ * separate instance of DefaultFhirClientBuilder created in order to avoid potential
+ * configuration issues.
  */
 public class DefaultFhirClientBuilder implements FhirClientBuilder {
 

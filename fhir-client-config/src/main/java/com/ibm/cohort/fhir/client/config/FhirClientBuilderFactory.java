@@ -63,6 +63,12 @@ public abstract class FhirClientBuilderFactory {
 	/**
 	 * Return a new FHIR Client Builder that uses the provided FHIR Context.
 	 * 
+	 * This method should be used with caution. Reusing the same FhirContext
+	 * across multiple FhirClientBuilder objects may result in undefined client
+	 * configuration state when creating FHIR clients. Likewise, creating
+	 * multiple FHIR clients from a single builder using a single context
+	 * may result in undefined client configuration state.
+	 * 
 	 * @param fhirContext HAPI FhirContext object configured for the target FHIR
 	 *                    server/version.
 	 * 
