@@ -10,7 +10,6 @@ import java.io.IOException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
@@ -19,7 +18,7 @@ import ca.uhn.fhir.context.FhirContext;
 public class BaseCLI {
 	
 	protected FhirContext fhirContext = null;
-	protected FhirClientBuilder fhirClientBuilder = null;	
+	protected FhirClientBuilderFactory fhirClientBuilderFactory = null;
 	
 	protected FhirServerConfig dataServerConfig;
 	protected FhirServerConfig terminologyServerConfig;
@@ -34,12 +33,11 @@ public class BaseCLI {
 		return fhirContext;
 	}
 	
-	protected FhirClientBuilder getFhirClientBuilder() {
-		if( fhirClientBuilder == null ) {
-			FhirClientBuilderFactory factory = FhirClientBuilderFactory.newInstance();
-			this.fhirClientBuilder = factory.newFhirClientBuilder(getFhirContext());
+	protected FhirClientBuilderFactory getFhirClientBuilderFactory() {
+		if( fhirClientBuilderFactory == null ) {
+			this.fhirClientBuilderFactory = FhirClientBuilderFactory.newInstance();
 		}
-		return this.fhirClientBuilder;
+		return this.fhirClientBuilderFactory;
 	}
 	
 	protected void readConnectionConfiguration(ConnectionArguments arguments) throws Exception {

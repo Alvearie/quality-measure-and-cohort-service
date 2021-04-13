@@ -45,7 +45,7 @@ import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
-import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
+import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
@@ -125,10 +125,10 @@ public class MeasureCLI extends BaseCLI {
 			readDataServerConfiguration(arguments);
 			readTerminologyServerConfiguration(arguments);
 
-			FhirClientBuilder builder = getFhirClientBuilder();
+			FhirClientBuilderFactory fhirClientBuilderFactory = getFhirClientBuilderFactory();
 
-			IGenericClient dataServerClient = builder.createFhirClient(dataServerConfig);
-			IGenericClient terminologyServerClient = builder.createFhirClient(terminologyServerConfig);
+			IGenericClient dataServerClient = fhirClientBuilderFactory.newFhirClientBuilder().createFhirClient(dataServerConfig);
+			IGenericClient terminologyServerClient = fhirClientBuilderFactory.newFhirClientBuilder().createFhirClient(terminologyServerConfig);
 
 			LibraryResolutionProvider<Library> libraryProvider;
 			MeasureResolutionProvider<Measure> measureProvider;
@@ -153,7 +153,7 @@ public class MeasureCLI extends BaseCLI {
 
 			} else {
 				readMeasureServerConfiguration( arguments );
-				IGenericClient measureServerClient = builder.createFhirClient(measureServerConfig);
+				IGenericClient measureServerClient = fhirClientBuilderFactory.newFhirClientBuilder().createFhirClient(measureServerConfig);
 
 				libraryProvider = new RestFhirLibraryResolutionProvider( measureServerClient );
 				measureProvider = new RestFhirMeasureResolutionProvider( measureServerClient );
