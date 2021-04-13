@@ -120,8 +120,6 @@ public class ValueSetUtilTest {
 		Map<String, String> codeSystemMap = ValueSetUtil.getMapFromInputStream(new FileInputStream(new File(codeSystemInput)));
 		assertEquals(expectedMap.size(), codeSystemMap.size());
 		assertEquals(expectedMap.entrySet(), codeSystemMap.entrySet());
-		assertTrue(expectedMap.values().containsAll(codeSystemMap.values()));
-		assertTrue(codeSystemMap.values().containsAll(expectedMap.values()));
 	}
 
 }

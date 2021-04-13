@@ -49,7 +49,6 @@ public class ValueSetUtil {
 			}
 	}
 
-	//todo should new map be passed in here, or somewhere else? do we want to limit this to one custom code system, or multiple? If there are multiple
 	public static ValueSetArtifact createArtifact(InputStream is, Map<String, String> customCodeSystem) throws IOException {
 		XSSFSheet informationSheet;
 		try (XSSFWorkbook wb = new XSSFWorkbook(is)) {
