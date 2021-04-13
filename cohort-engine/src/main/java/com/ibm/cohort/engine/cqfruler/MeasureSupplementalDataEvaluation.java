@@ -58,17 +58,14 @@ public class MeasureSupplementalDataEvaluation {
 						sdeAccumulatorKey = sde.get(i).getCriteria().getExpression();
 					}
 					Map<String, Integer> sdeItemMap = sdeAccumulators.get(sdeAccumulatorKey);
-					String code = "";
+					String code = null;
 
 					switch (sdeListItem.getClass().getSimpleName()) {
 					case "Code":
 						code = ((Code) sdeListItem).getCode();
 						break;
 					case "ArrayList":
-						if (((ArrayList<?>) sdeListItem).isEmpty()) {
-							return;
-						}
-						else {
+						if (!((ArrayList<?>) sdeListItem).isEmpty()) {
 							code = ((Coding) ((ArrayList<?>) sdeListItem).get(0)).getCode();
 						}
 						break;
@@ -76,21 +73,20 @@ public class MeasureSupplementalDataEvaluation {
 						throw new UnsupportedOperationException("Supplemental data evaluation not supported for type: " + sdeListItem.getClass());
 					}
 					
-					if (null == code) {
-						return;
-					}
-					if (null != sdeItemMap && null != sdeItemMap.get(code)) {
-						Integer sdeItemValue = sdeItemMap.get(code);
-						sdeItemValue++;
-						sdeItemMap.put(code, sdeItemValue);
-						sdeAccumulators.get(sdeAccumulatorKey).put(code, sdeItemValue);
-					} else {
-						if (null == sdeAccumulators.get(sdeAccumulatorKey)) {
-							HashMap<String, Integer> newSDEItem = new HashMap<>();
-							newSDEItem.put(code, 1);
-							sdeAccumulators.put(sdeAccumulatorKey, newSDEItem);
+					if (null != code) {
+						if (null != sdeItemMap && null != sdeItemMap.get(code)) {
+							Integer sdeItemValue = sdeItemMap.get(code);
+							sdeItemValue++;
+							sdeItemMap.put(code, sdeItemValue);
+							sdeAccumulators.get(sdeAccumulatorKey).put(code, sdeItemValue);
 						} else {
-							sdeAccumulators.get(sdeAccumulatorKey).put(code, 1);
+							if (null == sdeAccumulators.get(sdeAccumulatorKey)) {
+								HashMap<String, Integer> newSDEItem = new HashMap<>();
+								newSDEItem.put(code, 1);
+								sdeAccumulators.put(sdeAccumulatorKey, newSDEItem);
+							} else {
+								sdeAccumulators.get(sdeAccumulatorKey).put(code, 1);
+							}
 						}
 					}
 				}
