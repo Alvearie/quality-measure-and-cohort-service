@@ -5,7 +5,9 @@
  */
 package com.ibm.cohort.engine.parameter;
 
-public interface ParameterType {
+public class ParameterType {
+	private ParameterType() {}
+	
 	public static final String INTEGER = "integer";
 	public static final String DECIMAL = "decimal";
 	public static final String BOOLEAN = "boolean";

@@ -31,7 +31,7 @@ import ca.uhn.fhir.rest.server.exceptions.BaseServerResponseException;
 @Provider
 public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 	private static final Logger logger = LoggerFactory.getLogger(CohortServiceExceptionMapper.class.getName());
-	private static final int maxExceptionCauseDepth = 20;
+	private static final int MAX_EXCEPTION_CAUSE_DEPTH = 20;
 
 	@Override
 	public Response toResponse(Throwable ex) {
@@ -161,7 +161,7 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 		//prevent infinite loop by only going back so many depths
 		//exceptions can link to each other so we will only return maxExceptionCauseDepth
 		//number of them through the UI, the full stack will get logged if needed in calling method
-		while(cause != null && causeCount < maxExceptionCauseDepth) {
+		while(cause != null && causeCount < MAX_EXCEPTION_CAUSE_DEPTH) {
 			if(cause.getLocalizedMessage() != null && !cause.getLocalizedMessage().trim().isEmpty()) {
 				ServiceError error = new ServiceError().setCode(code).setMessage(cause.getLocalizedMessage());
 				errorsList.add(error);

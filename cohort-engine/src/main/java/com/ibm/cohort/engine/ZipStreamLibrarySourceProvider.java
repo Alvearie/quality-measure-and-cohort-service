@@ -8,6 +8,7 @@ package com.ibm.cohort.engine;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,12 +27,12 @@ import org.hl7.elm.r1.VersionedIdentifier;
  */
 public class ZipStreamLibrarySourceProvider extends MultiFormatLibrarySourceProvider {
 
-	public ZipStreamLibrarySourceProvider(ZipInputStream zipInputStream, String... searchPaths) throws Exception {
+	public ZipStreamLibrarySourceProvider(ZipInputStream zipInputStream, String... searchPaths) throws IOException {
 		this(zipInputStream, new DefaultFilenameToVersionedIdentifierStrategy(), searchPaths);
 	}
 
 	public ZipStreamLibrarySourceProvider(ZipInputStream zipInputStream,
-			FilenameToVersionedIdentifierStrategy idStrategy, String... searchPaths) throws Exception {
+			FilenameToVersionedIdentifierStrategy idStrategy, String... searchPaths) throws IOException  {
 
 		ZipEntry ze;
 		while ((ze = zipInputStream.getNextEntry()) != null) {
@@ -41,7 +42,7 @@ public class ZipStreamLibrarySourceProvider extends MultiFormatLibrarySourceProv
 					String prefix = "";
 					
 					int ch;
-					if( (ch=ze.getName().lastIndexOf("/")) != -1 ) {
+					if( (ch=ze.getName().lastIndexOf('/')) != -1 ) {
 						prefix = ze.getName().substring(0, ch);
 					}
 					filter = ! ArrayUtils.contains(searchPaths, prefix);

@@ -6,16 +6,6 @@
 
 package com.ibm.cohort.engine.flink.input;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.flink.KafkaCommon;
-import com.ibm.cohort.engine.flink.KafkaInfo;
-import com.ibm.cohort.engine.flink.MeasureExecution;
-import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -23,6 +13,18 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.cohort.engine.flink.KafkaCommon;
+import com.ibm.cohort.engine.flink.KafkaInfo;
+import com.ibm.cohort.engine.flink.MeasureExecution;
 
 public class InputProducer {
 
@@ -71,7 +73,9 @@ public class InputProducer {
 	}
 
 	private static List<String> readFile(String filename) throws IOException {
-		return Files.lines(Paths.get(filename)).collect(Collectors.toList());
+		try(Stream<String> lines = Files.lines(Paths.get(filename))) {
+			return lines.collect(Collectors.toList());
+		}
 	}
 
 }

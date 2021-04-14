@@ -294,6 +294,8 @@ public class CohortEngineRestHandler {
 			{
 		final String methodName = MethodNames.GET_MEASURE_PARAMETERS.getName();
 
+		Response response = null;
+		
 		try {
 			// Perform api setup
 			Response errorResponse = ServiceBaseUtility.apiSetup(version, logger, methodName);
@@ -329,18 +331,19 @@ public class CohortEngineRestHandler {
 
 			//return the results
 			MeasureParameterInfoList status = new MeasureParameterInfoList().measureParameterInfoList(parameterInfoList);
-			return Response.ok(status).build();
+			response = Response.ok(status).build();
 		} catch (Throwable e) {
 			//map any exceptions caught into the proper REST error response objects
 			return new CohortServiceExceptionMapper().toResponse(e);
 		}finally {
 			// Perform api cleanup
 			Response errorResponse = ServiceBaseUtility.apiCleanup(logger, methodName);
-			if(errorResponse != null) {
-				return errorResponse;
+			if( errorResponse != null ) {
+				response = errorResponse;
 			}
 		}
-
+		
+		return response;
 	}
 	
 	@POST
@@ -361,8 +364,11 @@ public class CohortEngineRestHandler {
 			@ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody,
 			@ApiParam(value = CohortEngineRestHandler.MEASURE_ID_DESC, required = true) @PathParam(CohortEngineRestHandler.MEASURE_ID) String measureId)
 			{
-		final String methodName = MethodNames.GET_MEASURE_PARAMETERS_BY_ID.getName();
 
+		final String methodName = MethodNames.GET_MEASURE_PARAMETERS_BY_ID.getName();
+		
+		Response response = null;
+		
 		try {
 			// Perform api setup
 			Response errorResponse = ServiceBaseUtility.apiSetup(version, logger, methodName);
@@ -392,7 +398,7 @@ public class CohortEngineRestHandler {
 
 			//return the results
 			MeasureParameterInfoList status = new MeasureParameterInfoList().measureParameterInfoList(parameterInfoList);
-			return Response.ok(status).build();
+			response = Response.ok(status).build();
 		} catch (Throwable e) {
 			//map any exceptions caught into the proper REST error response objects
 			return new CohortServiceExceptionMapper().toResponse(e);
@@ -400,9 +406,11 @@ public class CohortEngineRestHandler {
 			// Perform api cleanup
 			Response errorResponse = ServiceBaseUtility.apiCleanup(logger, methodName);
 			if(errorResponse != null) {
-				return errorResponse;
+				response = errorResponse;
 			}
 		}
+		
+		return response;
 	}
 
 	@POST

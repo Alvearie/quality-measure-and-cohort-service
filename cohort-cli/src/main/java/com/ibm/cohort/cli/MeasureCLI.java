@@ -6,6 +6,7 @@
 package com.ibm.cohort.cli;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
@@ -30,8 +31,8 @@ import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
 import com.ibm.cohort.cli.input.MeasureContextProvider;
 import com.ibm.cohort.cli.input.NoSplittingSplitter;
-import com.ibm.cohort.engine.DirectoryResourceResolutionProvider;
 import com.ibm.cohort.engine.helpers.FileHelpers;
+import com.ibm.cohort.engine.measure.DirectoryResourceResolutionProvider;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.MeasureEvaluator;
 import com.ibm.cohort.engine.measure.MeasureResolutionProvider;
@@ -52,7 +53,7 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 public class MeasureCLI extends BaseCLI {
 
-	private static enum ReportFormat { TEXT, JSON }
+	private enum ReportFormat { TEXT, JSON }
 	
 	/**
 	 * Command line argument definitions
@@ -109,7 +110,7 @@ public class MeasureCLI extends BaseCLI {
 		}
 	}
 	
-	public MeasureEvaluator runWithArgs(String[] args, PrintStream out) throws Exception {
+	public MeasureEvaluator runWithArgs(String[] args, PrintStream out) throws IOException  {
 		MeasureEvaluator evaluator = null;
 
 		Arguments arguments = new Arguments();
