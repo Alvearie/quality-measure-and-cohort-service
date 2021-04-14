@@ -334,7 +334,7 @@ public class CohortEngineRestHandler {
 			response = Response.ok(status).build();
 		} catch (Throwable e) {
 			//map any exceptions caught into the proper REST error response objects
-			response = new CohortServiceExceptionMapper().toResponse(e);
+			return new CohortServiceExceptionMapper().toResponse(e);
 		}finally {
 			// Perform api cleanup
 			Response errorResponse = ServiceBaseUtility.apiCleanup(logger, methodName);
