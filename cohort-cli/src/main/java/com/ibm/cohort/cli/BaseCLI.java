@@ -7,8 +7,6 @@ package com.ibm.cohort.cli;
 
 import java.io.IOException;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
@@ -42,7 +40,7 @@ public class BaseCLI {
 		return this.fhirClientBuilder;
 	}
 	
-	protected void readConnectionConfiguration(ConnectionArguments arguments) throws Exception {
+	protected void readConnectionConfiguration(ConnectionArguments arguments) throws IOException {
 		
 		readDataServerConfiguration(arguments);
 
@@ -51,13 +49,11 @@ public class BaseCLI {
 		readMeasureServerConfiguration(arguments);
 	}
 
-	protected void readDataServerConfiguration(ConnectionArguments arguments)
-			throws IOException, JsonParseException, JsonMappingException {
+	protected void readDataServerConfiguration(ConnectionArguments arguments) throws IOException {
 		dataServerConfig = om.readValue(arguments.dataServerConfigFile, FhirServerConfig.class);
 	}
 
-	protected void readTerminologyServerConfiguration(ConnectionArguments arguments)
-			throws IOException, JsonParseException, JsonMappingException {
+	protected void readTerminologyServerConfiguration(ConnectionArguments arguments) throws IOException {
 		if (arguments.terminologyServerConfigFile != null) {
 			terminologyServerConfig = om.readValue(arguments.terminologyServerConfigFile, FhirServerConfig.class);
 		} else {
@@ -65,8 +61,7 @@ public class BaseCLI {
 		}
 	}
 	
-	protected void readMeasureServerConfiguration(ConnectionArguments arguments)
-			throws IOException, JsonParseException, JsonMappingException {
+	protected void readMeasureServerConfiguration(ConnectionArguments arguments) throws IOException {
 		if (arguments.measureServerConfigFile != null) {
 			measureServerConfig = om.readValue(arguments.measureServerConfigFile, FhirServerConfig.class);
 		} else { 

@@ -24,6 +24,8 @@ import com.ibm.cohort.engine.parameter.StringParameter;
 import com.ibm.cohort.engine.parameter.TimeParameter;
 
 public class ParameterHelper {
+	private ParameterHelper() {}
+	
 	/**
 	 * Conversion routine for CQL parameter values encoded for command line
 	 * interaction.
@@ -121,7 +123,7 @@ public class ParameterHelper {
 			default:
 				throw new IllegalArgumentException(String.format("Parameter type %s not supported", type));
 		}
-		return new AbstractMap.SimpleEntry<String,Parameter>(name, typedValue);
+		return new AbstractMap.SimpleEntry<>(name, typedValue);
 	}
 
 	/**

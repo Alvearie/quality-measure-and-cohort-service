@@ -20,6 +20,8 @@ import com.ibm.cohort.engine.parameter.Parameter;
 
 
 public class MeasureContextProvider {
+	private MeasureContextProvider() {}
+	
 	public static List<MeasureContext> getMeasureContexts(File input) throws IOException {
 		ObjectMapper objectMapper = new ObjectMapper();
 		ExecutionConfiguration parsedInput = objectMapper.readValue(input, ExecutionConfiguration.class);

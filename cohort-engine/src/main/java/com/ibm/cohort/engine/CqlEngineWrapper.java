@@ -28,7 +28,7 @@ import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
 import org.opencds.cqf.cql.engine.fhir.retrieve.RestFhirRetrieveProvider;
 import org.opencds.cqf.cql.engine.fhir.searchparam.SearchParameterResolver;
-import org.opencds.cqf.cql.engine.model.ModelResolver;
+
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.ibm.cohort.engine.cdm.CDMConstants;
@@ -49,14 +49,8 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
  */
 public class CqlEngineWrapper {
 
-	public static final List<String> SUPPORTED_MODELS = Arrays.asList("http://hl7.org/fhir",
+	protected static final List<String> SUPPORTED_MODELS = Arrays.asList("http://hl7.org/fhir",
 			"http://hl7.org/fhir/us/core", "http://hl7.org/fhir/us/qicore", CDMConstants.BASE_URL);
-
-	/*
-	 * Wrap the ModelResolver around a static ThreadLocal to prevent
-	 * excess creation of FhirContext instances.
-	 */
-	private static final ThreadLocal<ModelResolver> MODEL_RESOLVER = ThreadLocal.withInitial(R4FhirModelResolver::new);
 
 	private LibraryLoader libraryLoader = null;
 
@@ -163,7 +157,7 @@ public class CqlEngineWrapper {
 	public IGenericClient getTerminologyServerClient() {
 		return this.terminologyServerClient;
 	}
-
+	
 	/**
 	 * Usage pattern of CQL Engine based on the Executor class in the
 	 * cql_execution_service. This is an amount of detail that should be handled by
@@ -284,10 +278,9 @@ public class CqlEngineWrapper {
 		//Ideally, we would determine this using the FHIR CapabilityStatement, but there isn't a strongly
 		//reliable way to do that right now using HAPI and IBM FHIR as examples.
 		retrieveProvider.setExpandValueSets(true);
-		CompositeDataProvider dataProvider = new CompositeDataProvider(MODEL_RESOLVER.get(), retrieveProvider);
+		CompositeDataProvider dataProvider = new CompositeDataProvider(new R4FhirModelResolver(), retrieveProvider);
 
-		Map<String, DataProvider> dataProviders = mapSupportedModelsToDataProvider(dataProvider);
-		return dataProviders;
+		return mapSupportedModelsToDataProvider(dataProvider);
 	}
 
 	/**
@@ -296,7 +289,7 @@ public class CqlEngineWrapper {
 	 * 
 	 * @param dataProvider DataProvider that will be used in support of the
 	 *                     SUPPORTED_MODELS
-	 * @return Map of model url to the <code>dataProvider</code>
+	 * @return Map of model URL to the <code>dataProvider</code>
 	 */
 	protected Map<String, DataProvider> mapSupportedModelsToDataProvider(DataProvider dataProvider) {
 		return mapSupportedModelsToDataProvider(SUPPORTED_MODELS, dataProvider);
@@ -309,7 +302,7 @@ public class CqlEngineWrapper {
 	 * @param supportedModels List of data models that are supported (i.e. base FHIR, QICore, etc)
 	 * @param dataProvider DataProvider that will be used in support of the
 	 *                     SUPPORTED_MODELS
-	 * @return Map of model url to the <code>dataProvider</code>
+	 * @return Map of model URL to the <code>dataProvider</code>
 	 */
 	protected Map<String, DataProvider> mapSupportedModelsToDataProvider(List<String> supportedModels,
 			DataProvider dataProvider) {

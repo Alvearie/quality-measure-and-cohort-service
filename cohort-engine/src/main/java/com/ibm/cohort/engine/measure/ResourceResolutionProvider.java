@@ -7,11 +7,14 @@ package com.ibm.cohort.engine.measure;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.AbstractMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -41,9 +44,15 @@ import ca.uhn.fhir.parser.IParser;
  */
 public abstract class ResourceResolutionProvider
 		implements LibraryResolutionProvider<Library>, MeasureResolutionProvider<Measure> {
+	
+	private static final String MEASURE = "Measure";
+	private static final String LIBRARY = "Library";
+	
 	private Map<String, Map<String, MetadataResource>> resourcesByIdByResourceType = new HashMap<>();
 	private Map<String, Map<String, SortedMap<SemanticVersion, MetadataResource>>> resourcesByNameByResourceType = new HashMap<>();
 	private Map<String, Map<String, SortedMap<SemanticVersion, MetadataResource>>> resourcesByUrlByResourceType = new HashMap<>();
+	
+	
 	
 	/**
 	 * Process a FHIR resource. This parses the resource, resolves the unique
@@ -198,7 +207,7 @@ public abstract class ResourceResolutionProvider
 	}
 
 	/**
-	 * Lookup a fhir resource by resource type and canonical URL
+	 * Lookup a FHIR resource by resource type and canonical URL
 	 * 
 	 * @param fhirType     FHIR resource type
 	 * @param canonicalUrl URL in FHIR canonical URL format
@@ -222,7 +231,7 @@ public abstract class ResourceResolutionProvider
 	}
 
 	/**
-	 * Lookup a fhir resource by resource type, name, and optional version.
+	 * Lookup a FHIR resource by resource type, name, and optional version.
 	 * 
 	 * @param fhirType FHIR resource type
 	 * @param name     FHIR resource name
@@ -238,7 +247,7 @@ public abstract class ResourceResolutionProvider
 
 	@Override
 	public Measure resolveMeasureById(String resourceID) {
-		return (Measure) getResourceByTypeAndId("Measure", resourceID);
+		return (Measure) getResourceByTypeAndId(MEASURE, resourceID);
 	}
 
 	private MetadataResource getResourceByTypeAndId(String resourceType, String resourceID) {
@@ -255,44 +264,59 @@ public abstract class ResourceResolutionProvider
 	@Override
 	public Measure resolveMeasureByCanonicalUrl(String canonicalUrl) {
 
-		return (Measure) resolveByCanonicalUrl("Measure", canonicalUrl);
+		return (Measure) resolveByCanonicalUrl(MEASURE, canonicalUrl);
 	}
 
 	@Override
 	public Measure resolveMeasureByName(String name, String version) {
-		return (Measure) resolveByName("Measure", name, version);
+		return (Measure) resolveByName(MEASURE, name, version);
 	}
 
 	@Override
 	public Measure resolveMeasureByIdentifier(Identifier identifier, String version) {
 		Measure result = null;
 
-		SemanticVersion latestVersion = null;
-		for (MetadataResource resource : resourcesByIdByResourceType.get("Measure").values()) {
-			Measure measure = (Measure) resource;
-
-			boolean hasId = false;
-			for (Identifier candidate : measure.getIdentifier()) {
-				if (EqualsBuilder.reflectionEquals(candidate, identifier, new String[] { "system", "value" })) {
-					hasId = true;
-					break;
+		List<MetadataResource> matchesByIdentifier = resourcesByIdByResourceType.get(MEASURE).values().stream().filter( resource -> {
+			return ((Measure)resource).getIdentifier().stream().anyMatch( candidate -> {
+				return new EqualsBuilder()
+					.append(candidate.getSystem(), identifier.getSystem())
+					.append(candidate.getValue(), identifier.getValue())
+					.isEquals();
+				
+			});
+		}).collect(Collectors.toList());
+		
+		if( matchesByIdentifier.size() > 0 ) {
+			if( version != null ) {
+				// The user requested a specific version, so find it in the list.
+				List<MetadataResource> matchesByVersion = matchesByIdentifier.stream()
+						.filter( resource -> { 
+								return version.equals( resource.getVersion() );
+							})
+						.collect(Collectors.toList());
+				
+				if( matchesByVersion.size() == 1 ) {
+					result = (Measure) matchesByVersion.get(0);
+				} else if( matchesByVersion.size() > 1 ) { 
+					throw new IllegalArgumentException(String.format(
+							"Failed to resolve measure by identifier; found unexpected number of rows %d matching provided values",
+							matchesByVersion.size()));
 				}
-			}
-
-			if (hasId) {
-				if (version != null && version.equals(measure.getVersion())) {
-					result = measure;
-					break;
-				} else {
-					Optional<SemanticVersion> candidateVersion = SemanticVersion.create(measure.getVersion());
-					if (candidateVersion.isPresent()) {
-						if (latestVersion == null) {
-							result = measure;
-						} else if (candidateVersion.get().compareTo(latestVersion) > 0) {
-							latestVersion = candidateVersion.get();
-							result = measure;
-						}
-					}
+			} else {
+				// Otherwise, find the resource with the newest semantic version. Resources
+				// with a null version are discarded.
+				Optional<MetadataResource> optional = matchesByIdentifier.stream()
+					.map( resource -> {
+							return new AbstractMap.SimpleEntry<>(SemanticVersion.create(resource.getVersion()), resource); 
+						})
+					.filter( entry -> entry.getKey().isPresent() )
+					.sorted( (x,y) -> x.getKey().get().compareTo(y.getKey().get()) )
+					.map( entry -> entry.getValue() )
+					.reduce( (x,y) -> y );
+				if( optional.isPresent() ) {
+					result = (Measure) optional.get();
+				} else { 
+					throw new IllegalArgumentException("Failed to resolve measure by identifier; matched identifier, but found no records with non-null version");
 				}
 			}
 		}
@@ -302,17 +326,17 @@ public abstract class ResourceResolutionProvider
 
 	@Override
 	public Library resolveLibraryById(String libraryId) {
-		return (Library) getResourceByTypeAndId("Library", libraryId);
+		return (Library) getResourceByTypeAndId(LIBRARY, libraryId);
 	}
 
 	@Override
 	public Library resolveLibraryByName(String libraryName, String libraryVersion) {
-		return (Library) resolveByName("Library", libraryName, libraryVersion);
+		return (Library) resolveByName(LIBRARY, libraryName, libraryVersion);
 	}
 
 	@Override
 	public Library resolveLibraryByCanonicalUrl(String libraryUrl) {
-		return (Library) resolveByCanonicalUrl("Library", libraryUrl);
+		return (Library) resolveByCanonicalUrl(LIBRARY, libraryUrl);
 	}
 
 	@Override

@@ -51,7 +51,7 @@ public class MeasureSupplementalDataEvaluationTest extends BaseFhirTest {
 		
 		Map<String, Integer> sexMap = sdeAccumulators.get(MeasureSupplementalDataEvaluation.SDE_SEX);
 		assertEquals(1, sexMap.size());
-		assertTrue(sexMap.get(MALE_CODE).equals(1));
+		assertEquals(1, sexMap.get(MALE_CODE).intValue());
 	}
 	
 	@Test
@@ -68,7 +68,7 @@ public class MeasureSupplementalDataEvaluationTest extends BaseFhirTest {
 		
 		Map<String, Integer> raceMap = sdeAccumulators.get(SDE_RACE);
 		assertEquals(1, raceMap.size());
-		assertTrue(raceMap.get(WHITE_CODE).equals(1));
+		assertEquals(1, raceMap.get(WHITE_CODE).intValue());
 	}
 	
 	@Test
@@ -81,7 +81,7 @@ public class MeasureSupplementalDataEvaluationTest extends BaseFhirTest {
 		
 		Map<String, Integer> sexMap = sdeAccumulators.get(MeasureSupplementalDataEvaluation.SDE_SEX);
 		assertEquals(1, sexMap.size());
-		assertTrue(sexMap.get(MALE_CODE).equals(1));
+		assertEquals(1, sexMap.get(MALE_CODE).intValue());
 	}
 	
 	@Test
@@ -94,7 +94,7 @@ public class MeasureSupplementalDataEvaluationTest extends BaseFhirTest {
 		
 		Map<String, Integer> sexMap = sdeAccumulators.get(MeasureSupplementalDataEvaluation.SDE_SEX);
 		assertEquals(1, sexMap.size());
-		assertTrue(sexMap.get(MALE_CODE).equals(1));
+		assertEquals(1, sexMap.get(MALE_CODE).intValue());
 	}
 	
 	@Test
@@ -128,7 +128,7 @@ public class MeasureSupplementalDataEvaluationTest extends BaseFhirTest {
 		
 		Map<String, Integer> sexMap = sdeAccumulators.get(MeasureSupplementalDataEvaluation.SDE_SEX);
 		assertEquals(1, sexMap.size());
-		assertTrue(sexMap.get(MALE_CODE).equals(2));
+		assertEquals(2, sexMap.get(MALE_CODE).intValue());
 	}
 	
 	@Test
@@ -145,8 +145,8 @@ public class MeasureSupplementalDataEvaluationTest extends BaseFhirTest {
 		
 		Map<String, Integer> sexMap = sdeAccumulators.get(MeasureSupplementalDataEvaluation.SDE_SEX);
 		assertEquals(2, sexMap.size());
-		assertTrue(sexMap.get(MALE_CODE).equals(1));
-		assertTrue(sexMap.get(FEMALE_CODE).equals(1));
+		assertEquals(1, sexMap.get(MALE_CODE).intValue());
+		assertEquals(1, sexMap.get(FEMALE_CODE).intValue());
 	}
 	
 	@Test
@@ -177,7 +177,7 @@ public class MeasureSupplementalDataEvaluationTest extends BaseFhirTest {
 		
 		// Within the observation, there should be 1 extension, with two further nested extensions
 		Extension obsExt = obs.getExtensionByUrl(MeasureSupplementalDataEvaluation.CQF_MEASUREINFO_URL);
-		assertNotNull(obsExt != null);
+		assertNotNull(obsExt);
 		assertEquals(2, obsExt.getExtension().size());
 		
 		Extension measureNestedExt = obsExt.getExtensionByUrl(MeasureSupplementalDataEvaluation.MEASURE);
@@ -221,7 +221,7 @@ public class MeasureSupplementalDataEvaluationTest extends BaseFhirTest {
 		
 		// Within the observation, there should be 1 extension, with two further nested extensions
 		Extension obsExt = obs.getExtensionByUrl(MeasureSupplementalDataEvaluation.CQF_MEASUREINFO_URL);
-		assertNotNull(obsExt != null);
+		assertNotNull(obsExt);
 		assertEquals(2, obsExt.getExtension().size());
 		
 		Extension measureNestedExt = obsExt.getExtensionByUrl(MeasureSupplementalDataEvaluation.MEASURE);
