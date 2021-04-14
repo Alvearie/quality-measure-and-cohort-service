@@ -13,6 +13,9 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.Console;
@@ -27,7 +30,7 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 public class ValueSetImporter {
-
+	private static final Logger logger = LoggerFactory.getLogger(ValueSetImporter.class.getName());
 	public static final class ValueSetImporterArguments {
 		@Parameter(names = {"-m",
 				"--measure-server"}, description = "Path to JSON configuration data for the FHIR server connection that will be used to retrieve measure and library resources.", required = true)
@@ -70,7 +73,10 @@ public class ValueSetImporter {
 			for (String arg : arguments.spreadsheets) {
 				try (InputStream is = new FileInputStream(arg)) {
 					ValueSetArtifact artifact = ValueSetUtil.createArtifact(is, codeSystemMappings);
-					ValueSetUtil.importArtifact(client, artifact, arguments.overrideValueSets);
+					String retVal = ValueSetUtil.importArtifact(client, artifact, arguments.overrideValueSets);
+					if(retVal == null){
+						logger.error("Value set already exists! Please provide the override option if you would like to override this value set.");
+					}
 				}
 			}
 		}
