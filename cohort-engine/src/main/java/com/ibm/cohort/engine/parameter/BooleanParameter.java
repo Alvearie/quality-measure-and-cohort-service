@@ -29,6 +29,6 @@ public class BooleanParameter extends Parameter {
 	
 	@Override
 	public Object toCqlType() {
-		return Boolean.valueOf(value);
+		return value;
 	}
 }

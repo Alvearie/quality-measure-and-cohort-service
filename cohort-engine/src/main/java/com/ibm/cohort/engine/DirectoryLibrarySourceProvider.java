@@ -30,18 +30,18 @@ import org.hl7.elm.r1.VersionedIdentifier;
  */
 public class DirectoryLibrarySourceProvider extends MultiFormatLibrarySourceProvider {
 	
-	public DirectoryLibrarySourceProvider(Path folderPath) throws Exception {
+	public DirectoryLibrarySourceProvider(Path folderPath) throws IOException {
 		this( folderPath, new DefaultFilenameToVersionedIdentifierStrategy() );
 	}
 	
-	public DirectoryLibrarySourceProvider(Path folderPath, FilenameToVersionedIdentifierStrategy idStrategy) throws Exception {
+	public DirectoryLibrarySourceProvider(Path folderPath, FilenameToVersionedIdentifierStrategy idStrategy) throws IOException {
 		if( ! folderPath.toFile().isDirectory() ) {
 			throw new IllegalArgumentException("Path is not a directory");
 		}
 
 		Files.walkFileTree(folderPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
 			@Override
-			public FileVisitResult visitFile(Path entry, BasicFileAttributes attrs) {
+			public FileVisitResult visitFile(Path entry, BasicFileAttributes attrs) throws IOException {
 				if( ! attrs.isDirectory() && LibraryFormat.isSupportedPath( entry ) ) {
 					try (InputStream is = Files.newInputStream(entry)) {
 						LibraryFormat sourceFormat = LibraryFormat.forPath( entry );
@@ -54,9 +54,7 @@ public class DirectoryLibrarySourceProvider extends MultiFormatLibrarySourceProv
 							String text = FileUtils.readFileToString(entry.toFile(), StandardCharsets.UTF_8);
 							formats.put(sourceFormat, new ByteArrayInputStream( text.getBytes() ) );
 						}
-					} catch( IOException iex ) {
-						throw new RuntimeException(iex);
-					}
+					} 
 				}
 				return FileVisitResult.CONTINUE;
 			}

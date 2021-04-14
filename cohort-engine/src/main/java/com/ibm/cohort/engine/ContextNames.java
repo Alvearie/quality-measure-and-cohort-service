@@ -9,6 +9,9 @@ package com.ibm.cohort.engine;
 /**
  * Constant values for common CQL context names.
  */
-public interface ContextNames {
-	public static String PATIENT = "Patient";
+public class ContextNames {
+	
+	private ContextNames() {}
+	
+	public static final String PATIENT = "Patient";
 }

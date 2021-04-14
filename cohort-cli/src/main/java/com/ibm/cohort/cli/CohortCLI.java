@@ -9,6 +9,7 @@ import static com.ibm.cohort.cli.ParameterHelper.parseParameterArguments;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.Path;
@@ -97,9 +98,9 @@ public class CohortCLI extends BaseCLI {
 	 * @param out  location where contents that would normally go to stdout should
 	 *             be written
 	 * @return CQLEngineWrapper
-	 * @throws Exception any exception
+	 * @throws IOException IOException
 	 */
-	public CqlEngineWrapper runWithArgs(String[] args, PrintStream out) throws Exception {
+	public CqlEngineWrapper runWithArgs(String[] args, PrintStream out) throws IOException {
 		Arguments arguments = new Arguments();
 		Console console = new DefaultConsole(out);
 		JCommander jc = JCommander.newBuilder().programName("cql-engine").console(console).addObject(arguments).build();
@@ -188,15 +189,14 @@ public class CohortCLI extends BaseCLI {
 		return wrapper;
 	}
 
-	protected void configureConnections(CqlEngineWrapper wrapper, ConnectionArguments arguments)
-			throws Exception {
+	protected void configureConnections(CqlEngineWrapper wrapper, ConnectionArguments arguments) throws IOException {
 		readConnectionConfiguration(arguments);
 		wrapper.setDataServerConnectionProperties(dataServerConfig);
 		wrapper.setTerminologyServerConnectionProperties(terminologyServerConfig);
 		wrapper.setMeasureServerConnectionProperties(measureServerConfig);
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws IOException {
 		CohortCLI wrapper = new CohortCLI();
 		wrapper.runWithArgs(args, System.out);
 	}

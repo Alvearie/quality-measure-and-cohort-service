@@ -43,7 +43,9 @@ public class MeasureSupplementalDataEvaluation {
 	public static void populateSDEAccumulators(Context context, Patient patient,
 			Map<String, Map<String, Integer>> sdeAccumulators,
 			List<Measure.MeasureSupplementalDataComponent> sde) {
-		context.setContextValue("Patient", patient.getIdElement().getIdPart());
+		
+		context.setContextValue(MeasureEvaluation.PATIENT, patient.getIdElement().getIdPart());
+		
 		List<Object> sdeList = sde.stream()
 				.map(sdeItem -> context.resolveExpressionRef(sdeItem.getCriteria().getExpression()).evaluate(context))
 				.collect(Collectors.toList());
@@ -56,7 +58,7 @@ public class MeasureSupplementalDataEvaluation {
 						sdeAccumulatorKey = sde.get(i).getCriteria().getExpression();
 					}
 					Map<String, Integer> sdeItemMap = sdeAccumulators.get(sdeAccumulatorKey);
-					String code = "";
+					String code = null;
 
 					switch (sdeListItem.getClass().getSimpleName()) {
 					case "Code":
@@ -65,26 +67,26 @@ public class MeasureSupplementalDataEvaluation {
 					case "ArrayList":
 						if (!((ArrayList<?>) sdeListItem).isEmpty()) {
 							code = ((Coding) ((ArrayList<?>) sdeListItem).get(0)).getCode();
-						} else {
-							continue;
 						}
 						break;
+					default: 
+						throw new UnsupportedOperationException("Supplemental data evaluation not supported for type: " + sdeListItem.getClass());
 					}
-					if (null == code) {
-						continue;
-					}
-					if (null != sdeItemMap && null != sdeItemMap.get(code)) {
-						Integer sdeItemValue = sdeItemMap.get(code);
-						sdeItemValue++;
-						sdeItemMap.put(code, sdeItemValue);
-						sdeAccumulators.get(sdeAccumulatorKey).put(code, sdeItemValue);
-					} else {
-						if (null == sdeAccumulators.get(sdeAccumulatorKey)) {
-							HashMap<String, Integer> newSDEItem = new HashMap<>();
-							newSDEItem.put(code, 1);
-							sdeAccumulators.put(sdeAccumulatorKey, newSDEItem);
+					
+					if (null != code) {
+						if (null != sdeItemMap && null != sdeItemMap.get(code)) {
+							Integer sdeItemValue = sdeItemMap.get(code);
+							sdeItemValue++;
+							sdeItemMap.put(code, sdeItemValue);
+							sdeAccumulators.get(sdeAccumulatorKey).put(code, sdeItemValue);
 						} else {
-							sdeAccumulators.get(sdeAccumulatorKey).put(code, 1);
+							if (null == sdeAccumulators.get(sdeAccumulatorKey)) {
+								HashMap<String, Integer> newSDEItem = new HashMap<>();
+								newSDEItem.put(code, 1);
+								sdeAccumulators.put(sdeAccumulatorKey, newSDEItem);
+							} else {
+								sdeAccumulators.get(sdeAccumulatorKey).put(code, 1);
+							}
 						}
 					}
 				}
