@@ -533,7 +533,11 @@ In order to use this tool, you will need to download spreadsheets from the VSAC 
 <br>To load value set resources downloaded from the NIH website (spreadsheets, not zip files) into a target FHIR server, use the following invocation:
 
 ```
-$> java -cp fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar com.ibm.cohort.tooling.fhir.VSACValueSetImporter -m local-fhir-config.json <list_of_spreadsheet_valuesets>
+$> java -cp fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar com.ibm.cohort.tooling.fhir.ValueSetImporter -m local-fhir-config.json <list_of_spreadsheet_valuesets>
 ```
 
+If you find yourself needing to use a custom code system mapping, you may provide one with the argument -c or --code-system-mappings. You may see an example of a custom code system map [here](https://github.com/Alvearie/quality-measure-and-cohort-service/tree/main/docs/user-guide/custom_codes.txt).<br> 
+```
+$> java -cp fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar com.ibm.cohort.tooling.fhir.ValueSetImporter -m local-fhir-config.json -c <custom_codes.txt> <list_of_spreadsheet_valuesets>
+```
 To see an existing template one can use to build one's own value sets from scratch, please check out our [template](https://github.com/Alvearie/quality-measure-and-cohort-service/tree/main/docs/user-guide/value_set_template.xlsx).
