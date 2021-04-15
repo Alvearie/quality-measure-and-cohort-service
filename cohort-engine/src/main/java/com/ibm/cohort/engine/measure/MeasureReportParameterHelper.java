@@ -21,9 +21,15 @@ import org.opencds.cqf.cql.engine.runtime.DateTime;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 import org.opencds.cqf.cql.engine.runtime.Quantity;
 import org.opencds.cqf.cql.engine.runtime.Time;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceHelper;
 
 public class MeasureReportParameterHelper {
-	
+
+	private static final Logger logger = LoggerFactory.getLogger(MeasureEvidenceHelper.class);
+
 	public static Type getFhirTypeValue(Object value) {
 		if (value instanceof Interval) {
 			return getFhirTypeForInterval((Interval) value);
@@ -83,6 +89,7 @@ public class MeasureReportParameterHelper {
 			return range;
 		}
 		else  {
+			logger.warn("Support not implemented for parameters of type {} on a MeasureReport", low.getClass());
 			return null;
 		}
 	}
@@ -125,7 +132,7 @@ public class MeasureReportParameterHelper {
 			return getFhirQuantityFromCqlQuantity((Quantity) value);
 		}
 		else {
-			// TODO: Do something better
+			logger.warn("Support not implemented for parameters of type {} on a MeasureReport", value.getClass());
 			return null;
 		}
 	}
