@@ -643,7 +643,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		);
 		assertNotNull(loadResponse);
 		PowerMockito.verifyStatic(Response.class);
-		Response.status(Status.OK);
+		Response.status(Status.CREATED);
 	}
 
 	@PrepareForTest({ Response.class, ValueSetUtil.class, FHIRRestUtils.class })
