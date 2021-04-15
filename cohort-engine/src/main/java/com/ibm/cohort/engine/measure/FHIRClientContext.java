@@ -16,6 +16,9 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 /**
  * A wrapper around the different HAPI client connections required by the engine.
  *
+ * FHIRClientContext objects are expensive to create. If possible, a single
+ * FHIRClientContext object should be created and then reused as needed.
+ *
  * Use {@link Builder} for construction.
  */
 public class FHIRClientContext {
