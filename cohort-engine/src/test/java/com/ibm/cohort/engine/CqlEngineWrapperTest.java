@@ -615,4 +615,28 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 			});
 		assertTrue( "Unexpected exception message: " + ex.getMessage(), ex.getMessage().contains("version and code system bindings are not supported at this time") );
 	}
+	
+	@Test
+	/**
+	 * This test exists to validate the the engine correctly evaluates CQL
+	 * that includes an "interval starts interval" expression. This was 
+	 * called out because the CQL Author's Guide documentation mentioned
+	 * "interval begins interval" as a supported feature and "begins"
+	 * isn't the correct operator name. 
+	 *  
+	 * @throws Exception on any error.
+	 */
+	public void testIntervalStartsInterval() throws Exception {
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1983-12-02");
+		
+		final AtomicInteger resultCount = new AtomicInteger(0);
+		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/temporal/IntervalStartsInterval-1.0.0.cql", "cql/temporal/FHIRHelpers.cql");
+		
+		wrapper.evaluate("IntervalStartsInterval", "1.0.0", /* parameters= */null, new HashSet<>(Arrays.asList("LHS Starts RHS")),
+				Arrays.asList(patient.getId()), (p, e, r) -> {
+					assertEquals(Boolean.TRUE, r);
+					resultCount.incrementAndGet();
+				});
+		assertEquals(1, resultCount.get());
+	}
 }

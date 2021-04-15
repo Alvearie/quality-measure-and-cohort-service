@@ -105,6 +105,7 @@ public class CohortEngineRestHandler {
 	private static final String VALUE_SET_API_NOTES = "Uploads a value set described by the given xslx file";
 	private static final String VALUE_SET_UPDATE_IF_EXISTS_DESC = "The parameter that, if true, will force updates of value sets if the value set already exists";
 	private static final String VALUE_SET_DESC = "Spreadsheet containing the Value Set definition.";
+	private static final String CUSTOM_CODE_SYSTEM_DESC = "A custom mapping of code systems to urls";
 
 	public static final String DELAY_DEFAULT = "3";
 	
@@ -120,6 +121,7 @@ public class CohortEngineRestHandler {
 	
 	
 	public final static String VALUE_SET_PART = "value_set";
+	public final static String CUSTOM_CODE_SYSTEM = "custom_code_system";
 	
 	public static final String EXAMPLE_DATA_SERVER_CONFIG_JSON = "A configuration file containing information needed to connect to the FHIR server. "
 			+ "See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/getting-started.md#fhir-server-configuration for more details. \n"
@@ -413,6 +415,7 @@ public class CohortEngineRestHandler {
 		return response;
 	}
 
+
 	@POST
 	@Path("/valueset/")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -421,7 +424,8 @@ public class CohortEngineRestHandler {
 			// This is necessary for the dark launch feature
 			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
 			@ApiImplicitParam(name=FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
-			@ApiImplicitParam(name=VALUE_SET_PART, value= VALUE_SET_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" )
+			@ApiImplicitParam(name=VALUE_SET_PART, value= VALUE_SET_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" ),
+			@ApiImplicitParam(name=CUSTOM_CODE_SYSTEM, value= CUSTOM_CODE_SYSTEM_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful Operation"),
@@ -476,9 +480,15 @@ public class CohortEngineRestHandler {
 				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", VALUE_SET_PART));
 			}
 
+			IAttachment customCodes = multipartBody.getAttachment(CUSTOM_CODE_SYSTEM);
+			Map<String, String> customCodeMap = null;
+			if(customCodes != null){
+				customCodeMap = ValueSetUtil.getMapFromInputStream(customCodes.getDataHandler().getInputStream());
+			}
+
 			ValueSetArtifact artifact;
 			try (InputStream is = valueSetAttachment.getDataHandler().getInputStream()) {
-				artifact = ValueSetUtil.createArtifact(is);
+				artifact = ValueSetUtil.createArtifact(is, customCodeMap);
 			}
 			ValueSetUtil.validateArtifact(artifact);
 
