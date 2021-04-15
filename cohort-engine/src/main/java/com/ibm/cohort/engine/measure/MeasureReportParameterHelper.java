@@ -24,11 +24,10 @@ import org.opencds.cqf.cql.engine.runtime.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceHelper;
 
 public class MeasureReportParameterHelper {
 
-	private static final Logger logger = LoggerFactory.getLogger(MeasureEvidenceHelper.class);
+	private static final Logger logger = LoggerFactory.getLogger(MeasureReportParameterHelper.class);
 
 	public static Type getFhirTypeValue(Object value) {
 		if (value instanceof Interval) {
