@@ -7,16 +7,19 @@ package com.ibm.cohort.engine.measure;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
+import org.hl7.fhir.r4.model.ParameterDefinition;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Type;
 import org.hl7.fhir.r4.model.codesystems.MeasureScoring;
@@ -31,6 +34,7 @@ import com.ibm.cohort.engine.cqfruler.MeasureEvaluation;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceHelper;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
+import com.ibm.cohort.engine.parameter.Parameter;
 
 /**
  * Implementation of measure evaluation logic for the IBM Common Data Model IG
@@ -110,7 +114,7 @@ public class CDMMeasureEvaluation {
 	 * @param evidenceOptions MeasureEvidenceOptions to indicate whether or not to return evaluated resources and define level results
 	 * @return MeasureReport with population components filled out.
 	 */
-	public MeasureReport evaluatePatientMeasure(Measure measure, Context context, String patientId, MeasureEvidenceOptions evidenceOptions) {
+	public MeasureReport evaluatePatientMeasure(Measure measure, Context context, String patientId, MeasureEvidenceOptions evidenceOptions, Map<String, Parameter> parameterMap) {
 		context.setExpressionCaching(true);
 		
 		boolean includeEvaluatedResources = (evidenceOptions != null ) ? evidenceOptions.isIncludeEvaluatedResources() : false;
@@ -158,6 +162,8 @@ public class CDMMeasureEvaluation {
 			
 			defineContext.clearExpressionCache();
 		}
+		
+		addParametersToReport(report, measure, context, parameterMap);
 
 		return report;
 	}
@@ -196,6 +202,50 @@ public class CDMMeasureEvaluation {
 				}
 			}
 		}
+	}
+	
+	protected static void addParametersToReport(MeasureReport report, Measure measure, Context context, Map<String, Parameter> parameterMap) {
+		// Hard-code special value parameters
+		if (context.resolveParameterRef(null, CDMConstants.MEASUREMENT_PERIOD) != null) {
+			report.addExtension(createParameterExtension(context, CDMConstants.MEASUREMENT_PERIOD));
+		}
+		
+		if (context.resolveParameterRef(null, CDMConstants.PRODUCT_LINE) != null) {
+			report.addExtension(createParameterExtension(context, CDMConstants.PRODUCT_LINE));
+		}
+
+		Set<String> dynamicParameters = parameterMap == null ? new HashSet<>() : new HashSet<>(parameterMap.keySet());
+		
+		List<Extension> parameterExtensions = measure.getExtensionsByUrl(CDMConstants.MEASURE_PARAMETER_URL);
+		for (Extension e : parameterExtensions) {
+			ParameterDefinition parameterDefinition = (ParameterDefinition) e.getValue();
+			dynamicParameters.add(parameterDefinition.getName());
+		}
+		
+		dynamicParameters.forEach(x -> report.addExtension(createParameterExtension(context, x)));
+	}
+	
+	protected static Extension createParameterExtension(Context context, String parameterName) {
+		Object parameterValue = context.resolveParameterRef(null, parameterName);
+
+		Extension innerExtension = new Extension();
+		innerExtension.setUrl("http://ibm.com/fhir/cdm/StructureDefinition/parameter-value");
+		Type fhirParameterValue = MeasureReportParameterHelper.getFhirTypeValue(parameterValue);
+		innerExtension.setValue(fhirParameterValue);
+
+
+		// TODO: Fill  out parameter definition more thoroughly. Util class for this functionality?
+		ParameterDefinition parameterDefinition = new ParameterDefinition();
+		parameterDefinition.setName(parameterName);
+		parameterDefinition.setUse(ParameterDefinition.ParameterUse.IN);
+		parameterDefinition.setExtension(Collections.singletonList(innerExtension));
+		parameterDefinition.setType(fhirParameterValue == null ? null : fhirParameterValue.fhirType());
+
+		Extension outerExtension = new Extension();
+		outerExtension.setUrl("http://ibm.com/fhir/cdm/StructureDefinition/measure-parameter-value");
+		outerExtension.setValue(parameterDefinition);
+		
+		return outerExtension;
 	}
 
 	/**

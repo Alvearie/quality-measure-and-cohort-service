@@ -31,4 +31,7 @@ public class CDMConstants {
 
 	private static final String PARAMETER_DEFAULT = "default-value";
 	public static final String PARAMETER_DEFAULT_URL = BASE_URL + STRUCTURE_DEFINITION + PARAMETER_DEFAULT;
+	
+	public static final String MEASUREMENT_PERIOD = "Measurement Period";
+	public static final String PRODUCT_LINE = "Product Line";
 }

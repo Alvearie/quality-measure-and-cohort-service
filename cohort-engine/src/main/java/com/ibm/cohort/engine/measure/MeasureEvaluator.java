@@ -155,7 +155,7 @@ public class MeasureEvaluator {
 		IMeasureEvaluationSeed seed = seeder.create(measure, periodStart, periodEnd, "ProductLine", parameters);
 
 		CDMMeasureEvaluation evaluation = new CDMMeasureEvaluation(seed.getDataProvider(), seed.getMeasurementPeriod());
-		return evaluation.evaluatePatientMeasure(measure, seed.getContext(), patientId, evidenceOptions);
+		return evaluation.evaluatePatientMeasure(measure, seed.getContext(), patientId, evidenceOptions, parameters);
 	}
 
 }
