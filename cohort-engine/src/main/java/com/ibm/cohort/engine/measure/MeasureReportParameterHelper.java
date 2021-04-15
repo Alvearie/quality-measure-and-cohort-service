@@ -76,21 +76,9 @@ public class MeasureReportParameterHelper {
 			return range;
 		}
 		else if (low instanceof Time) {
-			Time cqlLowTime = (Time) low;
-			long lowMs = cqlLowTime.getTime().toNanoOfDay() / 1_000_000;
-			Time cqlHighTime = (Time) high;
-			long highMs = cqlHighTime.getTime().toNanoOfDay() / 1_000_000;
-
-			Duration lowDuration = new Duration();
-			lowDuration.setValue(lowMs);
-			lowDuration.setCode("ms");
-			Duration highDuration = new Duration();
-			highDuration.setValue(highMs);
-			highDuration.setCode("ms");
-			
 			Range range = new Range();
-			range.setLow(lowDuration);
-			range.setHigh(highDuration);
+			range.setLow(getDurationFromTime((Time) low));
+			range.setHigh(getDurationFromTime((Time) high));
 
 			return range;
 		}
@@ -152,5 +140,16 @@ public class MeasureReportParameterHelper {
 		org.hl7.fhir.r4.model.Quantity fhirQuantity = new org.hl7.fhir.r4.model.Quantity(cqlQuantity.getValue().doubleValue());
 		fhirQuantity.setUnit(cqlQuantity.getUnit());
 		return fhirQuantity;
+	}
+
+	private static Duration getDurationFromTime(Time time) {
+		long lowMs = time.getTime().toNanoOfDay() / 1_000_000;
+
+		Duration duration = new Duration();
+		duration.setValue(lowMs);
+		duration.setCode("ms");
+		duration.setSystem("http://hl7.org/fhir/ValueSet/duration-units");
+
+		return duration;
 	}
 }
