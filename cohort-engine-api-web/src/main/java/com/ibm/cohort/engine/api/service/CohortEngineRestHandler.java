@@ -494,12 +494,12 @@ public class CohortEngineRestHandler {
 
 			String valueSetId = ValueSetUtil.importArtifact(terminologyClient, artifact, updateIfExists);
 			if(valueSetId == null){
-				return Response.status(Response.Status.CONFLICT).header("Content-Type", "text/plain")
-						.entity("Value Set already exists! Rerun with updateIfExists set to true!")
+				return Response.status(Response.Status.CONFLICT).header("Content-Type", "application/json")
+						.entity("{\"message\":\"Value Set already exists! Rerun with updateIfExists set to true!\"}")
 						.build();
 			}
 
-			response = Response.status(Response.Status.CREATED).header("Content-Type", "text/plain").entity(valueSetId).build();
+			response = Response.status(Response.Status.CREATED).header("Content-Type", "application/json").entity("{\"valueSetId\":\"" + valueSetId + "\"}").build();
 		}
 		catch (Throwable e){
 			return new CohortServiceExceptionMapper().toResponse(e);
