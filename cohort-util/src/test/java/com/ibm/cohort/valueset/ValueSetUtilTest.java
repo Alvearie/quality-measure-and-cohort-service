@@ -7,13 +7,18 @@
 package com.ibm.cohort.valueset;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.ValueSet;
@@ -100,10 +105,21 @@ public class ValueSetUtilTest {
 		String valueSetInput = "src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx";
 		File tempFile = new File(valueSetInput);
 		byte[] byteArrayInput = Files.readAllBytes(Paths.get(tempFile.getAbsolutePath()));
-		ValueSetArtifact artifact = ValueSetUtil.createArtifact(new ByteArrayInputStream(byteArrayInput));
+		ValueSetArtifact artifact = ValueSetUtil.createArtifact(new ByteArrayInputStream(byteArrayInput), null);
 		assertEquals("testValueSet", artifact.getFhirResource().getId());
 		assertEquals("http://cts.nlm.nih.gov/fhir/ValueSet/testValueSet", artifact.getUrl());
 		assertEquals("Value Set For Testing Uploads", artifact.getName());
+	}
+
+	@Test
+	public void testMapCreation() throws IOException {
+		String codeSystemInput = "src/test/resources/codeSystemOverride.txt";
+		Map<String, String> expectedMap = new HashMap<>();
+		expectedMap.put("tomato", "http://abc.com");
+		expectedMap.put("excedrin", "http://nih.no.com");
+		Map<String, String> codeSystemMap = ValueSetUtil.getMapFromInputStream(new FileInputStream(new File(codeSystemInput)));
+		assertEquals(expectedMap.size(), codeSystemMap.size());
+		assertEquals(expectedMap.entrySet(), codeSystemMap.entrySet());
 	}
 
 }
