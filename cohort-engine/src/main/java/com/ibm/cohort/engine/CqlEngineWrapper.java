@@ -35,11 +35,9 @@ import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.parameter.Parameter;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
-import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
-import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 /**
@@ -54,18 +52,18 @@ public class CqlEngineWrapper {
 
 	private LibraryLoader libraryLoader = null;
 
-	private FhirClientBuilder clientBuilder;
+	private FhirClientBuilderFactory clientBuilderFactory;
 
 	private IGenericClient dataServerClient;
 	private IGenericClient measureServerClient;
 	private IGenericClient terminologyServerClient;
 
 	public CqlEngineWrapper() {
-		this(FhirClientBuilderFactory.newInstance().newFhirClientBuilder(FhirContext.forR4()));
+		this(FhirClientBuilderFactory.newInstance());
 	}
 
-	public CqlEngineWrapper(FhirClientBuilder clientBuilder) {
-		this.clientBuilder = clientBuilder;
+	public CqlEngineWrapper(FhirClientBuilderFactory clientBuilderFactory) {
+		this.clientBuilderFactory = clientBuilderFactory;
 	}
 
 	/**
@@ -83,7 +81,7 @@ public class CqlEngineWrapper {
 	 * @param config data server connection properties
 	 */
 	public void setDataServerConnectionProperties(FhirServerConfig config) {
-		setDataServerClient(clientBuilder.createFhirClient(config));
+		setDataServerClient(clientBuilderFactory.newFhirClientBuilder().createFhirClient(config));
 	}
 
 	/**
@@ -110,7 +108,7 @@ public class CqlEngineWrapper {
 	 * @param config measure server connection properties
 	 */
 	public void setMeasureServerConnectionProperties(FhirServerConfig config) {
-		setMeasureServerClient(clientBuilder.createFhirClient(config));
+		setMeasureServerClient(clientBuilderFactory.newFhirClientBuilder().createFhirClient(config));
 	}
 
 	/**
@@ -137,7 +135,7 @@ public class CqlEngineWrapper {
 	 * @param config terminology server connection properties
 	 */
 	public void setTerminologyServerConnectionProperties(FhirServerConfig config) {
-		this.terminologyServerClient = clientBuilder.createFhirClient(config);
+		this.terminologyServerClient = clientBuilderFactory.newFhirClientBuilder().createFhirClient(config);
 	}
 
 	/**

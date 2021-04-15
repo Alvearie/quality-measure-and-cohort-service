@@ -38,7 +38,6 @@ import com.ibm.cohort.engine.ZipStreamLibrarySourceProvider;
 import com.ibm.cohort.engine.helpers.FileHelpers;
 import com.ibm.cohort.engine.translation.CqlTranslationProvider;
 import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
-import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 
 public class CohortCLI extends BaseCLI {
@@ -113,9 +112,8 @@ public class CohortCLI extends BaseCLI {
 		} else {
 			
 			FhirClientBuilderFactory factory = FhirClientBuilderFactory.newInstance();
-			FhirClientBuilder builder = factory.newFhirClientBuilder();
 			
-			wrapper = new CqlEngineWrapper(builder);
+			wrapper = new CqlEngineWrapper(factory);
 
 			configureConnections(wrapper, arguments);
 

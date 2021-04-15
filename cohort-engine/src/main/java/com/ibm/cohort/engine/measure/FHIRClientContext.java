@@ -6,15 +6,18 @@
 
 package com.ibm.cohort.engine.measure;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.rest.client.api.IGenericClient;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
+import ca.uhn.fhir.rest.client.api.IGenericClient;
+
 /**
  * A wrapper around the different HAPI client connections required by the engine.
+ *
+ * FHIRClientContext objects are expensive to create. If possible, a single
+ * FHIRClientContext object should be created and then reused as needed.
  *
  * Use {@link Builder} for construction.
  */
@@ -37,8 +40,6 @@ public class FHIRClientContext {
 	 * <p>Failing to provide a valid connection for all four services will result in an {@link IllegalArgumentException}.
 	 */
 	public static class Builder {
-
-		private FhirContext fhirContext;
 
 		private IGenericClient defaultClient;
 		public Builder withDefaultClient(IGenericClient value) {
@@ -106,16 +107,10 @@ public class FHIRClientContext {
 
 		private IGenericClient createClient(FhirServerConfig config) {
 			FhirClientBuilderFactory factory = new DefaultFhirClientBuilderFactory();
-			FhirClientBuilder clientBuilder = factory.newFhirClientBuilder(getFhirContext());
+			FhirClientBuilder clientBuilder = factory.newFhirClientBuilder();
 			return clientBuilder.createFhirClient(config);
 		}
 
-		private FhirContext getFhirContext() {
-			if (fhirContext == null) {
-				fhirContext = FhirContext.forR4();
-			}
-			return fhirContext;
-		}
 	}
 
 	private final IGenericClient terminologyClient;

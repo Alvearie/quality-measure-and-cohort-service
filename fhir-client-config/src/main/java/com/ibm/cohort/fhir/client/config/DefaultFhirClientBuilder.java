@@ -10,6 +10,7 @@ import java.util.Map;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IClientInterceptor;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
+import ca.uhn.fhir.rest.client.api.IRestfulClientFactory;
 import ca.uhn.fhir.rest.client.interceptor.AdditionalRequestHeadersInterceptor;
 import ca.uhn.fhir.rest.client.interceptor.BasicAuthInterceptor;
 import ca.uhn.fhir.rest.client.interceptor.BearerTokenAuthInterceptor;
@@ -26,6 +27,17 @@ import ca.uhn.fhir.rest.client.interceptor.LoggingInterceptor;
  * instance, if the client provides both user/password authentication parameters
  * and a bearer authorization token, both interceptors are created and attached
  * to the client object.
+ * 
+ * Note that a FhirContext object used to create a DefaultFhirClientBuilder contains
+ * static state that will be shared across any IGenericClient objects created from
+ * the context. Reusing FhirContext objects across multiple instances of DefaultFhirClientBuilder
+ * or creating multiple IGenericClient objects from a single DefaultFhirClientBuilder may
+ * result in client configuration states that are unexpected.
+ * 
+ * It is recommended to create only a single IGenericClient from each instance of
+ * DefaultFhirClientBuilder and to always provide a new FhirContext object to each
+ * separate instance of DefaultFhirClientBuilder created in order to avoid potential
+ * configuration issues.
  */
 public class DefaultFhirClientBuilder implements FhirClientBuilder {
 
@@ -45,6 +57,10 @@ public class DefaultFhirClientBuilder implements FhirClientBuilder {
 	 */
 	@Override
 	public IGenericClient createFhirClient(FhirServerConfig config) {
+
+		fhirContext.getRestfulClientFactory().setSocketTimeout(validateAndGetTimeoutConfig(config.getSocketTimeout(), IRestfulClientFactory.DEFAULT_SOCKET_TIMEOUT));
+		fhirContext.getRestfulClientFactory().setConnectTimeout(validateAndGetTimeoutConfig(config.getConnectTimeout(), IRestfulClientFactory.DEFAULT_CONNECT_TIMEOUT));
+		fhirContext.getRestfulClientFactory().setConnectionRequestTimeout(validateAndGetTimeoutConfig(config.getConnectionRequestTimeout(), IRestfulClientFactory.DEFAULT_CONNECTION_REQUEST_TIMEOUT));
 
 		IGenericClient client = fhirContext.newRestfulGenericClient(config.getEndpoint());
 
@@ -136,5 +152,15 @@ public class DefaultFhirClientBuilder implements FhirClientBuilder {
 		}
 
 		return client;
+	}
+
+	private Integer validateAndGetTimeoutConfig(Integer configValue, Integer defaultValue) {
+		if (configValue == null) {
+			return defaultValue;
+		} else if (configValue >= 0) {
+			return configValue;
+		} else {
+			throw new IllegalArgumentException("FHIR client config timeout values must be >= 0");
+		}
 	}
 }
