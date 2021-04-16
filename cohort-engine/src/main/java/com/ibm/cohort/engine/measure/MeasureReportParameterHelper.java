@@ -4,13 +4,16 @@ import java.math.BigDecimal;
 
 import org.hl7.fhir.instance.model.api.IBaseDatatype;
 import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.DateTimeType;
 import org.opencds.cqf.cql.engine.fhir.converter.FhirTypeConverter;
 import org.opencds.cqf.cql.engine.fhir.converter.FhirTypeConverterFactory;
 import org.opencds.cqf.cql.engine.runtime.Code;
 import org.opencds.cqf.cql.engine.runtime.Concept;
+import org.opencds.cqf.cql.engine.runtime.Date;
 import org.opencds.cqf.cql.engine.runtime.DateTime;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 import org.opencds.cqf.cql.engine.runtime.Quantity;
+import org.opencds.cqf.cql.engine.runtime.Ratio;
 import org.opencds.cqf.cql.engine.runtime.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +36,7 @@ public class MeasureReportParameterHelper {
 		}
 	}
 
-	protected static IBaseDatatype getFhirTypeForInterval(Interval interval) {
+	private static IBaseDatatype getFhirTypeForInterval(Interval interval) {
 		Object low =  interval.getLow();
 		Object high = interval.getHigh();
 		
@@ -74,7 +77,7 @@ public class MeasureReportParameterHelper {
 		}
 	}
 	
-	protected static IBaseDatatype getFhirTypeForNonInterval(Object value) {
+	private static IBaseDatatype getFhirTypeForNonInterval(Object value) {
 		if(value instanceof String) {
 			return converter.toFhirString((String) value);
 		}
@@ -97,10 +100,16 @@ public class MeasureReportParameterHelper {
 			return converter.toFhirCodeableConcept((Concept) value);
 		}
 		else if (value instanceof DateTime) {
-			return converter.toFhirDateTime((DateTime) value);
+			return new DateTimeType(value.toString());
 		}
 		else if (value instanceof Quantity) {
 			return converter.toFhirQuantity((Quantity) value);
+		}
+		else if (value instanceof Ratio) {
+			return converter.toFhirRatio((Ratio) value);
+		}
+		else if (value instanceof Date) {
+			return converter.toFhirDate((Date) value);
 		}
 		else {
 			logger.warn("Support not implemented for parameters of type {} on a MeasureReport", value.getClass());
