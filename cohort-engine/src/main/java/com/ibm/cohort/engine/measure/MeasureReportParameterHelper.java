@@ -3,19 +3,9 @@ package com.ibm.cohort.engine.measure;
 import java.math.BigDecimal;
 
 import org.hl7.fhir.instance.model.api.IBaseDatatype;
-import org.hl7.fhir.r4.model.BooleanType;
-import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.DateTimeType;
-import org.hl7.fhir.r4.model.DecimalType;
 import org.hl7.fhir.r4.model.Duration;
-import org.hl7.fhir.r4.model.IntegerType;
-import org.hl7.fhir.r4.model.Period;
 import org.hl7.fhir.r4.model.Range;
-import org.hl7.fhir.r4.model.SimpleQuantity;
-import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.TimeType;
-import org.hl7.fhir.r4.model.Type;
 import org.opencds.cqf.cql.engine.fhir.converter.FhirTypeConverter;
 import org.opencds.cqf.cql.engine.fhir.converter.FhirTypeConverterFactory;
 import org.opencds.cqf.cql.engine.runtime.Code;
@@ -49,7 +39,7 @@ public class MeasureReportParameterHelper {
 		Object low =  interval.getLow();
 		Object high = interval.getHigh();
 		
-		if (low instanceof DateTime) {
+		if (low instanceof DateTime || low instanceof Quantity) {
 			return converter.toFhirInterval(interval);
 		}
 		else if (low instanceof BigDecimal) {
@@ -70,15 +60,15 @@ public class MeasureReportParameterHelper {
 			);
 			return converter.toFhirInterval(tmpInterval);
 		}
-		else if (low instanceof Quantity) {
-			return converter.toFhirRange(interval);
-		}
 		else if (low instanceof Time) {
-			Range range = new Range();
-			range.setLow(getDurationFromTime((Time) low));
-			range.setHigh(getDurationFromTime((Time) high));
+			Interval tmpInterval = new Interval(
+					getMillisecondQuantity((Time) low),
+					interval.getLowClosed(),
+					getMillisecondQuantity((Time) high),
+					interval.getHighClosed()
+			);
 
-			return range;
+			return converter.toFhirInterval(tmpInterval);
 		}
 		else  {
 			logger.warn("Support not implemented for parameters of type {} on a MeasureReport", low.getClass());
@@ -120,14 +110,13 @@ public class MeasureReportParameterHelper {
 		}
 	}
 
-	private static Duration getDurationFromTime(Time time) {
+	private static Quantity getMillisecondQuantity(Time time) {
 		long lowMs = time.getTime().toNanoOfDay() / 1_000_000;
 
-		Duration duration = new Duration();
-		duration.setValue(lowMs);
-		duration.setCode("ms");
-		duration.setSystem("http://hl7.org/fhir/ValueSet/duration-units");
+		Quantity quantity = new Quantity();
+		quantity.setValue(BigDecimal.valueOf(lowMs));
+		quantity.setUnit("ms");
 
-		return duration;
+		return quantity;
 	}
 }
