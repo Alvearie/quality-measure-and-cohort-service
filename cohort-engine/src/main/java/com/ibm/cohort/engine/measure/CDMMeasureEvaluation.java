@@ -15,6 +15,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
+import org.hl7.fhir.instance.model.api.IBaseDatatype;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Measure;
@@ -230,7 +231,7 @@ public class CDMMeasureEvaluation {
 
 		Extension innerExtension = new Extension();
 		innerExtension.setUrl("http://ibm.com/fhir/cdm/StructureDefinition/parameter-value");
-		Type fhirParameterValue = MeasureReportParameterHelper.getFhirTypeValue(parameterValue);
+		IBaseDatatype fhirParameterValue = MeasureReportParameterHelper.getFhirTypeValue(parameterValue);
 		innerExtension.setValue(fhirParameterValue);
 
 
