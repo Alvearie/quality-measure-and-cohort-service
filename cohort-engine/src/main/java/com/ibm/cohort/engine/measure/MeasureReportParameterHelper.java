@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 
 import org.hl7.fhir.instance.model.api.IBaseDatatype;
 import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.Duration;
-import org.hl7.fhir.r4.model.Range;
 import org.opencds.cqf.cql.engine.fhir.converter.FhirTypeConverter;
 import org.opencds.cqf.cql.engine.fhir.converter.FhirTypeConverterFactory;
 import org.opencds.cqf.cql.engine.runtime.Code;
