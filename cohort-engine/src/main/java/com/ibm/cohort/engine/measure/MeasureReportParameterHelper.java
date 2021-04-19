@@ -38,41 +38,12 @@ public class MeasureReportParameterHelper {
 
 	private static IBaseDatatype getFhirTypeForInterval(Interval interval) {
 		Object low =  interval.getLow();
-		Object high = interval.getHigh();
 		
 		if (low instanceof DateTime || low instanceof Quantity) {
 			return converter.toFhirInterval(interval);
 		}
-		else if (low instanceof BigDecimal) {
-			Interval tmpInterval = new Interval(
-					new Quantity().withValue((BigDecimal) low),
-					interval.getLowClosed(),
-					new Quantity().withValue((BigDecimal) high),
-					interval.getHighClosed()
-			);
-			return converter.toFhirInterval(tmpInterval);
-		}
-		else if (low instanceof Integer) {
-			Interval tmpInterval = new Interval(
-					new Quantity().withValue(BigDecimal.valueOf((Integer) low)),
-					interval.getLowClosed(),
-					new Quantity().withValue(BigDecimal.valueOf((Integer) high)),
-					interval.getHighClosed()
-			);
-			return converter.toFhirInterval(tmpInterval);
-		}
-		else if (low instanceof Time) {
-			Interval tmpInterval = new Interval(
-					getMillisecondQuantity((Time) low),
-					interval.getLowClosed(),
-					getMillisecondQuantity((Time) high),
-					interval.getHighClosed()
-			);
-
-			return converter.toFhirInterval(tmpInterval);
-		}
 		else  {
-			logger.warn("Support not implemented for parameters of type {} on a MeasureReport", low.getClass());
+			logger.warn("Support not implemented for Interval parameters of type {} on a MeasureReport", low.getClass());
 			return null;
 		}
 	}
