@@ -4,12 +4,11 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 ####################
-# First stage:  IBM Java SDK UBI
-# IBM Java SDK UBI is not available on public docker yet. Use regular
-# base as builder until this is ready. For reference:
-# https://github.com/ibmruntimes/ci.docker/tree/master/ibmjava/8/sdk/ubi-min
+# First stage:  Red Hat UBI8
+# Use this image as a builder image for someplace to
+# unzip our binaries to. For reference:
+# https://access.redhat.com/containers/?tab=support#/registry.access.redhat.com/ubi8/ubi
 ####################
-#FROM us.icr.io/cdt-common-rns/base-images/ubi8:latest AS builder
 FROM registry.access.redhat.com/ubi8 AS builder
 
 WORKDIR /app
@@ -28,10 +27,9 @@ RUN mkdir -p $COHORT_DIST_SOLUTION && \
 
 ####################
 # Multi-stage build. New build stage that uses the Liberty UBI as the base image.
-# Liberty document reference : https://hub.docker.com/_/websphere-liberty/
+# Liberty document reference : https://registry.hub.docker.com/r/ibmcom/websphere-liberty
 ####################
 #TODO periodically update to the latest base image
-#FROM us.icr.io/cdt-common-rns/base-images/ubi8-liberty:20210308.1322
 FROM registry.hub.docker.com/ibmcom/websphere-liberty:21.0.0.3-full-java8-openj9-ubi
 
 # Labels - certain labels are required if you want to have
