@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
 
@@ -19,6 +20,8 @@ import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.DateType;
 import org.hl7.fhir.r4.model.DecimalType;
 import org.hl7.fhir.r4.model.IntegerType;
+import org.hl7.fhir.r4.model.Period;
+import org.hl7.fhir.r4.model.Range;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.TimeType;
 import org.junit.Assert;
@@ -28,23 +31,94 @@ import org.opencds.cqf.cql.engine.runtime.Concept;
 import org.opencds.cqf.cql.engine.runtime.CqlList;
 import org.opencds.cqf.cql.engine.runtime.Date;
 import org.opencds.cqf.cql.engine.runtime.DateTime;
+import org.opencds.cqf.cql.engine.runtime.Interval;
 import org.opencds.cqf.cql.engine.runtime.Quantity;
 import org.opencds.cqf.cql.engine.runtime.Ratio;
 import org.opencds.cqf.cql.engine.runtime.Time;
 
 public class MeasureReportParameterHelperTest {
-	
+
 	@Test
 	public void testUnsupportedType_shouldReturnNull() {
 		assertNull(MeasureReportParameterHelper.getFhirTypeValue(new CqlList()));
 	}
-	
+
+	@Test
+	public void testIntervalDateTime_shouldReturnPeriod() {
+		String startTimeString = "2020-01-01T00:10:05.000";
+		String endTimeString = "2020-02-15T00:15:10.000";
+
+		DateTime startDateTime = new DateTime(startTimeString, ZoneOffset.of("+00:00"));
+		DateTime endDateTime = new DateTime(endTimeString, ZoneOffset.of("+01:00"));
+
+		Interval interval = new Interval(startDateTime, true, endDateTime, true);
+
+		IBaseDatatype fhirTypeValue = MeasureReportParameterHelper.getFhirTypeValue(interval);
+
+		DateTimeType expectedStart = new DateTimeType("2020-01-01T00:10:05+00:00");
+		DateTimeType expectedEnd = new DateTimeType("2020-02-15T00:15:10+01:00");
+
+		assertTrue(fhirTypeValue instanceof Period);
+		assertEquals(expectedStart.toHumanDisplay(), ((Period) fhirTypeValue).getStartElement().toHumanDisplay());
+		assertEquals(expectedEnd.toHumanDisplay(), ((Period) fhirTypeValue).getEndElement().toHumanDisplay());
+	}
+
+	@Test
+	public void testIntervalQuantity_shouldReturnRange() {
+		String unit = "ml";
+		BigDecimal startAmount = new BigDecimal("4.0");
+		BigDecimal endAmount = new BigDecimal("5.0");
+		Quantity startQuantity = new Quantity().withUnit(unit).withValue(startAmount);
+		Quantity endQuantity = new Quantity().withUnit(unit).withValue(endAmount);
+
+		IBaseDatatype fhirTypeValue = MeasureReportParameterHelper.getFhirTypeValue(new Interval(startQuantity, true, endQuantity, true));
+
+		assertTrue(fhirTypeValue instanceof Range);
+		Range castResult = (Range) fhirTypeValue;
+		verifyBaseTypeAsQuantity(castResult.getLow(), startAmount, unit);
+		verifyBaseTypeAsQuantity(castResult.getHigh(), endAmount, unit);
+	}
+
+	/*
+	 *  Currently only supporting CQL intervals of type DateTime or Quantity.
+	 *  Support for intervals of other types may be added in the future.
+	 */
+	@Test
+	public void testIntervalTime_shouldReturnNull() {
+		String startTimeString = "00:10:00.000";
+		String endTimeString = "00:15:00.000";
+
+		Time startTime = new Time(startTimeString);
+		Time endTime = new Time(endTimeString);
+
+		Interval interval = new Interval(startTime, true, endTime, true);
+		assertNull(MeasureReportParameterHelper.getFhirTypeValue(interval));
+	}
+
+	@Test
+	public void testIntervalDecimal_shouldReturnNull() {
+		Interval interval = new Interval(new BigDecimal("1.4"), true, new BigDecimal("1.5"), true);
+		assertNull(MeasureReportParameterHelper.getFhirTypeValue(interval));
+	}
+
+	@Test
+	public void testIntervalInteger_shouldReturnNull() {
+		Interval interval = new Interval(1, true, 10, true);
+		assertNull(MeasureReportParameterHelper.getFhirTypeValue(interval));
+	}
+
+	@Test
+	public void testIntervalDate_shouldReturnNull() {
+		Interval interval = new Interval(new Date("2020-01-02"), true, new Date("2020-06-04"), true);
+		assertNull(MeasureReportParameterHelper.getFhirTypeValue(interval));
+	}
+
 	@Test
 	public void testIntegerType() {
 		Integer expected = 1;
-		
+
 		IBaseDatatype fhirTypeValue = MeasureReportParameterHelper.getFhirTypeValue(expected);
-		
+
 		assertTrue(fhirTypeValue instanceof IntegerType);
 		assertEquals(expected, ((IntegerType) fhirTypeValue).getValue());
 	}
@@ -54,11 +128,11 @@ public class MeasureReportParameterHelperTest {
 		BigDecimal expected = BigDecimal.valueOf(2.3);
 
 		IBaseDatatype fhirTypeValue = MeasureReportParameterHelper.getFhirTypeValue(expected);
-		
+
 		assertTrue(fhirTypeValue instanceof DecimalType);
 		assertEquals(expected, ((DecimalType) fhirTypeValue).getValue());
 	}
-	
+
 	@Test
 	public void testString() {
 		String expected = "strval";
@@ -68,7 +142,7 @@ public class MeasureReportParameterHelperTest {
 		assertTrue(fhirTypeValue instanceof StringType);
 		assertEquals(expected, ((StringType) fhirTypeValue).getValue());
 	}
-	
+
 	@Test
 	public void testBoolean() {
 		IBaseDatatype fhirTypeValue = MeasureReportParameterHelper.getFhirTypeValue(false);
@@ -80,9 +154,9 @@ public class MeasureReportParameterHelperTest {
 	@Test
 	public void testDateTime() {
 		String dateTimeString = "2020-01-02T00:00:00.000";
-		
+
 		DateTime expected = new DateTime(dateTimeString, OffsetDateTime.now().getOffset());
-		
+
 		IBaseDatatype fhirTypeValue = MeasureReportParameterHelper.getFhirTypeValue(expected);
 
 		assertTrue(fhirTypeValue instanceof DateTimeType);
@@ -112,20 +186,20 @@ public class MeasureReportParameterHelperTest {
 		assertTrue(fhirTypeValue instanceof TimeType);
 		assertEquals(timeString, ((TimeType) fhirTypeValue).getValueAsString());
 	}
-	
+
 	@Test
 	public void testQuantity() {
 		String unit = "ml";
 		BigDecimal amount = new BigDecimal("4.0");
 		Quantity quantity = new Quantity().withUnit(unit).withValue(amount);
-		
+
 		verifyBaseTypeAsQuantity(MeasureReportParameterHelper.getFhirTypeValue(quantity), amount, unit);
 	}
 
 	@Test
 	public void testRatio() {
 		String unit = "ml";
-		
+
 		BigDecimal amount1 = new BigDecimal("4.0");
 		Quantity quantity1 = new Quantity().withUnit(unit).withValue(amount1);
 
@@ -141,12 +215,12 @@ public class MeasureReportParameterHelperTest {
 		verifyBaseTypeAsQuantity(castResult.getNumerator(), amount1, unit);
 		verifyBaseTypeAsQuantity(castResult.getDenominator(), amount2, unit);
 	}
-	
+
 	private void verifyBaseTypeAsQuantity(IBaseDatatype baseDatatype, BigDecimal amount, String unit) {
 		assertTrue(baseDatatype instanceof org.hl7.fhir.r4.model.Quantity);
 
 		org.hl7.fhir.r4.model.Quantity quantity = (org.hl7.fhir.r4.model.Quantity) baseDatatype;
-		
+
 		assertEquals(unit, quantity.getCode());
 		assertEquals(amount, quantity.getValue());
 	}
@@ -159,7 +233,7 @@ public class MeasureReportParameterHelperTest {
 		String version = "version";
 
 		Code code = new Code().withCode(codeString).withSystem(system).withDisplay(display).withVersion(version);
-		
+
 		verifyBaseTypeAsCode(MeasureReportParameterHelper.getFhirTypeValue(code), codeString, system, display, version);
 	}
 
@@ -174,7 +248,7 @@ public class MeasureReportParameterHelperTest {
 		String system2 = "system2";
 		String display2 = "display2";
 		String version2 = "version2";
-		
+
 		String conceptDisplay = "conceptDisplay";
 
 		Code code1 = new Code().withCode(codeString1).withSystem(system1).withDisplay(display1).withVersion(version1);
@@ -201,15 +275,15 @@ public class MeasureReportParameterHelperTest {
 				Assert.fail();
 			}
 		}
-		
+
 		assertEquals(2, codingCount);
 	}
-	
+
 	private void verifyBaseTypeAsCode(IBaseDatatype baseDatatype, String code, String system, String display, String version) {
 		assertTrue(baseDatatype instanceof Coding);
-		
+
 		Coding coding = (Coding) baseDatatype;
-		
+
 		assertEquals(code, coding.getCode());
 		assertEquals(system, coding.getSystem());
 		assertEquals(display, coding.getDisplay());

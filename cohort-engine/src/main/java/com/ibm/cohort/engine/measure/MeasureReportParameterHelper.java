@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import org.hl7.fhir.instance.model.api.IBaseDatatype;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.DateTimeType;
+import org.hl7.fhir.r4.model.Period;
 import org.opencds.cqf.cql.engine.fhir.converter.FhirTypeConverter;
 import org.opencds.cqf.cql.engine.fhir.converter.FhirTypeConverterFactory;
 import org.opencds.cqf.cql.engine.runtime.Code;
@@ -38,9 +39,18 @@ public class MeasureReportParameterHelper {
 
 	private static IBaseDatatype getFhirTypeForInterval(Interval interval) {
 		Object low =  interval.getLow();
-		
-		if (low instanceof DateTime || low instanceof Quantity) {
-			return converter.toFhirInterval(interval);
+		Object high = interval.getHigh();
+
+		if (low instanceof DateTime) {
+			// The R4 Type converter ignored timezone information. Convert by hand for now
+			Period period = new Period();
+
+			period.setStartElement(new DateTimeType(((DateTime) low).getDateTime().toString()));
+			period.setEndElement(new DateTimeType(((DateTime) high).getDateTime().toString()));
+			return period;
+		}
+		else if (low instanceof Quantity) {
+			return converter.toFhirRange(interval);
 		}
 		else  {
 			logger.warn("Support not implemented for Interval parameters of type {} on a MeasureReport", low.getClass());
@@ -86,15 +96,5 @@ public class MeasureReportParameterHelper {
 			logger.warn("Support not implemented for parameters of type {} on a MeasureReport", value.getClass());
 			return null;
 		}
-	}
-
-	private static Quantity getMillisecondQuantity(Time time) {
-		long lowMs = time.getTime().toNanoOfDay() / 1_000_000;
-
-		Quantity quantity = new Quantity();
-		quantity.setValue(BigDecimal.valueOf(lowMs));
-		quantity.setUnit("ms");
-
-		return quantity;
 	}
 }
