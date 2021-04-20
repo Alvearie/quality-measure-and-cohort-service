@@ -175,7 +175,7 @@ public class CqlEngineWrapper {
 	 * @return positive integer or null if no value has been configured. If no value
 	 *         is configured, the server will use its default setting.
 	 */
-	public Integer getSearcPageSize() {
+	public Integer getSearchPageSize() {
 		return this.searchPageSize;
 	}
 	
@@ -323,7 +323,7 @@ public class CqlEngineWrapper {
 		//Ideally, we would determine this using the FHIR CapabilityStatement, but there isn't a strongly
 		//reliable way to do that right now using HAPI and IBM FHIR as examples.
 		retrieveProvider.setExpandValueSets(isExpandValueSets());
-		retrieveProvider.setSearchPageSize(getSearcPageSize());
+		retrieveProvider.setSearchPageSize(getSearchPageSize());
 		CompositeDataProvider dataProvider = new CompositeDataProvider(new R4FhirModelResolver(), retrieveProvider);
 
 		return mapSupportedModelsToDataProvider(dataProvider);

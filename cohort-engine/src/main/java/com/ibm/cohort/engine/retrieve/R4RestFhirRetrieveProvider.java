@@ -81,10 +81,10 @@ public class R4RestFhirRetrieveProvider extends RestFhirRetrieveProvider {
 	
 	/**
 	 * This is a copy/paste hack job on the OSS <code>executeQuery</code>
-	 * executeQuery implementation that adds the _count parameter
-	 * into the generated queries.
+	 * implementation that adds the _count parameter into the generated queries.
+	 * 
 	 * @param dataType Resource type that is being queried
-	 * @param map search parameters
+	 * @param map      search parameters
 	 * @return result of the query
 	 */
 	protected IBaseResource originalExecuteQuery(String dataType, SearchParameterMap map) {
@@ -139,9 +139,11 @@ public class R4RestFhirRetrieveProvider extends RestFhirRetrieveProvider {
 				flattenedMap.put(name, flattened);
 			}
 
+			// THIS IS THE NEW CODE
 			if( getSearchPageSize() != null ) {
 				search.count( getSearchPageSize() );
 			}
+			// END NEW CODE
 			
 			return search.where(flattenedMap).usingStyle(getSearchStyle()).execute();
 		}
