@@ -79,9 +79,15 @@ public class CohortCLI extends BaseCLI {
 		private LibraryFormat sourceFormat = DEFAULT_SOURCE_FORMAT;
 		
 		@Parameter(names = { "-i",
-		"--model-info" }, description = "Model info file used when translating CQL", required = false)
+				"--model-info" }, description = "Model info file used when translating CQL", required = false)
 		private File modelInfoFile;
-
+		
+		@Parameter(names = { "--expand-value-sets" }, arity = 1, description = "By default, ValueSet resources used in CQL are expanded by the terminology server. If the data server supports terminology and the token :in modifier, setting this flag to false will enable use of that functionality which should improve CQL engine throughput.", required = false )
+		private boolean expandValueSets = DEFAULT_EXPAND_VALUE_SETS;
+		
+		@Parameter(names = { "--search-page-size" }, description = "Specifies how many records are requested per page during a FHIR search operation. The default value for servers can be quite small and setting this to a larger number will potentially improve performance.")
+		private int searchPageSize = DEFAULT_PAGE_SIZE;
+		
 		@Parameter(names = { "-h", "--help" }, description = "Display this help", required = false, help = true)
 		private boolean isDisplayHelp;
 	}
@@ -114,6 +120,8 @@ public class CohortCLI extends BaseCLI {
 			FhirClientBuilderFactory factory = FhirClientBuilderFactory.newInstance();
 			
 			wrapper = new CqlEngineWrapper(factory);
+			wrapper.setExpandValueSets( arguments.expandValueSets );
+			wrapper.setSearchPageSize( arguments.searchPageSize );
 
 			configureConnections(wrapper, arguments);
 

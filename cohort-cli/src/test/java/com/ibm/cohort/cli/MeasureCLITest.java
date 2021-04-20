@@ -499,7 +499,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		
 		Bundle emptyBundle = getBundle();
 		assertTrue( "Bundle should be empty", emptyBundle.isEmpty() );
-		mockFhirResourceRetrieval(get(urlMatching("/Condition.*")), emptyBundle);
+		mockFhirResourceRetrieval(get(urlMatching("/Condition.*&_count=500")), emptyBundle);
 		mockFhirResourceRetrieval(get(urlMatching("/Procedure.*")), emptyBundle);
 		mockFhirResourceRetrieval(get(urlMatching("/Observation.*")), emptyBundle);
 		mockSampleValueSets();
@@ -516,7 +516,9 @@ public class MeasureCLITest extends BaseMeasureTest {
 					"-r", "Measure/measure-COL_ColorectalCancerScreening-1.0.0",
 					"--filter", "fhirResources",
 					"-c", patient.getId(),
-					"-f", "JSON"
+					"-f", "JSON",
+					"--expand-value-sets", "true",
+					"--search-page-size", "500"
 			}, out);	
 		} finally {
 			tmpFile.delete();

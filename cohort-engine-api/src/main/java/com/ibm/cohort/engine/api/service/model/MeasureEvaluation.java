@@ -32,6 +32,8 @@ public class MeasureEvaluation {
 	@Valid
 	private MeasureContext measureContext;
 	private MeasureEvidenceOptions evidenceOptions;
+	private Boolean expandValueSets;
+	private Integer searchPageSize;
 
 	@ApiModelProperty(required = true)
 	public FhirServerConfig getDataServerConfig() {
@@ -76,6 +78,24 @@ public class MeasureEvaluation {
 
 	public void setEvidenceOptions(MeasureEvidenceOptions evidenceOptions) {
 		this.evidenceOptions = evidenceOptions;
+	}
+	
+	@ApiModelProperty(required = false)
+	public Boolean isExpandValueSets() {
+		return this.expandValueSets;
+	}
+	
+	public void setExpandValueSets(Boolean expandValueSets) { 
+		this.expandValueSets = expandValueSets;
+	}
+	
+	@ApiModelProperty(required = false)
+	public Integer getSearchPageSize() {
+		return this.searchPageSize;
+	}
+	
+	public void setSearchPageSize(Integer searchPageSize) { 
+		this.searchPageSize = searchPageSize;
 	}
 	
 	@Override

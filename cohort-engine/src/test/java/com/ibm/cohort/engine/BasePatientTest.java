@@ -66,6 +66,9 @@ public class BasePatientTest extends BaseFhirTest {
 		wrapper.setDataServerConnectionProperties(fhirConfig);
 		wrapper.setTerminologyServerConnectionProperties(fhirConfig);
 		wrapper.setMeasureServerConnectionProperties(fhirConfig);
+		// This is a hack to get all the old tests that were written
+		// assuming server-default page sizes to continue to work.
+		wrapper.setSearchPageSize(null);
 		return wrapper;
 	}
 }

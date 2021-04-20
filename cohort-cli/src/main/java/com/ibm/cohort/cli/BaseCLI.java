@@ -15,6 +15,9 @@ import ca.uhn.fhir.context.FhirContext;
 
 public class BaseCLI {
 	
+	public static final boolean DEFAULT_EXPAND_VALUE_SETS = true;
+	public static final int DEFAULT_PAGE_SIZE = 1000;
+	
 	protected FhirContext fhirContext = null;
 	protected FhirClientBuilderFactory fhirClientBuilderFactory = null;
 	

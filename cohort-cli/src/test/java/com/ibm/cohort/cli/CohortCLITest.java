@@ -432,7 +432,7 @@ public class CohortCLITest extends BasePatientTest {
 		Condition condition = new Condition();
 		condition.setSubject(new Reference(patient.getId()));
 		condition.setCode(new CodeableConcept(new Coding("http://snomed.com/snomed/2020", "1234", "Dummy")));
-		mockFhirResourceRetrieval("/Condition?subject=Patient%2F" + patient.getId(), condition);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F" + patient.getId() + "&_count=500", condition);
 		
 		File tmpFile = new File("target/fhir-stub.json");
 		ObjectMapper om = new ObjectMapper();
@@ -446,7 +446,7 @@ public class CohortCLITest extends BasePatientTest {
 			try (PrintStream captureOut = new PrintStream(baos)) {
 				System.setOut(captureOut);
 				CohortCLI.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-f", "src/test/resources/cql/result-types", "-l",
-						"test_result_types", "-c", patient.getId() });
+						"test_result_types", "-c", patient.getId(), "--expand-value-sets", "true", "--search-page-size", "500" });
 			} finally {
 				System.setOut(originalOut);
 			}
