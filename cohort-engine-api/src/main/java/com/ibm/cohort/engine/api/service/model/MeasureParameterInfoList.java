@@ -11,7 +11,6 @@ import java.util.Objects;
 
 import javax.validation.constraints.NotNull;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ibm.cohort.annotations.Generated;
 
 import io.swagger.annotations.ApiModel;
