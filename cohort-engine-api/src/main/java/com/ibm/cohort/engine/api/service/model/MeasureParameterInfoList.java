@@ -11,7 +11,6 @@ import java.util.Objects;
 
 import javax.validation.constraints.NotNull;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ibm.cohort.annotations.Generated;
 
 import io.swagger.annotations.ApiModel;
@@ -32,7 +31,6 @@ public class MeasureParameterInfoList {
 	}
 
 	@ApiModelProperty(required = true, value = "A list of parameter information objects for libraries referenced by the input measure")
-	@JsonProperty("measureParameterInfoList")
 	@NotNull
 	/**
 	 * Get the parameter info list
