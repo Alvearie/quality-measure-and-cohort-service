@@ -402,7 +402,7 @@ public class DefaultVT extends ServiceVTBase {
 				.multiPart(CohortEngineRestHandler.VALUE_SET_PART, new File("src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx"));
 
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
-		runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
+		runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_CREATED);
 	}
 
 	@Test
@@ -452,7 +452,7 @@ public class DefaultVT extends ServiceVTBase {
 				.multiPart(CohortEngineRestHandler.VALUE_SET_PART, new File("src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx"));
 
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
-		runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
+		runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_CREATED);
 	}
 
 	@Override

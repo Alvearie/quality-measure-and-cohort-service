@@ -110,11 +110,14 @@ public class ValueSetUtil {
 				if(codeSystemEntry.startsWith("http://") || codeSystemEntry.startsWith("https://")){
 					codeSystem = codeSystemEntry;
 				}
-				else if(customCodeSystem != null){
+				else if(customCodeSystem != null && customCodeSystem.get(codeSystemEntry) != null){
 					codeSystem = customCodeSystem.get(codeSystemEntry);
 				}
 				else {
 					codeSystem = CodeSystemLookup.getUrlFromName(codeSystemEntry);
+				}
+				if(codeSystem == null){
+					throw new IllegalArgumentException("Unmatched Code System! " + codeSystemEntry + " not found!");
 				}
 				ValueSet.ConceptReferenceComponent concept = new ValueSet.ConceptReferenceComponent();
 				concept.setCode(code);

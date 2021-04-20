@@ -428,7 +428,7 @@ public class CohortEngineRestHandler {
 			@ApiImplicitParam(name=CUSTOM_CODE_SYSTEM, value= CUSTOM_CODE_SYSTEM_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successful Operation"),
+			@ApiResponse(code = 201, message = "Successful Operation"),
 			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
 			@ApiResponse(code = 409, message = "Conflict", response = ServiceErrorList.class),
 			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
@@ -495,11 +495,11 @@ public class CohortEngineRestHandler {
 			String valueSetId = ValueSetUtil.importArtifact(terminologyClient, artifact, updateIfExists);
 			if(valueSetId == null){
 				return Response.status(Response.Status.CONFLICT).header("Content-Type", "application/json")
-						.entity("Value Set already exists! Rerun with updateIfExists set to true!")
+						.entity("{\"message\":\"Value Set already exists! Rerun with updateIfExists set to true!\"}")
 						.build();
 			}
 
-			response = Response.status(Response.Status.OK).header("Content-Type", "application/json").entity(valueSetId).build();
+			response = Response.status(Response.Status.CREATED).header("Content-Type", "application/json").entity("{\"valueSetId\":\"" + valueSetId + "\"}").build();
 		}
 		catch (Throwable e){
 			return new CohortServiceExceptionMapper().toResponse(e);
