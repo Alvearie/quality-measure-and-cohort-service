@@ -32,7 +32,6 @@ public class MeasureParameterInfoList {
 	}
 
 	@ApiModelProperty(required = true, value = "A list of parameter information objects for libraries referenced by the input measure")
-	@JsonProperty("measureParameterInfoList")
 	@NotNull
 	/**
 	 * Get the parameter info list
