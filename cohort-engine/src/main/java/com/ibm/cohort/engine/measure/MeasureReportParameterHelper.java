@@ -45,11 +45,11 @@ public class MeasureReportParameterHelper {
 		Object high = interval.getHigh();
 
 		if (low instanceof DateTime) {
-			// The R4 Type converter ignored timezone information. Convert by hand for now
+			// Handle DateTime conversion to force UTC timezone
 			Period period = new Period();
 
-			period.setStartElement(new DateTimeType(((DateTime) low).toJavaDate(), TemporalPrecisionEnum.MILLI, TimeZone.getTimeZone(ZoneId.of("Z"))));
-			period.setEndElement(new DateTimeType(((DateTime) high).toJavaDate(), TemporalPrecisionEnum.MILLI, TimeZone.getTimeZone(ZoneId.of("Z"))));
+			period.setStartElement(createDateTimeType((DateTime) low));
+			period.setEndElement(createDateTimeType((DateTime) high));
 			return period;
 		}
 		else if (low instanceof Quantity) {
@@ -84,7 +84,7 @@ public class MeasureReportParameterHelper {
 			return converter.toFhirCodeableConcept((Concept) value);
 		}
 		else if (value instanceof DateTime) {
-			return new DateTimeType(value.toString());
+			return createDateTimeType((DateTime) value);
 		}
 		else if (value instanceof Quantity) {
 			return converter.toFhirQuantity((Quantity) value);
@@ -99,5 +99,9 @@ public class MeasureReportParameterHelper {
 			logger.warn("Support not implemented for parameters of type {} on a MeasureReport", value.getClass());
 			return null;
 		}
+	}
+	
+	private static DateTimeType createDateTimeType(DateTime dateTime) {
+		return  new DateTimeType(dateTime.toJavaDate(), TemporalPrecisionEnum.MILLI, TimeZone.getTimeZone(ZoneId.of("Z")));
 	}
 }

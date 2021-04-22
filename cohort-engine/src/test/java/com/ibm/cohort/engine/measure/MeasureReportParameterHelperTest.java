@@ -7,6 +7,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
@@ -44,23 +45,22 @@ public class MeasureReportParameterHelperTest {
 	}
 
 	@Test
-	public void testIntervalDateTime_shouldReturnPeriod() {
-		String startTimeString = "2020-01-01T00:10:05.000";
-		String endTimeString = "2020-02-15T00:15:10.000";
-
-		DateTime startDateTime = new DateTime(startTimeString, ZoneOffset.of("+00:00"));
-		DateTime endDateTime = new DateTime(endTimeString, ZoneOffset.of("+01:00"));
+	public void testIntervalDateTime_shouldReturnPeriodInUTC() {
+		DateTime startDateTime = new DateTime(OffsetDateTime.of(LocalDateTime.of(2020, 1, 1, 0, 10, 5, 0), ZoneOffset.of("Z")));
+		DateTime endDateTime = new DateTime(OffsetDateTime.of(LocalDateTime.of(2020, 2, 15, 15, 10, 0, 0), ZoneOffset.of("+01:00")));
 
 		Interval interval = new Interval(startDateTime, true, endDateTime, true);
 
 		IBaseDatatype fhirTypeValue = MeasureReportParameterHelper.getFhirTypeValue(interval);
 
+		// Expect output expressed in UTC
 		DateTimeType expectedStart = new DateTimeType("2020-01-01T00:10:05+00:00");
-		DateTimeType expectedEnd = new DateTimeType("2020-02-15T00:15:10+01:00");
+		DateTimeType expectedEnd = new DateTimeType("2020-02-15T14:10:00+00:00");
 
 		assertTrue(fhirTypeValue instanceof Period);
-		assertEquals(expectedStart.toHumanDisplay(), ((Period) fhirTypeValue).getStartElement().toHumanDisplay());
-		assertEquals(expectedEnd.toHumanDisplay(), ((Period) fhirTypeValue).getEndElement().toHumanDisplay());
+		Period castResult = (Period) fhirTypeValue;
+		assertEquals(expectedStart.toHumanDisplay(), castResult.getStartElement().toHumanDisplay());
+		assertEquals(expectedEnd.toHumanDisplay(), castResult.getEndElement().toHumanDisplay());
 	}
 
 	@Test
@@ -152,15 +152,15 @@ public class MeasureReportParameterHelperTest {
 	}
 
 	@Test
-	public void testDateTime() {
-		String dateTimeString = "2020-01-02T00:00:00.000";
+	public void testDateTime_returnsSameDateTimeInUTC() {
+		String inputDateTimeString = "2020-01-02T00:00:00.000-04:00";
 
-		DateTime expected = new DateTime(dateTimeString, OffsetDateTime.now().getOffset());
+		DateTime expected = new DateTime(inputDateTimeString, OffsetDateTime.now().getOffset());
 
 		IBaseDatatype fhirTypeValue = MeasureReportParameterHelper.getFhirTypeValue(expected);
 
 		assertTrue(fhirTypeValue instanceof DateTimeType);
-		assertEquals(dateTimeString, ((DateTimeType) fhirTypeValue).getValueAsString());
+		assertEquals("2020-01-02T04:00:00.000+00:00", ((DateTimeType) fhirTypeValue).getValueAsString());
 	}
 
 	@Test
