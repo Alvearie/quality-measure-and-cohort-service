@@ -87,8 +87,6 @@ tags={	@Tag(name = "FHIR Measures", description = "IBM Cohort Engine FHIR Measur
 		@Tag(name = "Measure Evaluation", description = "IBM Cohort Engine Measure Evaluation"),
 		@Tag(name = "ValueSet", description = "IBM Cohort Engine ValueSet Operations")})
 public class CohortEngineRestHandler {
-	private static final String MEASURE_PART_DESC = "ZIP archive containing the FHIR Measure and Library resources used in the evaluation.";
-	private static final String REQUEST_DATA_PART_DESC = "Metadata describing the evaluation to perform.";
 	private static final String EVALUATION_API_NOTES = "The body of the request is a multipart/form-data request with an application/json attachment named 'request_data' that describes the measure evaluation that will be performed and an application/zip attachment named 'measure' that contains the measure and library artifacts to be evaluated. Valueset resources required for Measure evaluation must be loaded to the FHIR server in advance of an evaluation request. ";
 	private static final Logger logger = LoggerFactory.getLogger(CohortEngineRestHandler.class.getName());
 	private static final String MEASURE_IDENTIFIER_VALUE_DESC = "Used to identify the FHIR measure resource you would like the parameter information "
@@ -122,6 +120,54 @@ public class CohortEngineRestHandler {
 	
 	public final static String VALUE_SET_PART = "value_set";
 	public final static String CUSTOM_CODE_SYSTEM = "custom_code_system";
+	
+	public static final String EXAMPLE_REQUEST_DATA_JSON = "<p>A configuration file containing the information needed to process a measure evaluation request. Two possible FHIR server endoints can be configured <code>dataServerConfig</code> and <code>terminologyServerConfig</code>. Only the <code>dataServerConfig</code> is required. If <code>terminologyServerConfig</code> is not provided, the connection details are assumed to be the same as the <code>dataServerConfig</code> connection.</p>" +
+			"<p>The <code>measureContext.measureId</code> field can be a FHIR resource ID or canonical URL. Alternatively, <code>measureContext.identifier</code> and <code>measureContext.version</code> can be used to lookup the measure based on a business identifier found in the resource definition. Only one of measureId or identifier + version should be specified. Canonical URL is the recommend lookup mechanism.</p>" +
+			"<p>The parameter types and formats are described in detail in the <a href=\"http://alvearie.io/quality-measure-and-cohort-service/#/user-guide/parameter-formats?id=parameter-formats\">user guide</a>.</p>" +
+			"<p>The <code>evidenceOptions</code> control the amount of data written the FHIR MeasureReport that is returned as a result of the evaluation. The examle demonstrates inclusion of the result of all define statements processed by the CQL Engine and no links to the resources involved in the evaluation.</p>" +
+			"<p>Example Contents: \n <pre>{\n" +
+			"    \"dataServerConfig\": {\n" + 
+			"        \"@class\": \"com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\",\n" + 
+			"        \"endpoint\": \"ENDPOINT\",\n" + 
+			"        \"user\": \"USER\",\n" + 
+			"        \"password\": \"PASSWORD\",\n" + 
+			"        \"logInfo\": [\n" + 
+			"            \"REQUEST_SUMMARY\",\n" + 
+			"            \"RESPONSE_SUMMARY\"\n" + 
+			"        ],\n" + 
+			"        \"tenantId\": \"default\"\n" + 
+			"    },\n" + 		
+			"    \"patientId\": \"PATIENTID\",\n" + 
+			"    \"measureContext\": {\n" + 
+			"        \"measureId\": \"MEASUREID\",\n" + 
+			"        \"parameters\": {\n" + 
+			"            \"Measurement Period\": {\n" + 
+			"                \"type\": \"interval\",\n" + 
+			"                \"start\": {\n" + 
+			"                    \"type\": \"date\",\n" + 
+			"                    \"value\": \"2019-07-04\"\n" + 
+			"                },\n" + 
+			"                \"startInclusive\": true,\n" + 
+			"                \"end\": {\n" + 
+			"                    \"type\": \"date\",\n" + 
+			"                    \"value\": \"2020-07-04\"\n" + 
+			"                },\n" + 
+			"                \"endInclusive\": true\n" + 
+			"            }\n" + 
+			"        }\n" + 
+			"    },\n" + 
+			"    \"evidenceOptions\": {\n" + 
+			"        \"includeEvaluatedResources\": false,\n" + 
+			"        \"defineReturnOption\": \"ALL\"\n" + 
+			"    },\n" +
+			"}</pre></p>";
+
+	public static final String EXAMPLE_MEASURE_ZIP = "A file in ZIP format that contains the FHIR resources to use in the evaluation. This should contain all the FHIR Measure and Library resources needed in a particular directory structure as follows:" +
+			"<pre>fhirResources/MeasureName-MeasureVersion.json\n" +
+			"fhirResources/libraries/LibraryName1-LibraryVersion.json\n" + 
+			"fhirResources/libraries/LibraryName2-LibraryVersion.json\n" +
+			"etc.</pre>";
+
 	
 	public static final String EXAMPLE_DATA_SERVER_CONFIG_JSON = "A configuration file containing information needed to connect to the FHIR server. "
 			+ "See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/getting-started.md#fhir-server-configuration for more details. \n"
@@ -187,8 +233,8 @@ public class CohortEngineRestHandler {
 		// This is necessary for the dark launch feature
 		@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
 		// These are necessary to create a proper view of the request body that is all wrapped up in the Liberty IMultipartBody parameter
-		@ApiImplicitParam(name=REQUEST_DATA_PART, value=REQUEST_DATA_PART_DESC, dataTypeClass = MeasureEvaluation.class, required=true, paramType="form", type="file"),
-		@ApiImplicitParam(name=MEASURE_PART, value=MEASURE_PART_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" )
+		@ApiImplicitParam(name=REQUEST_DATA_PART, value=EXAMPLE_REQUEST_DATA_JSON, dataTypeClass = MeasureEvaluation.class, required=true, paramType="form", type="file"),
+		@ApiImplicitParam(name=MEASURE_PART, value=EXAMPLE_MEASURE_ZIP, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful Operation"),
