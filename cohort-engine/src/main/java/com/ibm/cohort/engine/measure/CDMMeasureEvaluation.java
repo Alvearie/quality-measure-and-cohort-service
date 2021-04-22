@@ -113,6 +113,7 @@ public class CDMMeasureEvaluation {
 	 *                  measure evaluation
 	 * @param patientId Patient ID of the patient to evaluate
 	 * @param evidenceOptions MeasureEvidenceOptions to indicate whether or not to return evaluated resources and define level results
+     * @param parameterMap Map of parameter names to Parameter objects                       	   
 	 * @return MeasureReport with population components filled out.
 	 */
 	public MeasureReport evaluatePatientMeasure(Measure measure, Context context, String patientId, MeasureEvidenceOptions evidenceOptions, Map<String, Parameter> parameterMap) {
