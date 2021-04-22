@@ -1,6 +1,8 @@
 package com.ibm.cohort.engine.measure;
 
 import java.math.BigDecimal;
+import java.time.ZoneId;
+import java.util.TimeZone;
 
 import org.hl7.fhir.instance.model.api.IBaseDatatype;
 import org.hl7.fhir.r4.model.Coding;
@@ -20,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.uhn.fhir.context.FhirVersionEnum;
+import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 
 
 public class MeasureReportParameterHelper {
@@ -45,8 +48,8 @@ public class MeasureReportParameterHelper {
 			// The R4 Type converter ignored timezone information. Convert by hand for now
 			Period period = new Period();
 
-			period.setStartElement(new DateTimeType(((DateTime) low).getDateTime().toString()));
-			period.setEndElement(new DateTimeType(((DateTime) high).getDateTime().toString()));
+			period.setStartElement(new DateTimeType(((DateTime) low).toJavaDate(), TemporalPrecisionEnum.MILLI, TimeZone.getTimeZone(ZoneId.of("Z"))));
+			period.setEndElement(new DateTimeType(((DateTime) high).toJavaDate(), TemporalPrecisionEnum.MILLI, TimeZone.getTimeZone(ZoneId.of("Z"))));
 			return period;
 		}
 		else if (low instanceof Quantity) {

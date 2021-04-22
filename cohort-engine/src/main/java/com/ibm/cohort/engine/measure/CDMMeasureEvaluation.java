@@ -206,24 +206,28 @@ public class CDMMeasureEvaluation {
 	}
 	
 	protected static void addParametersToReport(MeasureReport report, Measure measure, Context context, Map<String, Parameter> parameterMap) {
-		// Hard-code special value parameters
+		Set<String> allParameters = new HashSet<>();
+		
+		// Check for special parameters we handle elsewhere
 		if (context.resolveParameterRef(null, CDMConstants.MEASUREMENT_PERIOD) != null) {
-			report.addExtension(createParameterExtension(context, CDMConstants.MEASUREMENT_PERIOD));
+			allParameters.add(CDMConstants.MEASUREMENT_PERIOD);
 		}
 		
 		if (context.resolveParameterRef(null, CDMConstants.PRODUCT_LINE) != null) {
-			report.addExtension(createParameterExtension(context, CDMConstants.PRODUCT_LINE));
+			allParameters.add(CDMConstants.PRODUCT_LINE);
 		}
 
-		Set<String> dynamicParameters = parameterMap == null ? new HashSet<>() : new HashSet<>(parameterMap.keySet());
+		if (parameterMap != null) {
+			allParameters.addAll(parameterMap.keySet());
+		}
 		
 		List<Extension> parameterExtensions = measure.getExtensionsByUrl(CDMConstants.MEASURE_PARAMETER_URL);
 		for (Extension e : parameterExtensions) {
 			ParameterDefinition parameterDefinition = (ParameterDefinition) e.getValue();
-			dynamicParameters.add(parameterDefinition.getName());
+			allParameters.add(parameterDefinition.getName());
 		}
 		
-		dynamicParameters.forEach(x -> report.addExtension(createParameterExtension(context, x)));
+		allParameters.forEach(x -> report.addExtension(createParameterExtension(context, x)));
 	}
 	
 	protected static Extension createParameterExtension(Context context, String parameterName) {
@@ -232,10 +236,12 @@ public class CDMMeasureEvaluation {
 		Extension innerExtension = new Extension();
 		innerExtension.setUrl("http://ibm.com/fhir/cdm/StructureDefinition/parameter-value");
 		IBaseDatatype fhirParameterValue = MeasureReportParameterHelper.getFhirTypeValue(parameterValue);
+		// Do not create an extension for unsupported types
+		if (fhirParameterValue == null) {
+			return null;
+		}
 		innerExtension.setValue(fhirParameterValue);
 
-
-		// TODO: Fill  out parameter definition more thoroughly. Util class for this functionality?
 		ParameterDefinition parameterDefinition = new ParameterDefinition();
 		parameterDefinition.setName(parameterName);
 		parameterDefinition.setUse(ParameterDefinition.ParameterUse.IN);
