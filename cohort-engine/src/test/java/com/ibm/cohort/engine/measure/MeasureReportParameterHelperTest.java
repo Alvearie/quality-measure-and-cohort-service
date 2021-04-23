@@ -261,22 +261,25 @@ public class MeasureReportParameterHelperTest {
 		CodeableConcept castResult = (CodeableConcept) fhirTypeValue;
 
 		List<Coding> codingList = castResult.getCoding();
-		int codingCount = 0;
+
+		boolean code1Found = false;
+		boolean code2Found = false;
 		for (Coding coding : codingList) {
 			if (coding.getCode().equals(codeString1)) {
 				verifyBaseTypeAsCode(coding, codeString1, system1, display1, version1);
-				codingCount++;
+				code1Found = true;
 			}
 			else if (coding.getCode().equals(codeString2)) {
 				verifyBaseTypeAsCode(coding, codeString2, system2, display2, version2);
-				codingCount++;
+				code2Found = true;
 			}
 			else {
 				Assert.fail();
 			}
 		}
 
-		assertEquals(2, codingCount);
+		assertTrue(code1Found && code2Found);
+		assertEquals(2, codingList.size());
 	}
 
 	private void verifyBaseTypeAsCode(IBaseDatatype baseDatatype, String code, String system, String display, String version) {
