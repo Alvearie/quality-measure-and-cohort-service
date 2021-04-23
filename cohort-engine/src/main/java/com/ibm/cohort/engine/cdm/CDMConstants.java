@@ -25,9 +25,12 @@ public class CDMConstants {
 	
 	public static final String EVIDENCE_VALUE = "measure-report-evidence-value";
 	public static final String EVIDENCE_VALUE_URL = BASE_URL + STRUCTURE_DEFINITION + EVIDENCE_VALUE;
-	
+
 	private static final String MEASURE_PARAMETER = "measure-parameter";
 	public static final String MEASURE_PARAMETER_URL = BASE_URL + STRUCTURE_DEFINITION + MEASURE_PARAMETER;
+
+	private static final String MEASURE_PARAMETER_VALUE = "measure-parameter-value";
+	public static final String MEASURE_PARAMETER_VALUE_URL = BASE_URL + STRUCTURE_DEFINITION + MEASURE_PARAMETER_VALUE;
 
 	private static final String PARAMETER_DEFAULT = "default-value";
 	public static final String PARAMETER_DEFAULT_URL = BASE_URL + STRUCTURE_DEFINITION + PARAMETER_DEFAULT;
