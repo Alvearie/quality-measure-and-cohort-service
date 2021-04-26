@@ -29,12 +29,12 @@ echo "Copied cohort-cli shaded jar from the running cohort-services pod."
 
 # Before tests can be executed prepare the test yaml files to have the right values replaced in them  
 
-# Generate fhir config file for test-fvt tenant
+# Generate fhir config json file for test-fvt tenant
 cp ${CONFIG_DIR}/local-ibm-fhir.json ${CONFIG_DIR}/fhirconfig-testfvt-tenant.json
 sed -i "/\"password\"/s|:.*$|: \"${FHIR_USER_PASS}\",|" ${CONFIG_DIR}/fhirconfig-testfvt-tenant.json
 sed -i "/\"endpoint\"/s|:.*$|: \"${FHIR_ENDPOINT}\",|" ${CONFIG_DIR}/fhirconfig-testfvt-tenant.json
 
-#generate updated default tenant fhir config json
+# Generate fhir config json file for default tenant
 cp ${CONFIG_DIR}/local-ibm-fhir.json ${CONFIG_DIR}/fhirconfig-default-tenant.json
 sed -i "/\"password\"/s|:.*$|: \"${FHIR_USER_PASS}\",|" ${CONFIG_DIR}/fhirconfig-default-tenant.json
 sed -i "/\"tenantId\"/s|:.*$|: \"default\",|" ${CONFIG_DIR}/fhirconfig-default-tenant.json
