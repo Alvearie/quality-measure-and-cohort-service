@@ -251,7 +251,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", condition);
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
-		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig, "cql/condition/FHIRHelpers.xml",
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,
 				"cql/condition/test-status-active.cql");
 
 		final AtomicInteger count = new AtomicInteger(0);
@@ -287,7 +287,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		mockFhirResourceRetrieval(builder, condition);
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
-		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig, "cql/condition/FHIRHelpers.xml",
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,
 				"cql/condition/test-date-query.xml");
 		
 		Map<String,Parameter> parameters = new HashMap<>();
@@ -392,8 +392,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 	public void testJsonCQLWithIncludes() throws Exception {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/includes/Breast-Cancer-Screening.json",
-				"cql/includes/FHIRHelpers.json");
+		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/includes/Breast-Cancer-Screening.json");
 
 		final AtomicBoolean found = new AtomicBoolean(false);
 		final AtomicInteger count = new AtomicInteger(0);
@@ -529,7 +528,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1983-12-02");
 
 		final AtomicInteger resultCount = new AtomicInteger(0);
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/valueset/Test-1.0.0.cql", "cql/valueset/FHIRHelpers-4.0.0.cql");
+		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/valueset/Test-1.0.0.cql");
 		
 		Condition condition = new Condition();
 		condition.setId("Condition");
@@ -605,7 +604,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", condition);		
 		
 		final AtomicInteger resultCount = new AtomicInteger(0);
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/valueset/TestUnsupported-1.0.0.cql", "cql/valueset/FHIRHelpers-4.0.0.cql");
+		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/valueset/TestUnsupported-1.0.0.cql");
 		
 		CqlException ex = assertThrows("Missing expected exception", CqlException.class, () -> {
 				wrapper.evaluate("TestUnsupported", "1.0.0", /* parameters= */null, new HashSet<>(Arrays.asList(expression)),
@@ -630,7 +629,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1983-12-02");
 		
 		final AtomicInteger resultCount = new AtomicInteger(0);
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/temporal/IntervalStartsInterval-1.0.0.cql", "cql/temporal/FHIRHelpers.cql");
+		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/temporal/IntervalStartsInterval-1.0.0.cql");
 		
 		wrapper.evaluate("IntervalStartsInterval", "1.0.0", /* parameters= */null, new HashSet<>(Arrays.asList("LHS Starts RHS")),
 				Arrays.asList(patient.getId()), (p, e, r) -> {

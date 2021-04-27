@@ -48,7 +48,7 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_1.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_1.xml");
 
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), ENCOUNTER_1, fhirConfig);
@@ -74,7 +74,7 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_1.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_1.xml");
 
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), ENCOUNTER_1, fhirConfig);
@@ -100,7 +100,7 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_2.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_2.xml");
 
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), ENCOUNTER_1, fhirConfig);
@@ -131,7 +131,7 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_2.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_2.xml");
 
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), ENCOUNTER_1, fhirConfig);
@@ -156,7 +156,7 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_3.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_3.xml");
 
 		Bundle bundle = new Bundle();
 		Bundle.BundleEntryComponent firstEncounter = new Bundle.BundleEntryComponent();
@@ -186,7 +186,7 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_3.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_3.xml");
 
 		Bundle bundle = new Bundle();
 		Bundle.BundleEntryComponent firstEncounter = new Bundle.BundleEntryComponent();
@@ -216,7 +216,7 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_4.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_4.xml");
 
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), ENCOUNTER_3, fhirConfig);
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
@@ -238,7 +238,7 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_4.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_4.xml");
 
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), ENCOUNTER_1, fhirConfig);
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
@@ -284,7 +284,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		bundle.addEntry(firstEncounter);
 		bundle.addEntry(secondEncounter);
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_5.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_5.xml");
 
 		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", getFhirParser(), bundle, fhirConfig);
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
@@ -328,7 +328,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		bundle.addEntry(firstEncounter);
 		bundle.addEntry(secondEncounter);
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_5.xml", "cql/includes/FHIRHelpers.xml");
+		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_5.xml");
 
 		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", getFhirParser(), bundle, fhirConfig);
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);

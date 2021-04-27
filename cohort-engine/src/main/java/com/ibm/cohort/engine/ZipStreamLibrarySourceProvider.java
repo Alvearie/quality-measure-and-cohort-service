@@ -63,5 +63,7 @@ public class ZipStreamLibrarySourceProvider extends MultiFormatLibrarySourceProv
 				}
 			}
 		}
+
+		FhirHelperBackupProvider.addClasspathFhirHelpers(sources);
 	}
 }

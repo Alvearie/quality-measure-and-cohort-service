@@ -65,7 +65,7 @@ public abstract class CqlTranslatorProviderTest {
 			}
 		}
 		
-		assertEquals(2, libraries.size());
+		assertEquals(1, libraries.size());
 		Library library = libraries.get(0);
 		assertEquals(1, library.getAnnotation().size());
 		assertEquals("Breast-Cancer-Screening", library.getIdentifier().getId());

@@ -78,6 +78,7 @@ public class FhirLibraryLibrarySourceProvider extends MultiFormatLibrarySourcePr
 				}
 			}
 		}
+		FhirHelperBackupProvider.addClasspathFhirHelpers(sources);
 
 		return numLoaded;
 	}

@@ -59,5 +59,6 @@ public class DirectoryLibrarySourceProvider extends MultiFormatLibrarySourceProv
 				return FileVisitResult.CONTINUE;
 			}
 		});
+		FhirHelperBackupProvider.addClasspathFhirHelpers(sources);
 	}
 }
