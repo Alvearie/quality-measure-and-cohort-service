@@ -68,7 +68,7 @@ public class MeasureEvaluationSeederTest {
 
         Measure measure = createMeasure();
         IMeasureEvaluationSeed actual = seeder.create(
-                measure, periodStart, periodEnd, productLine
+                measure, periodStart, periodEnd, productLine, null
         );
 
         Interval expectedInterval = createInterval();
@@ -111,7 +111,7 @@ public class MeasureEvaluationSeederTest {
 
         Measure measure = createMeasure();
         IMeasureEvaluationSeed actual = seeder.create(
-                measure, periodStart, periodEnd, null
+                measure, periodStart, periodEnd, null, null
         );
 
         Interval expectedInterval = createInterval();
@@ -145,7 +145,7 @@ public class MeasureEvaluationSeederTest {
         );
 
         seeder.create(
-                createMeasure(), periodStart, periodEnd, null
+                createMeasure(), periodStart, periodEnd, null, null
         );
     }
 
@@ -159,7 +159,7 @@ public class MeasureEvaluationSeederTest {
         );
 
         seeder.create(
-                new Measure(), periodStart, periodEnd, null
+                new Measure(), periodStart, periodEnd, null, null
         );
     }
 

@@ -35,6 +35,7 @@ import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.measure.LibraryHelper;
 import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
+import com.ibm.cohort.engine.parameter.Parameter;
 
 public class MeasureEvaluationSeeder {
 
@@ -45,6 +46,8 @@ public class MeasureEvaluationSeeder {
 
 	private boolean enableExpressionCaching;
 	private boolean debugMode = true;
+	
+	private static final String MEASUREMENT_PERIOD = "Measurement Period";
 
 	public MeasureEvaluationSeeder(
 			TerminologyProvider terminologyProvider,
@@ -69,7 +72,7 @@ public class MeasureEvaluationSeeder {
 		return this;
 	}
 
-	public IMeasureEvaluationSeed create(Measure measure, String periodStart, String periodEnd, String productLine) {
+	public IMeasureEvaluationSeed create(Measure measure, String periodStart, String periodEnd, String productLine, Map<String, Parameter> parameters) {
 		List<org.cqframework.cql.elm.execution.Library> libraries = LibraryHelper.loadLibraries(measure, this.libraryLoader, this.libraryResourceProvider);
 		if( CollectionUtils.isEmpty(libraries) ) { 
 			throw new IllegalArgumentException(String.format("No libraries were able to be loaded for %s", measure.getId()));
@@ -88,8 +91,7 @@ public class MeasureEvaluationSeeder {
 		String lastModelUri = usingDefs.get(usingDefs.size() - 1).getRight();
 		DataProvider dataProvider = dataProviders.get(lastModelUri);
 
-		Interval measurementPeriod = createMeasurePeriod(periodStart, periodEnd);
-		Context context = createContext(primaryLibrary, lastModelUri, dataProvider, measurementPeriod, productLine);
+		Context context = createContext(primaryLibrary, lastModelUri, dataProvider, productLine);
 
 		// fhir path: Measure.extension[measureParameter][].valueParameterDefinition.extension[defaultValue]
 		measure.getExtension().stream()
@@ -98,6 +100,21 @@ public class MeasureEvaluationSeeder {
 				.map(ParameterDefinition.class::cast)
 				.forEach(parameterDefinition -> setDefaultValue(context, parameterDefinition, dataProvider));
 
+		if (parameters != null) {
+			parameters.entrySet().stream()
+					.forEach(e -> context.setParameter(null, e.getKey(), e.getValue().toCqlType()));
+
+		}
+
+		// Set measurement perdiod last to make sure we respect perdiodStart
+		// and periodEnd date boundaries for an execution.
+		Interval measurementPeriod = createMeasurePeriod(periodStart, periodEnd);
+		context.setParameter(
+				null,
+				MEASUREMENT_PERIOD,
+				new Interval(DateTime.fromJavaDate((Date) measurementPeriod.getStart()), true,
+							 DateTime.fromJavaDate((Date) measurementPeriod.getEnd()), true));
+
 		return new CustomMeasureEvaluationSeed(measure, context, measurementPeriod, dataProvider);
 	}
 
@@ -105,19 +122,12 @@ public class MeasureEvaluationSeeder {
 			org.cqframework.cql.elm.execution.Library library,
 			String modelUri,
 			DataProvider dataProvider,
-			Interval measurementPeriod,
 			String productLine) {
 
 		Context context = createDefaultContext(library);
 		context.registerLibraryLoader(libraryLoader);
 		context.registerTerminologyProvider(terminologyProvider);
 		context.registerDataProvider(modelUri, dataProvider);
-
-		context.setParameter(
-		null,
-                "Measurement Period",
-                new Interval(DateTime.fromJavaDate((Date) measurementPeriod.getStart()), true,
-                             DateTime.fromJavaDate((Date) measurementPeriod.getEnd()), true));
 
 		if (productLine != null) {
 			context.setParameter(null, "Product Line", productLine);
