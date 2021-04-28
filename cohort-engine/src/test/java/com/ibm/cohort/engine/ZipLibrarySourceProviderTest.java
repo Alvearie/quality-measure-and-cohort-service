@@ -25,12 +25,12 @@ public class ZipLibrarySourceProviderTest {
 		ZipFile zip = new ZipFile( "src/test/resources/cql/zip/breast_cancer_screening_v1_0_0_cql.zip");
 
 		ZipLibrarySourceProvider provider = new ZipLibrarySourceProvider(zip);
-		try( InputStream is = provider.getLibrarySource( new VersionedIdentifier().withId("Breast-Cancer-Screening") ) ) {
+		try( InputStream is = provider.getLibrarySource( new VersionedIdentifier().withId("BreastCancerScreening") ) ) {
 			assertNotNull( is );
 
 			CqlTranslationProvider tx = new InJVMCqlTranslationProvider();
 			Library library = tx.translate( is );
-			assertEquals( "Breast-Cancer-Screening", library.getIdentifier().getId() );
+			assertEquals( "BreastCancerScreening", library.getIdentifier().getId() );
 		}
 	}
 
