@@ -360,10 +360,7 @@ public class CqlEngineWrapper {
 			libraryId.setVersion(libraryVersion);
 		}
 
-		//todo do we need to load here instead, separately from the class itself?
 		Library library = libraryLoader.load(libraryId);
-//		VersionedIdentifier fhirHelpers = new VersionedIdentifier().withId("FHIRHelpers").withVersion("4.0.0");
-//		libraryLoader.load(fhirHelpers);
 		LibraryUtils.requireNoTranslationErrors(library);
 		LibraryUtils.requireValuesForNonDefaultParameters(library, parameters);
 		
