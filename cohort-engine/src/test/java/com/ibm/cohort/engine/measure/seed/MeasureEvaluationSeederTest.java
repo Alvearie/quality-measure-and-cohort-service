@@ -2,6 +2,7 @@ package com.ibm.cohort.engine.measure.seed;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import org.mockito.Mockito;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
+import org.opencds.cqf.cql.engine.runtime.DateTime;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
@@ -214,12 +216,8 @@ public class MeasureEvaluationSeederTest {
     }
 
     private Interval createInterval() {
-        LocalDate startDate = LocalDate.parse(periodStart);
-        LocalDate endDate = LocalDate.parse(periodEnd);
-        Date low = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Date high = Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-
-        return new Interval(low, true, high, true);
+        return new Interval(new DateTime(periodStart + "T00:00:00.0", ZoneOffset.UTC), true,
+                            new DateTime(periodEnd + "T23:59:59.999", ZoneOffset.UTC), true);
     }
 
 }

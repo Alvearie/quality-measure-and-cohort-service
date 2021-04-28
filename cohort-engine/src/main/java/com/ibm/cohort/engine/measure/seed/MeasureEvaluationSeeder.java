@@ -8,7 +8,6 @@ package com.ibm.cohort.engine.measure.seed;
 import static com.ibm.cohort.engine.cdm.CDMConstants.MEASURE_PARAMETER_URL;
 import static com.ibm.cohort.engine.cdm.CDMConstants.PARAMETER_DEFAULT_URL;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -20,7 +19,6 @@ import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.ParameterDefinition;
 import org.hl7.fhir.r4.model.Type;
-import org.opencds.cqf.common.helpers.DateHelper;
 import org.opencds.cqf.common.helpers.UsingHelper;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
@@ -28,11 +26,11 @@ import org.opencds.cqf.cql.engine.debug.DebugMap;
 import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 import org.opencds.cqf.cql.engine.model.ModelResolver;
-import org.opencds.cqf.cql.engine.runtime.DateTime;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.ibm.cohort.engine.cqfruler.CDMContext;
+import com.ibm.cohort.engine.helpers.MeasurementPeriodHelper;
 import com.ibm.cohort.engine.measure.LibraryHelper;
 import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
 import com.ibm.cohort.engine.parameter.Parameter;
@@ -109,11 +107,7 @@ public class MeasureEvaluationSeeder {
 		// Set measurement perdiod last to make sure we respect perdiodStart
 		// and periodEnd date boundaries for an execution.
 		Interval measurementPeriod = createMeasurePeriod(periodStart, periodEnd);
-		context.setParameter(
-				null,
-				MEASUREMENT_PERIOD,
-				new Interval(DateTime.fromJavaDate((Date) measurementPeriod.getStart()), true,
-							 DateTime.fromJavaDate((Date) measurementPeriod.getEnd()), true));
+		context.setParameter(null, MEASUREMENT_PERIOD, measurementPeriod);
 
 		return new CustomMeasureEvaluationSeed(measure, context, measurementPeriod, dataProvider);
 	}
@@ -151,8 +145,8 @@ public class MeasureEvaluationSeeder {
 	}
 
 	protected Interval createMeasurePeriod(String periodStart, String periodEnd) {
-		return new Interval(DateHelper.resolveRequestDate(periodStart, true), true,
-							DateHelper.resolveRequestDate(periodEnd, false), true);
+		return new Interval(MeasurementPeriodHelper.getPeriodStart(periodStart), true,
+							MeasurementPeriodHelper.getPeriodEnd(periodEnd), true);
 	}
 
 	private void setDefaultValue(Context context, ParameterDefinition parameterDefinition, ModelResolver modelResolver) {
