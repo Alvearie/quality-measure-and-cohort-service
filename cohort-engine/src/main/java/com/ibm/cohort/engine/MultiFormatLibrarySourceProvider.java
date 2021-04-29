@@ -22,6 +22,8 @@ import org.hl7.elm.r1.VersionedIdentifier;
  * translation can easily get it from the provided libraries.
  */
 public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
+	private static VersionedIdentifier fhirHelpersVersion = new VersionedIdentifier().withId("FHIRHelpers");
+	private static final String FHIR_HELPER_DEFAULT_VERSION = "4.0.0";
 
 	protected Map<VersionedIdentifier, Map<LibraryFormat, InputStream>> sources = new HashMap<>();
 
@@ -82,5 +84,13 @@ public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
 	@Override
 	public InputStream getLibrarySource(VersionedIdentifier libraryIdentifier) {
 		return getSourcesByFormat(LibraryFormat.CQL).get(libraryIdentifier);
+	}
+
+	public static void addClasspathFhirHelpers(Map<VersionedIdentifier, Map<LibraryFormat, InputStream>> sources){
+		Map<LibraryFormat, InputStream> specFormat = sources.computeIfAbsent(fhirHelpersVersion, key -> new HashMap<>());
+		if(specFormat.isEmpty()) {
+			InputStream fhirHelperResource = ClasspathLibrarySourceProvider.class.getResourceAsStream(String.format("/org/hl7/fhir/%s-%s.xml", fhirHelpersVersion.getId(), FHIR_HELPER_DEFAULT_VERSION));
+			specFormat.put(LibraryFormat.XML, fhirHelperResource);
+		}
 	}
 }
