@@ -1,0 +1,16 @@
+settings:
+  env:
+    FHIR_SERVER_DETAILS_JSON: tests/src/main/resources/config/local-ibm-fhir.json
+   
+execution:
+- executor: pytest
+  scenario: pytest-test
+
+scenarios:
+
+  pytest-test:
+    script: ../../src/main/python/rest/tests/MeasureParametersByMeasureIdAPITests.py
+
+reporting:
+- module: junit-xml
+  filename: /bzt-configs/tests/results/sampleTest.xml
