@@ -1,11 +1,12 @@
 # swagger_client.StatusApi
 
-All URIs are relative to */services/cohort/api*
+All URIs are relative to *https://localhost/services/cohort/api*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**get_health_check_status**](StatusApi.md#get_health_check_status) | **GET** /v1/status/health_check | Determine if service is running correctly
 [**get_service_status**](StatusApi.md#get_service_status) | **GET** /v1/status | Get status of service
+
 
 # **get_health_check_status**
 > ServiceStatus get_health_check_status(format=format)
@@ -59,6 +60,8 @@ No authorization required
 > ServiceStatus get_service_status(format=format, liveness_check=liveness_check)
 
 Get status of service
+
+
 
 ### Example
 ```python

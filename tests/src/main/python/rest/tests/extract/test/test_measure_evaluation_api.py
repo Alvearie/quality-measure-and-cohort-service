@@ -16,23 +16,24 @@ from __future__ import absolute_import
 import unittest
 
 import swagger_client
-from swagger_client.models.service_status import ServiceStatus  # noqa: E501
+from swagger_client.api.measure_evaluation_api import MeasureEvaluationApi  # noqa: E501
 from swagger_client.rest import ApiException
 
 
-class TestServiceStatus(unittest.TestCase):
-    """ServiceStatus unit test stubs"""
+class TestMeasureEvaluationApi(unittest.TestCase):
+    """MeasureEvaluationApi unit test stubs"""
 
     def setUp(self):
-        pass
+        self.api = swagger_client.api.measure_evaluation_api.MeasureEvaluationApi()  # noqa: E501
 
     def tearDown(self):
         pass
 
-    def testServiceStatus(self):
-        """Test ServiceStatus"""
-        # FIXME: construct object with mandatory attributes with example values
-        # model = swagger_client.models.service_status.ServiceStatus()  # noqa: E501
+    def test_evaluate_measure(self):
+        """Test case for evaluate_measure
+
+        Evaluates a measure bundle for a single patient  # noqa: E501
+        """
         pass
 
 
