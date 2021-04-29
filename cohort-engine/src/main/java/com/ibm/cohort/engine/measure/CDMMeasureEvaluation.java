@@ -5,6 +5,9 @@
  */
 package com.ibm.cohort.engine.measure;
 
+import static com.ibm.cohort.engine.cdm.CDMConstants.MEASURE_PARAMETER_VALUE_URL;
+import static com.ibm.cohort.engine.cdm.CDMConstants.PARAMETER_VALUE_URL;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -235,23 +238,25 @@ public class CDMMeasureEvaluation {
 		Object parameterValue = context.resolveParameterRef(null, parameterName);
 
 		Extension innerExtension = new Extension();
-		innerExtension.setUrl("http://ibm.com/fhir/cdm/StructureDefinition/parameter-value");
+		innerExtension.setUrl(PARAMETER_VALUE_URL);
 		IBaseDatatype fhirParameterValue = MeasureReportParameterHelper.getFhirTypeValue(parameterValue);
+
+		Extension outerExtension = null;
+
 		// Do not create an extension for unsupported types
-		if (fhirParameterValue == null) {
-			return null;
+		if (fhirParameterValue != null) {
+			innerExtension.setValue(fhirParameterValue);
+
+			ParameterDefinition parameterDefinition = new ParameterDefinition();
+			parameterDefinition.setName(parameterName);
+			parameterDefinition.setUse(ParameterDefinition.ParameterUse.IN);
+			parameterDefinition.setExtension(Collections.singletonList(innerExtension));
+			parameterDefinition.setType(fhirParameterValue == null ? null : fhirParameterValue.fhirType());
+
+			outerExtension = new Extension();
+			outerExtension.setUrl(MEASURE_PARAMETER_VALUE_URL);
+			outerExtension.setValue(parameterDefinition);
 		}
-		innerExtension.setValue(fhirParameterValue);
-
-		ParameterDefinition parameterDefinition = new ParameterDefinition();
-		parameterDefinition.setName(parameterName);
-		parameterDefinition.setUse(ParameterDefinition.ParameterUse.IN);
-		parameterDefinition.setExtension(Collections.singletonList(innerExtension));
-		parameterDefinition.setType(fhirParameterValue == null ? null : fhirParameterValue.fhirType());
-
-		Extension outerExtension = new Extension();
-		outerExtension.setUrl("http://ibm.com/fhir/cdm/StructureDefinition/measure-parameter-value");
-		outerExtension.setValue(parameterDefinition);
 		
 		return outerExtension;
 	}

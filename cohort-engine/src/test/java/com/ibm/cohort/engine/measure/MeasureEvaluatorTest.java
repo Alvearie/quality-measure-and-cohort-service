@@ -12,6 +12,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.ibm.cohort.engine.cdm.CDMConstants.MEASURE_PARAMETER_URL;
 import static com.ibm.cohort.engine.cdm.CDMConstants.MEASURE_PARAMETER_VALUE_URL;
 import static com.ibm.cohort.engine.cdm.CDMConstants.PARAMETER_DEFAULT_URL;
+import static com.ibm.cohort.engine.cdm.CDMConstants.PARAMETER_VALUE_URL;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -24,6 +25,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import org.hl7.fhir.r4.model.Address;
@@ -31,6 +33,7 @@ import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CapabilityStatement;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.HumanName;
@@ -704,5 +707,45 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		assertTrue(parameterNames.containsAll(parameterMap.keySet()));
 		assertTrue(parameterNames.contains(CDMConstants.MEASUREMENT_PERIOD));
 		assertTrue(parameterNames.contains(CDMConstants.PRODUCT_LINE));
+	}
+
+	@Test
+	public void measure_report_generated___datetime_parameters_on_report_in_utc() throws Exception {
+		CapabilityStatement metadata = getCapabilityStatement();
+		mockFhirResourceRetrieval("/metadata", metadata);
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.xml",
+											   LibraryFormat.MIME_TYPE_APPLICATION_ELM_XML);
+
+		Measure measure = getCohortMeasure("CohortMeasureName", library, INITIAL_POPULATION);
+		mockFhirResourceRetrieval(measure);
+
+		String defaultDatetimeParamterName = "datetimeParamDefault";
+		String timezoneDatetimeParameterName = "datetimeParamGMTPlus4";
+
+		Map<String, Parameter> parameterMap = new HashMap<>();
+		parameterMap.put(defaultDatetimeParamterName, new DatetimeParameter("2020-01-01"));
+		parameterMap.put(timezoneDatetimeParameterName, new DatetimeParameter("2020-01-01T00:00:00.0+04:00"));
+
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), parameterMap);
+		assertNotNull(report);
+
+		Map<String, DateTimeType> parameterNames = report.getExtension()
+				.stream()
+				.filter(x -> x.getUrl().equals(MEASURE_PARAMETER_VALUE_URL))
+				.map(x -> (ParameterDefinition) x.getValue())
+				.filter(x -> (parameterMap.containsKey(x.getName())))
+				.collect(Collectors.toMap(ParameterDefinition::getName, x -> (DateTimeType)x.getExtensionByUrl(PARAMETER_VALUE_URL).getValue()));
+
+		DateTimeType defaultResult = parameterNames.get(defaultDatetimeParamterName);
+		DateTimeType timezoneResult = parameterNames.get(timezoneDatetimeParameterName);
+
+		assertTrue(new DateTimeType("2020-01-01T00:00:00.000Z").equalsUsingFhirPathRules(defaultResult));
+		assertEquals(TimeZone.getTimeZone("UTC"), defaultResult.getTimeZone());
+		assertTrue(new DateTimeType("2019-12-31T20:00:00.000Z").equalsUsingFhirPathRules(timezoneResult));
+		assertEquals(TimeZone.getTimeZone("UTC"), timezoneResult.getTimeZone());
 	}
 }
