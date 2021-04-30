@@ -1,0 +1,2 @@
+CUSTOM_SNOMED=http://www.terminology.hl7.org/CodeSystem/MySnomed
+CUSTOM_CPT=http://www.terminology.hl7.org/CodeSystem/MyCPT
