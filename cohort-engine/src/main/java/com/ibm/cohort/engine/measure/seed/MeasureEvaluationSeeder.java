@@ -8,7 +8,6 @@ package com.ibm.cohort.engine.measure.seed;
 import static com.ibm.cohort.engine.cdm.CDMConstants.MEASURE_PARAMETER_URL;
 import static com.ibm.cohort.engine.cdm.CDMConstants.PARAMETER_DEFAULT_URL;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -20,7 +19,6 @@ import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.ParameterDefinition;
 import org.hl7.fhir.r4.model.Type;
-import org.opencds.cqf.common.helpers.DateHelper;
 import org.opencds.cqf.common.helpers.UsingHelper;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
@@ -28,13 +26,14 @@ import org.opencds.cqf.cql.engine.debug.DebugMap;
 import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 import org.opencds.cqf.cql.engine.model.ModelResolver;
-import org.opencds.cqf.cql.engine.runtime.DateTime;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.ibm.cohort.engine.cqfruler.CDMContext;
+import com.ibm.cohort.engine.helpers.MeasurementPeriodHelper;
 import com.ibm.cohort.engine.measure.LibraryHelper;
 import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
+import com.ibm.cohort.engine.parameter.Parameter;
 
 public class MeasureEvaluationSeeder {
 
@@ -45,6 +44,8 @@ public class MeasureEvaluationSeeder {
 
 	private boolean enableExpressionCaching;
 	private boolean debugMode = true;
+	
+	private static final String MEASUREMENT_PERIOD = "Measurement Period";
 
 	public MeasureEvaluationSeeder(
 			TerminologyProvider terminologyProvider,
@@ -69,7 +70,7 @@ public class MeasureEvaluationSeeder {
 		return this;
 	}
 
-	public IMeasureEvaluationSeed create(Measure measure, String periodStart, String periodEnd, String productLine) {
+	public IMeasureEvaluationSeed create(Measure measure, String periodStart, String periodEnd, String productLine, Map<String, Parameter> parameters) {
 		List<org.cqframework.cql.elm.execution.Library> libraries = LibraryHelper.loadLibraries(measure, this.libraryLoader, this.libraryResourceProvider);
 		if( CollectionUtils.isEmpty(libraries) ) { 
 			throw new IllegalArgumentException(String.format("No libraries were able to be loaded for %s", measure.getId()));
@@ -88,8 +89,7 @@ public class MeasureEvaluationSeeder {
 		String lastModelUri = usingDefs.get(usingDefs.size() - 1).getRight();
 		DataProvider dataProvider = dataProviders.get(lastModelUri);
 
-		Interval measurementPeriod = createMeasurePeriod(periodStart, periodEnd);
-		Context context = createContext(primaryLibrary, lastModelUri, dataProvider, measurementPeriod, productLine);
+		Context context = createContext(primaryLibrary, lastModelUri, dataProvider, productLine);
 
 		// fhir path: Measure.extension[measureParameter][].valueParameterDefinition.extension[defaultValue]
 		measure.getExtension().stream()
@@ -98,6 +98,17 @@ public class MeasureEvaluationSeeder {
 				.map(ParameterDefinition.class::cast)
 				.forEach(parameterDefinition -> setDefaultValue(context, parameterDefinition, dataProvider));
 
+		if (parameters != null) {
+			parameters.entrySet().stream()
+					.forEach(e -> context.setParameter(null, e.getKey(), e.getValue().toCqlType()));
+
+		}
+
+		// Set measurement period last to make sure we respect periodStart
+		// and periodEnd date boundaries for an execution.
+		Interval measurementPeriod = createMeasurePeriod(periodStart, periodEnd);
+		context.setParameter(null, MEASUREMENT_PERIOD, measurementPeriod);
+
 		return new CustomMeasureEvaluationSeed(measure, context, measurementPeriod, dataProvider);
 	}
 
@@ -105,19 +116,12 @@ public class MeasureEvaluationSeeder {
 			org.cqframework.cql.elm.execution.Library library,
 			String modelUri,
 			DataProvider dataProvider,
-			Interval measurementPeriod,
 			String productLine) {
 
 		Context context = createDefaultContext(library);
 		context.registerLibraryLoader(libraryLoader);
 		context.registerTerminologyProvider(terminologyProvider);
 		context.registerDataProvider(modelUri, dataProvider);
-
-		context.setParameter(
-		null,
-                "Measurement Period",
-                new Interval(DateTime.fromJavaDate((Date) measurementPeriod.getStart()), true,
-                             DateTime.fromJavaDate((Date) measurementPeriod.getEnd()), true));
 
 		if (productLine != null) {
 			context.setParameter(null, "Product Line", productLine);
@@ -141,8 +145,8 @@ public class MeasureEvaluationSeeder {
 	}
 
 	protected Interval createMeasurePeriod(String periodStart, String periodEnd) {
-		return new Interval(DateHelper.resolveRequestDate(periodStart, true), true,
-							DateHelper.resolveRequestDate(periodEnd, false), true);
+		return new Interval(MeasurementPeriodHelper.getPeriodStart(periodStart), true,
+							MeasurementPeriodHelper.getPeriodEnd(periodEnd), true);
 	}
 
 	private void setDefaultValue(Context context, ParameterDefinition parameterDefinition, ModelResolver modelResolver) {
