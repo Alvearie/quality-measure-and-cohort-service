@@ -210,28 +210,28 @@ public class CDMMeasureEvaluation {
 	}
 	
 	protected static void addParametersToReport(MeasureReport report, Measure measure, Context context, Map<String, Parameter> parameterMap) {
-		Set<String> allParameters = new HashSet<>();
+		Set<String> parameterNames = new HashSet<>();
 		
 		// Check for special parameters we handle elsewhere
 		if (context.resolveParameterRef(null, CDMConstants.MEASUREMENT_PERIOD) != null) {
-			allParameters.add(CDMConstants.MEASUREMENT_PERIOD);
+			parameterNames.add(CDMConstants.MEASUREMENT_PERIOD);
 		}
 		
 		if (context.resolveParameterRef(null, CDMConstants.PRODUCT_LINE) != null) {
-			allParameters.add(CDMConstants.PRODUCT_LINE);
+			parameterNames.add(CDMConstants.PRODUCT_LINE);
 		}
 
 		if (parameterMap != null) {
-			allParameters.addAll(parameterMap.keySet());
+			parameterNames.addAll(parameterMap.keySet());
 		}
 		
 		List<Extension> parameterExtensions = measure.getExtensionsByUrl(CDMConstants.MEASURE_PARAMETER_URL);
 		for (Extension e : parameterExtensions) {
 			ParameterDefinition parameterDefinition = (ParameterDefinition) e.getValue();
-			allParameters.add(parameterDefinition.getName());
+			parameterNames.add(parameterDefinition.getName());
 		}
 		
-		allParameters.forEach(x -> report.addExtension(createParameterExtension(context, x)));
+		parameterNames.forEach(x -> report.addExtension(createParameterExtension(context, x)));
 	}
 	
 	protected static Extension createParameterExtension(Context context, String parameterName) {
@@ -239,7 +239,7 @@ public class CDMMeasureEvaluation {
 
 		Extension innerExtension = new Extension();
 		innerExtension.setUrl(PARAMETER_VALUE_URL);
-		IBaseDatatype fhirParameterValue = MeasureReportParameterHelper.getFhirTypeValue(parameterValue);
+		IBaseDatatype fhirParameterValue = CQLToFHIRMeasureReportHelper.getFhirTypeValue(parameterValue);
 
 		Extension outerExtension = null;
 

@@ -37,11 +37,11 @@ import org.opencds.cqf.cql.engine.runtime.Quantity;
 import org.opencds.cqf.cql.engine.runtime.Ratio;
 import org.opencds.cqf.cql.engine.runtime.Time;
 
-public class MeasureReportParameterHelperTest {
+public class CQLToFHIRMeasureReportHelperTest {
 
 	@Test
 	public void testUnsupportedType_shouldReturnNull() {
-		assertNull(MeasureReportParameterHelper.getFhirTypeValue(new CqlList()));
+		assertNull(CQLToFHIRMeasureReportHelper.getFhirTypeValue(new CqlList()));
 	}
 
 	@Test
@@ -51,7 +51,7 @@ public class MeasureReportParameterHelperTest {
 
 		Interval interval = new Interval(startDateTime, true, endDateTime, true);
 
-		IBaseDatatype fhirTypeValue = MeasureReportParameterHelper.getFhirTypeValue(interval);
+		IBaseDatatype fhirTypeValue = CQLToFHIRMeasureReportHelper.getFhirTypeValue(interval);
 
 		// Expect output expressed in UTC
 		DateTimeType expectedStart = new DateTimeType("2020-01-01T00:10:05+00:00");
@@ -71,7 +71,7 @@ public class MeasureReportParameterHelperTest {
 		Quantity startQuantity = new Quantity().withUnit(unit).withValue(startAmount);
 		Quantity endQuantity = new Quantity().withUnit(unit).withValue(endAmount);
 
-		IBaseDatatype fhirTypeValue = MeasureReportParameterHelper.getFhirTypeValue(new Interval(startQuantity, true, endQuantity, true));
+		IBaseDatatype fhirTypeValue = CQLToFHIRMeasureReportHelper.getFhirTypeValue(new Interval(startQuantity, true, endQuantity, true));
 
 		assertTrue(fhirTypeValue instanceof Range);
 		Range castResult = (Range) fhirTypeValue;
@@ -92,32 +92,32 @@ public class MeasureReportParameterHelperTest {
 		Time endTime = new Time(endTimeString);
 
 		Interval interval = new Interval(startTime, true, endTime, true);
-		assertNull(MeasureReportParameterHelper.getFhirTypeValue(interval));
+		assertNull(CQLToFHIRMeasureReportHelper.getFhirTypeValue(interval));
 	}
 
 	@Test
 	public void testIntervalDecimal_shouldReturnNull() {
 		Interval interval = new Interval(new BigDecimal("1.4"), true, new BigDecimal("1.5"), true);
-		assertNull(MeasureReportParameterHelper.getFhirTypeValue(interval));
+		assertNull(CQLToFHIRMeasureReportHelper.getFhirTypeValue(interval));
 	}
 
 	@Test
 	public void testIntervalInteger_shouldReturnNull() {
 		Interval interval = new Interval(1, true, 10, true);
-		assertNull(MeasureReportParameterHelper.getFhirTypeValue(interval));
+		assertNull(CQLToFHIRMeasureReportHelper.getFhirTypeValue(interval));
 	}
 
 	@Test
 	public void testIntervalDate_shouldReturnNull() {
 		Interval interval = new Interval(new Date("2020-01-02"), true, new Date("2020-06-04"), true);
-		assertNull(MeasureReportParameterHelper.getFhirTypeValue(interval));
+		assertNull(CQLToFHIRMeasureReportHelper.getFhirTypeValue(interval));
 	}
 
 	@Test
 	public void testIntegerType() {
 		Integer expected = 1;
 
-		IBaseDatatype fhirTypeValue = MeasureReportParameterHelper.getFhirTypeValue(expected);
+		IBaseDatatype fhirTypeValue = CQLToFHIRMeasureReportHelper.getFhirTypeValue(expected);
 
 		assertTrue(fhirTypeValue instanceof IntegerType);
 		assertEquals(expected, ((IntegerType) fhirTypeValue).getValue());
@@ -127,7 +127,7 @@ public class MeasureReportParameterHelperTest {
 	public void testDecimalType() {
 		BigDecimal expected = BigDecimal.valueOf(2.3);
 
-		IBaseDatatype fhirTypeValue = MeasureReportParameterHelper.getFhirTypeValue(expected);
+		IBaseDatatype fhirTypeValue = CQLToFHIRMeasureReportHelper.getFhirTypeValue(expected);
 
 		assertTrue(fhirTypeValue instanceof DecimalType);
 		assertEquals(expected, ((DecimalType) fhirTypeValue).getValue());
@@ -137,7 +137,7 @@ public class MeasureReportParameterHelperTest {
 	public void testString() {
 		String expected = "strval";
 
-		IBaseDatatype fhirTypeValue = MeasureReportParameterHelper.getFhirTypeValue(expected);
+		IBaseDatatype fhirTypeValue = CQLToFHIRMeasureReportHelper.getFhirTypeValue(expected);
 
 		assertTrue(fhirTypeValue instanceof StringType);
 		assertEquals(expected, ((StringType) fhirTypeValue).getValue());
@@ -145,7 +145,7 @@ public class MeasureReportParameterHelperTest {
 
 	@Test
 	public void testBoolean() {
-		IBaseDatatype fhirTypeValue = MeasureReportParameterHelper.getFhirTypeValue(false);
+		IBaseDatatype fhirTypeValue = CQLToFHIRMeasureReportHelper.getFhirTypeValue(false);
 
 		assertTrue(fhirTypeValue instanceof BooleanType);
 		assertFalse(((BooleanType) fhirTypeValue).getValue());
@@ -157,7 +157,7 @@ public class MeasureReportParameterHelperTest {
 
 		DateTime expected = new DateTime(inputDateTimeString, OffsetDateTime.now().getOffset());
 
-		IBaseDatatype fhirTypeValue = MeasureReportParameterHelper.getFhirTypeValue(expected);
+		IBaseDatatype fhirTypeValue = CQLToFHIRMeasureReportHelper.getFhirTypeValue(expected);
 
 		assertTrue(fhirTypeValue instanceof DateTimeType);
 		assertEquals("2020-01-02T04:00:00.000+00:00", ((DateTimeType) fhirTypeValue).getValueAsString());
@@ -169,7 +169,7 @@ public class MeasureReportParameterHelperTest {
 
 		Date expected = new Date(dateString);
 
-		IBaseDatatype fhirTypeValue = MeasureReportParameterHelper.getFhirTypeValue(expected);
+		IBaseDatatype fhirTypeValue = CQLToFHIRMeasureReportHelper.getFhirTypeValue(expected);
 
 		assertTrue(fhirTypeValue instanceof DateType);
 		assertEquals(dateString, ((DateType) fhirTypeValue).getValueAsString());
@@ -181,7 +181,7 @@ public class MeasureReportParameterHelperTest {
 
 		Time expected = new Time(timeString);
 
-		IBaseDatatype fhirTypeValue = MeasureReportParameterHelper.getFhirTypeValue(expected);
+		IBaseDatatype fhirTypeValue = CQLToFHIRMeasureReportHelper.getFhirTypeValue(expected);
 
 		assertTrue(fhirTypeValue instanceof TimeType);
 		assertEquals(timeString, ((TimeType) fhirTypeValue).getValueAsString());
@@ -193,7 +193,7 @@ public class MeasureReportParameterHelperTest {
 		BigDecimal amount = new BigDecimal("4.0");
 		Quantity quantity = new Quantity().withUnit(unit).withValue(amount);
 
-		verifyBaseTypeAsQuantity(MeasureReportParameterHelper.getFhirTypeValue(quantity), amount, unit);
+		verifyBaseTypeAsQuantity(CQLToFHIRMeasureReportHelper.getFhirTypeValue(quantity), amount, unit);
 	}
 
 	@Test
@@ -208,7 +208,7 @@ public class MeasureReportParameterHelperTest {
 
 		Ratio ratio = new Ratio().setNumerator(quantity1).setDenominator(quantity2);
 
-		IBaseDatatype fhirTypeValue = MeasureReportParameterHelper.getFhirTypeValue(ratio);
+		IBaseDatatype fhirTypeValue = CQLToFHIRMeasureReportHelper.getFhirTypeValue(ratio);
 
 		assertTrue(fhirTypeValue instanceof org.hl7.fhir.r4.model.Ratio);
 		org.hl7.fhir.r4.model.Ratio castResult = (org.hl7.fhir.r4.model.Ratio) fhirTypeValue;
@@ -234,7 +234,7 @@ public class MeasureReportParameterHelperTest {
 
 		Code code = new Code().withCode(codeString).withSystem(system).withDisplay(display).withVersion(version);
 
-		verifyBaseTypeAsCode(MeasureReportParameterHelper.getFhirTypeValue(code), codeString, system, display, version);
+		verifyBaseTypeAsCode(CQLToFHIRMeasureReportHelper.getFhirTypeValue(code), codeString, system, display, version);
 	}
 
 	@Test
@@ -256,7 +256,7 @@ public class MeasureReportParameterHelperTest {
 
 		Concept concept = new Concept().withCodes(Arrays.asList(code1, code2)).withDisplay(conceptDisplay);
 
-		IBaseDatatype fhirTypeValue = MeasureReportParameterHelper.getFhirTypeValue(concept);
+		IBaseDatatype fhirTypeValue = CQLToFHIRMeasureReportHelper.getFhirTypeValue(concept);
 		assertTrue(fhirTypeValue instanceof CodeableConcept);
 		CodeableConcept castResult = (CodeableConcept) fhirTypeValue;
 

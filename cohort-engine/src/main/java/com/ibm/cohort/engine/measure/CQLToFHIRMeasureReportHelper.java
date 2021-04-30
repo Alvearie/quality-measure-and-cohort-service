@@ -24,10 +24,15 @@ import org.slf4j.LoggerFactory;
 import ca.uhn.fhir.context.FhirVersionEnum;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 
+/**
+ * This class is meant to handle converting CQL types to FHIR representations for use on
+ * a MeasureReport. This class may introduce special conversion behaviors intended only
+ * for the MeasureReport (example: converting all CQL DateTimes to a dateTime FHIR representation
+ * in UTC). Use caution if attempting to use this class to perform conversions for other purposes.
+ */
+public class CQLToFHIRMeasureReportHelper {
 
-public class MeasureReportParameterHelper {
-
-	private static final Logger logger = LoggerFactory.getLogger(MeasureReportParameterHelper.class);
+	private static final Logger logger = LoggerFactory.getLogger(CQLToFHIRMeasureReportHelper.class);
 
 	private static final FhirTypeConverter converter = new FhirTypeConverterFactory().create(FhirVersionEnum.R4);
 
