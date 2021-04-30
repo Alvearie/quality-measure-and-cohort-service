@@ -12,12 +12,8 @@ import java.util.Map;
 
 import org.hl7.elm.r1.VersionedIdentifier;
 
-public class ClasspathLibrarySourceProvider extends MultiFormatLibrarySourceProvider {
-	public ClasspathLibrarySourceProvider(List<String> libraryResources) {
-		this(libraryResources, new DefaultFilenameToVersionedIdentifierStrategy());
-	}
-
-	public ClasspathLibrarySourceProvider(List<String> libraryResources,
+public class TestClasspathLibrarySourceProvider extends MultiFormatLibrarySourceProvider {
+	public TestClasspathLibrarySourceProvider(List<String> libraryResources,
 			FilenameToVersionedIdentifierStrategy idStrategy) {
 		for (String resource : libraryResources) {
 			VersionedIdentifier vid = idStrategy.filenameToVersionedIdentifier(resource);
