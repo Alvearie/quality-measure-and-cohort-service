@@ -104,7 +104,7 @@ public class MeasureEvaluationSeeder {
 
 		}
 
-		// Set measurement perdiod last to make sure we respect perdiodStart
+		// Set measurement period last to make sure we respect periodStart
 		// and periodEnd date boundaries for an execution.
 		Interval measurementPeriod = createMeasurePeriod(periodStart, periodEnd);
 		context.setParameter(null, MEASUREMENT_PERIOD, measurementPeriod);
