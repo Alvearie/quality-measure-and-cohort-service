@@ -59,6 +59,5 @@ public class DirectoryLibrarySourceProvider extends MultiFormatLibrarySourceProv
 				return FileVisitResult.CONTINUE;
 			}
 		});
-		addClasspathFhirHelpers(sources);
 	}
 }

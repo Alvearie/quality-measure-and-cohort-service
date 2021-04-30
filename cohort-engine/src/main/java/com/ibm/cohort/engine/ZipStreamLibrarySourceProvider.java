@@ -63,7 +63,5 @@ public class ZipStreamLibrarySourceProvider extends MultiFormatLibrarySourceProv
 				}
 			}
 		}
-
-		addClasspathFhirHelpers(sources);
 	}
 }

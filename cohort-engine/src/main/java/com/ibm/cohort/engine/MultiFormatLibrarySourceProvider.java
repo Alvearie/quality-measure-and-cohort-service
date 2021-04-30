@@ -22,8 +22,6 @@ import org.hl7.elm.r1.VersionedIdentifier;
  * translation can easily get it from the provided libraries.
  */
 public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
-	private static VersionedIdentifier fhirHelpersVersion = new VersionedIdentifier().withId("FHIRHelpers");
-	private static final String FHIR_HELPER_DEFAULT_VERSION = "4.0.0";
 
 	protected Map<VersionedIdentifier, Map<LibraryFormat, InputStream>> sources = new HashMap<>();
 
@@ -57,6 +55,11 @@ public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
 			}
 		}
 
+		if(byLibrary == null && libraryIdentifier.getId().equals("FHIRHelpers")){
+			addClasspathFhirHelpers(sources, libraryIdentifier);
+			byLibrary = sources.get(libraryIdentifier);
+		}
+
 		if (byLibrary != null) {
 			result = byLibrary.get(sourceFormat);
 		}
@@ -86,10 +89,14 @@ public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
 		return getSourcesByFormat(LibraryFormat.CQL).get(libraryIdentifier);
 	}
 
-	public static void addClasspathFhirHelpers(Map<VersionedIdentifier, Map<LibraryFormat, InputStream>> sources){
-		Map<LibraryFormat, InputStream> specFormat = sources.computeIfAbsent(fhirHelpersVersion, key -> new HashMap<>());
+	//todo deduplicate
+	public static void addClasspathFhirHelpers(Map<VersionedIdentifier, Map<LibraryFormat, InputStream>> sources, VersionedIdentifier libraryIdentifier){
+		Map<LibraryFormat, InputStream> specFormat = sources.computeIfAbsent(libraryIdentifier, key -> new HashMap<>());
 		if(specFormat.isEmpty()) {
-			InputStream fhirHelperResource = ClasspathLibrarySourceProvider.class.getResourceAsStream(String.format("/org/hl7/fhir/%s-%s.xml", fhirHelpersVersion.getId(), FHIR_HELPER_DEFAULT_VERSION));
+			InputStream fhirHelperResource = ClasspathLibrarySourceProvider.class.getResourceAsStream(
+					String.format("/org/hl7/fhir/%s-%s.xml",
+							libraryIdentifier.getId(),
+							libraryIdentifier.getVersion()));
 			specFormat.put(LibraryFormat.XML, fhirHelperResource);
 		}
 	}

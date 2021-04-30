@@ -24,6 +24,5 @@ public class TestClasspathLibrarySourceProvider extends MultiFormatLibrarySource
 			}
 			formats.put(LibraryFormat.forString(resource), is);
 		}
-		addClasspathFhirHelpers(sources);
 	}
 }
