@@ -748,4 +748,24 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		assertTrue(new DateTimeType("2019-12-31T20:00:00.000Z").equalsUsingFhirPathRules(timezoneResult));
 		assertEquals(TimeZone.getTimeZone("UTC"), timezoneResult.getTimeZone());
 	}
+
+	@Test
+	public void measure_report_generated___engine_defaults_cql_datetimes_to_utc() throws Exception {
+		CapabilityStatement metadata = getCapabilityStatement();
+		mockFhirResourceRetrieval("/metadata", metadata);
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = mockLibraryRetrieval("TestDatetimeDefaultTimezones", DEFAULT_VERSION,
+											   "cql/fhir-measure/test-datetime-default-timezones.cql", "text/cql");
+
+		Measure measure = getCohortMeasure("CohortMeasureName", library, INITIAL_POPULATION);
+		mockFhirResourceRetrieval(measure);
+
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null);
+
+		assertNotNull(report);
+		assertEquals(1, report.getGroupFirstRep().getPopulationFirstRep().getCount());
+	}
 }
