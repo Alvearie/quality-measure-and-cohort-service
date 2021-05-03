@@ -54,7 +54,7 @@ public class BasePatientTest extends BaseFhirTest {
 				}
 			};
 			
-			MultiFormatLibrarySourceProvider sourceProvider = new ClasspathLibrarySourceProvider(
+			MultiFormatLibrarySourceProvider sourceProvider = new TestClasspathLibrarySourceProvider(
 					Arrays.asList(resources),
 					strategy);
 			CqlTranslationProvider translationProvider = new InJVMCqlTranslationProvider(sourceProvider);
