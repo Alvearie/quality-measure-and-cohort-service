@@ -10,7 +10,6 @@ import static com.ibm.cohort.engine.cdm.CDMConstants.PARAMETER_DEFAULT_URL;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Triple;
@@ -18,21 +17,19 @@ import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.ParameterDefinition;
-import org.hl7.fhir.r4.model.Type;
 import org.opencds.cqf.common.helpers.UsingHelper;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.debug.DebugMap;
 import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
-import org.opencds.cqf.cql.engine.model.ModelResolver;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.helpers.MeasurementPeriodHelper;
 import com.ibm.cohort.engine.measure.LibraryHelper;
-import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
+import com.ibm.cohort.engine.measure.ParameterDefinitionWithDefaultToCQLHelper;
 import com.ibm.cohort.engine.parameter.Parameter;
 
 public class MeasureEvaluationSeeder {
@@ -96,7 +93,7 @@ public class MeasureEvaluationSeeder {
 				.filter(MeasureEvaluationSeeder::isMeasureParameter)
 				.map(parameter -> dataProvider.resolvePath(parameter, "valueParameterDefinition"))
 				.map(ParameterDefinition.class::cast)
-				.forEach(parameterDefinition -> setDefaultValue(context, parameterDefinition, dataProvider));
+				.forEach(parameterDefinition -> setDefaultValue(context, parameterDefinition));
 
 		if (parameters != null) {
 			parameters.entrySet().stream()
@@ -149,21 +146,17 @@ public class MeasureEvaluationSeeder {
 							MeasurementPeriodHelper.getPeriodEnd(periodEnd), true);
 	}
 
-	private void setDefaultValue(Context context, ParameterDefinition parameterDefinition, ModelResolver modelResolver) {
+	private void setDefaultValue(Context context, ParameterDefinition parameterDefinition) {
 		parameterDefinition.getExtension().stream()
 				.filter(MeasureEvaluationSeeder::isDefaultValue)
 				.forEach(defaultValue ->
 						         context.setParameter(
 								         null,
 								         parameterDefinition.getName(),
-								         toCqlObject(defaultValue.getValue(), modelResolver)));
+										 ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition)
+								 ));
 	}
 
-	private Object toCqlObject(Type type, ModelResolver modelResolver) {
-		return Optional.ofNullable(type)
-				.map((fhirType) -> modelResolver.resolvePath(fhirType, "value"))
-				.orElseThrow(() -> new UnsupportedFhirTypeException(type));
-	}
 
 	public static boolean isMeasureParameter(Extension extension) {
 		return MEASURE_PARAMETER_URL.equals(extension.getUrl());

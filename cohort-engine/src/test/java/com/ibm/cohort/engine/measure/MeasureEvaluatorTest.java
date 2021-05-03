@@ -750,13 +750,15 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	}
 
 	@Test
-	public void measure_report_generated___engine_defaults_cql_datetimes_to_utc() throws Exception {
+	public void in_initial_population_when_engine_run_in_utc__engine_defaults_to_utc() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
 		mockFhirResourceRetrieval("/metadata", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
 
+		// Test CQL written to pass when engine run with a timezone of UTC
+		// and should fail otherwise
 		Library library = mockLibraryRetrieval("TestDatetimeDefaultTimezones", DEFAULT_VERSION,
 											   "cql/fhir-measure/test-datetime-default-timezones.cql", "text/cql");
 
