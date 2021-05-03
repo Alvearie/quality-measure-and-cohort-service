@@ -15,7 +15,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
 import org.hl7.fhir.instance.model.api.IBaseDatatype;
@@ -167,8 +169,9 @@ public class CDMMeasureEvaluation {
 			
 			defineContext.clearExpressionCache();
 		}
-		
-		addParametersToReport(report, measure, context, parameterMap);
+
+		List<Extension> parameterExtensions = getParameterExtensions(measure, context, parameterMap);
+		parameterExtensions.forEach(report::addExtension);
 
 		return report;
 	}
@@ -209,7 +212,7 @@ public class CDMMeasureEvaluation {
 		}
 	}
 	
-	protected static void addParametersToReport(MeasureReport report, Measure measure, Context context, Map<String, Parameter> parameterMap) {
+	protected static List<Extension> getParameterExtensions(Measure measure, Context context, Map<String, Parameter> parameterMap) {
 		Set<String> parameterNames = new HashSet<>();
 		
 		// Check for special parameters we handle elsewhere
@@ -231,7 +234,10 @@ public class CDMMeasureEvaluation {
 			parameterNames.add(parameterDefinition.getName());
 		}
 		
-		parameterNames.forEach(x -> report.addExtension(createParameterExtension(context, x)));
+		return parameterNames.stream()
+				.map(x -> createParameterExtension(context, x))
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
 	}
 	
 	protected static Extension createParameterExtension(Context context, String parameterName) {
