@@ -36,7 +36,7 @@ import com.ibm.cohort.engine.parameter.DatetimeParameter;
  * Expected types to handle derived from this definition:
  * https://pages.github.ibm.com/watson-health-fhir-server/ig-common-data-model/StructureDefinition-parameter-definition-with-default.html
  */
-public class ParameterDefinitionWithDefaultToCQLHelper {
+public class R4ParameterDefinitionWithDefaultToCQLConverter {
 
 	public static Object getCqlObject(ParameterDefinition parameterDefinition) {
 		Extension defaultValueExtension = parameterDefinition.getExtensionByUrl(CDMConstants.PARAMETER_DEFAULT_URL);
@@ -124,7 +124,7 @@ public class ParameterDefinitionWithDefaultToCQLHelper {
 		concept.withCodes(
 				codeableConcept.getCoding()
 						.stream()
-						.map(ParameterDefinitionWithDefaultToCQLHelper::convertCoding)
+						.map(R4ParameterDefinitionWithDefaultToCQLConverter::convertCoding)
 						.collect(Collectors.toList()));
 
 		return concept;

@@ -39,7 +39,7 @@ import org.opencds.cqf.cql.engine.runtime.Time;
 import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
 
-public class ParameterDefinitionWithDefaultToCQLHelperTest {
+public class R4ParameterDefinitionWithDefaultToCQLConverterTest {
 
 	@Test
 	public void testBase64Binary__shouldReturnString() {
@@ -49,7 +49,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		assertEquals(base64String, ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition));
+		assertEquals(base64String, R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition));
 	}
 
 	@Test
@@ -59,7 +59,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		assertEquals(true, ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition));
+		assertEquals(true, R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition));
 	}
 
 	@Test
@@ -73,7 +73,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 
 		Date expectedDate = new Date(dateString);
 
-		assertTrue(expectedDate.equal(ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition)));
+		assertTrue(expectedDate.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
 	}
 
 	@Test
@@ -87,7 +87,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 
 		DateTime expectedDateTime = new DateTime("2020-01-01T00:00:00.0", ZoneOffset.UTC);
 
-		assertTrue(expectedDateTime.equal(ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition)));
+		assertTrue(expectedDateTime.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
 	}
 
 	@Test
@@ -101,7 +101,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 
 		DateTime expectedDateTime = new DateTime("2020-01-01T00:00:00.0", ZoneOffset.ofHours(4));
 
-		assertTrue(expectedDateTime.equal(ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition)));
+		assertTrue(expectedDateTime.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
 	}
 
 	@Test
@@ -113,7 +113,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		assertEquals(bigDecimalValue, ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition));
+		assertEquals(bigDecimalValue, R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition));
 	}
 
 	@Test
@@ -124,7 +124,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		assertTrue(new DateTime("2020-01-01T12:30:00.0", ZoneOffset.UTC).equal(ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition)));
+		assertTrue(new DateTime("2020-01-01T12:30:00.0", ZoneOffset.UTC).equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
 	}
 
 	@Test
@@ -136,7 +136,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		assertEquals(expectedValue, ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition));
+		assertEquals(expectedValue, R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition));
 	}
 
 	@Test
@@ -148,7 +148,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		assertEquals(expectedValue, ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition));
+		assertEquals(expectedValue, R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition));
 	}
 
 	@Test
@@ -162,7 +162,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 
 		Time expectedValue = new Time(timeString);
 
-		assertTrue(expectedValue.equal(ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition)));
+		assertTrue(expectedValue.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
 	}
 
 	@Test
@@ -174,7 +174,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		assertEquals(uriString, ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition));
+		assertEquals(uriString, R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition));
 	}
 
 	@Test(expected = UnsupportedFhirTypeException.class)
@@ -185,7 +185,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition);
+		R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition);
 	}
 
 	@Test(expected = UnsupportedFhirTypeException.class)
@@ -196,7 +196,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition);
+		R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition);
 	}
 
 	@Test
@@ -209,7 +209,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 
 		Code expectedCode = new Code().withSystem("sys").withCode("val").withDisplay("dis").withVersion("ver");
 
-		assertTrue(expectedCode.equal(ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition)));
+		assertTrue(expectedCode.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
 	}
 
 	@Test
@@ -222,7 +222,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 
 		Code expectedCode = new Code();
 
-		assertTrue(expectedCode.equal(ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition)));
+		assertTrue(expectedCode.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
 	}
 
 	@Test
@@ -244,7 +244,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 		Concept expectedConcept = new Concept().withDisplay("plainText")
 				.withCodes(expectedCodes);
 
-		assertTrue(expectedConcept.equal(ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition)));
+		assertTrue(expectedConcept.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
 	}
 
 	@Test
@@ -260,7 +260,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 		Interval expectedInterval = new Interval(new DateTime("2020-01-01T12:00:00.0", ZoneOffset.UTC), true,
 												 new DateTime("2020-02-04T11:00:00.0-05:00", ZoneOffset.UTC), true);
 
-		assertTrue(expectedInterval.equal(ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition)));
+		assertTrue(expectedInterval.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
 	}
 
 	@Test
@@ -280,7 +280,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 				.withUnit(unit)
 				.withValue(bigDecimalValue);
 
-		assertTrue(expectedQuantity.equal(ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition)));
+		assertTrue(expectedQuantity.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
 	}
 
 	@Test
@@ -302,7 +302,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 												 new Quantity().withUnit(unit).withValue(highValue),
 												 true);
 
-		assertTrue(expectedInterval.equal(ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition)));
+		assertTrue(expectedInterval.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
 	}
 
 	@Test
@@ -323,7 +323,7 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 				.setDenominator(new Quantity().withUnit(unit).withValue(denominatorValue))
 				.setNumerator(new Quantity().withUnit(unit).withValue(numeratorValue));
 
-		assertTrue(expectedInterval.equal(ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition)));
+		assertTrue(expectedInterval.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
 	}
 
 	private ParameterDefinition getBaseParameterDefinition(String type) {
