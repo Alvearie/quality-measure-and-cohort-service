@@ -45,9 +45,9 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 	public void testBase64Binary__shouldReturnString() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("base64Binary");
 		String base64String = "AAA";
-		Base64BinaryType value = new Base64BinaryType(base64String);
+		Base64BinaryType fhirValue = new Base64BinaryType(base64String);
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		assertEquals(base64String, ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition));
 	}
@@ -55,9 +55,9 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 	@Test
 	public void testBoolean__shouldReturnBoolean() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("boolean");
-		BooleanType value = new BooleanType(true);
+		BooleanType fhirValue = new BooleanType(true);
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		assertEquals(true, ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition));
 	}
@@ -67,9 +67,9 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("date");
 		String dateString = "2020-01-01";
 
-		DateType value = new DateType(dateString);
+		DateType fhirValue = new DateType(dateString);
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		Date expectedDate = new Date(dateString);
 
@@ -81,9 +81,9 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("dateTime");
 		String dateString = "2020-01-01T00:00:00.0";
 
-		DateTimeType value = new DateTimeType(dateString);
+		DateTimeType fhirValue = new DateTimeType(dateString);
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		DateTime expectedDateTime = new DateTime("2020-01-01T00:00:00.0", ZoneOffset.UTC);
 
@@ -95,9 +95,9 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("dateTime");
 		String dateString = "2020-01-01T00:00:00.0+04:00";
 
-		DateTimeType value = new DateTimeType(dateString);
+		DateTimeType fhirValue = new DateTimeType(dateString);
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		DateTime expectedDateTime = new DateTime("2020-01-01T00:00:00.0", ZoneOffset.ofHours(4));
 
@@ -109,9 +109,9 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("decimal");
 
 		BigDecimal bigDecimalValue = new BigDecimal(1.5);
-		DecimalType value = new DecimalType(bigDecimalValue);
+		DecimalType fhirValue = new DecimalType(bigDecimalValue);
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		assertEquals(bigDecimalValue, ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition));
 	}
@@ -120,9 +120,9 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 	public void testInstant__shouldReturnDateTime() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("instant");
 
-		InstantType value = new InstantType("2020-01-01T12:30:00.0Z");
+		InstantType fhirValue = new InstantType("2020-01-01T12:30:00.0Z");
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		assertTrue(new DateTime("2020-01-01T12:30:00.0", ZoneOffset.UTC).equal(ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition)));
 	}
@@ -132,9 +132,9 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("integer");
 
 		int expectedValue = 10;
-		IntegerType value = new IntegerType(expectedValue);
+		IntegerType fhirValue = new IntegerType(expectedValue);
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		assertEquals(expectedValue, ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition));
 	}
@@ -144,9 +144,9 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("string");
 
 		String expectedValue = "data";
-		StringType value = new StringType(expectedValue);
+		StringType fhirValue = new StringType(expectedValue);
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		assertEquals(expectedValue, ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition));
 	}
@@ -156,9 +156,9 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("time");
 
 		String timeString = "12:30:00";
-		TimeType value = new TimeType(timeString);
+		TimeType fhirValue = new TimeType(timeString);
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		Time expectedValue = new Time(timeString);
 
@@ -170,9 +170,9 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("uri");
 
 		String uriString = "a-b-c-d-e-f-g";
-		UriType value = new UriType(uriString);
+		UriType fhirValue = new UriType(uriString);
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		assertEquals(uriString, ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition));
 	}
@@ -181,9 +181,9 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 	public void testAnnotation__shouldThrowException() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("Annotation");
 
-		Annotation value = new Annotation();
+		Annotation fhirValue = new Annotation();
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition);
 	}
@@ -192,9 +192,9 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 	public void testAttachment__shouldThrowException() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("Attachment");
 
-		Attachment value = new Attachment();
+		Attachment fhirValue = new Attachment();
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		ParameterDefinitionWithDefaultToCQLHelper.getCqlObject(parameterDefinition);
 	}
@@ -203,9 +203,9 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 	public void testCoding__shouldReturnCode() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("Coding");
 
-		Coding value = makeCoding("sys", "val", "dis", "ver");
+		Coding fhirValue = makeCoding("sys", "val", "dis", "ver");
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		Code expectedCode = new Code().withSystem("sys").withCode("val").withDisplay("dis").withVersion("ver");
 
@@ -216,9 +216,9 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 	public void testEmptyCoding__shouldReturnEmptyCode() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("Coding");
 
-		Coding value = new Coding();
+		Coding fhirValue = new Coding();
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		Code expectedCode = new Code();
 
@@ -229,13 +229,13 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 	public void testCodeableConcept__shouldReturnConcept() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("CodeableConcept");
 
-		CodeableConcept value = new CodeableConcept();
-		value.setText("plainText");
+		CodeableConcept fhirValue = new CodeableConcept();
+		fhirValue.setText("plainText");
 
-		value.addCoding(makeCoding("s1", "val1", "d1", "ver1"));
-		value.addCoding(makeCoding("s2", "val2", "d2", "ver2"));
+		fhirValue.addCoding(makeCoding("s1", "val1", "d1", "ver1"));
+		fhirValue.addCoding(makeCoding("s2", "val2", "d2", "ver2"));
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		List<Code> expectedCodes = new ArrayList<>();
 		expectedCodes.add(new Code().withSystem("s1").withCode("val1").withDisplay("d1").withVersion("ver1"));
@@ -251,11 +251,11 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 	public void testPeriod__shouldReturnIntervalOfDateTime() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("Period");
 
-		Period value = new Period();
-		value.setStartElement(new DateTimeType("2020-01-01T12:00:00.0"));
-		value.setEndElement(new DateTimeType("2020-02-04T11:00:00.0-05:00"));
+		Period fhirValue = new Period();
+		fhirValue.setStartElement(new DateTimeType("2020-01-01T12:00:00.0"));
+		fhirValue.setEndElement(new DateTimeType("2020-02-04T11:00:00.0-05:00"));
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		Interval expectedInterval = new Interval(new DateTime("2020-01-01T12:00:00.0", ZoneOffset.UTC), true,
 												 new DateTime("2020-02-04T11:00:00.0-05:00", ZoneOffset.UTC), true);
@@ -270,11 +270,11 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 		BigDecimal bigDecimalValue = new BigDecimal(1.5);
 		String unit = "ml";
 
-		org.hl7.fhir.r4.model.Quantity value = new org.hl7.fhir.r4.model.Quantity();
-		value.setUnit(unit);
-		value.setValue(bigDecimalValue);
+		org.hl7.fhir.r4.model.Quantity fhirValue = new org.hl7.fhir.r4.model.Quantity();
+		fhirValue.setUnit(unit);
+		fhirValue.setValue(bigDecimalValue);
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		Quantity expectedQuantity = new Quantity()
 				.withUnit(unit)
@@ -291,11 +291,11 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 		BigDecimal highValue = new BigDecimal(2.5);
 		String unit = "ml";
 
-		Range value = new Range()
+		Range fhirValue = new Range()
 				.setLow(new org.hl7.fhir.r4.model.Quantity().setValue(lowValue).setUnit(unit))
 				.setHigh(new org.hl7.fhir.r4.model.Quantity().setValue(highValue).setUnit(unit));
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		Interval expectedInterval = new Interval(new Quantity().withUnit(unit).withValue(lowValue),
 												 true,
@@ -313,11 +313,11 @@ public class ParameterDefinitionWithDefaultToCQLHelperTest {
 		BigDecimal numeratorValue = new BigDecimal(2.5);
 		String unit = "ml";
 
-		org.hl7.fhir.r4.model.Ratio value = new org.hl7.fhir.r4.model.Ratio()
+		org.hl7.fhir.r4.model.Ratio fhirValue = new org.hl7.fhir.r4.model.Ratio()
 				.setDenominator(new org.hl7.fhir.r4.model.Quantity().setValue(denominatorValue).setUnit(unit))
 				.setNumerator(new org.hl7.fhir.r4.model.Quantity().setValue(numeratorValue).setUnit(unit));
 
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, value);
+		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
 		Ratio expectedInterval = new Ratio()
 				.setDenominator(new Quantity().withUnit(unit).withValue(denominatorValue))
