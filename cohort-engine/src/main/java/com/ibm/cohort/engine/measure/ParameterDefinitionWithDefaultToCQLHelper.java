@@ -32,6 +32,10 @@ import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
 import com.ibm.cohort.engine.parameter.DateParameter;
 import com.ibm.cohort.engine.parameter.DatetimeParameter;
 
+/**
+ * Expected types to handle derived from this definition:
+ * https://pages.github.ibm.com/watson-health-fhir-server/ig-common-data-model/StructureDefinition-parameter-definition-with-default.html
+ */
 public class ParameterDefinitionWithDefaultToCQLHelper {
 
 	public static Object getCqlObject(ParameterDefinition parameterDefinition) {
