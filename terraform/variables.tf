@@ -23,6 +23,11 @@ variable "organization" {
   type        = string
 }
 
+variable "resource_group" {
+  description = "Resource group"
+  type = string
+}
+
 variable "kubernetes_config_context" {
   description = "k8s cluster config context used by the k8s terraform provider"
   type = string
