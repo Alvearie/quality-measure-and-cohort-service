@@ -58,7 +58,7 @@ public class R4ParameterDefinitionWithDefaultToCohortParameterConverter {
 		return parameter;
 	}
 
-	private static Parameter toCohortParameter(Extension extension) {
+	public static Parameter toCohortParameter(Extension extension) {
 		Parameter parameter;
 
 		Type extensionValue = extension.getValue();
