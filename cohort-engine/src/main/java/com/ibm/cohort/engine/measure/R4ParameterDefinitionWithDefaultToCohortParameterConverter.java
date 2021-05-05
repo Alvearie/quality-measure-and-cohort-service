@@ -52,68 +52,76 @@ public class R4ParameterDefinitionWithDefaultToCohortParameterConverter {
 
 		Parameter parameter = null;
 		if (defaultValueExtension != null) {
-			Type extensionValue = defaultValueExtension.getValue();
-			if (extensionValue instanceof Base64BinaryType) {
-				parameter = new StringParameter(((Base64BinaryType) extensionValue).asStringValue());
-			}
-			else if (extensionValue instanceof BooleanType) {
-				parameter = new BooleanParameter(((BooleanType) extensionValue).booleanValue());
-			}
-			else if (extensionValue instanceof DateType) {
-				 parameter = new DateParameter(((DateType) extensionValue).asStringValue());
-			}
-			else if (extensionValue instanceof DateTimeType) {
-				parameter = convertDateTimeType((DateTimeType) extensionValue);
-			}
-			else if (extensionValue instanceof DecimalType) {
-				parameter = new DecimalParameter(((DecimalType) extensionValue).getValueAsString());
-			}
-			else if (extensionValue instanceof InstantType) {
-				parameter = new DatetimeParameter(((InstantType) extensionValue).getValueAsString());
-			}
-			else if (extensionValue instanceof IntegerType) {
-				parameter = new IntegerParameter(((IntegerType) extensionValue).getValue());
-			}
-			else if (extensionValue instanceof StringType) {
-				parameter = new StringParameter(((StringType) extensionValue).getValue());
-			}
-			else if (extensionValue instanceof TimeType) {
-				parameter = new TimeParameter(((TimeType) extensionValue).asStringValue());
-			}
-			else if (extensionValue instanceof UriType) {
-				parameter = new StringParameter(((UriType) extensionValue).getValue());
-			}
-			else if (extensionValue instanceof Coding) {
-				parameter = convertCoding((Coding) extensionValue);
-			}
-			else if (extensionValue instanceof CodeableConcept) {
-				parameter = convertCodeableConcept((CodeableConcept) extensionValue);
-			}
-			else if (extensionValue instanceof Period) {
-				Period castValue = (Period) extensionValue;
+			parameter = toCohortParameter(defaultValueExtension);
+		}
 
-				parameter = new IntervalParameter(convertDateTimeType(castValue.getStartElement()), true,
-												  convertDateTimeType(castValue.getEndElement()), true);
-			}
-			else if (extensionValue instanceof Quantity) {
-				parameter = convertQuantity((Quantity) extensionValue);
-			}
-			else if (extensionValue instanceof Range) {
-				Range castValue = (Range) extensionValue;
+		return parameter;
+	}
 
-				parameter = new IntervalParameter(convertQuantity(castValue.getLow()), true,
-												  convertQuantity(castValue.getHigh()), true);
-			}
-			else if (extensionValue instanceof Ratio) {
-				Ratio castValue = (Ratio) extensionValue;
+	private static Parameter toCohortParameter(Extension extension) {
+		Parameter parameter;
 
-				parameter = new RatioParameter()
-						.setDenominator(convertQuantity(castValue.getDenominator()))
-						.setNumerator(convertQuantity(castValue.getNumerator()));
-			}
-			else {
-				throw new UnsupportedFhirTypeException(extensionValue);
-			}
+		Type extensionValue = extension.getValue();
+		if (extensionValue instanceof Base64BinaryType) {
+			parameter = new StringParameter(((Base64BinaryType) extensionValue).asStringValue());
+		}
+		else if (extensionValue instanceof BooleanType) {
+			parameter = new BooleanParameter(((BooleanType) extensionValue).booleanValue());
+		}
+		else if (extensionValue instanceof DateType) {
+			parameter = new DateParameter(((DateType) extensionValue).asStringValue());
+		}
+		else if (extensionValue instanceof DateTimeType) {
+			parameter = convertDateTimeType((DateTimeType) extensionValue);
+		}
+		else if (extensionValue instanceof DecimalType) {
+			parameter = new DecimalParameter(((DecimalType) extensionValue).getValueAsString());
+		}
+		else if (extensionValue instanceof InstantType) {
+			parameter = new DatetimeParameter(((InstantType) extensionValue).getValueAsString());
+		}
+		else if (extensionValue instanceof IntegerType) {
+			parameter = new IntegerParameter(((IntegerType) extensionValue).getValue());
+		}
+		else if (extensionValue instanceof StringType) {
+			parameter = new StringParameter(((StringType) extensionValue).getValue());
+		}
+		else if (extensionValue instanceof TimeType) {
+			parameter = new TimeParameter(((TimeType) extensionValue).asStringValue());
+		}
+		else if (extensionValue instanceof UriType) {
+			parameter = new StringParameter(((UriType) extensionValue).getValue());
+		}
+		else if (extensionValue instanceof Coding) {
+			parameter = convertCoding((Coding) extensionValue);
+		}
+		else if (extensionValue instanceof CodeableConcept) {
+			parameter = convertCodeableConcept((CodeableConcept) extensionValue);
+		}
+		else if (extensionValue instanceof Period) {
+			Period castValue = (Period) extensionValue;
+
+			parameter = new IntervalParameter(convertDateTimeType(castValue.getStartElement()), true,
+											  convertDateTimeType(castValue.getEndElement()), true);
+		}
+		else if (extensionValue instanceof Quantity) {
+			parameter = convertQuantity((Quantity) extensionValue);
+		}
+		else if (extensionValue instanceof Range) {
+			Range castValue = (Range) extensionValue;
+
+			parameter = new IntervalParameter(convertQuantity(castValue.getLow()), true,
+											  convertQuantity(castValue.getHigh()), true);
+		}
+		else if (extensionValue instanceof Ratio) {
+			Ratio castValue = (Ratio) extensionValue;
+
+			parameter = new RatioParameter()
+					.setDenominator(convertQuantity(castValue.getDenominator()))
+					.setNumerator(convertQuantity(castValue.getNumerator()));
+		}
+		else {
+			throw new UnsupportedFhirTypeException(extensionValue);
 		}
 
 		return parameter;
