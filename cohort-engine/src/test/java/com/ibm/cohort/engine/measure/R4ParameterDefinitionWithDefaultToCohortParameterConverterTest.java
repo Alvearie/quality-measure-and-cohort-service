@@ -2,10 +2,8 @@ package com.ibm.cohort.engine.measure;
 
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.math.BigDecimal;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,39 +25,43 @@ import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.TimeType;
 import org.hl7.fhir.r4.model.UriType;
 import org.junit.Test;
-import org.opencds.cqf.cql.engine.runtime.Code;
-import org.opencds.cqf.cql.engine.runtime.Concept;
-import org.opencds.cqf.cql.engine.runtime.Date;
-import org.opencds.cqf.cql.engine.runtime.DateTime;
-import org.opencds.cqf.cql.engine.runtime.Interval;
-import org.opencds.cqf.cql.engine.runtime.Quantity;
-import org.opencds.cqf.cql.engine.runtime.Ratio;
-import org.opencds.cqf.cql.engine.runtime.Time;
 
 import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
+import com.ibm.cohort.engine.parameter.BooleanParameter;
+import com.ibm.cohort.engine.parameter.CodeParameter;
+import com.ibm.cohort.engine.parameter.ConceptParameter;
+import com.ibm.cohort.engine.parameter.DateParameter;
+import com.ibm.cohort.engine.parameter.DatetimeParameter;
+import com.ibm.cohort.engine.parameter.DecimalParameter;
+import com.ibm.cohort.engine.parameter.IntegerParameter;
+import com.ibm.cohort.engine.parameter.IntervalParameter;
+import com.ibm.cohort.engine.parameter.QuantityParameter;
+import com.ibm.cohort.engine.parameter.RatioParameter;
+import com.ibm.cohort.engine.parameter.StringParameter;
+import com.ibm.cohort.engine.parameter.TimeParameter;
 
-public class R4ParameterDefinitionWithDefaultToCQLConverterTest {
+public class R4ParameterDefinitionWithDefaultToCohortParameterConverterTest {
 
 	@Test
-	public void testBase64Binary__shouldReturnString() {
+	public void testBase64Binary__shouldReturnStringParameter() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("base64Binary");
 		String base64String = "AAA";
 		Base64BinaryType fhirValue = new Base64BinaryType(base64String);
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		assertEquals(base64String, R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition));
+		assertEquals(new StringParameter(base64String), R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition));
 	}
 
 	@Test
-	public void testBoolean__shouldReturnBoolean() {
+	public void testBoolean__shouldReturnBooleanParameter() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("boolean");
 		BooleanType fhirValue = new BooleanType(true);
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		assertEquals(true, R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition));
+		assertEquals(new BooleanParameter(true), R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition));
 	}
 
 	@Test
@@ -71,13 +73,11 @@ public class R4ParameterDefinitionWithDefaultToCQLConverterTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		Date expectedDate = new Date(dateString);
-
-		assertTrue(expectedDate.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
+		assertEquals(new DateParameter(dateString), R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition));
 	}
 
 	@Test
-	public void testDateTimeNoTimezone__shouldReturnDateTimeInUTC() {
+	public void testDateTimeNoTimezone__shouldReturnDatetimeParameter() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("dateTime");
 		String dateString = "2020-01-01T00:00:00.0";
 
@@ -85,13 +85,11 @@ public class R4ParameterDefinitionWithDefaultToCQLConverterTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		DateTime expectedDateTime = new DateTime("2020-01-01T00:00:00.0", ZoneOffset.UTC);
-
-		assertTrue(expectedDateTime.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
+		assertEquals(new DatetimeParameter("2020-01-01T00:00:00.0"), R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition));
 	}
 
 	@Test
-	public void testDateTimeWithTimezone__shouldReturnDateTimeInCorrectTimezone() {
+	public void testDateTimeWithTimezone__shouldReturnDatetimeParameter() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("dateTime");
 		String dateString = "2020-01-01T00:00:00.0+04:00";
 
@@ -99,36 +97,36 @@ public class R4ParameterDefinitionWithDefaultToCQLConverterTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		DateTime expectedDateTime = new DateTime("2020-01-01T00:00:00.0", ZoneOffset.ofHours(4));
-
-		assertTrue(expectedDateTime.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
+		assertEquals(new DatetimeParameter(dateString), R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition));
 	}
 
 	@Test
-	public void testDecimal__shouldReturnDecimal() {
+	public void testDecimal__shouldReturnDecimalParameter() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("decimal");
 
-		BigDecimal bigDecimalValue = new BigDecimal(1.5);
+		String decimalString = "1.5";
+		BigDecimal bigDecimalValue = new BigDecimal(decimalString);
 		DecimalType fhirValue = new DecimalType(bigDecimalValue);
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		assertEquals(bigDecimalValue, R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition));
+		assertEquals(new DecimalParameter(decimalString), R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition));
 	}
 
 	@Test
-	public void testInstant__shouldReturnDateTime() {
+	public void testInstant__shouldReturnDateTimeParameter() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("instant");
 
-		InstantType fhirValue = new InstantType("2020-01-01T12:30:00.0Z");
+		String instantString = "2020-01-01T12:30:00.0Z";
+		InstantType fhirValue = new InstantType(instantString);
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		assertTrue(new DateTime("2020-01-01T12:30:00.0", ZoneOffset.UTC).equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
+		assertEquals(new DatetimeParameter(instantString), R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition));
 	}
 
 	@Test
-	public void testInteger__shouldReturnInteger() {
+	public void testInteger__shouldReturnIntegerParameter() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("integer");
 
 		int expectedValue = 10;
@@ -136,11 +134,11 @@ public class R4ParameterDefinitionWithDefaultToCQLConverterTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		assertEquals(expectedValue, R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition));
+		assertEquals(new IntegerParameter(expectedValue), R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition));
 	}
 
 	@Test
-	public void testString__shouldReturnString() {
+	public void testString__shouldReturnStringParameter() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("string");
 
 		String expectedValue = "data";
@@ -148,11 +146,11 @@ public class R4ParameterDefinitionWithDefaultToCQLConverterTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		assertEquals(expectedValue, R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition));
+		assertEquals(new StringParameter(expectedValue), R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition));
 	}
 
 	@Test
-	public void testTime__shouldReturnTime() {
+	public void testTime__shouldReturnTimeParameter() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("time");
 
 		String timeString = "12:30:00";
@@ -160,13 +158,11 @@ public class R4ParameterDefinitionWithDefaultToCQLConverterTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		Time expectedValue = new Time(timeString);
-
-		assertTrue(expectedValue.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
+		assertEquals(new TimeParameter(timeString), R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition));
 	}
 
 	@Test
-	public void testUri__shouldReturnString() {
+	public void testUri__shouldReturnStringParameter() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("uri");
 
 		String uriString = "a-b-c-d-e-f-g";
@@ -174,7 +170,7 @@ public class R4ParameterDefinitionWithDefaultToCQLConverterTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		assertEquals(uriString, R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition));
+		assertEquals(new StringParameter(uriString), R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition));
 	}
 
 	@Test(expected = UnsupportedFhirTypeException.class)
@@ -185,7 +181,7 @@ public class R4ParameterDefinitionWithDefaultToCQLConverterTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition);
+		R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition);
 	}
 
 	@Test(expected = UnsupportedFhirTypeException.class)
@@ -196,37 +192,24 @@ public class R4ParameterDefinitionWithDefaultToCQLConverterTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition);
+		R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition);
 	}
 
 	@Test
-	public void testCoding__shouldReturnCode() {
+	public void testCoding__shouldReturnCodeParameter() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("Coding");
 
 		Coding fhirValue = makeCoding("sys", "val", "dis", "ver");
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		Code expectedCode = new Code().withSystem("sys").withCode("val").withDisplay("dis").withVersion("ver");
+		CodeParameter expectedParameter = new CodeParameter().setSystem("sys").setValue("val").setDisplay("dis").setVersion("ver");
 
-		assertTrue(expectedCode.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
+		assertEquals(expectedParameter, R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition));
 	}
 
 	@Test
-	public void testEmptyCoding__shouldReturnEmptyCode() {
-		ParameterDefinition parameterDefinition = getBaseParameterDefinition("Coding");
-
-		Coding fhirValue = new Coding();
-
-		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
-
-		Code expectedCode = new Code();
-
-		assertTrue(expectedCode.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
-	}
-
-	@Test
-	public void testCodeableConcept__shouldReturnConcept() {
+	public void testCodeableConcept__shouldReturnConceptParameter() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("CodeableConcept");
 
 		CodeableConcept fhirValue = new CodeableConcept();
@@ -237,18 +220,18 @@ public class R4ParameterDefinitionWithDefaultToCQLConverterTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		List<Code> expectedCodes = new ArrayList<>();
-		expectedCodes.add(new Code().withSystem("s1").withCode("val1").withDisplay("d1").withVersion("ver1"));
-		expectedCodes.add(new Code().withSystem("s2").withCode("val2").withDisplay("d2").withVersion("ver2"));
+		List<CodeParameter> expectedCodeParameters = new ArrayList<>();
+		expectedCodeParameters.add(new CodeParameter().setSystem("s1").setValue("val1").setDisplay("d1").setVersion("ver1"));
+		expectedCodeParameters.add(new CodeParameter().setSystem("s2").setValue("val2").setDisplay("d2").setVersion("ver2"));
 
-		Concept expectedConcept = new Concept().withDisplay("plainText")
-				.withCodes(expectedCodes);
+		ConceptParameter expectedParameter = new ConceptParameter().setDisplay("plainText");
+		expectedParameter.setCodes(expectedCodeParameters);
 
-		assertTrue(expectedConcept.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
+		assertEquals(expectedParameter, R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition));
 	}
 
 	@Test
-	public void testPeriod__shouldReturnIntervalOfDateTime() {
+	public void testPeriod__shouldReturnIntervalParameterOfDateTimeParameter() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("Period");
 
 		Period fhirValue = new Period();
@@ -257,17 +240,19 @@ public class R4ParameterDefinitionWithDefaultToCQLConverterTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		Interval expectedInterval = new Interval(new DateTime("2020-01-01T12:00:00.0", ZoneOffset.UTC), true,
-												 new DateTime("2020-02-04T11:00:00.0-05:00", ZoneOffset.UTC), true);
+		IntervalParameter expectedParameter = new IntervalParameter(
+				new DatetimeParameter("2020-01-01T12:00:00.0"), true,
+				new DatetimeParameter("2020-02-04T11:00:00.0-05:00"), true);
 
-		assertTrue(expectedInterval.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
+		assertEquals(expectedParameter, R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition));
 	}
 
 	@Test
-	public void testQuantity__shouldReturnQuantity() {
+	public void testQuantity__shouldReturnQuantityParameter() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("Quantity");
 
-		BigDecimal bigDecimalValue = new BigDecimal(1.5);
+		String decimalString = "1.5";
+		BigDecimal bigDecimalValue = new BigDecimal(decimalString);
 		String unit = "ml";
 
 		org.hl7.fhir.r4.model.Quantity fhirValue = new org.hl7.fhir.r4.model.Quantity();
@@ -276,19 +261,21 @@ public class R4ParameterDefinitionWithDefaultToCQLConverterTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		Quantity expectedQuantity = new Quantity()
-				.withUnit(unit)
-				.withValue(bigDecimalValue);
+		QuantityParameter expectedParameter = new QuantityParameter()
+				.setUnit(unit)
+				.setAmount(decimalString);
 
-		assertTrue(expectedQuantity.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
+		assertEquals(expectedParameter, R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition));
 	}
 
 	@Test
-	public void testRange__shouldReturnIntervalOfQuantity() {
+	public void testRange__shouldReturnIntervalParameterOfQuantityParameter() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("Range");
 
-		BigDecimal lowValue = new BigDecimal(1.5);
-		BigDecimal highValue = new BigDecimal(2.5);
+		String lowString = "1.5";
+		String highString = "2.5";
+		BigDecimal lowValue = new BigDecimal(lowString);
+		BigDecimal highValue = new BigDecimal(highString);
 		String unit = "ml";
 
 		Range fhirValue = new Range()
@@ -297,20 +284,22 @@ public class R4ParameterDefinitionWithDefaultToCQLConverterTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		Interval expectedInterval = new Interval(new Quantity().withUnit(unit).withValue(lowValue),
-												 true,
-												 new Quantity().withUnit(unit).withValue(highValue),
-												 true);
+		IntervalParameter expectedParameter = new IntervalParameter(new QuantityParameter().setUnit(unit).setAmount(lowString),
+																   true,
+																   new QuantityParameter().setUnit(unit).setAmount(highString),
+																   true);
 
-		assertTrue(expectedInterval.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
+		assertEquals(expectedParameter, R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition));
 	}
 
 	@Test
-	public void testRatio__shouldReturnRatio() {
+	public void testRatio__shouldReturnRatioParameter() {
 		ParameterDefinition parameterDefinition = getBaseParameterDefinition("Ratio");
 
-		BigDecimal denominatorValue = new BigDecimal(1.5);
-		BigDecimal numeratorValue = new BigDecimal(2.5);
+		String denominatorString = "1.5";
+		String numeratorString = "2.5";
+		BigDecimal denominatorValue = new BigDecimal(denominatorString);
+		BigDecimal numeratorValue = new BigDecimal(numeratorString);
 		String unit = "ml";
 
 		org.hl7.fhir.r4.model.Ratio fhirValue = new org.hl7.fhir.r4.model.Ratio()
@@ -319,11 +308,11 @@ public class R4ParameterDefinitionWithDefaultToCQLConverterTest {
 
 		parameterDefinition.addExtension(CDMConstants.PARAMETER_DEFAULT_URL, fhirValue);
 
-		Ratio expectedInterval = new Ratio()
-				.setDenominator(new Quantity().withUnit(unit).withValue(denominatorValue))
-				.setNumerator(new Quantity().withUnit(unit).withValue(numeratorValue));
+		RatioParameter expectedParameter = new RatioParameter()
+				.setDenominator(new QuantityParameter().setUnit(unit).setAmount(denominatorString))
+				.setNumerator(new QuantityParameter().setUnit(unit).setAmount(numeratorString));
 
-		assertTrue(expectedInterval.equal(R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)));
+		assertEquals(expectedParameter, R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition));
 	}
 
 	private ParameterDefinition getBaseParameterDefinition(String type) {

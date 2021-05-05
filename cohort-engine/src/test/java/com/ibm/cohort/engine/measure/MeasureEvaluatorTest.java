@@ -897,10 +897,20 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Measure measure = getCohortMeasure("CohortMeasureName", library, INITIAL_POPULATION);
 		mockFhirResourceRetrieval(measure);
 
-		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null);
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(false, DefineReturnOptions.BOOLEAN));
 
 		assertNotNull(report);
-		assertEquals(1, report.getGroupFirstRep().getPopulationFirstRep().getCount());
+
+		report.getExtension().stream()
+				.filter(x -> x.getUrl().equals(CDMConstants.EVIDENCE_URL))
+				.forEach(x -> validateBooleanEvidence(x, true));
+	}
+
+	private void validateBooleanEvidence(Extension evidenceExtension, Boolean expectedValue) {
+		String name = evidenceExtension.getExtensionByUrl(CDMConstants.EVIDENCE_TEXT_URL).getValue().toString();
+		assertEquals("cql define " + name + " did not match expected value",
+					 new BooleanType(expectedValue).booleanValue(),
+					 ((BooleanType) evidenceExtension.getExtensionByUrl(CDMConstants.EVIDENCE_VALUE_URL).getValue()).booleanValue());
 	}
 
 	private Extension createParameterExtension(String name, Type innerValue) {

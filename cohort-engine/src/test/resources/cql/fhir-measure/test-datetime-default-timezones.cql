@@ -28,6 +28,13 @@ define "defaultDateJan1":
 define "defaultDateJan2":
   Date(2020, 1, 2)
 
+// Expected intervals. All times at midnight.
+// Jan 1 (offset + 1)                   Jan 2 (offset + 1) <--------- gmtPlus1IntervalDateTime
+//   |------------------------------------------|
+//      Jan 1 GMT                                    Jan 2 GMT  <------- defaultIntervalDateTime, defaultIntervalDate
+//          |------------------------------------------|
+//               Jan 1 (offset - 1)                            Jan 2 (offset - 1) <-- gmtMinus1IntervalDateTime
+//                  |------------------------------------------|
 define "defaultIntervalDateTime":
   Interval[defaultDateTimeJan1, defaultDateTimeJan2]
 
@@ -44,7 +51,7 @@ define "defaultIntervalDate":
 // but one or more defines should be false when evaluated
 // in a different timezone
 
-// Tessts for GMT minus an offset
+// Tests for GMT minus an offset
 define "test1":
   defaultIntervalDateTime contains gmtMinus1DateTimeJan1 and
   gmtMinus1DateTimeJan2 after end of defaultIntervalDateTime

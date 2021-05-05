@@ -29,7 +29,7 @@ import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.helpers.MeasurementPeriodHelper;
 import com.ibm.cohort.engine.measure.LibraryHelper;
-import com.ibm.cohort.engine.measure.R4ParameterDefinitionWithDefaultToCQLConverter;
+import com.ibm.cohort.engine.measure.R4ParameterDefinitionWithDefaultToCohortParameterConverter;
 import com.ibm.cohort.engine.parameter.Parameter;
 
 public class MeasureEvaluationSeeder {
@@ -147,14 +147,10 @@ public class MeasureEvaluationSeeder {
 	}
 
 	private void setDefaultValue(Context context, ParameterDefinition parameterDefinition) {
-		parameterDefinition.getExtension().stream()
-				.filter(MeasureEvaluationSeeder::isDefaultValue)
-				.forEach(defaultValue ->
-						         context.setParameter(
-										 null,
-										 parameterDefinition.getName(),
-										 R4ParameterDefinitionWithDefaultToCQLConverter.getCqlObject(parameterDefinition)
-								 ));
+		Parameter parameter = R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition);
+		if (parameter != null) {
+			context.setParameter(null, parameterDefinition.getName(), parameter.toCqlType());
+		}
 	}
 
 
