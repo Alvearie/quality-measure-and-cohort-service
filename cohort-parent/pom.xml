@@ -54,6 +54,7 @@
 		<swagger.version>1.6.2</swagger.version>
 		<ant.junit.version>1.10.9</ant.junit.version>
 		<cxf.version>3.4.3</cxf.version>
+		<jetty.version>9.4.40.v20210413</jetty.version>
 
 		<!-- Default values for the jacoco-maven-plugin reports -->
 		<cohort.jacoco.classRatio>0.80</cohort.jacoco.classRatio>
@@ -386,10 +387,59 @@
 					</exclusion>
 				</exclusions>
 			</dependency>
+			
 			<dependency>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-servlets</artifactId>
- 				<version>9.4.30.v20200611</version>
+ 				<version>${jetty.version}</version>
+ 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-servlet</artifactId>
+ 				<version>${jetty.version}</version>
+ 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-server</artifactId>
+ 				<version>${jetty.version}</version>
+ 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-webapp</artifactId>
+ 				<version>${jetty.version}</version>
+ 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-proxy</artifactId>
+ 				<version>${jetty.version}</version>
+ 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.jetty.http2</groupId>
+				<artifactId>http2-server</artifactId>
+ 				<version>${jetty.version}</version>
+ 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-alpn-server</artifactId>
+ 				<version>${jetty.version}</version>
+ 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-alpn-conscrypt-server</artifactId>
+ 				<version>${jetty.version}</version>
+ 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-alpn-conscrypt-client</artifactId>
+ 				<version>${jetty.version}</version>
  				<scope>test</scope>
 			</dependency>
 
