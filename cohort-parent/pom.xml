@@ -100,8 +100,8 @@
 
 		<!-- Service specifics -->
 		<build.timestamp>${maven.build.timestamp}</build.timestamp>
-		<whcs.base.utils.base-version>0.0.1</whcs.base.utils.base-version>
-		<whcs.base.utils.version>${whcs.base.utils.base-version}-SNAPSHOT</whcs.base.utils.version>
+		<whcs.base.utils.base-version>1.0.0</whcs.base.utils.base-version>
+		<whcs.base.utils.version>${whcs.base.utils.base-version}</whcs.base.utils.version>
 	</properties>
 
 	<scm>
