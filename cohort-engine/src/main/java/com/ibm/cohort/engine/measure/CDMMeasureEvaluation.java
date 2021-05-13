@@ -257,7 +257,7 @@ public class CDMMeasureEvaluation {
 			parameterDefinition.setName(parameterName);
 			parameterDefinition.setUse(ParameterDefinition.ParameterUse.IN);
 			parameterDefinition.setExtension(Collections.singletonList(innerExtension));
-			parameterDefinition.setType(fhirParameterValue == null ? null : fhirParameterValue.fhirType());
+			parameterDefinition.setType(fhirParameterValue.fhirType());
 
 			outerExtension = new Extension();
 			outerExtension.setUrl(MEASURE_PARAMETER_VALUE_URL);
