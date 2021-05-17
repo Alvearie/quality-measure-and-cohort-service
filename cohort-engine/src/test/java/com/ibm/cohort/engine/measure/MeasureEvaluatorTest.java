@@ -15,6 +15,7 @@ import static com.ibm.cohort.engine.cdm.CDMConstants.PARAMETER_DEFAULT_URL;
 import static com.ibm.cohort.engine.cdm.CDMConstants.PARAMETER_VALUE_URL;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -22,6 +23,7 @@ import static org.junit.Assert.fail;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,22 +31,33 @@ import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import org.hl7.fhir.r4.model.Address;
+import org.hl7.fhir.r4.model.Base64BinaryType;
+import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CapabilityStatement;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.DateTimeType;
+import org.hl7.fhir.r4.model.DateType;
+import org.hl7.fhir.r4.model.DecimalType;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.HumanName;
+import org.hl7.fhir.r4.model.InstantType;
 import org.hl7.fhir.r4.model.IntegerType;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
 import org.hl7.fhir.r4.model.ParameterDefinition;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.Period;
+import org.hl7.fhir.r4.model.Quantity;
+import org.hl7.fhir.r4.model.Range;
+import org.hl7.fhir.r4.model.Ratio;
 import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.TimeType;
 import org.hl7.fhir.r4.model.Type;
+import org.hl7.fhir.r4.model.UriType;
 import org.junit.Before;
 import org.junit.Test;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
@@ -702,11 +715,117 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 
 		// Expected parameters are the ones listed above, plus the special parameters
 		// measurement period and product line
-		assertEquals(15, parameterNames.size());
+		assertEquals(parameterMap.size() + 2, parameterNames.size());
 
 		assertTrue(parameterNames.containsAll(parameterMap.keySet()));
 		assertTrue(parameterNames.contains(CDMConstants.MEASUREMENT_PERIOD));
 		assertTrue(parameterNames.contains(CDMConstants.PRODUCT_LINE));
+	}
+
+	@Test
+	public void measure_report_generated___FHIR_measure_parameters_on_measure_report() throws Exception {
+		CapabilityStatement metadata = getCapabilityStatement();
+		mockFhirResourceRetrieval("/metadata", metadata);
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.xml",
+											   LibraryFormat.MIME_TYPE_APPLICATION_ELM_XML);
+
+		Measure measure = getCohortMeasure("CohortMeasureName", library, INITIAL_POPULATION);
+
+		Map<String, Type> measureParameters = new HashMap<>();
+		measureParameters.put("base64Param", new Base64BinaryType("AAA"));
+		measureParameters.put("booleanParam", new BooleanType(false));
+		measureParameters.put("dateParam", new DateType("2020-01-01"));
+		measureParameters.put("dateTimeParam", new DateTimeType("2020-01-01T12:00:00"));
+		measureParameters.put("decimalParam", new DecimalType(12.0));
+		measureParameters.put("instantParam", new InstantType("2020-01-01T12:00:00-04:00"));
+		measureParameters.put("integerParam", new IntegerType(1));
+		measureParameters.put("stringParam", new StringType("str"));
+		measureParameters.put("timeParam", new TimeType("05:30:00"));
+		measureParameters.put("uriParam", new UriType("abcde"));
+		measureParameters.put("codeableConceptParam",
+							  new CodeableConcept()
+									  .setText("display")
+									  .addCoding(new Coding().setCode("val").setSystem("sys").setDisplay("display")));
+		measureParameters.put("codingParam", new Coding().setCode("v").setSystem("s").setDisplay("d"));
+		measureParameters.put("periodParam", new Period().setStart(new Date(1)).setEnd(new Date(2)));
+		measureParameters.put("quantityParam", new Quantity().setValue(1).setUnit("g"));
+		measureParameters.put("rangeParam", new Range()
+				.setLow(new Quantity().setUnit("g").setValue(1))
+				.setHigh(new Quantity().setUnit("g").setValue(5)));
+		measureParameters.put("ratioParam", new Ratio()
+				.setNumerator(new Quantity().setUnit("g").setValue(1))
+				.setDenominator(new Quantity().setUnit("g").setValue(5)));
+
+		List<Extension> parameterExtensions = measureParameters.entrySet().stream()
+				.map(x -> createMeasureParameter(x.getKey(), x.getValue()))
+				.collect(Collectors.toList());
+
+		measure.setExtension(parameterExtensions);
+		mockFhirResourceRetrieval(measure);
+
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null);
+		assertNotNull(report);
+
+		List<String> parameterNames = report.getExtension()
+				.stream()
+				.filter(x -> x.getUrl().equals(MEASURE_PARAMETER_VALUE_URL))
+				.map(x -> (ParameterDefinition) x.getValue())
+				.map(ParameterDefinition::getName)
+				.collect(Collectors.toList());
+
+		// Expected parameters are the ones listed above, plus the special parameters
+		// measurement period and product line
+		assertEquals(measureParameters.size() + 2, parameterNames.size());
+
+		assertTrue(parameterNames.containsAll(measureParameters.keySet()));
+		assertTrue(parameterNames.contains(CDMConstants.MEASUREMENT_PERIOD));
+		assertTrue(parameterNames.contains(CDMConstants.PRODUCT_LINE));
+	}
+
+	@Test
+	public void measure_report_generated___java_overrides_overwrite_measure_params() throws Exception {
+		CapabilityStatement metadata = getCapabilityStatement();
+		mockFhirResourceRetrieval("/metadata", metadata);
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.xml",
+											   LibraryFormat.MIME_TYPE_APPLICATION_ELM_XML);
+
+		Measure measure = getCohortMeasure("CohortMeasureName", library, INITIAL_POPULATION);
+
+		String duplicateParamName = "duplicateParam";
+		int fhirMeasureIntValue = 10;
+		int javaParameterIntValue = 99;
+
+		measure.addExtension(createParameterExtension(duplicateParamName, new IntegerType(fhirMeasureIntValue)));
+
+		mockFhirResourceRetrieval(measure);
+
+		Map<String, Parameter> parameterMap = new HashMap<>();
+		parameterMap.put(duplicateParamName, new IntegerParameter(javaParameterIntValue));
+
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), parameterMap);
+		assertNotNull(report);
+
+		// Make sure report only contained one entry for the duplicate parameter
+		List<Type> filteredReportParams = report.getExtension().stream()
+				.filter(x -> x.getUrl().equals(MEASURE_PARAMETER_VALUE_URL))
+				.map(x -> (ParameterDefinition) x.getValue())
+				.filter(x -> x.getName().equals(duplicateParamName))
+				.map(x -> x.getExtensionByUrl(PARAMETER_VALUE_URL).getValue())
+				.collect(Collectors.toList());
+
+		assertEquals(1, filteredReportParams.size());
+
+		// Sanity check input parameter values were different before checking for correct value
+		assertNotEquals(fhirMeasureIntValue, javaParameterIntValue);
+		assertEquals(javaParameterIntValue, ((IntegerType) filteredReportParams.get(0)).getValue().intValue());
 	}
 
 	@Test
@@ -720,15 +839,20 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.xml",
 											   LibraryFormat.MIME_TYPE_APPLICATION_ELM_XML);
 
+		String fhirDefaultDatetimeParamterName = "fhirDatetimeParamDefault";
+		String fhirTimezoneDatetimeParameterName = "fhirDatetimeParamGMTPlus4";
+
 		Measure measure = getCohortMeasure("CohortMeasureName", library, INITIAL_POPULATION);
+		measure.addExtension(createParameterExtension(fhirDefaultDatetimeParamterName, new DateTimeType("2020-04-04")));
+		measure.addExtension(createParameterExtension(fhirTimezoneDatetimeParameterName, new DateTimeType("2020-04-04T00:00:00.0+04:00")));
 		mockFhirResourceRetrieval(measure);
 
-		String defaultDatetimeParamterName = "datetimeParamDefault";
-		String timezoneDatetimeParameterName = "datetimeParamGMTPlus4";
+		String javaDefaultDatetimeParamterName = "javaDatetimeParamDefault";
+		String javaTimezoneDatetimeParameterName = "javaDatetimeParamGMTPlus4";
 
 		Map<String, Parameter> parameterMap = new HashMap<>();
-		parameterMap.put(defaultDatetimeParamterName, new DatetimeParameter("2020-01-01"));
-		parameterMap.put(timezoneDatetimeParameterName, new DatetimeParameter("2020-01-01T00:00:00.0+04:00"));
+		parameterMap.put(javaDefaultDatetimeParamterName, new DatetimeParameter("2020-01-01"));
+		parameterMap.put(javaTimezoneDatetimeParameterName, new DatetimeParameter("2020-01-01T00:00:00.0+04:00"));
 
 		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), parameterMap);
 		assertNotNull(report);
@@ -737,15 +861,68 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 				.stream()
 				.filter(x -> x.getUrl().equals(MEASURE_PARAMETER_VALUE_URL))
 				.map(x -> (ParameterDefinition) x.getValue())
-				.filter(x -> (parameterMap.containsKey(x.getName())))
+				.filter(x -> x.getExtensionByUrl(PARAMETER_VALUE_URL).getValue() instanceof DateTimeType)
 				.collect(Collectors.toMap(ParameterDefinition::getName, x -> (DateTimeType)x.getExtensionByUrl(PARAMETER_VALUE_URL).getValue()));
 
-		DateTimeType defaultResult = parameterNames.get(defaultDatetimeParamterName);
-		DateTimeType timezoneResult = parameterNames.get(timezoneDatetimeParameterName);
+		DateTimeType javaDefaultResult = parameterNames.get(javaDefaultDatetimeParamterName);
+		DateTimeType javaTimezoneResult = parameterNames.get(javaTimezoneDatetimeParameterName);
 
-		assertTrue(new DateTimeType("2020-01-01T00:00:00.000Z").equalsUsingFhirPathRules(defaultResult));
-		assertEquals(TimeZone.getTimeZone("UTC"), defaultResult.getTimeZone());
-		assertTrue(new DateTimeType("2019-12-31T20:00:00.000Z").equalsUsingFhirPathRules(timezoneResult));
-		assertEquals(TimeZone.getTimeZone("UTC"), timezoneResult.getTimeZone());
+		assertTrue(new DateTimeType("2020-01-01T00:00:00.000Z").equalsUsingFhirPathRules(javaDefaultResult));
+		assertEquals(TimeZone.getTimeZone("UTC"), javaDefaultResult.getTimeZone());
+		assertTrue(new DateTimeType("2019-12-31T20:00:00.000Z").equalsUsingFhirPathRules(javaTimezoneResult));
+		assertEquals(TimeZone.getTimeZone("UTC"), javaTimezoneResult.getTimeZone());
+
+		DateTimeType fhirDefaultResult = parameterNames.get(fhirDefaultDatetimeParamterName);
+		DateTimeType fhirTimezoneResult = parameterNames.get(fhirTimezoneDatetimeParameterName);
+
+		assertTrue(new DateTimeType("2020-04-04T00:00:00.000Z").equalsUsingFhirPathRules(fhirDefaultResult));
+		assertEquals(TimeZone.getTimeZone("UTC"), fhirDefaultResult.getTimeZone());
+		assertTrue(new DateTimeType("2020-04-03T20:00:00.000Z").equalsUsingFhirPathRules(fhirTimezoneResult));
+		assertEquals(TimeZone.getTimeZone("UTC"), fhirTimezoneResult.getTimeZone());
+	}
+
+	@Test
+	public void in_initial_population_when_engine_run_in_utc__engine_defaults_to_utc() throws Exception {
+		CapabilityStatement metadata = getCapabilityStatement();
+		mockFhirResourceRetrieval("/metadata", metadata);
+
+		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
+		mockFhirResourceRetrieval(patient);
+
+		// Test CQL written to pass when engine run with a timezone of UTC
+		// and should fail otherwise
+		Library library = mockLibraryRetrieval("TestDatetimeDefaultTimezones", DEFAULT_VERSION,
+											   "cql/fhir-measure/test-datetime-default-timezones.cql", "text/cql");
+
+		Measure measure = getCohortMeasure("CohortMeasureName", library, INITIAL_POPULATION);
+		mockFhirResourceRetrieval(measure);
+
+		MeasureReport report = evaluator.evaluatePatientMeasure(measure.getId(), patient.getId(), null, new MeasureEvidenceOptions(false, DefineReturnOptions.BOOLEAN));
+
+		assertNotNull(report);
+
+		report.getExtension().stream()
+				.filter(x -> x.getUrl().equals(CDMConstants.EVIDENCE_URL))
+				.forEach(x -> validateBooleanEvidence(x, true));
+	}
+
+	private void validateBooleanEvidence(Extension evidenceExtension, Boolean expectedValue) {
+		String name = evidenceExtension.getExtensionByUrl(CDMConstants.EVIDENCE_TEXT_URL).getValue().toString();
+		assertEquals("cql define " + name + " did not match expected value",
+					 new BooleanType(expectedValue).booleanValue(),
+					 ((BooleanType) evidenceExtension.getExtensionByUrl(CDMConstants.EVIDENCE_VALUE_URL).getValue()).booleanValue());
+	}
+
+	private Extension createParameterExtension(String name, Type innerValue) {
+		ParameterDefinition parameterDefinition = new ParameterDefinition()
+				.setName(name)
+				.setUse(ParameterDefinition.ParameterUse.IN)
+				.setType(innerValue.fhirType());
+
+		parameterDefinition.addExtension(new Extension()
+												 .setUrl(PARAMETER_DEFAULT_URL)
+												 .setValue(innerValue));
+
+		return new Extension().setUrl(MEASURE_PARAMETER_URL).setValue(parameterDefinition);
 	}
 }
