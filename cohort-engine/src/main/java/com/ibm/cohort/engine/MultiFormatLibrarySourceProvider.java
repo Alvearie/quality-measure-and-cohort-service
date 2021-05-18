@@ -98,6 +98,11 @@ public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
 							libraryIdentifier.getId(),
 							libraryIdentifier.getVersion()));
 			specFormat.put(LibraryFormat.XML, fhirHelperResource);
+			InputStream fhirHelperResourceCQL = ClasspathLibrarySourceProvider.class.getResourceAsStream(
+					String.format("/org/hl7/fhir/%s-%s.cql",
+							libraryIdentifier.getId(),
+							libraryIdentifier.getVersion()));
+			specFormat.put(LibraryFormat.CQL, fhirHelperResourceCQL);
 		}
 	}
 }
