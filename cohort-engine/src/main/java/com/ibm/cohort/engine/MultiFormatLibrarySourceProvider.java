@@ -93,12 +93,12 @@ public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
 	public static void addClasspathFhirHelpers(Map<VersionedIdentifier, Map<LibraryFormat, InputStream>> sources, VersionedIdentifier libraryIdentifier){
 		Map<LibraryFormat, InputStream> specFormat = sources.computeIfAbsent(libraryIdentifier, key -> new HashMap<>());
 		if(specFormat.isEmpty()) {
-			InputStream fhirHelperResource = ClasspathLibrarySourceProvider.class.getResourceAsStream(
+			InputStream fhirHelperResource = MultiFormatLibrarySourceProvider.class.getResourceAsStream(
 					String.format("/org/hl7/fhir/%s-%s.xml",
 							libraryIdentifier.getId(),
 							libraryIdentifier.getVersion()));
 			specFormat.put(LibraryFormat.XML, fhirHelperResource);
-			InputStream fhirHelperResourceCQL = ClasspathLibrarySourceProvider.class.getResourceAsStream(
+			InputStream fhirHelperResourceCQL = MultiFormatLibrarySourceProvider.class.getResourceAsStream(
 					String.format("/org/hl7/fhir/%s-%s.cql",
 							libraryIdentifier.getId(),
 							libraryIdentifier.getVersion()));
