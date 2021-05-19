@@ -89,7 +89,6 @@ public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
 		return getSourcesByFormat(LibraryFormat.CQL).get(libraryIdentifier);
 	}
 
-	//todo deduplicate
 	public static void addClasspathFhirHelpers(Map<VersionedIdentifier, Map<LibraryFormat, InputStream>> sources, VersionedIdentifier libraryIdentifier){
 		Map<LibraryFormat, InputStream> specFormat = sources.computeIfAbsent(libraryIdentifier, key -> new HashMap<>());
 		if(specFormat.isEmpty()) {
