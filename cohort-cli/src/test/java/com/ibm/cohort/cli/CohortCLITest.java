@@ -412,7 +412,6 @@ public class CohortCLITest extends BasePatientTest {
 
 			verify(1, getRequestedFor(urlEqualTo("/Patient/" + patient.getId())));
 			verify(1, getRequestedFor(urlEqualTo("/Library/" + root.getId())));
-//			verify(1, getRequestedFor(urlEqualTo("/Library?url=%2FLibrary%2F" + helpers.getId())));
 		} finally {
 			tmpFile.delete();
 		}
