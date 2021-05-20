@@ -173,6 +173,29 @@ The APIs leverage the Hibernate reference implementation for bean validation whi
 java -jar cohort-cli-*.jar -Dorg.slf4j.simpleLogger.log.org.opencds.cqf.cql.engine.elm.execution.MessageEvaluator=off ...
 ```
 
+## Engine Execution Timezone
+Engine executions currently run with a timezone of UTC. This means that if a CQL attempts to create a DateTime object
+without timezone information provided, then it will default the DateTime's timezone to UTC. When authoring CQL or
+creating parameters, we recommend always specifying a full DateTime, including the proper timezone, if possible.
+
+CQL examples:
+```text
+  // No timezone information
+  ToDateTime(Date(2020, 4, 4))         -->  2020-04-04T00:00:00.0Z
+  DateTime(2020, 5, 5, 1, 2, 3, 4)     -->  2020-05-05T01:02:03.4Z
+
+  // With timezone information
+  DateTime(2020, 6, 6, 9, 8, 7, 6, -4) -->  2020-06-06T09:08:07.6-04:00
+```
+
+Parameter Examples:
+```text
+  // No timezone information
+  "2020-01-01T12:30:00.0"       -->  2020-01-01T12:30:00.0Z
+
+  // With timezone information
+  "2020-07-07T04:15:00.0-04:00" -->  2020-07-07T04:15:00.0-04:0
+```
 
 # Error states
 The Engine detects and throws IllegalArgumentException for the following error states:

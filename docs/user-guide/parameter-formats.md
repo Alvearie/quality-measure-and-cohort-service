@@ -48,6 +48,8 @@ Example:
 
 ## DateTime
 * `value`: String containing the datetime value of the parameter.
+    * If `value` does not specify a timezone, the underlying CQL DateTime will be
+      created with a timezone of `UTC`.
 
 Example:
 ```json
