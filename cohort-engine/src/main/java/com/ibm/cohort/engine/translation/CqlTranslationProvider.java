@@ -23,29 +23,29 @@ import com.ibm.cohort.engine.LibraryFormat;
  * JAR or calling out to the CqlTranslationService microservice.
  */
 public interface CqlTranslationProvider {
-	public Library translate(InputStream cql) throws Exception;
+	Library translate(InputStream cql) throws Exception;
 
-	public Library translate(InputStream cql, List<Options> options) throws Exception;
+	Library translate(InputStream cql, List<Options> options) throws Exception;
 
-	public Library translate(InputStream cql, List<Options> options, LibraryFormat targetFormat) throws Exception;
+	Library translate(InputStream cql, List<Options> options, LibraryFormat targetFormat) throws Exception;
 	
-	public void registerModelInfo(ModelInfo modelInfo);
+	void registerModelInfo(ModelInfo modelInfo);
 	
-	public default void convertAndRegisterModelInfo(InputStream modelInfoInputStream) {
+	default void convertAndRegisterModelInfo(InputStream modelInfoInputStream) {
 		registerModelInfo(convertToModelInfo(modelInfoInputStream));
 	}
 
-	public default void convertAndRegisterModelInfo(File modelInfoFile) {
+	default void convertAndRegisterModelInfo(File modelInfoFile) {
 		registerModelInfo(convertToModelInfo(modelInfoFile));
 	}
 
-	public default void convertAndRegisterModelInfo(Reader modelInfoReader) {
+	default void convertAndRegisterModelInfo(Reader modelInfoReader) {
 		registerModelInfo(convertToModelInfo(modelInfoReader));
 	}
 
-	public ModelInfo convertToModelInfo(InputStream modelInfoInputStream);
+	ModelInfo convertToModelInfo(InputStream modelInfoInputStream);
 
-	public ModelInfo convertToModelInfo(File modelInfoFile);
+	ModelInfo convertToModelInfo(File modelInfoFile);
 
-	public ModelInfo convertToModelInfo(Reader modelInfoReader);
+	ModelInfo convertToModelInfo(Reader modelInfoReader);
 }

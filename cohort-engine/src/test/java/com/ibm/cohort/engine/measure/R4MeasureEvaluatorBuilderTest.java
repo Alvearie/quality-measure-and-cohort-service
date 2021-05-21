@@ -71,7 +71,7 @@ public class R4MeasureEvaluatorBuilderTest extends BaseMeasureTest {
 		mockFhirResourceRetrieval("/Condition?code=" + conditionSystem + "%7C" + conditionCode + "&subject=Patient%2F" + p.getId(), makeBundle(c));
 		mockFhirResourceRetrieval("/Condition?code=" + type2Diabetes.getId() + "&subject=Patient%2F" + p.getId(), makeBundle(c));
 
-		mockLibraryRetrieval("FHIRHelpers", "1.0.0", "cql/fhir-measure/FHIRHelpers.cql");
+		mockLibraryRetrieval("FHIRHelpers", "4.0.0", "cql/fhir-helpers/FHIRHelpers.cql");
 		Library library = mockLibraryRetrieval("TestAdultMalesSimple", "1.0.0", "cql/fhir-measure/test-adult-males-valuesets.cql");
 		Measure measure = getCohortMeasure(MEASURE_NAME, library, "Numerator");
 		mockFhirResourceRetrieval(measure);

@@ -5,7 +5,6 @@
  */
 package com.ibm.cohort.engine.measure;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.AbstractMap;
 import java.util.HashMap;
@@ -64,9 +63,8 @@ public abstract class ResourceResolutionProvider
 	 *                     stand-in.
 	 * @param resourceData Stream containing the input data to be processed.
 	 * @param parser       HAPI FHIR resource parser.
-	 * @throws IOException when resource data cannot be read from the stream.
 	 */
-	protected void processResource(String resourceName, InputStream resourceData, IParser parser) throws IOException {
+	protected void processResource(String resourceName, InputStream resourceData, IParser parser) {
 		IBaseResource resource = parser.parseResource(resourceData);
 		processResource( resourceName, resource);
 	}
@@ -80,9 +78,8 @@ public abstract class ResourceResolutionProvider
 	 *                     no Resource.id is provided, this will serve as a
 	 *                     stand-in.
 	 * @param resource	   deserialized FHIR resource object
-	 * @throws IOException when resource data cannot be read from the stream.
 	 */
-	protected void processResource(String resourceName, IBaseResource resource) throws IOException {
+	protected void processResource(String resourceName, IBaseResource resource) {
 
 		if (resource instanceof MetadataResource) {
 			MetadataResource metadataResource = (MetadataResource) resource;

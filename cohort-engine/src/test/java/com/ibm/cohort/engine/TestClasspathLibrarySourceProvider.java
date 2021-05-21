@@ -17,9 +17,7 @@ public class TestClasspathLibrarySourceProvider extends MultiFormatLibrarySource
 			FilenameToVersionedIdentifierStrategy idStrategy) {
 		for (String resource : libraryResources) {
 			VersionedIdentifier vid = idStrategy.filenameToVersionedIdentifier(resource);
-			Map<LibraryFormat, InputStream> formats = sources.computeIfAbsent(vid, key -> {
-				return new HashMap<LibraryFormat, InputStream>();
-			});
+			Map<LibraryFormat, InputStream> formats = sources.computeIfAbsent(vid, key -> new HashMap<>());
 			InputStream is = ClassLoader.getSystemResourceAsStream(resource);
 			if( is == null ) {
 				throw new IllegalArgumentException( resource );

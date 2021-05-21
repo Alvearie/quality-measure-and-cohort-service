@@ -262,12 +262,12 @@ public class BaseFhirTest {
 			fail("Invalid attachment data. Data must consist of one or more pairs of resource path and content-type strings");
 		}
 
-		List<String> pairs = new ArrayList<String>(Arrays.asList(attachmentData));
+		List<String> pairs = new ArrayList<>(Arrays.asList(attachmentData));
 		if (pairs.size() == 1) {
 			pairs.add("text/cql");
 		}
 
-		List<Attachment> attachments = new ArrayList<Attachment>(pairs.size() / 2);
+		List<Attachment> attachments = new ArrayList<>();
 		for (int i = 0; i < pairs.size(); i += 2) {
 			String resource = pairs.get(i);
 			String contentType = pairs.get(i + 1);
