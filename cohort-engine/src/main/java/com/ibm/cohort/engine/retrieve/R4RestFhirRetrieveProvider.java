@@ -62,22 +62,6 @@ public class R4RestFhirRetrieveProvider extends RestFhirRetrieveProvider {
 	public Integer getSearchPageSize() {
 		return this.searchPageSize;
 	}
-
-	@Override
-	/**
-	 * Workaround issues with HAPI FHIR query building logic not including the :in modifier
-	 * when building ValueSet filtered queries.
-	 * 
-	 * See <a href="https://github.com/DBCG/cql_engine/issues/466">https://github.com/DBCG/cql_engine/issues/466</a>
-	 */
-	protected IBaseResource executeQuery(String dataType, SearchParameterMap map) {
-		if( ! isExpandValueSets() && ! map.isAllParametersHaveNoModifier() ) {
-			String url = "/" + dataType + map.toNormalizedQueryString(this.fhirClient.getFhirContext());
-			return fhirClient.search().byUrl(url).usingStyle(getSearchStyle()).execute();
-		} else {
-			return originalExecuteQuery(dataType, map);
-		}
-	}
 	
 	/**
 	 * This is a copy/paste hack job on the OSS <code>executeQuery</code>
@@ -87,7 +71,8 @@ public class R4RestFhirRetrieveProvider extends RestFhirRetrieveProvider {
 	 * @param map      search parameters
 	 * @return result of the query
 	 */
-	protected IBaseResource originalExecuteQuery(String dataType, SearchParameterMap map) {
+	@Override
+	protected IBaseResource executeQuery(String dataType, SearchParameterMap map) {
 		if (map.containsKey("_id")) {
 			return this.queryById(dataType, map);
 		} else {
