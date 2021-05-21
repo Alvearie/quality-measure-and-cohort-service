@@ -124,7 +124,7 @@ public class CohortEngineRestHandler {
 	public static final String EXAMPLE_REQUEST_DATA_JSON = "<p>A configuration file containing the information needed to process a measure evaluation request. Two possible FHIR server endoints can be configured <code>dataServerConfig</code> and <code>terminologyServerConfig</code>. Only the <code>dataServerConfig</code> is required. If <code>terminologyServerConfig</code> is not provided, the connection details are assumed to be the same as the <code>dataServerConfig</code> connection.</p>" +
 			"<p>The <code>measureContext.measureId</code> field can be a FHIR resource ID or canonical URL. Alternatively, <code>measureContext.identifier</code> and <code>measureContext.version</code> can be used to lookup the measure based on a business identifier found in the resource definition. Only one of measureId or identifier + version should be specified. Canonical URL is the recommended lookup mechanism.</p>" +
 			"<p>The parameter types and formats are described in detail in the <a href=\"http://alvearie.io/quality-measure-and-cohort-service/#/user-guide/parameter-formats?id=parameter-formats\">user guide</a>.</p>" +
-			"<p>The <code>evidenceOptions</code> control the amount of data written the FHIR MeasureReport that is returned as a result of the evaluation. The examle demonstrates inclusion of the result of all define statements processed by the CQL Engine and no links to the resources involved in the evaluation.</p>" +
+			"<p>The <code>evidenceOptions</code> control the amount of data written the FHIR MeasureReport that is returned as a result of the evaluation. The <code>expandValueSets</code> flag is used to control whether or not the terminology provider is used to expand ValueSet references or if the FHIR :in modifier is used during search requests. The FHIR :in modifier is supported in IBM FHIR 4.7.0 and above. The default behavior is to expand value sets using the terminology provider in order to cover the widest range of FHIR server functionality. A value of false can be used to improve search performance if terminology resources are available on the data server and it supports the :in modifier. The <code>searchPageSize</code> controls how many data records are retrieved per request during FHIR search API execution. The default value for this setting is small in most servers and performance can be boosted by larger values. The default is 1000 which is the maximum allowed page size in IBM FHIR.</p>" +
 			"<p>Example Contents: \n <pre>{\n" +
 			"    \"dataServerConfig\": {\n" + 
 			"        \"@class\": \"com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\",\n" + 
@@ -160,13 +160,15 @@ public class CohortEngineRestHandler {
 			"        \"includeEvaluatedResources\": false,\n" + 
 			"        \"defineReturnOption\": \"ALL\"\n" + 
 			"    },\n" +
+			"    \"expandValueSets\": true\n" +
+			"    \"searchPageSize\": 1000\n" +
 			"}</pre></p>";
-
+	
 	public static final String EXAMPLE_MEASURE_ZIP = "A file in ZIP format that contains the FHIR resources to use in the evaluation. This should contain all the FHIR Measure and Library resources needed in a particular directory structure as follows:" +
 			"<pre>fhirResources/MeasureName-MeasureVersion.json\n" +
 			"fhirResources/libraries/LibraryName1-LibraryVersion.json\n" + 
 			"fhirResources/libraries/LibraryName2-LibraryVersion.json\n" +
-			"etc.</pre>";
+			"etc.\n</pre>";
 	
 	public static final String EXAMPLE_DATA_SERVER_CONFIG_JSON = "A configuration file containing information needed to connect to the FHIR server. "
 			+ "See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/getting-started.md#fhir-server-configuration for more details. \n"
@@ -293,7 +295,17 @@ public class CohortEngineRestHandler {
 			
 			TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(terminologyClient);
 			try (RetrieveCacheContext retrieveCacheContext = new DefaultRetrieveCacheContext()) {
-				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataClient, terminologyProvider, retrieveCacheContext);
+				Boolean expandValueSets = evaluationRequest.isExpandValueSets();
+				if( expandValueSets == null ) {
+					expandValueSets = R4DataProviderFactory.DEFAULT_IS_EXPAND_VALUE_SETS;
+				}
+				
+				Integer searchPageSize = evaluationRequest.getSearchPageSize();
+				if( searchPageSize != null ) {
+					searchPageSize = R4DataProviderFactory.DEFAULT_PAGE_SIZE;
+				}
+				
+				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataClient, terminologyProvider, retrieveCacheContext, expandValueSets, searchPageSize);
 				
 				MeasureEvaluator evaluator = new MeasureEvaluator(provider, provider, terminologyProvider, dataProviders);
 				

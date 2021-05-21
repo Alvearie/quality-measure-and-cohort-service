@@ -194,6 +194,8 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		evaluationRequest.setPatientId(patient.getId());
 		evaluationRequest.setMeasureContext(measureContext);
 		//evaluationRequest.setEvidenceOptions(evidenceOptions);
+		evaluationRequest.setExpandValueSets(true);
+		evaluationRequest.setSearchPageSize(500);
 		
 		FhirContext fhirContext = FhirContext.forR4();
 		IParser parser = fhirContext.newJsonParser().setPrettyPrint(true);

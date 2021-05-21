@@ -26,14 +26,13 @@ import org.opencds.cqf.cql.engine.execution.CqlEngine;
 import org.opencds.cqf.cql.engine.execution.EvaluationResult;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
-import org.opencds.cqf.cql.engine.fhir.retrieve.RestFhirRetrieveProvider;
 import org.opencds.cqf.cql.engine.fhir.searchparam.SearchParameterResolver;
-
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.cohort.engine.retrieve.R4RestFhirRetrieveProvider;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
@@ -57,6 +56,9 @@ public class CqlEngineWrapper {
 	private IGenericClient dataServerClient;
 	private IGenericClient measureServerClient;
 	private IGenericClient terminologyServerClient;
+	
+	private Integer searchPageSize = 1000;
+	private boolean expandValueSets = true;
 
 	public CqlEngineWrapper() {
 		this(FhirClientBuilderFactory.newInstance());
@@ -154,6 +156,51 @@ public class CqlEngineWrapper {
 	 */
 	public IGenericClient getTerminologyServerClient() {
 		return this.terminologyServerClient;
+	}
+	
+	/**
+	 * Set the number of records that will be requested per response in FHIR search
+	 * queries via the _count search parameter.
+	 * 
+	 * @param searchPageSize positive integer
+	 */
+	public void setSearchPageSize(Integer searchPageSize) {
+		this.searchPageSize = searchPageSize;
+	}
+	
+	/**
+	 * Get the number of records that will be requested per response in FHIR search
+	 * queries via the _count search parameter.
+	 * 
+	 * @return positive integer or null if no value has been configured. If no value
+	 *         is configured, the server will use its default setting.
+	 */
+	public Integer getSearchPageSize() {
+		return this.searchPageSize;
+	}
+	
+	/**
+	 * Set the expand value sets flag that is used by the engine's data provider.
+	 * This determines whether or not the queries generated will use the FHIR token
+	 * :in modifier when possible vs. using the TerminologyProvider to pre-expand
+	 * the ValueSets.
+	 * 
+	 * @param expandValueSets true if ValueSets should be pre-expanded using the
+	 *                        terminology provider or false if the FHIR :in modifier
+	 *                        should be used.
+	 */
+	public void setExpandValueSets(boolean expandValueSets) {
+		this.expandValueSets = expandValueSets;
+	}
+	
+	/**
+	 * Get the expand value sets flag.
+	 * 
+	 * @return true if ValueSets should be pre-expanded using the terminology
+	 *         provider or false if the FHIR :in modifier should be used.
+	 */
+	public boolean isExpandValueSets() {
+		return this.expandValueSets;
 	}
 	
 	/**
@@ -271,11 +318,12 @@ public class CqlEngineWrapper {
 	 */
 	protected Map<String, DataProvider> getDataProviders(TerminologyProvider terminologyProvider) {
 		SearchParameterResolver resolver = new SearchParameterResolver(this.dataServerClient.getFhirContext());
-		RestFhirRetrieveProvider retrieveProvider = new RestFhirRetrieveProvider(resolver, this.dataServerClient);
+		R4RestFhirRetrieveProvider retrieveProvider = new R4RestFhirRetrieveProvider(resolver, this.dataServerClient);
 		retrieveProvider.setTerminologyProvider(terminologyProvider);
 		//Ideally, we would determine this using the FHIR CapabilityStatement, but there isn't a strongly
 		//reliable way to do that right now using HAPI and IBM FHIR as examples.
-		retrieveProvider.setExpandValueSets(true);
+		retrieveProvider.setExpandValueSets(isExpandValueSets());
+		retrieveProvider.setSearchPageSize(getSearchPageSize());
 		CompositeDataProvider dataProvider = new CompositeDataProvider(new R4FhirModelResolver(), retrieveProvider);
 
 		return mapSupportedModelsToDataProvider(dataProvider);

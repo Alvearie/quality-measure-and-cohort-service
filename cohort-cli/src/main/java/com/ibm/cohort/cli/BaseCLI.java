@@ -14,6 +14,9 @@ import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import ca.uhn.fhir.context.FhirContext;
 
 public class BaseCLI {
+
+	public static final boolean DEFAULT_TERMINOLOGY_OPTIMIZATION_ENABLED = false;
+	public static final int DEFAULT_PAGE_SIZE = 1000;
 	
 	protected FhirContext fhirContext = null;
 	protected FhirClientBuilderFactory fhirClientBuilderFactory = null;

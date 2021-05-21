@@ -72,8 +72,6 @@ Complete usage is available using the --help flag...
 
 ```
 $ java -jar target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar --help
-[main] INFO ca.uhn.fhir.util.VersionUtil - HAPI FHIR version 5.0.2 - Rev ecf175a352
-[main] INFO ca.uhn.fhir.context.FhirContext - Creating new FHIR context for FHIR version [R4]
 Usage: cql-engine [options]
   Options:
   * -c, --context-id
@@ -81,24 +79,44 @@ Usage: cql-engine [options]
   * -d, --data-server
       Path to JSON configuration data for the FHIR server connection that will
       be used to retrieve data.
+    --enable-terminology-optimization
+      By default, ValueSet resources used in CQL are first expanded by the
+      terminology provider, then the codes are used to query the data server.
+      If the data server contains the necessary terminology resources and
+      supports the token :in search modifier, setting this flag to false will
+      enable code filtering directly on the data server which should improve
+      CQL engine throughput.
+      Default: false
     -e, --expression
       ELM Expression(s) to Execute
   * -f, --files
       Resource that contains the CQL library sources. Valid options are the
       path to a zip file or folder containing the cohort definitions or the
       resource ID of a FHIR Library resource contained in the measure server.
+    --filter
+      Additional filters to apply to library loaders if supported by the
+      library loading mechansim
     -h, --help
       Display this help
   * -l, --libraryName
-      Library Name (from CQL Library statement)
+      Library Name
     -v, --libraryVersion
-      Library Version (from CQL Library statement)
+      Library Version
     -m, --measure-server
-      Path to JSON configuration data for the FHIR server connection that will
-      be used to retrieve measure and library resources.
+      Path to configuration data for the FHIR knowledge assets. This will be
+      either a JSON configuration file containing FHIR server connection
+      details or the path to a file containing the FHIR resources of interest.
+    -i, --model-info
+      Model info file used when translating CQL
     -p, --parameters
       Parameter value(s) in format name:type:value where value can contain
-      additional parameterized elements separated by comma
+      additional parameterized elements separated by comma. Multiple
+      parameters must be specified as multiple -p options
+    --search-page-size
+      Specifies how many records are requested per page during a FHIR search
+      operation. The default value for servers can be quite small and setting
+      this to a larger number will potentially improve performance.
+      Default: 1000
     -s, --source-format
       Indicates which files in the file source should be processed
       Default: XML
@@ -204,19 +222,28 @@ Usage: measure-engine [options]
   * -c, --context-id
       FHIR resource ID for one or more patients to evaluate.
   * -d, --data-server
-      Path to JSON configuration data for the FHIR server connection that will 
+      Path to JSON configuration data for the FHIR server connection that will
       be used to retrieve data.
     -o, --define-return-option
-      Specify define return option for evaluated define statements on measure 
-      report. Defaults to NONE. To view returned results, must specify -f 
-      JSON. 
+      Specify define return option for evaluated define statements on measure
+      report. Defaults to NONE. To view returned results, must specify -f
+      JSON.
       Default: NONE
       Possible Values: [ALL, BOOLEAN, NONE]
     --disable-retrieve-cache
       Disable the use of the retrieve cache.
+      Default: false
+    --enable-terminology-optimization
+      By default, ValueSet resources used in CQL are first expanded by the
+      terminology provider, then the codes are used to query the data server.
+      If the data server contains the necessary terminology resources and
+      supports the token :in search modifier, setting this flag to false will
+      enable code filtering directly on the data server which should improve
+      CQL engine throughput.
+      Default: false
     --filter
-      Filter information for resource loader if the resource loader supports 
-      filtering 
+      Filter information for resource loader if the resource loader supports
+      filtering
     -f, --format
       Output format of the report (JSON|TEXT*)
       Default: TEXT
@@ -224,25 +251,30 @@ Usage: measure-engine [options]
     -h, --help
       Display this help
     -e, --include-evaluated-resources
-      Include evaluated resources on measure report. To view resources must 
+      Include evaluated resources on measure report. To view resources must
       specify -f JSON.
       Default: false
     -j, --json-measure-configurations
-      JSON File containing measure resource ids and optional parameters. 
+      JSON File containing measure resource ids and optional parameters.
       Cannot be specified if -r option is used
     -m, --measure-server
-      Path to configuration data for the FHIR knowledge assets. This will be 
-      either a JSON configuration file containing FHIR server connection 
+      Path to configuration data for the FHIR knowledge assets. This will be
+      either a JSON configuration file containing FHIR server connection
       details or the path to a file containing the FHIR resources of interest.
     -p, --parameters
-      Parameter value(s) in format name:type:value where value can contain 
-      additional parameterized elements separated by comma. Multiple 
+      Parameter value(s) in format name:type:value where value can contain
+      additional parameterized elements separated by comma. Multiple
       parameters must be specified as multiple -p options
     -r, --resource
-      FHIR Resource ID or canonical URL for the measure resource to be 
+      FHIR Resource ID or canonical URL for the measure resource to be
       evaluated. Cannot be specified if -j option is used
+    --search-page-size
+      Specifies how many records are requested per page during a FHIR search
+      operation. The default value for servers can be quite small and setting
+      this to a larger number will potentially improve performance.
+      Default: 1000
     -t, --terminology-server
-      Path to JSON configuration data for the FHIR server connection that will 
+      Path to JSON configuration data for the FHIR server connection that will
       be used to retrieve terminology.
 ```
 

@@ -6,7 +6,9 @@
 package com.ibm.cohort.cli;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -499,7 +501,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		
 		Bundle emptyBundle = getBundle();
 		assertTrue( "Bundle should be empty", emptyBundle.isEmpty() );
-		mockFhirResourceRetrieval(get(urlMatching("/Condition.*")), emptyBundle);
+		mockFhirResourceRetrieval(get(urlMatching("/Condition.*&_count=500")), emptyBundle);
 		mockFhirResourceRetrieval(get(urlMatching("/Procedure.*")), emptyBundle);
 		mockFhirResourceRetrieval(get(urlMatching("/Observation.*")), emptyBundle);
 		mockSampleValueSets();
@@ -516,7 +518,9 @@ public class MeasureCLITest extends BaseMeasureTest {
 					"-r", "Measure/measure-COL_ColorectalCancerScreening-1.0.0",
 					"--filter", "fhirResources",
 					"-c", patient.getId(),
-					"-f", "JSON"
+					"-f", "JSON",
+					"--enable-terminology-optimization",
+					"--search-page-size", "500"
 			}, out);	
 		} finally {
 			tmpFile.delete();
@@ -526,6 +530,8 @@ public class MeasureCLITest extends BaseMeasureTest {
 		System.out.println(output);
 		assertTrue( output.contains("\"resourceType\": \"MeasureReport\"") );
 		assertFalse( "Found null string in output", output.contains("null/") );
+		
+		verify(5, getRequestedFor(urlMatching("/Observation\\?code%3Ain=.*")));
 	}
 
 	private void mockSampleValueSets() throws UnsupportedEncodingException {
