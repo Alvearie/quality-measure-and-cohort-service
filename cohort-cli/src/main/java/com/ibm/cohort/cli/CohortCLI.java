@@ -102,7 +102,7 @@ public class CohortCLI extends BaseCLI {
 	 * @param args parameter values
 	 * @param out  location where contents that would normally go to stdout should
 	 *             be written
-	 * @return CQLEngineWrapper
+	 * @return CQLEvaluator
 	 * @throws IOException IOException
 	 */
 	public CqlEvaluator runWithArgs(String[] args, PrintStream out) throws IOException {
