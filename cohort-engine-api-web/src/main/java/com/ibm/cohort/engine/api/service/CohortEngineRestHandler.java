@@ -159,7 +159,7 @@ public class CohortEngineRestHandler {
 			"        \"includeEvaluatedResources\": false,\n" + 
 			"        \"defineReturnOption\": \"ALL\"\n" + 
 			"    },\n" +
-			"    \"expandValueSets\": true\n" +
+			"    \"enableTerminologyOptimization\": true\n" +
 			"    \"searchPageSize\": 1000\n" +
 			"}</pre></p>";
 	

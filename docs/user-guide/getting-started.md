@@ -72,8 +72,6 @@ Complete usage is available using the --help flag...
 
 ```
 $ java -jar target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar --help
-[main] INFO ca.uhn.fhir.util.VersionUtil - HAPI FHIR version 5.0.2 - Rev ecf175a352
-[main] INFO ca.uhn.fhir.context.FhirContext - Creating new FHIR context for FHIR version [R4]
 Usage: cql-engine [options]
   Options:
   * -c, --context-id
@@ -81,12 +79,14 @@ Usage: cql-engine [options]
   * -d, --data-server
       Path to JSON configuration data for the FHIR server connection that will
       be used to retrieve data.
-    --expand-value-sets
-      By default, ValueSet resources used in CQL are expanded by the
-      terminology server. If the data server supports terminology and the
-      token :in modifier, setting this flag to false will enable use of that
-      functionality which should improve CQL engine throughput.
-      Default: true
+    --enable-terminology-optimization
+      By default, ValueSet resources used in CQL are first expanded by the
+      terminology provider, then the codes are used to query the data server.
+      If the data server contains the necessary terminology resources and
+      supports the token :in search modifier, setting this flag to false will
+      enable code filtering directly on the data server which should improve
+      CQL engine throughput.
+      Default: false
     -e, --expression
       ELM Expression(s) to Execute
   * -f, --files
@@ -233,12 +233,14 @@ Usage: measure-engine [options]
     --disable-retrieve-cache
       Disable the use of the retrieve cache.
       Default: false
-    --expand-value-sets
-      By default, ValueSet resources used in CQL are expanded by the
-      terminology server. If the data server supports terminology and the
-      token :in modifier, setting this flag to false will enable use of that
-      functionality which should improve CQL engine throughput.
-      Default: true
+    --enable-terminology-optimization
+      By default, ValueSet resources used in CQL are first expanded by the
+      terminology provider, then the codes are used to query the data server.
+      If the data server contains the necessary terminology resources and
+      supports the token :in search modifier, setting this flag to false will
+      enable code filtering directly on the data server which should improve
+      CQL engine throughput.
+      Default: false
     --filter
       Filter information for resource loader if the resource loader supports
       filtering

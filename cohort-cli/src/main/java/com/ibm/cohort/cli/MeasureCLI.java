@@ -96,8 +96,8 @@ public class MeasureCLI extends BaseCLI {
 		@Parameter(names = { "--disable-retrieve-cache" }, description = "Disable the use of the retrieve cache.")
 		private boolean disableRetrieveCache = false;
 		
-		@Parameter(names = { "--expand-value-sets" }, arity = 1, description = "By default, ValueSet resources used in CQL are expanded by the terminology server. If the data server supports terminology and the token :in modifier, setting this flag to false will enable use of that functionality which should improve CQL engine throughput.", required = false )
-		private boolean expandValueSets = DEFAULT_EXPAND_VALUE_SETS;
+		@Parameter(names = { "--enable-terminology-optimization" }, description = "By default, ValueSet resources used in CQL are first expanded by the terminology provider, then the codes are used to query the data server. If the data server contains the necessary terminology resources and supports the token :in search modifier, setting this flag to false will enable code filtering directly on the data server which should improve CQL engine throughput.", required = false )
+		private boolean enableTerminologyOptimization= DEFAULT_TERMINOLOGY_OPTIMIZATION_ENABLED;
 		
 		@Parameter(names = { "--search-page-size" }, description = "Specifies how many records are requested per page during a FHIR search operation. The default value for servers can be quite small and setting this to a larger number will potentially improve performance.")
 		private int searchPageSize = DEFAULT_PAGE_SIZE;
@@ -178,7 +178,7 @@ public class MeasureCLI extends BaseCLI {
 
 			TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(terminologyServerClient);
 			try (RetrieveCacheContext retrieveCacheContext = arguments.disableRetrieveCache ? null : new DefaultRetrieveCacheContext()) {
-				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataServerClient, terminologyProvider, retrieveCacheContext, arguments.expandValueSets, arguments.searchPageSize);
+				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataServerClient, terminologyProvider, retrieveCacheContext, ! arguments.enableTerminologyOptimization, arguments.searchPageSize);
 
 				evaluator = new MeasureEvaluator(measureProvider, libraryProvider, terminologyProvider, dataProviders);
 

@@ -6,7 +6,9 @@
 package com.ibm.cohort.cli;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -517,7 +519,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 					"--filter", "fhirResources",
 					"-c", patient.getId(),
 					"-f", "JSON",
-					"--expand-value-sets", "true",
+					"--enable-terminology-optimization",
 					"--search-page-size", "500"
 			}, out);	
 		} finally {
@@ -528,6 +530,8 @@ public class MeasureCLITest extends BaseMeasureTest {
 		System.out.println(output);
 		assertTrue( output.contains("\"resourceType\": \"MeasureReport\"") );
 		assertFalse( "Found null string in output", output.contains("null/") );
+		
+		verify(5, getRequestedFor(urlMatching("/Observation\\?code%3Ain=.*")));
 	}
 
 	private void mockSampleValueSets() throws UnsupportedEncodingException {
