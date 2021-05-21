@@ -44,14 +44,14 @@ import com.ibm.cohort.engine.parameter.IntervalParameter;
 import com.ibm.cohort.engine.parameter.Parameter;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
-public class CqlEngineWrapperTest extends BasePatientTest {
+public class CqlEvaluatorTest extends BasePatientTest {
 
 	@Test
 	public void testPatientIsFemaleTrue() throws Exception {
 
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/basic/test.xml");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/basic/test.xml");
 
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
@@ -70,7 +70,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.MALE, null);
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/basic/test.xml");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/basic/test.xml");
 
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
@@ -88,7 +88,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.MALE, null);
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/basic/test.xml");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/basic/test.xml");
 
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", "1.0.0", /* parameters= */null, new HashSet<>(Arrays.asList("Female")),
@@ -110,7 +110,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		Patient patient = new Patient();
 		patient.setGender(Enumerations.AdministrativeGender.MALE);
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/basic/test.xml");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/basic/test.xml");
 
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", "9.9.9", /* parameters= */null, new HashSet<>(Arrays.asList("Female")),
@@ -130,7 +130,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		Map<String, Parameter> parameters = new HashMap<>();
 		parameters.put("MaxAge", new IntegerParameter(40));
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/parameters/test-with-params.xml");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/parameters/test-with-params.xml");
 
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", "1.0.0", parameters, new HashSet<>(Arrays.asList("Female")), Arrays.asList("123"),
@@ -150,7 +150,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		Map<String, Parameter> parameters = new HashMap<>();
 		parameters.put("MaxAge", new IntegerParameter(50));
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/parameters/test-with-params.xml");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/parameters/test-with-params.xml");
 
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", "1.0.0", parameters, new HashSet<>(Arrays.asList("Female")), Arrays.asList("123"),
@@ -176,7 +176,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 
 		Map<String, Parameter> parameters = null;
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/parameters/test-with-params.xml");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/parameters/test-with-params.xml");
 
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", "1.0.0", parameters, new HashSet<>(Arrays.asList("Female")), Arrays.asList("123"),
@@ -203,7 +203,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		Map<String, Parameter> parameters = new HashMap<>();
 		parameters.put("Unused", new IntegerParameter(100));
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/parameters/test-with-params.xml");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/parameters/test-with-params.xml");
 
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", "1.0.0", parameters, new HashSet<>(Arrays.asList("Female")), Arrays.asList("123"),
@@ -221,7 +221,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
-		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig, "cql/basic/test.xml");
+		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig, "cql/basic/test.xml");
 
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", "1.0.0", /* parameters= */null, new HashSet<>(Arrays.asList("Female")),
@@ -251,7 +251,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", condition);
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
-		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,
+		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,
 				"cql/condition/test-status-active.cql");
 
 		final AtomicInteger count = new AtomicInteger(0);
@@ -287,7 +287,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		mockFhirResourceRetrieval(builder, condition);
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
-		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig,
+		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,
 				"cql/condition/test-date-query.xml");
 		
 		Map<String,Parameter> parameters = new HashMap<>();
@@ -311,7 +311,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 	public void testNumCallsUsingEngineWrapperMethod() throws Exception {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/basic/test.xml");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/basic/test.xml");
 
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluateWithEngineWrapper("Test", null, /* parameters= */null, null, Arrays.asList("123"),
@@ -328,7 +328,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 	public void testNumCallsUsingPerDefineMethod() throws Exception {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/basic/test.xml");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/basic/test.xml");
 
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluateExpressionByExpression("Test", null, /* parameters= */null, null, Arrays.asList("123"),
@@ -345,7 +345,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 	public void testNumCallsWithParamsUsingEngineWrapperMethod() throws Exception {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/parameters/test-with-params.xml");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/parameters/test-with-params.xml");
 
 		Map<String, Parameter> parameters = new HashMap<>();
 		parameters.put("MaxAge", new IntegerParameter(40));
@@ -368,7 +368,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 	public void testNumCallsWithParamsUsingPerDefineMethod() throws Exception {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/parameters/test-with-params.xml");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/parameters/test-with-params.xml");
 
 		Map<String, Parameter> parameters = new HashMap<>();
 		parameters.put("MaxAge", new IntegerParameter(40));
@@ -392,7 +392,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 	public void testJsonCQLWithIncludes() throws Exception {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/includes/Breast-Cancer-Screening.json");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/includes/Breast-Cancer-Screening.json");
 
 		final AtomicBoolean found = new AtomicBoolean(false);
 		final AtomicInteger count = new AtomicInteger(0);
@@ -410,7 +410,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testInvalidWrapperSetup() throws Exception {
-		CqlEngineWrapper wrapper = new CqlEngineWrapper();
+		CqlEvaluator wrapper = new CqlEvaluator();
 		wrapper.evaluate("Test", null, null, null, Arrays.asList("123"), (p, e, r) -> {
 			/* do nothing */ });
 	}
@@ -420,7 +420,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		Patient patient = new Patient();
 		patient.setGender(Enumerations.AdministrativeGender.FEMALE);
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/basic/test.xml");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/basic/test.xml");
 		wrapper.evaluate(null, null, null, null, null, null);
 	}
 
@@ -432,7 +432,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		FhirServerConfig fhirConfig = new FhirServerConfig();
 		fhirConfig.setEndpoint("http://its.not.me");
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig, "cql/basic/test.xml");
+		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig, "cql/basic/test.xml");
 		wrapper.evaluate("Test", /* version= */null, /* parameters= */null, /* expressions= */null,
 				Arrays.asList("123"), (p, e, r) -> {
 					fail("Execution should not reach here");
@@ -446,7 +446,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		CqlEngineWrapper wrapper = setupTestFor(patient, fhirConfig, "cql/basic/test.xml");
+		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig, "cql/basic/test.xml");
 		wrapper.evaluate("NotCorrect", /* version= */null, /* parameters= */null, /* expressions= */null,
 				Arrays.asList("123"), (p, e, r) -> {
 					fail("Execution should not reach here");
@@ -460,7 +460,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		final AtomicInteger resultCount = new AtomicInteger(0);
 		// Using pre-compiled ELM that is correctly formatted for consumption. There is a test
 		// case below that does the same thing with translation.
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/uscore/test-uscore.xml");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/uscore/test-uscore.xml");
 		wrapper.evaluate("Test", /* version= */null, /* parameters= */null, new HashSet<>(Arrays.asList("QueryByGender")),
 				Arrays.asList("123"), (p, e, r) -> {
 					assertEquals("QueryByGender", e);
@@ -477,7 +477,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1983-12-02");
 
 		final AtomicInteger resultCount = new AtomicInteger(0);
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/uscore/test-uscore.cql");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/uscore/test-uscore.cql");
 		wrapper.evaluate("Test", /* version= */null, /* parameters= */null, new HashSet<>(Arrays.asList("QueryByGender")),
 				Arrays.asList("123"), (p, e, r) -> {
 					assertEquals("QueryByGender", e);
@@ -496,7 +496,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1983-12-02");
 
 		final AtomicInteger resultCount = new AtomicInteger(0);
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/uomequivalence/TestUOMCompare-1.0.0.cql");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/uomequivalence/TestUOMCompare-1.0.0.cql");
 		wrapper.evaluate("TestUOMCompare", "1.0.0", /* parameters= */null, new HashSet<>(Arrays.asList("IsEqual", "AreEquivalent", "UpConvert")),
 				Arrays.asList(patient.getId()), (p, e, r) -> {
 					if( e.equals("IsEqual") ) {
@@ -528,7 +528,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1983-12-02");
 
 		final AtomicInteger resultCount = new AtomicInteger(0);
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/valueset/Test-1.0.0.cql");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/valueset/Test-1.0.0.cql");
 		
 		Condition condition = new Condition();
 		condition.setId("Condition");
@@ -604,7 +604,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", condition);		
 		
 		final AtomicInteger resultCount = new AtomicInteger(0);
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/valueset/TestUnsupported-1.0.0.cql");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/valueset/TestUnsupported-1.0.0.cql");
 		
 		CqlException ex = assertThrows("Missing expected exception", CqlException.class, () -> {
 				wrapper.evaluate("TestUnsupported", "1.0.0", /* parameters= */null, new HashSet<>(Arrays.asList(expression)),
@@ -629,7 +629,7 @@ public class CqlEngineWrapperTest extends BasePatientTest {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1983-12-02");
 		
 		final AtomicInteger resultCount = new AtomicInteger(0);
-		CqlEngineWrapper wrapper = setupTestFor(patient, "cql/temporal/IntervalStartsInterval-1.0.0.cql");
+		CqlEvaluator wrapper = setupTestFor(patient, "cql/temporal/IntervalStartsInterval-1.0.0.cql");
 		
 		wrapper.evaluate("IntervalStartsInterval", "1.0.0", /* parameters= */null, new HashSet<>(Arrays.asList("LHS Starts RHS")),
 				Arrays.asList(patient.getId()), (p, e, r) -> {

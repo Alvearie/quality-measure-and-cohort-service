@@ -11,11 +11,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.ibm.cohort.cli.CohortCLI;
-import com.ibm.cohort.engine.CqlEngineWrapper;
+import com.ibm.cohort.engine.CqlEvaluator;
 
 public class TestWrapper {
 	private CohortCLI cli;
-	private CqlEngineWrapper engine;
+	private CqlEvaluator engine;
 	private ByteArrayOutputStream byteStream;
 	private PrintStream ps;
 	public TestWrapper()

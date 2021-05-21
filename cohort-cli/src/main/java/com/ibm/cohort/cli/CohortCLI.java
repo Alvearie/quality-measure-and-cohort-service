@@ -27,7 +27,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
 import com.ibm.cohort.cli.input.NoSplittingSplitter;
-import com.ibm.cohort.engine.CqlEngineWrapper;
+import com.ibm.cohort.engine.CqlEvaluator;
 import com.ibm.cohort.engine.DirectoryLibrarySourceProvider;
 import com.ibm.cohort.engine.EvaluationResultCallback;
 import com.ibm.cohort.engine.FhirLibraryLibrarySourceProvider;
@@ -105,13 +105,13 @@ public class CohortCLI extends BaseCLI {
 	 * @return CQLEngineWrapper
 	 * @throws IOException IOException
 	 */
-	public CqlEngineWrapper runWithArgs(String[] args, PrintStream out) throws IOException {
+	public CqlEvaluator runWithArgs(String[] args, PrintStream out) throws IOException {
 		Arguments arguments = new Arguments();
 		Console console = new DefaultConsole(out);
 		JCommander jc = JCommander.newBuilder().programName("cql-engine").console(console).addObject(arguments).build();
 		jc.parse(args);
 
-		CqlEngineWrapper wrapper = null;
+		CqlEvaluator wrapper = null;
 		
 		if (arguments.isDisplayHelp) {
 			jc.usage();
@@ -119,7 +119,7 @@ public class CohortCLI extends BaseCLI {
 			
 			FhirClientBuilderFactory factory = FhirClientBuilderFactory.newInstance();
 			
-			wrapper = new CqlEngineWrapper(factory);
+			wrapper = new CqlEvaluator(factory);
 			wrapper.setExpandValueSets( ! arguments.enableTerminologyOptimization );
 			wrapper.setSearchPageSize( arguments.searchPageSize );
 
@@ -195,7 +195,7 @@ public class CohortCLI extends BaseCLI {
 		return wrapper;
 	}
 
-	protected void configureConnections(CqlEngineWrapper wrapper, ConnectionArguments arguments) throws IOException {
+	protected void configureConnections(CqlEvaluator wrapper, ConnectionArguments arguments) throws IOException {
 		readConnectionConfiguration(arguments);
 		wrapper.setDataServerConnectionProperties(dataServerConfig);
 		wrapper.setTerminologyServerConnectionProperties(terminologyServerConfig);
