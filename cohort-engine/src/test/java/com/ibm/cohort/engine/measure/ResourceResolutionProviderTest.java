@@ -21,8 +21,8 @@ import org.junit.Test;
 import com.ibm.cohort.engine.BaseFhirTest;
 
 public class ResourceResolutionProviderTest extends BaseFhirTest {
-	public static class DummyProvider extends ResourceResolutionProvider {
-	};
+	private static class DummyProvider extends ResourceResolutionProvider {
+	}
 	protected ResourceResolutionProvider provider;
 	
 	@Before
@@ -31,7 +31,7 @@ public class ResourceResolutionProviderTest extends BaseFhirTest {
 	}
 	
 	@Test
-	public void when_resolve_by_identifier_no_version_none_matched___null_is_returned() throws Exception {
+	public void when_resolve_by_identifier_no_version_none_matched___null_is_returned() {
 		
 		Measure expected = getMeasure( "MyTestMeasure", "2.0.0", "my_identifier" );
 		provider.processResource("MyTestMeasure-2.0.0.json", expected);
@@ -47,7 +47,7 @@ public class ResourceResolutionProviderTest extends BaseFhirTest {
 	}
 	
 	@Test
-	public void when_resolve_by_identifier_no_version_single_result___result_is_returned() throws Exception {
+	public void when_resolve_by_identifier_no_version_single_result___result_is_returned() {
 		
 		Measure expected = new Measure();
 		expected.addIdentifier().setSystem("my_system").setValue("my_identifier");
@@ -63,7 +63,7 @@ public class ResourceResolutionProviderTest extends BaseFhirTest {
 	}
 	
 	@Test
-	public void when_resolve_by_identifier_no_version_multiple_result___latest_version_used() throws Exception {
+	public void when_resolve_by_identifier_no_version_multiple_result___latest_version_used() {
 		
 		Measure expected = getMeasure( "MyTestMeasure", "2.0.0", "my_identifier" );
 		provider.processResource("MyTestMeasure-2.0.0.json", expected);
@@ -80,7 +80,7 @@ public class ResourceResolutionProviderTest extends BaseFhirTest {
 	}
 	
 	@Test
-	public void when_resolve_by_identifier_with_version_single_match___result_is_returned() throws Exception {
+	public void when_resolve_by_identifier_with_version_single_match___result_is_returned() {
 		
 		Measure expected = getMeasure( "MyTestMeasure", "2.0.0", "my_identifier" );
 		provider.processResource("MyTestMeasure-2.0.0.json", expected);
@@ -97,7 +97,7 @@ public class ResourceResolutionProviderTest extends BaseFhirTest {
 	}	
 	
 	@Test
-	public void when_resolve_by_identifier_with_version_multiple_matched___exception_is_thrown() throws Exception {
+	public void when_resolve_by_identifier_with_version_multiple_matched___exception_is_thrown() {
 		
 		Measure expected = getMeasure( "MyTestMeasure", "2.0.0", "my_identifier" );
 		expected.setId(UUID.randomUUID().toString());
@@ -116,7 +116,7 @@ public class ResourceResolutionProviderTest extends BaseFhirTest {
 	}
 	
 	@Test
-	public void when_resolve_by_identifier_with_version_none_matched___null_is_returned() throws Exception {
+	public void when_resolve_by_identifier_with_version_none_matched___null_is_returned() {
 		
 		Measure expected = getMeasure( "MyTestMeasure", "2.0.0", "my_identifier" );
 		provider.processResource("MyTestMeasure-2.0.0.json", expected);

@@ -9,6 +9,7 @@ package com.ibm.cohort.engine.r4.builder;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Date;
+import java.util.TimeZone;
 
 import org.hl7.fhir.exceptions.FHIRException;
 import org.hl7.fhir.r4.model.MeasureReport;
@@ -46,6 +47,10 @@ public class MeasureReportBuilderTest {
 		assertEquals(endDate, report.getPeriod().getEnd());
 		assertEquals(status, report.getStatus());
 		assertEquals(type, report.getType());
+
+		TimeZone timeZoneUTC = TimeZone.getTimeZone("UTC");
+		assertEquals(timeZoneUTC, report.getPeriod().getStartElement().getTimeZone());
+		assertEquals(timeZoneUTC, report.getPeriod().getEndElement().getTimeZone());
 	}
 	
 	@Test

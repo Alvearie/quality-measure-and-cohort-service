@@ -152,16 +152,10 @@ public class MeasureEvaluator {
 		MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(terminologyProvider, dataProviders, libraryLoader, libraryProvider);
 		seeder.disableDebugLogging();
 
-		IMeasureEvaluationSeed seed = seeder.create(measure, periodStart, periodEnd, "ProductLine");
-
-		if (parameters != null) {
-			for (Map.Entry<String, Parameter> entry : parameters.entrySet()) {
-				seed.getContext().setParameter(null, entry.getKey(), entry.getValue().toCqlType());
-			}
-		}
+		IMeasureEvaluationSeed seed = seeder.create(measure, periodStart, periodEnd, "ProductLine", parameters);
 
 		CDMMeasureEvaluation evaluation = new CDMMeasureEvaluation(seed.getDataProvider(), seed.getMeasurementPeriod());
-		return evaluation.evaluatePatientMeasure(measure, seed.getContext(), patientId, evidenceOptions);
+		return evaluation.evaluatePatientMeasure(measure, seed.getContext(), patientId, evidenceOptions, parameters);
 	}
 
 }

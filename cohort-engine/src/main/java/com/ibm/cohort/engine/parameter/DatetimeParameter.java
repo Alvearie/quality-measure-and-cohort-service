@@ -5,7 +5,7 @@
  */
 package com.ibm.cohort.engine.parameter;
 
-import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 import org.opencds.cqf.cql.engine.runtime.DateTime;
 
@@ -22,6 +22,6 @@ public class DatetimeParameter extends StringBackedParameter {
 	
 	@Override
 	public Object toCqlType() {
-		return new DateTime( getValue().replace("@",""), OffsetDateTime.now().getOffset() );
+		return new DateTime(getValue().replace("@",""), ZoneOffset.UTC);
 	}
 }

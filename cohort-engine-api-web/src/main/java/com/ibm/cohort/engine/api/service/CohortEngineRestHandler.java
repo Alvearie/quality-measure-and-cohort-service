@@ -117,11 +117,12 @@ public class CohortEngineRestHandler {
 	public static final String MEASURE_VERSION = "measure_version";
 	public static final String MEASURE_ID = "measure_id";
 	
+	
 	public final static String VALUE_SET_PART = "value_set";
 	public final static String CUSTOM_CODE_SYSTEM = "custom_code_system";
 	
 	public static final String EXAMPLE_REQUEST_DATA_JSON = "<p>A configuration file containing the information needed to process a measure evaluation request. Two possible FHIR server endoints can be configured <code>dataServerConfig</code> and <code>terminologyServerConfig</code>. Only the <code>dataServerConfig</code> is required. If <code>terminologyServerConfig</code> is not provided, the connection details are assumed to be the same as the <code>dataServerConfig</code> connection.</p>" +
-			"<p>The <code>measureContext.measureId</code> field can be a FHIR resource ID or canonical URL. Alternatively, <code>measureContext.identifier</code> and <code>measureContext.version</code> can be used to lookup the measure based on a business identifier found in the resource definition. Only one of measureId or identifier + version should be specified. Canonical URL is the recommend lookup mechanism.</p>" +
+			"<p>The <code>measureContext.measureId</code> field can be a FHIR resource ID or canonical URL. Alternatively, <code>measureContext.identifier</code> and <code>measureContext.version</code> can be used to lookup the measure based on a business identifier found in the resource definition. Only one of measureId or identifier + version should be specified. Canonical URL is the recommended lookup mechanism.</p>" +
 			"<p>The parameter types and formats are described in detail in the <a href=\"http://alvearie.io/quality-measure-and-cohort-service/#/user-guide/parameter-formats?id=parameter-formats\">user guide</a>.</p>" +
 			"<p>The <code>evidenceOptions</code> control the amount of data written the FHIR MeasureReport that is returned as a result of the evaluation. The <code>expandValueSets</code> flag is used to control whether or not the terminology provider is used to expand ValueSet references or if the FHIR :in modifier is used during search requests. The FHIR :in modifier is supported in IBM FHIR 4.7.0 and above. The default behavior is to expand value sets using the terminology provider in order to cover the widest range of FHIR server functionality. A value of false can be used to improve search performance. The <code>searchPageSize</code> controls how many data records are retrieved per request during FHIR search API execution. The default value for this setting is small in most servers and performance can be boosted by larger values. The default is 1000 which is the maximum allowed page size in IBM FHIR.</p>" +
 			"<p>Example Contents: \n <pre>{\n" +
@@ -481,7 +482,7 @@ public class CohortEngineRestHandler {
 			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
 			@ApiImplicitParam(name=FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
 			@ApiImplicitParam(name=VALUE_SET_PART, value= VALUE_SET_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" ),
-			@ApiImplicitParam(name=CUSTOM_CODE_SYSTEM, value= CUSTOM_CODE_SYSTEM_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" )
+			@ApiImplicitParam(name=CUSTOM_CODE_SYSTEM, value= CUSTOM_CODE_SYSTEM_DESC, dataTypeClass = File.class, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
 			@ApiResponse(code = 201, message = "Successful Operation"),

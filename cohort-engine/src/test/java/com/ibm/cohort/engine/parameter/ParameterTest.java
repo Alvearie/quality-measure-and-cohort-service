@@ -9,6 +9,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -21,6 +25,7 @@ import javax.validation.ValidatorFactory;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.opencds.cqf.cql.engine.runtime.DateTime;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -88,6 +93,28 @@ public class ParameterTest {
 		
 		Interval interval = (Interval) parameter.toCqlType();
 		assertEquals("2021-03-13T23:59:59.999", interval.getEnd().toString());
+	}
+
+	@Test
+	public void datetime_with_no_time_or_timezone___defaults_to_midnight_UTC() {
+		DatetimeParameter parameter = new DatetimeParameter("2020-01-01");
+
+		DateTime dateTime = (DateTime) parameter.toCqlType();
+
+		DateTime expectedDateTime = new DateTime(OffsetDateTime.of(LocalDate.of(2020, 1,1), LocalTime.MIN, ZoneOffset.UTC));
+		assertEquals(ZoneOffset.UTC, dateTime.getDateTime().getOffset());
+		assertEquals(expectedDateTime.toJavaDate(), dateTime.toJavaDate());
+	}
+
+	@Test
+	public void datetime_with_no_timezone___defaults_to_UTC() {
+		DatetimeParameter parameter = new DatetimeParameter("2020-01-01T00:00:00.0");
+
+		DateTime dateTime = (DateTime) parameter.toCqlType();
+
+		DateTime expectedDateTime = new DateTime(OffsetDateTime.of(LocalDate.of(2020, 1,1), LocalTime.MIN, ZoneOffset.UTC));
+		assertEquals(ZoneOffset.UTC, dateTime.getDateTime().getOffset());
+		assertEquals(expectedDateTime.toJavaDate(), dateTime.toJavaDate());
 	}
 	
 	@Test

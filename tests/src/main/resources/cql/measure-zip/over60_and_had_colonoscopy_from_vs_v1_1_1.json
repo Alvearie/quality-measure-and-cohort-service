@@ -1,0 +1,87 @@
+{
+  "library": [
+    "http://ibm.com/health/Library/Over60andHadColonoscopyFromVS_PrimaryGenerated|1.1.1"
+  ],
+  "type": [
+    {
+      "coding": [
+        {
+          "code": "process",
+          "system": "http://terminology.hl7.org/CodeSystem/measure-type"
+        }
+      ]
+    }
+  ],
+  "group": [
+    {
+      "population": [
+        {
+          "id": "initpop",
+          "code": {
+            "coding": [
+              {
+                "code": "initial-population",
+                "system": "http://terminology.hl7.org/CodeSystem/measure-population"
+              }
+            ]
+          },
+          "criteria": {
+            "expression": "initpop_define",
+            "language": "text/cql"
+          }
+        },
+        {
+          "id": "denom",
+          "code": {
+            "coding": [
+              {
+                "code": "denominator",
+                "system": "http://terminology.hl7.org/CodeSystem/measure-population"
+              }
+            ]
+          },
+          "criteria": {
+            "expression": "denom_define",
+            "language": "text/cql"
+          }
+        },
+        {
+          "id": "hadifFromVS",
+          "code": {
+            "coding": [
+              {
+                "code": "numerator",
+                "system": "http://terminology.hl7.org/CodeSystem/measure-population"
+              }
+            ]
+          },
+          "criteria": {
+            "expression": "hadifFromVS_define",
+            "language": "text/cql"
+          }
+        }
+      ]
+    }
+  ],
+  "title": "TestingColonWithVS",
+  "status": "active",
+  "scoring": {
+    "coding": [
+      {
+        "code": "proportion"
+      }
+    ]
+  },
+  "improvementNotation": {
+    "coding": [
+      {
+        "code": "increase",
+        "system": "http://terminology.hl7.org/CodeSystem/measure-improvement-notation"
+      }
+    ]
+  },
+  "name": "Over60andHadColonoscopyFromVS",
+  "version": "1.1.1",
+  "resourceType": "Measure",
+  "url": "http://ibm.com/health/Measure/Over60andHadColonoscopyFromVS"
+}

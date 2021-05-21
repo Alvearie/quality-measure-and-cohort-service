@@ -10,6 +10,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -39,19 +40,20 @@ public abstract class CqlTranslatorProviderTest {
 
 	protected abstract CqlTranslationProvider getTranslator();
 
-	protected abstract void prepareForZip(ZipFile zipFile) throws Exception;
+	protected abstract void prepareForZip(File zipFile) throws IOException;
 	
-	protected abstract void prepareForFolder(Path folder) throws Exception;
+	protected abstract void prepareForFolder(Path folder) throws IOException;
 
 	
 	@Test
 	public void multipleFilesInZip__translatedSuccessfully() throws Exception {
 
-		List<Library> libraries = new ArrayList<Library>();
+		List<Library> libraries = new ArrayList<>();
 
 		File testdata = new File("src/test/resources/cql/zip/breast_cancer_screening_v1_0_0_cql.zip");
+		prepareForZip(testdata);
+
 		try( ZipFile zipFile = new ZipFile(testdata) ) {
-			prepareForZip(zipFile);
 			Enumeration<? extends ZipEntry> entries = zipFile.entries();
 			while (entries.hasMoreElements()) {
 				ZipEntry entry = entries.nextElement();
@@ -63,10 +65,10 @@ public abstract class CqlTranslatorProviderTest {
 			}
 		}
 		
-		assertEquals(2, libraries.size());
+		assertEquals(1, libraries.size());
 		Library library = libraries.get(0);
 		assertEquals(1, library.getAnnotation().size());
-		assertEquals("Breast-Cancer-Screening", library.getIdentifier().getId());
+		assertEquals("BreastCancerScreening", library.getIdentifier().getId());
 	}
 
 	@Test

@@ -7,6 +7,8 @@
 package com.ibm.cohort.engine.cqfruler;
 
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -62,7 +64,11 @@ public class CDMContext extends Context {
 	}
 
 	public CDMContext(Library library) {
-		super(library);
+		this(library, ZonedDateTime.now(ZoneId.of("Z")));
+	}
+
+	public CDMContext(Library library, ZonedDateTime evaluationZonedDateTime) {
+		super(library, evaluationZonedDateTime);
 	}
 	
 	public Set<VersionedIdentifier> getLibrariesInCache() {
