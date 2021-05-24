@@ -44,7 +44,7 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
  * engine using sensible defaults for our target execution environment and
  * providing utilities for loading library contents from various sources.
  */
-public class CqlEngineWrapper {
+public class CqlEvaluator {
 
 	protected static final List<String> SUPPORTED_MODELS = Arrays.asList("http://hl7.org/fhir",
 			"http://hl7.org/fhir/us/core", "http://hl7.org/fhir/us/qicore", CDMConstants.BASE_URL);
@@ -60,11 +60,11 @@ public class CqlEngineWrapper {
 	private Integer searchPageSize = 1000;
 	private boolean expandValueSets = true;
 
-	public CqlEngineWrapper() {
+	public CqlEvaluator() {
 		this(FhirClientBuilderFactory.newInstance());
 	}
 
-	public CqlEngineWrapper(FhirClientBuilderFactory clientBuilderFactory) {
+	public CqlEvaluator(FhirClientBuilderFactory clientBuilderFactory) {
 		this.clientBuilderFactory = clientBuilderFactory;
 	}
 

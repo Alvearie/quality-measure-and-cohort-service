@@ -18,7 +18,7 @@ import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
 
 public class BasePatientTest extends BaseFhirTest {
-	protected CqlEngineWrapper setupTestFor(Patient patient, String... resources) {
+	protected CqlEvaluator setupTestFor(Patient patient, String... resources) {
 		IBMFhirServerConfig fhirConfig = new IBMFhirServerConfig();
 		fhirConfig.setEndpoint("http://localhost:" + HTTP_PORT);
 		fhirConfig.setUser("fhiruser");
@@ -28,12 +28,12 @@ public class BasePatientTest extends BaseFhirTest {
 		return setupTestFor(patient, fhirConfig, resources);
 	}
 
-	protected CqlEngineWrapper setupTestFor(Patient patient, FhirServerConfig fhirConfig, String... resources) {
+	protected CqlEvaluator setupTestFor(Patient patient, FhirServerConfig fhirConfig, String... resources) {
 
 		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
 		mockFhirResourceRetrieval(patient);
 
-		CqlEngineWrapper wrapper = new CqlEngineWrapper();
+		CqlEvaluator wrapper = new CqlEvaluator();
 		if (resources != null) {
 			/*
 			 * Do some hacking to make the pre-existing test resources still function 

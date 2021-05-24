@@ -1,6 +1,6 @@
 # User Guide - Getting Started
 
-The [IBM Quality Measure and Cohort Engine](https://github.com/Alvearie/quality-measure-and-cohort-service/) is an open source project under the [Alvearie](https://github.com/Alvearie/) organization in Github. The Cohort Engine provides APIs for evaluating cohorts via definitions written in Clinical Quality Language (CQL). Users can execute CQL scripts directly using the CqlEngineWrapper API or indirectly through the use of FHIR measure and library resources.
+The [IBM Quality Measure and Cohort Engine](https://github.com/Alvearie/quality-measure-and-cohort-service/) is an open source project under the [Alvearie](https://github.com/Alvearie/) organization in Github. The Cohort Engine provides APIs for evaluating cohorts via definitions written in Clinical Quality Language (CQL). Users can execute CQL scripts directly using the CqlEvaluator API or indirectly through the use of FHIR measure and library resources.
 
 Builds are published in [Github packages](https://github.com/orgs/Alvearie/packages?repo_name=quality-measure-and-cohort-service) or you can pull the source code and build it yourself. If you are using the precompiled artifacts, you will most likely want to start with [cohort-cli](https://github.com/Alvearie/quality-measure-and-cohort-service/packages/506888) and choose the latest shaded jar (more on that below). If you are building yourself, use``git clone`` to pull down [the repository](https://github.com/Alvearie/quality-measure-and-cohort-service) and ``mvn install -f cohort-parent`` to build it. If you don't already have Maven installed on your workstation, [download](https://maven.apache.org/download.cgi) version 3.6.3 or newer and follow the [installation instructions](https://maven.apache.org/install.html). You should be using a Java SDK version 8.0 or higher. If you don't already have a Java SDK on your workstation, you can download one [here](https://adoptopenjdk.net/).
 
@@ -194,11 +194,11 @@ java -jar cohort-cli-*.jar -Dorg.slf4j.simpleLogger.log.org.opencds.cqf.cql.engi
 
 # Error states
 The Engine detects and throws IllegalArgumentException for the following error states:
-1) When the CqlEngineWrapper.evaluate(...) method is invoked without first configuring the library sources, data server, and terminology server settings.
-2) When the CqlEngineWrapper.evaluate(...) method is invoked without providing a library name and at least one context ID (aka patient ID).
-3) When the CqlEngineWrapper.evaluate(...) method is invoked for a CQL Library that contains parameters with no default value and no value is provided in the method's parameters map.
-4) When the CqlEngineWrapper.evaluate(...) method is invoked for a CQL Library that is not loaded
-5) When the CqlEngineWrapper.main(...) method is invoked with an invalid parameter type or interval subtype
+1) When the CqlEvaluator.evaluate(...) method is invoked without first configuring the library sources, data server, and terminology server settings.
+2) When the CqlEvaluator.evaluate(...) method is invoked without providing a library name and at least one context ID (aka patient ID).
+3) When the CqlEvaluator.evaluate(...) method is invoked for a CQL Library that contains parameters with no default value and no value is provided in the method's parameters map.
+4) When the CqlEvaluator.evaluate(...) method is invoked for a CQL Library that is not loaded
+5) When the CqlEvaluator.main(...) method is invoked with an invalid parameter type or interval subtype
 
 Connectivity issues to the FHIR server are reported through the HAPI FHIR Client library. See HAPI documentation for complete details, but an example exception would be ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException.
 
