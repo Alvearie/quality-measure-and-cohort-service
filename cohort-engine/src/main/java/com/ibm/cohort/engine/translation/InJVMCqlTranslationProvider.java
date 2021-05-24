@@ -67,12 +67,12 @@ public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
 
 	@Override
 	public Library translate(InputStream cql, List<Options> options, LibraryFormat targetFormat) throws Exception {
-		Library result = null;
+		Library result;
 
 		UcumService ucumService = null;
 		LibraryBuilder.SignatureLevel signatureLevel = LibraryBuilder.SignatureLevel.None;
 
-		List<Options> optionsList = new ArrayList<Options>();
+		List<Options> optionsList = new ArrayList<>();
 		if (options != null) {
 			optionsList.addAll(options);
 		}
@@ -83,8 +83,7 @@ public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
 
 		LOG.debug("Translated CQL contains {} errors", translator.getErrors().size());
 		if (!translator.getErrors().isEmpty()) {
-			throw new Exception("CQL translation contained errors: " + String.join("\n",
-					translator.getErrors().stream().map(x -> x.toString()).collect(Collectors.toList())));
+			throw new Exception("CQL translation contained errors: " + translator.getErrors().stream().map(Throwable::toString).collect(Collectors.joining("\n")));
 		}
 
 		switch (targetFormat) {

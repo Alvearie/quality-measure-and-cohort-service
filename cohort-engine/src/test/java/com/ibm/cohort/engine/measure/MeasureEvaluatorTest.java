@@ -470,7 +470,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	}
 	
 	private Library setupDefineReturnLibrary() throws Exception {
-		Library fhirHelpers = mockLibraryRetrieval("FHIRHelpers", DEFAULT_VERSION, "cql/fhir-measure/FHIRHelpers.cql");
+		Library fhirHelpers = mockLibraryRetrieval("FHIRHelpers", "4.0.0", "cql/fhir-helpers/FHIRHelpers.cql");
 		Library library2 = mockLibraryRetrieval("TestAdultMales2", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males2.cql");
 		Library library3 = mockLibraryRetrieval("TestAdultMales3", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males3.cql");
 		Library library = mockLibraryRetrieval("TestAdultMales", DEFAULT_VERSION, "cql/fhir-measure/test-adult-males.cql");

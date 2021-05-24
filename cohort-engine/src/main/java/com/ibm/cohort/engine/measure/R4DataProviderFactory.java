@@ -6,20 +6,22 @@
 
 package com.ibm.cohort.engine.measure;
 
-import ca.uhn.fhir.rest.client.api.IGenericClient;
-import com.ibm.cohort.engine.measure.cache.CachingRetrieveProvider;
-import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.opencds.cqf.cql.engine.data.CompositeDataProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
-import org.opencds.cqf.cql.engine.fhir.retrieve.RestFhirRetrieveProvider;
 import org.opencds.cqf.cql.engine.fhir.searchparam.SearchParameterResolver;
 import org.opencds.cqf.cql.engine.model.ModelResolver;
 import org.opencds.cqf.cql.engine.retrieve.RetrieveProvider;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.ibm.cohort.engine.measure.cache.CachingRetrieveProvider;
+import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
+import com.ibm.cohort.engine.retrieve.R4RestFhirRetrieveProvider;
+
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 /**
  * <p>An internal class intended to ease the burden of creating the URI to {@link DataProvider} mapping
@@ -30,16 +32,20 @@ import java.util.Map;
 public class R4DataProviderFactory {
 
 	/**
-	 * As of the current 4.6.0 version, IBM FHIR does not support the 
-	 * token:in modifier, so the default behavior is to to expand value
-	 * sets outside of FHIR for code-based queries. I discussed with the 
-	 * FHIR team how we might determine this capability dynamically via
-	 * the CapabilityStatement, but doing so is not well supported in 
-	 * either IBM FHIR or HAPI FHIR right now, so we are going with
-	 * this hard-coding approach for now. API consumers can use the
-	 * parameterized method as needed. 
+	 * This is used to control whether the data provider tries to use the 
+	 * token:in modifier to do ValueSet expansion on the FHIR server or
+	 * uses the TerminologyProvider to expand the ValueSet prior to 
+	 * calling the FHIR search API to retrieve data.
 	 */
 	public static final boolean DEFAULT_IS_EXPAND_VALUE_SETS = true;
+	
+	/**
+	 * This controls how many records to request in a FHIR search query. By default
+	 * the FHIR servers tend to use very small numbers (HAPI:20, IBM:10) which
+	 * causes a large number of network requests for even moderately sized datasets.
+	 * This default matches the largest allowed page size in the IBM FHIR server.
+	 */
+	public static final Integer DEFAULT_PAGE_SIZE = 1000;
 	
 	protected static final String FHIR_R4_URL = "http://hl7.org/fhir";
 	
@@ -47,13 +53,15 @@ public class R4DataProviderFactory {
 			IGenericClient client,
 			TerminologyProvider terminologyProvider,
 			RetrieveCacheContext retrieveCacheContext,
-			boolean isExpandValueSets
+			boolean isExpandValueSets,
+			Integer pageSize
 	) {
 		ModelResolver modelResolver = new R4FhirModelResolver();
 
 		SearchParameterResolver resolver = new SearchParameterResolver(client.getFhirContext());
-		RestFhirRetrieveProvider baseRetrieveProvider = new RestFhirRetrieveProvider(resolver, client);
+		R4RestFhirRetrieveProvider baseRetrieveProvider = new R4RestFhirRetrieveProvider(resolver, client);
 		baseRetrieveProvider.setExpandValueSets(isExpandValueSets);
+		baseRetrieveProvider.setSearchPageSize(pageSize);
 		baseRetrieveProvider.setTerminologyProvider(terminologyProvider);
 		RetrieveProvider retrieveProvider = retrieveCacheContext != null
 				? new CachingRetrieveProvider(baseRetrieveProvider, retrieveCacheContext)
@@ -72,7 +80,7 @@ public class R4DataProviderFactory {
 			TerminologyProvider terminologyProvider,
 			RetrieveCacheContext retrieveCacheContext
 	) {
-		return createDataProviderMap( client, terminologyProvider, retrieveCacheContext, DEFAULT_IS_EXPAND_VALUE_SETS );
+		return createDataProviderMap( client, terminologyProvider, retrieveCacheContext, DEFAULT_IS_EXPAND_VALUE_SETS, DEFAULT_PAGE_SIZE );
 	}
 
 }

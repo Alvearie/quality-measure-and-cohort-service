@@ -1,6 +1,6 @@
 # User Guide - Getting Started
 
-The [IBM Quality Measure and Cohort Engine](https://github.com/Alvearie/quality-measure-and-cohort-service/) is an open source project under the [Alvearie](https://github.com/Alvearie/) organization in Github. The Cohort Engine provides APIs for evaluating cohorts via definitions written in Clinical Quality Language (CQL). Users can execute CQL scripts directly using the CqlEngineWrapper API or indirectly through the use of FHIR measure and library resources.
+The [IBM Quality Measure and Cohort Engine](https://github.com/Alvearie/quality-measure-and-cohort-service/) is an open source project under the [Alvearie](https://github.com/Alvearie/) organization in Github. The Cohort Engine provides APIs for evaluating cohorts via definitions written in Clinical Quality Language (CQL). Users can execute CQL scripts directly using the CqlEvaluator API or indirectly through the use of FHIR measure and library resources.
 
 Builds are published in [Github packages](https://github.com/orgs/Alvearie/packages?repo_name=quality-measure-and-cohort-service) or you can pull the source code and build it yourself. If you are using the precompiled artifacts, you will most likely want to start with [cohort-cli](https://github.com/Alvearie/quality-measure-and-cohort-service/packages/506888) and choose the latest shaded jar (more on that below). If you are building yourself, use``git clone`` to pull down [the repository](https://github.com/Alvearie/quality-measure-and-cohort-service) and ``mvn install -f cohort-parent`` to build it. If you don't already have Maven installed on your workstation, [download](https://maven.apache.org/download.cgi) version 3.6.3 or newer and follow the [installation instructions](https://maven.apache.org/install.html). You should be using a Java SDK version 8.0 or higher. If you don't already have a Java SDK on your workstation, you can download one [here](https://adoptopenjdk.net/).
 
@@ -72,8 +72,6 @@ Complete usage is available using the --help flag...
 
 ```
 $ java -jar target/cohort-cli-0.0.1-SNAPSHOT-shaded.jar --help
-[main] INFO ca.uhn.fhir.util.VersionUtil - HAPI FHIR version 5.0.2 - Rev ecf175a352
-[main] INFO ca.uhn.fhir.context.FhirContext - Creating new FHIR context for FHIR version [R4]
 Usage: cql-engine [options]
   Options:
   * -c, --context-id
@@ -81,24 +79,44 @@ Usage: cql-engine [options]
   * -d, --data-server
       Path to JSON configuration data for the FHIR server connection that will
       be used to retrieve data.
+    --enable-terminology-optimization
+      By default, ValueSet resources used in CQL are first expanded by the
+      terminology provider, then the codes are used to query the data server.
+      If the data server contains the necessary terminology resources and
+      supports the token :in search modifier, setting this flag to false will
+      enable code filtering directly on the data server which should improve
+      CQL engine throughput.
+      Default: false
     -e, --expression
       ELM Expression(s) to Execute
   * -f, --files
       Resource that contains the CQL library sources. Valid options are the
       path to a zip file or folder containing the cohort definitions or the
       resource ID of a FHIR Library resource contained in the measure server.
+    --filter
+      Additional filters to apply to library loaders if supported by the
+      library loading mechansim
     -h, --help
       Display this help
   * -l, --libraryName
-      Library Name (from CQL Library statement)
+      Library Name
     -v, --libraryVersion
-      Library Version (from CQL Library statement)
+      Library Version
     -m, --measure-server
-      Path to JSON configuration data for the FHIR server connection that will
-      be used to retrieve measure and library resources.
+      Path to configuration data for the FHIR knowledge assets. This will be
+      either a JSON configuration file containing FHIR server connection
+      details or the path to a file containing the FHIR resources of interest.
+    -i, --model-info
+      Model info file used when translating CQL
     -p, --parameters
       Parameter value(s) in format name:type:value where value can contain
-      additional parameterized elements separated by comma
+      additional parameterized elements separated by comma. Multiple
+      parameters must be specified as multiple -p options
+    --search-page-size
+      Specifies how many records are requested per page during a FHIR search
+      operation. The default value for servers can be quite small and setting
+      this to a larger number will potentially improve performance.
+      Default: 1000
     -s, --source-format
       Indicates which files in the file source should be processed
       Default: XML
@@ -199,11 +217,11 @@ Parameter Examples:
 
 # Error states
 The Engine detects and throws IllegalArgumentException for the following error states:
-1) When the CqlEngineWrapper.evaluate(...) method is invoked without first configuring the library sources, data server, and terminology server settings.
-2) When the CqlEngineWrapper.evaluate(...) method is invoked without providing a library name and at least one context ID (aka patient ID).
-3) When the CqlEngineWrapper.evaluate(...) method is invoked for a CQL Library that contains parameters with no default value and no value is provided in the method's parameters map.
-4) When the CqlEngineWrapper.evaluate(...) method is invoked for a CQL Library that is not loaded
-5) When the CqlEngineWrapper.main(...) method is invoked with an invalid parameter type or interval subtype
+1) When the CqlEvaluator.evaluate(...) method is invoked without first configuring the library sources, data server, and terminology server settings.
+2) When the CqlEvaluator.evaluate(...) method is invoked without providing a library name and at least one context ID (aka patient ID).
+3) When the CqlEvaluator.evaluate(...) method is invoked for a CQL Library that contains parameters with no default value and no value is provided in the method's parameters map.
+4) When the CqlEvaluator.evaluate(...) method is invoked for a CQL Library that is not loaded
+5) When the CqlEvaluator.main(...) method is invoked with an invalid parameter type or interval subtype
 
 Connectivity issues to the FHIR server are reported through the HAPI FHIR Client library. See HAPI documentation for complete details, but an example exception would be ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException.
 
@@ -227,19 +245,28 @@ Usage: measure-engine [options]
   * -c, --context-id
       FHIR resource ID for one or more patients to evaluate.
   * -d, --data-server
-      Path to JSON configuration data for the FHIR server connection that will 
+      Path to JSON configuration data for the FHIR server connection that will
       be used to retrieve data.
     -o, --define-return-option
-      Specify define return option for evaluated define statements on measure 
-      report. Defaults to NONE. To view returned results, must specify -f 
-      JSON. 
+      Specify define return option for evaluated define statements on measure
+      report. Defaults to NONE. To view returned results, must specify -f
+      JSON.
       Default: NONE
       Possible Values: [ALL, BOOLEAN, NONE]
     --disable-retrieve-cache
       Disable the use of the retrieve cache.
+      Default: false
+    --enable-terminology-optimization
+      By default, ValueSet resources used in CQL are first expanded by the
+      terminology provider, then the codes are used to query the data server.
+      If the data server contains the necessary terminology resources and
+      supports the token :in search modifier, setting this flag to false will
+      enable code filtering directly on the data server which should improve
+      CQL engine throughput.
+      Default: false
     --filter
-      Filter information for resource loader if the resource loader supports 
-      filtering 
+      Filter information for resource loader if the resource loader supports
+      filtering
     -f, --format
       Output format of the report (JSON|TEXT*)
       Default: TEXT
@@ -247,25 +274,30 @@ Usage: measure-engine [options]
     -h, --help
       Display this help
     -e, --include-evaluated-resources
-      Include evaluated resources on measure report. To view resources must 
+      Include evaluated resources on measure report. To view resources must
       specify -f JSON.
       Default: false
     -j, --json-measure-configurations
-      JSON File containing measure resource ids and optional parameters. 
+      JSON File containing measure resource ids and optional parameters.
       Cannot be specified if -r option is used
     -m, --measure-server
-      Path to configuration data for the FHIR knowledge assets. This will be 
-      either a JSON configuration file containing FHIR server connection 
+      Path to configuration data for the FHIR knowledge assets. This will be
+      either a JSON configuration file containing FHIR server connection
       details or the path to a file containing the FHIR resources of interest.
     -p, --parameters
-      Parameter value(s) in format name:type:value where value can contain 
-      additional parameterized elements separated by comma. Multiple 
+      Parameter value(s) in format name:type:value where value can contain
+      additional parameterized elements separated by comma. Multiple
       parameters must be specified as multiple -p options
     -r, --resource
-      FHIR Resource ID or canonical URL for the measure resource to be 
+      FHIR Resource ID or canonical URL for the measure resource to be
       evaluated. Cannot be specified if -j option is used
+    --search-page-size
+      Specifies how many records are requested per page during a FHIR search
+      operation. The default value for servers can be quite small and setting
+      this to a larger number will potentially improve performance.
+      Default: 1000
     -t, --terminology-server
-      Path to JSON configuration data for the FHIR server connection that will 
+      Path to JSON configuration data for the FHIR server connection that will
       be used to retrieve terminology.
 ```
 

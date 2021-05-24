@@ -7,7 +7,7 @@
 package com.ibm.cohort.engine;
 
 /**
- * Callback function that will be called for each context passed to the CqlEngineWrapper.
+ * Callback function that will be called for each context passed to the CqlEvaluator.
  */
 @FunctionalInterface
 public interface ExpressionResultCallback {

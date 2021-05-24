@@ -26,6 +26,7 @@ public class R4MeasureEvaluatorBuilder {
 	private FHIRClientContext clientContext;
 	private RetrieveCacheContext cacheContext;
 	private boolean isExpandValueSets = R4DataProviderFactory.DEFAULT_IS_EXPAND_VALUE_SETS;
+	private Integer pageSize = R4DataProviderFactory.DEFAULT_PAGE_SIZE;
 
 	public R4MeasureEvaluatorBuilder withClientContext(FHIRClientContext value) {
 		this.clientContext = value;
@@ -41,6 +42,11 @@ public class R4MeasureEvaluatorBuilder {
 		this.isExpandValueSets = value;
 		return this;
 	}
+	
+	public R4MeasureEvaluatorBuilder withPageSize(Integer value) {
+		this.pageSize = value;
+		return this;
+	}
 
 	public MeasureEvaluator build() {
 		if (clientContext == null) {
@@ -52,7 +58,8 @@ public class R4MeasureEvaluatorBuilder {
 				clientContext.getDataClient(),
 				terminologyProvider,
 				cacheContext,
-				isExpandValueSets
+				isExpandValueSets,
+				pageSize
 		);
 		MeasureResolutionProvider<Measure> measureProvider = new RestFhirMeasureResolutionProvider(clientContext.getMeasureClient());
 		LibraryResolutionProvider<Library> libraryProvider = new RestFhirLibraryResolutionProvider(clientContext.getLibraryClient());

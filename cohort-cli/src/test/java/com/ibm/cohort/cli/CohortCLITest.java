@@ -376,8 +376,8 @@ public class CohortCLITest extends BasePatientTest {
 		mockFhirResourceRetrieval(patient);
 
 		Library root = getLibrary("Breast-Cancer-Screening", DEFAULT_RESOURCE_VERSION, "cql/includes/Breast-Cancer-Screening.cql");
-		Library helpers = getLibrary("FHIRHelpers", "4.0.0", "cql/includes/FHIRHelpers.cql", "text/cql",
-				"cql/includes/FHIRHelpers.xml", "application/elm+json");
+		Library helpers = getLibrary("FHIRHelpers", "4.0.0", "cql/fhir-helpers/FHIRHelpers.cql", "text/cql",
+				"cql/fhir-helpers/FHIRHelpers.xml", "application/elm+json");
 
 		RelatedArtifact related = new RelatedArtifact();
 		related.setType(RelatedArtifactType.DEPENDSON);
@@ -412,7 +412,6 @@ public class CohortCLITest extends BasePatientTest {
 
 			verify(1, getRequestedFor(urlEqualTo("/Patient/" + patient.getId())));
 			verify(1, getRequestedFor(urlEqualTo("/Library/" + root.getId())));
-			verify(1, getRequestedFor(urlEqualTo("/Library?url=%2FLibrary%2F" + helpers.getId())));
 		} finally {
 			tmpFile.delete();
 		}
@@ -432,7 +431,7 @@ public class CohortCLITest extends BasePatientTest {
 		Condition condition = new Condition();
 		condition.setSubject(new Reference(patient.getId()));
 		condition.setCode(new CodeableConcept(new Coding("http://snomed.com/snomed/2020", "1234", "Dummy")));
-		mockFhirResourceRetrieval("/Condition?subject=Patient%2F" + patient.getId(), condition);
+		mockFhirResourceRetrieval("/Condition?code%3Ain=http%3A%2F%2Fsome.io%2Fcondition&subject=Patient%2F" + patient.getId() + "&_count=500", condition);
 		
 		File tmpFile = new File("target/fhir-stub.json");
 		ObjectMapper om = new ObjectMapper();
@@ -446,7 +445,7 @@ public class CohortCLITest extends BasePatientTest {
 			try (PrintStream captureOut = new PrintStream(baos)) {
 				System.setOut(captureOut);
 				CohortCLI.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-f", "src/test/resources/cql/result-types", "-l",
-						"test_result_types", "-c", patient.getId() });
+						"test_result_types", "-c", patient.getId(), "--enable-terminology-optimization", "--search-page-size", "500" });
 			} finally {
 				System.setOut(originalOut);
 			}
@@ -477,8 +476,8 @@ public class CohortCLITest extends BasePatientTest {
 		mockFhirResourceRetrieval(patient);
 
 		Library root = getLibrary("test", DEFAULT_RESOURCE_VERSION, "cql/ig-test/test.cql");
-		Library helpers = getLibrary("FHIRHelpers", "4.0.0", "cql/includes/FHIRHelpers.cql", "text/cql",
-									 "cql/includes/FHIRHelpers.xml", "application/elm+json");
+		Library helpers = getLibrary("FHIRHelpers", "4.0.0", "cql/fhir-helpers/FHIRHelpers.cql", "text/cql",
+				"cql/fhir-helpers/FHIRHelpers.xml", "application/elm+json");
 
 		RelatedArtifact related = new RelatedArtifact();
 		related.setType(RelatedArtifactType.DEPENDSON);

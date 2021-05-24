@@ -24,14 +24,14 @@ public class ZipStreamLibrarySourceProviderTest {
 	@Test
 	public void testLibraryFoundInZipSuccess() throws Exception {
 		try ( ZipInputStream zip = new ZipInputStream( new FileInputStream( "src/test/resources/cql/zip/breast_cancer_screening_v1_0_0_cql.zip") ) ) {
-		
+
 			ZipStreamLibrarySourceProvider provider = new ZipStreamLibrarySourceProvider(zip);
-			try( InputStream is = provider.getLibrarySource( new VersionedIdentifier().withId("FHIRHelpers") ) ) { 
+			try( InputStream is = provider.getLibrarySource( new VersionedIdentifier().withId("BreastCancerScreening") ) ) {
 				assertNotNull( is );
-				
+
 				CqlTranslationProvider tx = new InJVMCqlTranslationProvider();
 				Library library = tx.translate( is );
-				assertEquals( "FHIRHelpers", library.getIdentifier().getId() );
+				assertEquals( "BreastCancerScreening", library.getIdentifier().getId() );
 			}
 		}
 	}

@@ -55,6 +55,11 @@ public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
 			}
 		}
 
+		if(byLibrary == null && libraryIdentifier.getId().equals("FHIRHelpers")){
+			addClasspathFhirHelpers(sources, libraryIdentifier);
+			byLibrary = sources.get(libraryIdentifier);
+		}
+
 		if (byLibrary != null) {
 			result = byLibrary.get(sourceFormat);
 		}
@@ -82,5 +87,21 @@ public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
 	@Override
 	public InputStream getLibrarySource(VersionedIdentifier libraryIdentifier) {
 		return getSourcesByFormat(LibraryFormat.CQL).get(libraryIdentifier);
+	}
+
+	public static void addClasspathFhirHelpers(Map<VersionedIdentifier, Map<LibraryFormat, InputStream>> sources, VersionedIdentifier libraryIdentifier){
+		Map<LibraryFormat, InputStream> specFormat = sources.computeIfAbsent(libraryIdentifier, key -> new HashMap<>());
+		if(specFormat.isEmpty()) {
+			InputStream fhirHelperResource = MultiFormatLibrarySourceProvider.class.getResourceAsStream(
+					String.format("/org/hl7/fhir/%s-%s.xml",
+							libraryIdentifier.getId(),
+							libraryIdentifier.getVersion()));
+			specFormat.put(LibraryFormat.XML, fhirHelperResource);
+			InputStream fhirHelperResourceCQL = MultiFormatLibrarySourceProvider.class.getResourceAsStream(
+					String.format("/org/hl7/fhir/%s-%s.cql",
+							libraryIdentifier.getId(),
+							libraryIdentifier.getVersion()));
+			specFormat.put(LibraryFormat.CQL, fhirHelperResourceCQL);
+		}
 	}
 }

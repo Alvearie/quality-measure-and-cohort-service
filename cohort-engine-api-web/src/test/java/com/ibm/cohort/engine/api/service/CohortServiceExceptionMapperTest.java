@@ -85,7 +85,7 @@ public class CohortServiceExceptionMapperTest {
 	public void testToResponseFhirClientConnectionException() throws Exception {
 		Response response = exMapper.toResponse(new FhirClientConnectionException("Something bad got input"));
 		ServiceErrorList serviceErrorList = (ServiceErrorList) response.getEntity();
-		assertEquals(new Integer(400), serviceErrorList.getStatusCode());
+		assertEquals(new Integer(500), serviceErrorList.getStatusCode());
 		assertEquals(1, serviceErrorList.getErrors().size());
 		assertEquals("Something bad got input", serviceErrorList.getErrors().get(0).getMessage());
 		assertEquals("Reason: FhirClientConnectionException", serviceErrorList.getErrors().get(0).getDescription());

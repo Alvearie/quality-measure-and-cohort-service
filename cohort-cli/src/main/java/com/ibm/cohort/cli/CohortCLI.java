@@ -27,7 +27,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
 import com.ibm.cohort.cli.input.NoSplittingSplitter;
-import com.ibm.cohort.engine.CqlEngineWrapper;
+import com.ibm.cohort.engine.CqlEvaluator;
 import com.ibm.cohort.engine.DirectoryLibrarySourceProvider;
 import com.ibm.cohort.engine.EvaluationResultCallback;
 import com.ibm.cohort.engine.FhirLibraryLibrarySourceProvider;
@@ -79,9 +79,15 @@ public class CohortCLI extends BaseCLI {
 		private LibraryFormat sourceFormat = DEFAULT_SOURCE_FORMAT;
 		
 		@Parameter(names = { "-i",
-		"--model-info" }, description = "Model info file used when translating CQL", required = false)
+				"--model-info" }, description = "Model info file used when translating CQL", required = false)
 		private File modelInfoFile;
-
+		
+		@Parameter(names = { "--enable-terminology-optimization" }, description = "By default, ValueSet resources used in CQL are first expanded by the terminology provider, then the codes are used to query the data server. If the data server contains the necessary terminology resources and supports the token :in search modifier, setting this flag to false will enable code filtering directly on the data server which should improve CQL engine throughput.", required = false )
+		private boolean enableTerminologyOptimization = DEFAULT_TERMINOLOGY_OPTIMIZATION_ENABLED;
+		
+		@Parameter(names = { "--search-page-size" }, description = "Specifies how many records are requested per page during a FHIR search operation. The default value for servers can be quite small and setting this to a larger number will potentially improve performance.")
+		private int searchPageSize = DEFAULT_PAGE_SIZE;
+		
 		@Parameter(names = { "-h", "--help" }, description = "Display this help", required = false, help = true)
 		private boolean isDisplayHelp;
 	}
@@ -96,16 +102,16 @@ public class CohortCLI extends BaseCLI {
 	 * @param args parameter values
 	 * @param out  location where contents that would normally go to stdout should
 	 *             be written
-	 * @return CQLEngineWrapper
+	 * @return CQLEvaluator
 	 * @throws IOException IOException
 	 */
-	public CqlEngineWrapper runWithArgs(String[] args, PrintStream out) throws IOException {
+	public CqlEvaluator runWithArgs(String[] args, PrintStream out) throws IOException {
 		Arguments arguments = new Arguments();
 		Console console = new DefaultConsole(out);
 		JCommander jc = JCommander.newBuilder().programName("cql-engine").console(console).addObject(arguments).build();
 		jc.parse(args);
 
-		CqlEngineWrapper wrapper = null;
+		CqlEvaluator wrapper = null;
 		
 		if (arguments.isDisplayHelp) {
 			jc.usage();
@@ -113,7 +119,9 @@ public class CohortCLI extends BaseCLI {
 			
 			FhirClientBuilderFactory factory = FhirClientBuilderFactory.newInstance();
 			
-			wrapper = new CqlEngineWrapper(factory);
+			wrapper = new CqlEvaluator(factory);
+			wrapper.setExpandValueSets( ! arguments.enableTerminologyOptimization );
+			wrapper.setSearchPageSize( arguments.searchPageSize );
 
 			configureConnections(wrapper, arguments);
 
@@ -187,7 +195,7 @@ public class CohortCLI extends BaseCLI {
 		return wrapper;
 	}
 
-	protected void configureConnections(CqlEngineWrapper wrapper, ConnectionArguments arguments) throws IOException {
+	protected void configureConnections(CqlEvaluator wrapper, ConnectionArguments arguments) throws IOException {
 		readConnectionConfiguration(arguments);
 		wrapper.setDataServerConnectionProperties(dataServerConfig);
 		wrapper.setTerminologyServerConnectionProperties(terminologyServerConfig);
