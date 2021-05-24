@@ -20,13 +20,13 @@ sed -i "/\"endpoint\"/s|:.*$|: \"${FHIR_ENDPOINT}\",|" ${CONFIG_DIR}/fhirconfig-
 # Generate a fhir config json file where the endpoint points to the wrong port (9444)
 cp ${CONFIG_DIR}/local-ibm-fhir.json ${CONFIG_DIR}/fhirconfig-badendpoint-port.json
 sed -i "/\"password\"/s|:.*$|: \"${FHIR_USER_PASS}\",|" ${CONFIG_DIR}/fhirconfig-badendpoint-port.json
-sed -i "/\"tenantId\"/s|:.*$|: \"default\",|" ${CONFIG_DIR}/fhirconfig-badendpoint-port.json
+sed -i "/\"tenantId\"/s|:.*$|: \"knowledge\",|" ${CONFIG_DIR}/fhirconfig-badendpoint-port.json
 sed -i "/\"endpoint\"/s|:.*$|: \"${FHIR_ENDPOINT_BADPORT}\",|" ${CONFIG_DIR}/fhirconfig-badendpoint-port.json
 
 # Generate a fhir config json file with the wrong password for fhiruser. (fhir user password = 'change-password')
-cp ${CONFIG_DIR}/local-ibm-fhir.json ${CONFIG_DIR}/fhirconfig-default-tenant-wrong-password.json
-sed -i "/\"tenantId\"/s|:.*$|: \"default\",|" ${CONFIG_DIR}/fhirconfig-default-tenant-wrong-password.json
-sed -i "/\"endpoint\"/s|:.*$|: \"${FHIR_ENDPOINT}\",|" ${CONFIG_DIR}/fhirconfig-default-tenant-wrong-password.json
+cp ${CONFIG_DIR}/local-ibm-fhir.json ${CONFIG_DIR}/fhirconfig-knowledge-tenant-wrong-password.json
+sed -i "/\"tenantId\"/s|:.*$|: \"knowledge\",|" ${CONFIG_DIR}/fhirconfig-knowledge-tenant-wrong-password.json
+sed -i "/\"endpoint\"/s|:.*$|: \"${FHIR_ENDPOINT}\",|" ${CONFIG_DIR}/fhirconfig-knowledge-tenant-wrong-password.json
 
 # Generate the following variations of request data json files for use by the tests specific to Measure Evaluation REST API endpoint. The json files
 # are unique in terms of the measureId and/or patientId referenced in them. Some are used for negative tests as the name of the file implies.

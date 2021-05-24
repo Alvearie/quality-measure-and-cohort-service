@@ -15,7 +15,7 @@ populateTaurusYaml() {
   
   sed -i \
   -e "/JAR/s|:.*$|: \"${SHADED_JAR}\"|" \
-  -e "/MEASURE_FHIR_SERVER_DETAILS/s|:.*$|: \"${DEFAULT_TENANT}\"|" \
+  -e "/MEASURE_FHIR_SERVER_DETAILS/s|:.*$|: \"${KNOWLEDGE_TENANT}\"|" \
   -e "/DATA_FHIR_SERVER_DETAILS/s|:.*$|: \"${TESTFVT_TENANT}\"|" ${yamlfile}
 }
 

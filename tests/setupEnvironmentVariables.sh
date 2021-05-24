@@ -23,6 +23,7 @@ export OUTPUT_DIR=tests/output
 # environment. 
 export DEFAULT_TENANT="tests/src/main/resources/config/fhirconfig-default-tenant.json"
 export TESTFVT_TENANT="tests/src/main/resources/config/fhirconfig-testfvt-tenant.json"
+export KNOWLEDGE_TENANT="tests/src/main/resources/config/fhirconfig-knowledge-tenant.json"
 
 # check if FHIR_CLUSTER_NAMESPACE has been set in the toolchain
 # properties and use it if it is there, otherwise assume fhir will be

@@ -118,11 +118,11 @@ class MeasureParametersByMeasureIdAPITests(TestClass):
             print("Exception received in test_getMeasureParametersByIdWithWrongFHIREndpointPort is: " + result)
         assert '400' in result, 'Should contain 400 error message stating: Connect to fhir-internal.dev.svc:9444 failed.'
 
-    def test_getMeasureParametersByIdWithInvalidFHIRUserPassword(self):
+    def test_getMeasureParametersByIdWithWrongFHIRUserPassword(self):
         fhirMeasuresApi = FHIRMeasuresApi(swagger_client.ApiClient(self.configuration))
         result = None
         version = date.today()
-        fhir_data_server_config = config_path + "fhirconfig-badendpoint-port.json"
+        fhir_data_server_config = config_path + "fhirconfig-knowledge-tenant-wrong-password.json"
         measure_id = '178378911bd-e8a3413b-27da-45b3-bc28-d079f0ef0d38'
         try:
             resp = fhirMeasuresApi.get_measure_parameters_by_id(version, measure_id, fhir_data_server_config, _preload_content=False)
@@ -130,5 +130,5 @@ class MeasureParametersByMeasureIdAPITests(TestClass):
         except ApiException as e: 
             print("Exception when calling FHIRMeasureApi->get_measure_parameters_by_id: %s\n" % e)
             result = str(e)
-            print("Exception received in test_getMeasureParametersByIdWithInvalidFHIRUserPassword is: " + result)
+            print("Exception received in test_getMeasureParametersByIdWithWrongFHIRUserPassword is: " + result)
         assert '400' in result, 'Should contain 400 error message stating: HTTP 401 Unauthorized.'

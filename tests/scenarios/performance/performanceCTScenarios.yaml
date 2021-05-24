@@ -19,9 +19,9 @@ scenarios:
     criteria:
       - subject: p99.9
         condition: '>'
-        threshold: 1800s
+        threshold: 4800s
         label: 'test[tests/src/main/resources/measure-parameters/performance/fivePerformanceMeasures.json-targets0-1000 Patients 5 Measures]'
-        message: One thousand patients, 5 measures took longer than 1800 seconds
+        message: One thousand patients, 5 measures took longer than 4800 seconds
 
 modules:
   local:

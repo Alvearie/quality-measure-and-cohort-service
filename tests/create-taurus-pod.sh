@@ -40,6 +40,12 @@ sed -i "/\"password\"/s|:.*$|: \"${FHIR_USER_PASS}\",|" ${CONFIG_DIR}/fhirconfig
 sed -i "/\"tenantId\"/s|:.*$|: \"default\",|" ${CONFIG_DIR}/fhirconfig-default-tenant.json
 sed -i "/\"endpoint\"/s|:.*$|: \"${FHIR_ENDPOINT}\",|" ${CONFIG_DIR}/fhirconfig-default-tenant.json
 
+# Generate fhir config json file for knowledge tenant
+cp ${CONFIG_DIR}/local-ibm-fhir.json ${CONFIG_DIR}/fhirconfig-knowledge-tenant.json
+sed -i "/\"password\"/s|:.*$|: \"${FHIR_USER_PASS}\",|" ${CONFIG_DIR}/fhirconfig-knowledge-tenant.json
+sed -i "/\"tenantId\"/s|:.*$|: \"knowledge\",|" ${CONFIG_DIR}/fhirconfig-knowledge-tenant.json
+sed -i "/\"endpoint\"/s|:.*$|: \"${FHIR_ENDPOINT}\",|" ${CONFIG_DIR}/fhirconfig-knowledge-tenant.json
+
 # Spin off the pod in which the taurus image will be executed
 kubectl apply -f ${TEST_DIR}/run-engine-taurus-deploy-with-replaced-values.yaml
 

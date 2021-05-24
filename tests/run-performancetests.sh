@@ -14,7 +14,7 @@ populateTaurusYaml() {
   
   sed -i \
   -e "/JAR/s|:.*$|: \"${SHADED_JAR}\"|" \
-  -e "/MEASURE_FHIR_SERVER_DETAILS/s|:.*$|: \"${DEFAULT_TENANT}\"|" \
+  -e "/MEASURE_FHIR_SERVER_DETAILS/s|:.*$|: \"${KNOWLEDGE_TENANT}\"|" \
   -e "/DATA_FHIR_SERVER_DETAILS/s|:.*$|: \"${TESTFVT_TENANT}\"|" ${yamlfile}
 }
 
@@ -51,7 +51,7 @@ runTest "/bzt-configs/tests/scenarios/performance/performanceCTScenarios.yaml"
 
 PERF_REG_RESULTS="${OUTPUT_DIR}/ct-perf-results"
 mkdir -p ${PERF_REG_RESULTS}
-checkForTestResults "${PERF_REG_RESULTS}" "performanceCTTests.xml" 60 30
+checkForTestResults "${PERF_REG_RESULTS}" "performanceCTTests.xml" 60 80
 
 # Make sure results are displayed to stdout even if the previous exec command returns early
 kubectl exec -it ${POD_NAME} -n ${CLUSTER_NAMESPACE} -- bash -c "cat /tmp/artifacts/*.ldjson"

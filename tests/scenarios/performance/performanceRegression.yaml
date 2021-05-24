@@ -48,36 +48,36 @@ scenarios:
     criteria:
       - subject: p99.9
         condition: '>'
-        threshold: 13s
+        threshold: 18s
         label: 'test[tests/src/main/resources/measure-parameters/performance/fivePerformanceMeasures.json-targets0-1 Patient 5 Measures]'
-        message: One patient, 5 measures took longer than 13 seconds
+        message: One patient, 5 measures took longer than 18 seconds
 
   hundred-patients-one-measure:
     script: /bzt-configs/tests/src/main/python/TestDriver_MeasurePerformance.py
     criteria:
       - subject: p99.9
         condition: '>'
-        threshold: 31s
+        threshold: 36s
         label: 'test[tests/src/main/resources/measure-parameters/performance/singlePerformanceMeasure.json-targets0-100 Patients 1 Measure]'
-        message: One hundred patients, 1 measure took longer than 31 seconds
+        message: One hundred patients, 1 measure took longer than 36 seconds
 
   thousand-patients-one-measure:
     script: /bzt-configs/tests/src/main/python/TestDriver_MeasurePerformance.py
     criteria:
       - subject: p99.9
         condition: '>'
-        threshold: 218s
+        threshold: 260s
         label: 'test[tests/src/main/resources/measure-parameters/performance/singlePerformanceMeasure.json-targets0-1000 Patients 1 Measure]'
-        message: One thousand patients, 1 measure took longer than 218 seconds
+        message: One thousand patients, 1 measure took longer than 260 seconds
 
   hundred-patients-five-measures:
     script: /bzt-configs/tests/src/main/python/TestDriver_MeasurePerformance.py
     criteria:
       - subject: p99.9
         condition: '>'
-        threshold: 273s
+        threshold: 480s
         label: 'test[tests/src/main/resources/measure-parameters/performance/fivePerformanceMeasures.json-targets0-100 Patients 5 Measures]'
-        message: One hundred patients, 5 measure took longer than 273 seconds
+        message: One hundred patients, 5 measure took longer than 480 seconds
 
 modules:
   local:
