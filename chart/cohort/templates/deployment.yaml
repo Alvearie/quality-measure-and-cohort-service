@@ -32,7 +32,7 @@ spec:
         release: {{ .Release.Name }}
     spec:
       imagePullSecrets:
-        - name: ibmcloud-toolchain-common-services-registry
+        - name: {{ .Values.image.pullSecret }}
       volumes:
         - name: secret-tls
           secret:

@@ -20,7 +20,10 @@ annotations:
 image:
   repository: <helm-repo>
   tag: <helm-tag>
-  pullSecret: regsecret
+#  pullSecret: regsecret
+  #changed based on instructions in https://github.ibm.com/whc-toolchain/whc-commons/blob/stable-3.3.2/docs/ready/common-services-integration.md#access
+  #didn't hardcode it in deployment.yaml, because it caused an error/warning in the toolchain insights console
+  pullsecret: ibmcloud-toolchain-common-services-registry
   pullPolicy: IfNotPresent
   imageName: cohort-app
 
