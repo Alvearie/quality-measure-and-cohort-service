@@ -34,11 +34,14 @@ service:
     - 9080
     - 9443
 
-internalTlsCertSecretName: cohort-services-tls-secret
+#overriden in config repo
+internalTlsCertSecretName: cohort-services-cohort-cohort-tls
+
 # enableDarkFeatures is used to enable or disable REST endpoints depending on the env. we are deploying to
 # there are some REST endpoints we only want enabled in a development environment. The value ends up
 # in the jvm.options file the liberty server. Set to "all" "none" (no quotes) 
 # or the specific feature value you want to enable
+#overriden in config repo
 enableDarkFeatures: none
 
 libertyInitialHeapSize: 1G
