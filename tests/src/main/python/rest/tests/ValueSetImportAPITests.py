@@ -39,8 +39,8 @@ class ValueSetImportAPITests(TestClass):
         print("response is : " + str(response))
         status = resp.status
         print("status from response is : " + str(status))
-        assert '201' in str(status), 'Should contain 201 - valueSetId:2.16.840.1.113883.3.464.1003.101.12.1001'
-        expectedResp = '{"valueSetId":"2.16.840.1.113883.3.464.1003.101.12.1001"}'
+        assert '201' in str(status), 'Should contain 201 - valueSetId:178f0e4a575-eb06dd03-f912-4c68-9dcd-812e603973f0'
+        expectedResp = '{"valueSetId":"178f0e4a575-eb06dd03-f912-4c68-9dcd-812e603973f0"}'
         assert expectedResp in response, 'Response should contain ' + expectedResp
 
     def test_valueSetImportOfExistingVSWithCustomCodeSystemMapAndUpdateFlagFalse(self):
@@ -70,8 +70,8 @@ class ValueSetImportAPITests(TestClass):
         print("response is : " + str(response))
         status = resp.status
         print("status from response is : " + str(status))
-        assert '201' in str(status), 'Should contain 201 - valueSetId:178d0b738ef-7cda9036-ba3c-47db-b88d-ddf02fb7cc61'
-        expectedResp = '{"valueSetId":"178d0b738ef-7cda9036-ba3c-47db-b88d-ddf02fb7cc61"}'
+        assert '201' in str(status), 'Should contain 201 - valueSetId:178f0e4fe84-f8b3f173-c976-4bff-8a60-eec3bb8e74be'
+        expectedResp = '{"valueSetId":"178f0e4fe84-f8b3f173-c976-4bff-8a60-eec3bb8e74be"}'
         assert expectedResp in response, 'Response should contain ' + expectedResp
 
     def test_valueSetImportWithWrongCustomCodeSystemMap(self):
@@ -162,7 +162,7 @@ class ValueSetImportAPITests(TestClass):
     def test_valueSetImportWithWrongFHIRUserPassword(self):
         valueSetApi = ValueSetApi(swagger_client.ApiClient(self.configuration))
         version = '04-21-2021'
-        fhir_data_server_config = config_path + "fhirconfig-default-tenant-wrong-password.json"
+        fhir_data_server_config = config_path + "fhirconfig-knowledge-tenant-wrong-password.json"
         value_set = valueset_path + "2.16.840.1.113883.3.464.1003.101.12.1001.xlsx"
         try:
             resp = valueSetApi.create_value_set(version, fhir_data_server_config, value_set, update_if_exists=True, _preload_content=False)

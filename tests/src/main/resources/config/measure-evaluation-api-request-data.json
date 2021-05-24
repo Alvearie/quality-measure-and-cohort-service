@@ -12,6 +12,19 @@
             "ALL"
         ]
     },
+    "terminologyServerConfig": {
+        "@class": "com.ibm.cohort.fhir.client.config.IBMFhirServerConfig",
+		"endpoint": "https://fhir-internal.dev.svc:9443/fhir-server/api/v4",
+		"password": "change-password",
+		"tenantId": "knowledge",
+		"user": "fhiruser",
+		"tenantIdHeader": "X-FHIR-TENANT-ID",
+        "dataSourceId": null,
+        "dataSourceIdHeader": "X-FHIR-DSID",
+		"logInfo": [
+            "ALL"
+        ]
+    },
     "patientId": "patientId",
     "measureContext": {
         "measureId": "measure",
