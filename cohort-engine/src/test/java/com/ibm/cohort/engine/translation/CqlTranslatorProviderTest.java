@@ -128,8 +128,8 @@ public abstract class CqlTranslatorProviderTest {
 		catch (Exception e) {
 			failed = true;
 			Assert.assertTrue(
-					"Unexpected exception message",
-					e.getMessage().startsWith("CQL translation contained errors")
+					"Unexpected exception message: " + e.getMessage(),
+					e.getMessage().startsWith("CQL translation contained errors:")
 			);
 		}
 		if (!failed) {
@@ -147,8 +147,8 @@ public abstract class CqlTranslatorProviderTest {
 		catch (Exception e) {
 			failed = true;
 			Assert.assertTrue(
-					"Unexpected exception message",
-					e.getMessage().startsWith("CQL translation contained exceptions")
+					"Unexpected exception message: " + e.getMessage(),
+					e.getMessage().startsWith("CQL translation contained exceptions:")
 			);
 		}
 		if (!failed) {
