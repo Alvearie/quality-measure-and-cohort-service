@@ -86,6 +86,11 @@ public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
 			throw new Exception("CQL translation contained errors: " + translator.getErrors().stream().map(Throwable::toString).collect(Collectors.joining("\n")));
 		}
 
+		LOG.debug("Translated CQL contains {} exceptions", translator.getExceptions().size());
+		if (!translator.getExceptions().isEmpty()) {
+			throw new Exception("CQL translation contained exceptions: " + translator.getExceptions().stream().map(Throwable::toString).collect(Collectors.joining("\n")));
+		}
+
 		switch (targetFormat) {
 		case XML:
 			result = CqlLibraryReader.read(new StringReader(translator.toXml()));
