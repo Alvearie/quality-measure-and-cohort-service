@@ -136,6 +136,25 @@ public abstract class CqlTranslatorProviderTest {
 			Assert.fail("Did not fail translation");
 		}
 	}
+
+	@Test
+	public void exceptionCausedByNotIncludingFHIRHelpers() {
+		boolean failed = false;
+		Path cqlFile = Paths.get("src/test/resources/cql/failure/exception.cql");
+		try (InputStream is = Files.newInputStream(cqlFile)) {
+			getTranslator().translate(is);
+		}
+		catch (Exception e) {
+			failed = true;
+			Assert.assertTrue(
+					"Unexpected exception message",
+					e.getMessage().startsWith("CQL translation contained exceptions")
+			);
+		}
+		if (!failed) {
+			Assert.fail("Did not fail translation");
+		}
+	}
 	
 	private Library getById(List<Library> libraries, String libraryName) {
 		Library library = null;
