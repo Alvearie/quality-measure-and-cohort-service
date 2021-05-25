@@ -160,7 +160,7 @@ class MeasureParametersByIdentifierAPITests(TestClass):
             print("Exception when calling FHIRMeasureApi->get_measure_parameters: %s\n" % e)
             result = str(e)
             print("Exception in test_getMeasureParametersByIdentifierWithWrongFHIREndpointPort is : " + result)
-        assert '400' in result, 'Should contain 400 error message stating: Connect to fhir-internal.dev.svc:9444 failed.'
+        assert '500' in result, 'Should contain 500 Error message stating: Connect to fhir-internal.dev.svc:9444 failed.'
 
     def test_getMeasureParametersByIdentifierWithWrongFHIRUserPassword(self):
         fhirMeasuresApi = FHIRMeasuresApi(swagger_client.ApiClient(self.configuration))
