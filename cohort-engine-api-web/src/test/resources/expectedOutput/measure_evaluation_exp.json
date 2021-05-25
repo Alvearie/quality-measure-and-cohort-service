@@ -1,5 +1,30 @@
 {
 	"resourceType": "MeasureReport",
+	"extension": [
+		{
+			"url":"http://ibm.com/fhir/cdm/StructureDefinition/measure-parameter-value",
+			"valueParameterDefinition": {
+				"extension":[{
+					"url":"http://ibm.com/fhir/cdm/StructureDefinition/parameter-value",
+					"valuePeriod":{
+						"start":"2019-07-04T00:00:00.000+00:00",
+						"end":"2020-07-04T23:59:59.999+00:00"
+					}
+				}],
+				"name":"Measurement Period",
+				"use":"in",
+				"type":"Period"
+		}},
+		{
+			"url":"http://ibm.com/fhir/cdm/StructureDefinition/measure-parameter-value",
+			"valueParameterDefinition":{
+				"extension":[{
+					"url":"http://ibm.com/fhir/cdm/StructureDefinition/parameter-value",
+					"valueString":"ProductLine"
+				}],
+				"name":"Product Line",
+				"use":"in","type":"string"
+			}}],
 	"status": "complete",
 	"type": "individual",
 	"measure": "Measure/measureId",
@@ -7,8 +32,8 @@
 		"reference": "Patient/eb068c3f-3954-50c6-0c67-2b82d29865f0"
 	},
 	"period": {
-		"start": "2019-07-04T00:00:00-04:00",
-		"end": "2020-07-04T00:00:00-04:00"
+		"start": "2019-07-04T00:00:00+00:00",
+		"end": "2020-07-04T23:59:59.999+00:00"
 	},
 	"group": [{
 		"population": [{
