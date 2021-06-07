@@ -9,9 +9,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,6 +28,7 @@ import org.cqframework.cql.cql2elm.CqlTranslator.Options;
 import org.cqframework.cql.cql2elm.CqlTranslatorOptions;
 import org.cqframework.cql.elm.execution.Library;
 import org.hl7.cql_annotations.r1.CqlToElmInfo;
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.ibm.cohort.engine.LibraryUtils;
@@ -113,6 +116,44 @@ public abstract class CqlTranslatorProviderTest {
 		assertTrue( o instanceof CqlToElmInfo );
 		CqlToElmInfo info = (CqlToElmInfo) o;
 		assertEquals("EnableAnnotations,EnableLocators,DisableListDemotion,DisableListPromotion", info.getTranslatorOptions());
+	}
+
+	@Test
+	public void errorCausedByInvalidContent() {
+		boolean failed = false;
+		String content = "junk";
+		try (InputStream is = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))) {
+			getTranslator().translate(is);
+		}
+		catch (Exception e) {
+			failed = true;
+			Assert.assertTrue(
+					"Unexpected exception message: " + e.getMessage(),
+					e.getMessage().startsWith("CQL translation contained errors:")
+			);
+		}
+		if (!failed) {
+			Assert.fail("Did not fail translation");
+		}
+	}
+
+	@Test
+	public void exceptionCausedByNotIncludingFHIRHelpers() {
+		boolean failed = false;
+		Path cqlFile = Paths.get("src/test/resources/cql/failure/exception.cql");
+		try (InputStream is = Files.newInputStream(cqlFile)) {
+			getTranslator().translate(is);
+		}
+		catch (Exception e) {
+			failed = true;
+			Assert.assertTrue(
+					"Unexpected exception message: " + e.getMessage(),
+					e.getMessage().startsWith("CQL translation contained exceptions:")
+			);
+		}
+		if (!failed) {
+			Assert.fail("Did not fail translation");
+		}
 	}
 	
 	private Library getById(List<Library> libraries, String libraryName) {
