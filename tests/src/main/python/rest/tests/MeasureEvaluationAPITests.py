@@ -125,7 +125,7 @@ class MeasureEvaluationAPITests(TestClass):
             print("Exception when calling MeasureEvaluationApi->evaluate_measure: %s\n" % e)
             result = str(e)
             print("Exception in test_evaluateMeasureWithWrongFHIREndpointPort is : " + result)
-        assert '500' in result, 'Should contain 500 Error message stating: Connect to fhir-internal.dev.svc:9444 failed.'
+        assert '400' in result, 'Should contain 400 error with message stating: Connect to fhir-internal.dev.svc:9444 failed.'
 
     def test_evaluateMeasureWithWrongFHIRUserPassword(self):
         measureEvaluationApi = MeasureEvaluationApi(swagger_client.ApiClient(self.configuration))
