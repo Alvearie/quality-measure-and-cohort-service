@@ -167,7 +167,7 @@ class MeasureParametersByIdentifierAPITests(TestClass):
         result = None
         version = "2021-04-12"
         measure_identifier = "999"
-        fhir_data_server_config = config_path + "fhirconfig-default-tenant-wrong-password.json"
+        fhir_data_server_config = config_path + "fhirconfig-knowledge-tenant-wrong-password.json"
         measure_identifier_system = "http://fakesystem.org"
         measure_version = "3.0.0"
         try:

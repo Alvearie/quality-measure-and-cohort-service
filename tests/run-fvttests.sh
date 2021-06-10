@@ -28,7 +28,7 @@ populateRestApiTestYaml() {
   yamlfile=$1
   xmlfile=$2
 
-  sed -i "/FHIR_SERVER_DETAILS_JSON/s|:.*$|: \"${DEFAULT_TENANT}\"|" ${yamlfile}
+  sed -i "/FHIR_SERVER_DETAILS_JSON/s|:.*$|: \"${KNOWLEDGE_TENANT}\"|" ${yamlfile}
   sed -i "/filename/s|:.*$|: \"${xmlfile}\"|" ${yamlfile}
 }
 . tests/setupEnvironmentVariables.sh
@@ -62,7 +62,7 @@ populateTaurusYaml ${SCENARIOS_DIR}/lungCancerTestScenarios.yaml ${LUNG_XMLFILE}
 
 # measureCLIExample-separate-measure-server.yaml and accompanying json file
 populateTaurusYaml ${SCENARIOS_DIR}/measureCLIExample-separate-measure-server.yaml ${MEASURECLI_XMLFILE}
-sed -i "s|\"cohort-cli/config/local-ibm-fhir.json\"|\"${DEFAULT_TENANT}\"|g" ${TEST_DIR}/src/main/resources/measureCLIExample-separate-measure-server.json
+sed -i "s|\"cohort-cli/config/local-ibm-fhir.json\"|\"${KNOWLEDGE_TENANT}\"|g" ${TEST_DIR}/src/main/resources/measureCLIExample-separate-measure-server.json
 
 # Update yaml files for REST API test scenarios 
 populateRestApiTestYaml ${SCENARIOS_DIR}/rest/getMeasureParametersByMeasureIdAPITests.yaml ${GET_PARAMETERS_BY_MEASURE_ID_XMLFILE}
