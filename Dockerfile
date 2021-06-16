@@ -30,7 +30,7 @@ RUN mkdir -p $COHORT_DIST_SOLUTION && \
 # Liberty document reference : https://registry.hub.docker.com/r/ibmcom/websphere-liberty
 ####################
 #TODO periodically update to the latest base image
-FROM registry.hub.docker.com/ibmcom/websphere-liberty:21.0.0.3-full-java8-openj9-ubi
+FROM registry.hub.docker.com/ibmcom/websphere-liberty:21.0.0.3-full-java11-openj9-ubi
 
 # Labels - certain labels are required if you want to have
 #          a Red Hat certified image (this is not a full set per se)
