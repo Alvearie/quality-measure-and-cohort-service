@@ -683,7 +683,14 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		PowerMockito.verifyStatic(Response.class);
 		Response.status(Status.CONFLICT);
 	}
-	
+
+	//todo
+	public void testCohortEvaluation(){
+		prepMocks();
+		mockResponseClasses();
+
+	}
+
 	private void validateParameterResponse(Response loadResponse) {
 		assertEquals(Status.OK.getStatusCode(), loadResponse.getStatus());
 		String validResp = "class MeasureParameterInfoList {\n"

@@ -7,6 +7,9 @@ package com.ibm.cohort.engine.api.service;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +32,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import org.hl7.elm.r1.VersionedIdentifier;
+import org.hl7.fhir.instance.model.api.IAnyResource;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.MeasureReport;
 import org.opencds.cqf.cql.engine.data.DataProvider;
@@ -37,6 +42,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.cohort.engine.CqlEvaluator;
+import com.ibm.cohort.engine.DefaultFilenameToVersionedIdentifierStrategy;
+import com.ibm.cohort.engine.EvaluationResultCallback;
+import com.ibm.cohort.engine.TranslatingLibraryLoader;
+import com.ibm.cohort.engine.ZipStreamLibrarySourceProvider;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfoList;
@@ -47,6 +57,8 @@ import com.ibm.cohort.engine.measure.ZipResourceResolutionProvider;
 import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
+import com.ibm.cohort.engine.translation.CqlTranslationProvider;
+import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
@@ -107,6 +119,7 @@ public class CohortEngineRestHandler {
 
 	public static final String DELAY_DEFAULT = "3";
 	
+	public static final String CQL_DEFINITION = "cql_definition";
 	public static final String REQUEST_DATA_PART = "request_data";
 	public static final String MEASURE_PART = "measure";
 	public static final String FHIR_DATA_SERVER_CONFIG_PART = "fhir_data_server_config";
@@ -116,7 +129,9 @@ public class CohortEngineRestHandler {
 	public static final String MEASURE_IDENTIFIER_SYSTEM = "measure_identifier_system";
 	public static final String MEASURE_VERSION = "measure_version";
 	public static final String MEASURE_ID = "measure_id";
-	
+	public static final String COHORT_DEFINE = "define";
+	public static final String COHORT_PATIENT_ID = "patient_id";
+
 	
 	public final static String VALUE_SET_PART = "value_set";
 	public final static String CUSTOM_CODE_SYSTEM = "custom_code_system";
@@ -185,6 +200,7 @@ public class CohortEngineRestHandler {
 	
 	public enum MethodNames {
 		EVALUATE_MEASURE("evaluateMeasure"),
+		EVALUATE_COHORT("evaluateCohort"),
 		GET_MEASURE_PARAMETERS("getMeasureParameters"),
 		GET_MEASURE_PARAMETERS_BY_ID("getMeasureParametersById"),
 		CREATE_VALUE_SET("createValueSet")
@@ -212,6 +228,164 @@ public class CohortEngineRestHandler {
 		super();
 		// Instance initialization here.
 		// NOTE: This constructor is called on every REST call!
+	}
+
+	@POST
+	@Path("/cohort-evaluation")
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces({ MediaType.APPLICATION_JSON })
+	@ApiOperation(value = "Evaluates a measure bundle for a single patient"
+			, notes = EVALUATION_API_NOTES, response = String.class
+			, tags = {"Measure Evaluation"}
+			, nickname = "evaluate_measure"
+			, extensions = {
+			@Extension(properties = {
+					@ExtensionProperty(
+							name = DarkFeatureSwaggerFilter.DARK_FEATURE_NAME
+							, value = CohortEngineRestConstants.DARK_LAUNCHED_MEASURE_EVALUATION)
+			})
+	}
+	)
+	//todo fix all API params
+	@ApiImplicitParams({
+			// This is necessary for the dark launch feature
+			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
+			// These are necessary to create a proper view of the request body that is all wrapped up in the Liberty IMultipartBody parameter
+			@ApiImplicitParam(name=REQUEST_DATA_PART, value=EXAMPLE_REQUEST_DATA_JSON, dataTypeClass = MeasureEvaluation.class, required=true, paramType="form", type="file"),
+			@ApiImplicitParam(name=MEASURE_PART, value=EXAMPLE_MEASURE_ZIP, dataTypeClass = File.class, required=true, paramType="form", type="file" )
+	})
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successful Operation"),
+			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
+			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
+	})
+	public Response evaluateCohort(@Context HttpServletRequest request,
+
+									@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam(CohortEngineRestHandler.VERSION) String version,
+									//todo do we still need to alter this at all?
+								   @ApiParam(value = "CQL_DEFINE_NAME", required = true) @QueryParam(CohortEngineRestHandler.COHORT_DEFINE) String defineToRun,
+								   @ApiParam(value = "PATIENT_ID", required = true) @QueryParam(CohortEngineRestHandler.COHORT_PATIENT_ID) String patientId,
+	@ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody)
+	//todo extract these strings and change the path param
+	{
+
+		final String methodName = MethodNames.EVALUATE_COHORT.getName();
+		//todo create a measureContext from a CQL definition (perhaps?)
+		//fetch data from fhir server
+		//use CQL + fhir data to execute measure
+		Response response = null;
+
+		// Error out if feature is not enabled
+		ServiceBaseUtility.isDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_MEASURE_EVALUATION);
+
+		try {
+			// Perform api setup
+			Response errorResponse = ServiceBaseUtility.apiSetup(version, logger, methodName);
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+
+			if (multipartBody == null) {
+				throw new IllegalArgumentException("A multipart/form-data body is required");
+			}
+
+			IAttachment metadataAttachment = multipartBody.getAttachment(FHIR_DATA_SERVER_CONFIG_PART);
+			if (metadataAttachment == null) {
+				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", FHIR_DATA_SERVER_CONFIG_PART));
+			}
+
+			IAttachment cqlAttachment = multipartBody.getAttachment(CQL_DEFINITION);
+			if (cqlAttachment == null) {
+				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", CQL_DEFINITION));
+			}
+
+
+			// deserialize the MeasuresEvaluation request
+			ObjectMapper om = new ObjectMapper();
+
+			FhirServerConfig fhirServerConfig = om.readValue( metadataAttachment.getDataHandler().getInputStream(), FhirServerConfig.class );
+
+			//validate the contents of the fhirServerConfig
+			validateBean(fhirServerConfig);
+
+			//get the fhir client object used to call to FHIR
+			FhirContext ctx = FhirContext.forR4();
+			DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(ctx);
+//			IGenericClient terminologyClient = builder.createFhirClient(fhirServerConfig);
+
+			FhirClientBuilderFactory clientFactory = FhirClientBuilderFactory.newInstance();
+
+			CqlEvaluator evaluator = new CqlEvaluator(clientFactory);
+			evaluator.setDataServerConnectionProperties(fhirServerConfig);
+			//todo allow differing data/terminology/measure servers
+			evaluator.setTerminologyServerConnectionProperties(fhirServerConfig);
+			evaluator.setMeasureServerConnectionProperties(fhirServerConfig);
+
+			String[] searchPaths = new String[]{"fhirResources", "fhirResources/libraries"};
+			ZipStreamLibrarySourceProvider provider = new ZipStreamLibrarySourceProvider(new ZipInputStream(cqlAttachment.getDataHandler().getInputStream()));
+			CqlTranslationProvider translationProvider = new InJVMCqlTranslationProvider(provider);
+
+			//todo ought we allow input expressions to be its own set? or specifically have a single define?
+			Set<String> expressions = new HashSet<>();
+			expressions.add(defineToRun);
+
+			List<String> patientsToRun = new ArrayList<>();
+			patientsToRun.add(patientId);
+
+
+			//todo should we set forceTranslation?
+			evaluator.setLibraryLoader(new TranslatingLibraryLoader(provider, translationProvider));
+
+			VersionedIdentifier versionedIdentifier = new DefaultFilenameToVersionedIdentifierStrategy().filenameToVersionedIdentifier(cqlAttachment.getDataHandler().getName());
+
+			//todo is it fair to assume the default strategy will be appropriate? Currently it would be being used elsewhere
+			//for right now we're not going to support custom parameters, since I think that would be instead of uploaded cql and define
+			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), null, expressions, patientsToRun, new EvaluationResultCallback() {
+
+				@Override
+				public void onContextBegin(String contextId) {
+					logger.info("Context: " + contextId);
+				}
+
+				@Override
+				public void onEvaluationComplete(String contextId, String expression, Object result) {
+
+					String value;
+					if( result != null ) {
+						if( result instanceof IAnyResource) {
+							IAnyResource resource = (IAnyResource) result;
+							value = resource.getId();
+						} else if( result instanceof Collection) {
+							Collection<?> collection = (Collection<?>) result;
+							value = "Collection: " + collection.size();
+						} else {
+							value = result.toString();
+						}
+					} else {
+						value = "null";
+					}
+
+					logger.info(String.format("Expression: \"%s\", Result: %s", expression, value));
+				}
+
+				@Override
+				public void onContextComplete(String contextId) {
+					logger.info("---");
+				}
+			});
+
+		} catch (Throwable e) {
+			//map any exceptions caught into the proper REST error response objects
+			response = new CohortServiceExceptionMapper().toResponse(e);
+		} finally {
+			// Perform api cleanup
+			Response errorResponse = ServiceBaseUtility.apiCleanup(logger, methodName);
+			if (errorResponse != null) {
+				response = errorResponse;
+			}
+		}
+
+		return response;
 	}
 
 	@POST
@@ -291,7 +465,7 @@ public class CohortEngineRestHandler {
 			IParser parser = dataClient.getFhirContext().newJsonParser();
 			
 			String [] searchPaths = new String[] { "fhirResources", "fhirResources/libraries" };
-			ZipResourceResolutionProvider provider = new ZipResourceResolutionProvider(new ZipInputStream( measureAttachment.getDataHandler().getInputStream()), parser, searchPaths);;
+			ZipResourceResolutionProvider provider = new ZipResourceResolutionProvider(new ZipInputStream( measureAttachment.getDataHandler().getInputStream()), parser, searchPaths);
 			
 			TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(terminologyClient);
 			try (RetrieveCacheContext retrieveCacheContext = new DefaultRetrieveCacheContext()) {
