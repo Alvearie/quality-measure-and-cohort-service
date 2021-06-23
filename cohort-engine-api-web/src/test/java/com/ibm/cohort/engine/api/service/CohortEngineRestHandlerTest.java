@@ -684,11 +684,24 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		Response.status(Status.CONFLICT);
 	}
 
-	//todo
-	public void testCohortEvaluation(){
+	@PrepareForTest({ Response.class, FHIRRestUtils.class })
+	public void testCohortEvaluation() throws Exception {
 		prepMocks();
 		mockResponseClasses();
 
+		PowerMockito.mockStatic(ServiceBaseUtility.class);
+		PowerMockito.mockStatic(FHIRRestUtils.class);
+		PowerMockito.mockStatic(DefaultFhirClientBuilder.class);
+		PowerMockito.when(ServiceBaseUtility.apiSetup(VERSION, logger, MethodNames.EVALUATE_COHORT.getName())).thenReturn(null);
+		PowerMockito.whenNew(DefaultFhirClientBuilder.class).withArguments(Mockito.any()).thenReturn(mockDefaultFhirClientBuilder);
+
+		String json = "{}";
+		ByteArrayInputStream jsonIs = new ByteArrayInputStream(json.getBytes());
+		IAttachment rootPart = mockAttachment(jsonIs);
+
+		// Create the ZIP part of the request
+		ByteArrayInputStream zipIs = TestHelper.emptyZip();
+		IAttachment cqlAttachment = mockAttachment(zipIs);
 	}
 
 	private void validateParameterResponse(Response loadResponse) {

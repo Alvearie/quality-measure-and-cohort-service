@@ -311,7 +311,7 @@ public class CohortEngineRestHandler {
 			//get the fhir client object used to call to FHIR
 			FhirContext ctx = FhirContext.forR4();
 			DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(ctx);
-//			IGenericClient terminologyClient = builder.createFhirClient(fhirServerConfig);
+			IGenericClient terminologyClient = builder.createFhirClient(fhirServerConfig);
 
 			FhirClientBuilderFactory clientFactory = FhirClientBuilderFactory.newInstance();
 
@@ -340,39 +340,10 @@ public class CohortEngineRestHandler {
 
 			//todo is it fair to assume the default strategy will be appropriate? Currently it would be being used elsewhere
 			//for right now we're not going to support custom parameters, since I think that would be instead of uploaded cql and define
-			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), null, expressions, patientsToRun, new EvaluationResultCallback() {
+			MoveThisLaterCallback callback = new MoveThisLaterCallback();
+			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), null, expressions, patientsToRun, callback);
 
-				@Override
-				public void onContextBegin(String contextId) {
-					logger.info("Context: " + contextId);
-				}
-
-				@Override
-				public void onEvaluationComplete(String contextId, String expression, Object result) {
-
-					String value;
-					if( result != null ) {
-						if( result instanceof IAnyResource) {
-							IAnyResource resource = (IAnyResource) result;
-							value = resource.getId();
-						} else if( result instanceof Collection) {
-							Collection<?> collection = (Collection<?>) result;
-							value = "Collection: " + collection.size();
-						} else {
-							value = result.toString();
-						}
-					} else {
-						value = "null";
-					}
-
-					logger.info(String.format("Expression: \"%s\", Result: %s", expression, value));
-				}
-
-				@Override
-				public void onContextComplete(String contextId) {
-					logger.info("---");
-				}
-			});
+			response = Response.status(Response.Status.ACCEPTED).header("Content-Type", "application/json").entity("{\"result\":\"" + callback.singleExpressionResult + "\"}").build();
 
 		} catch (Throwable e) {
 			//map any exceptions caught into the proper REST error response objects

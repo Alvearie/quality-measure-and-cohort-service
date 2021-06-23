@@ -82,6 +82,17 @@ public class TestHelper {
 		library.addContent().setContentType("text/cql").setData("library test_library version '1.0.0'\nparameter AgeOfMaturation default 18\nusing FHIR version '4.0.0'\ncontext Patient\ndefine Adult: AgeInYears() >= \"AgeOfMaturation\"".getBytes());
 		return library;
 	}
+
+	//todo rename
+	public static Library getBasicLibrary2() {
+		Library library = new Library();
+		library.setId("libraryId");
+		library.setName("test_library");
+		library.setVersion("1.0.0");
+		library.setUrl("http://ibm.com/health/Library/test_library");
+		library.addContent().setContentType("text/cql").setData("library test_library version '1.0.0'\nusing FHIR version '4.0.0'\ncontext Patient\ndefine Male: Patient.gender.value = 'male'".getBytes());
+		return library;
+	}
 	
 	public static ByteArrayInputStream emptyZip() throws IOException{
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();

@@ -473,11 +473,11 @@ public class DefaultVT extends ServiceVTBase {
 		RequestSpecification request = buildBaseRequest(new Headers())
 				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
 				.queryParam(CohortEngineRestHandler.COHORT_DEFINE, "Over the hill")
-				.queryParam(CohortEngineRestHandler.COHORT_PATIENT_ID, "17672577005-c9ce8b3a-1942-43a9-a886-e8b4e954b014")
+				.queryParam(CohortEngineRestHandler.COHORT_PATIENT_ID, "47c883bb-160a-7117-c5df-9344041ef048")
 				.multiPart(CohortEngineRestHandler.FHIR_DATA_SERVER_CONFIG_PART, fhirConfigjson, "application/json")
 				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
-		runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_CREATED);
+		runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_ACCEPTED);
 	}
 
 	@Override
