@@ -6,18 +6,20 @@
  *
  */
 
-package com.ibm.cohort.engine.api.service;
+package com.ibm.cohort.engine;
 
 import org.slf4j.Logger;
 
 import org.slf4j.LoggerFactory;
 
-import com.ibm.cohort.engine.EvaluationResultCallback;
+public class SingleEvaluationResultCallback implements EvaluationResultCallback {
 
-public class MoveThisLaterCallback implements EvaluationResultCallback {
+	public Boolean getSingleExpressionResult() {
+		return singleExpressionResult;
+	}
 
-	Boolean singleExpressionResult = null;
-	private static final Logger logger = LoggerFactory.getLogger(MoveThisLaterCallback.class.getName());
+	private Boolean singleExpressionResult = null;
+	private static final Logger logger = LoggerFactory.getLogger(SingleEvaluationResultCallback.class.getName());
 
 	@Override
 	public void onContextBegin(String contextId) {
@@ -31,6 +33,9 @@ public class MoveThisLaterCallback implements EvaluationResultCallback {
 
 	@Override
 	public void onEvaluationComplete(String contextId, String expression, Object result) {
+		if(singleExpressionResult != null){
+			throw new RuntimeException("Unexpected additional result!");
+		}
 		if( result != null ) {
 			if (result instanceof Boolean) {
 				singleExpressionResult = (Boolean) result;

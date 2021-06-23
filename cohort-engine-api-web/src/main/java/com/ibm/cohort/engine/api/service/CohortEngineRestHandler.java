@@ -8,7 +8,6 @@ package com.ibm.cohort.engine.api.service;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +32,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.hl7.elm.r1.VersionedIdentifier;
-import org.hl7.fhir.instance.model.api.IAnyResource;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.MeasureReport;
 import org.opencds.cqf.cql.engine.data.DataProvider;
@@ -44,7 +42,6 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.CqlEvaluator;
 import com.ibm.cohort.engine.DefaultFilenameToVersionedIdentifierStrategy;
-import com.ibm.cohort.engine.EvaluationResultCallback;
 import com.ibm.cohort.engine.TranslatingLibraryLoader;
 import com.ibm.cohort.engine.ZipStreamLibrarySourceProvider;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
@@ -59,6 +56,7 @@ import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 import com.ibm.cohort.engine.translation.CqlTranslationProvider;
 import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
+import com.ibm.cohort.engine.SingleEvaluationResultCallback;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
@@ -340,10 +338,10 @@ public class CohortEngineRestHandler {
 
 			//todo is it fair to assume the default strategy will be appropriate? Currently it would be being used elsewhere
 			//for right now we're not going to support custom parameters, since I think that would be instead of uploaded cql and define
-			MoveThisLaterCallback callback = new MoveThisLaterCallback();
+			SingleEvaluationResultCallback callback = new SingleEvaluationResultCallback();
 			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), null, expressions, patientsToRun, callback);
 
-			response = Response.status(Response.Status.ACCEPTED).header("Content-Type", "application/json").entity("{\"result\":\"" + callback.singleExpressionResult + "\"}").build();
+			response = Response.status(Response.Status.ACCEPTED).header("Content-Type", "application/json").entity("{\"result\":\"" + callback.getSingleExpressionResult() + "\"}").build();
 
 		} catch (Throwable e) {
 			//map any exceptions caught into the proper REST error response objects
