@@ -36,6 +36,7 @@ if [ "$UMBRELLA_REPO_PATH" == "https://github.ibm.com/watson-health-cohorting/wh
   cat remove_tests.txt
   xargs rm -rf <remove_tests.txt
   readd_tests
+  chmod +x run-tests.sh
 else
   echo "This is not an Cohorting release for development. Moving on..."
 fi
