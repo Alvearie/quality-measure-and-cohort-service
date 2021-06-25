@@ -8,6 +8,7 @@ package com.ibm.cohort.version;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Optional;
@@ -59,5 +60,13 @@ public class SemanticVersionTest {
 		assertEquals(0, version1_9_9.compareTo(new SemanticVersion(1, 9, 9)));
 		assertEquals(0, version3_1_0.compareTo(new SemanticVersion(3, 1, 0)));
 
+	}
+
+	@Test
+	public void testToString() {
+		SemanticVersion semanticVersion = SemanticVersion.create("1.2.3").orElse(null);
+
+		assertNotNull(semanticVersion);
+		assertEquals("1.2.3", semanticVersion.toString());
 	}
 }
