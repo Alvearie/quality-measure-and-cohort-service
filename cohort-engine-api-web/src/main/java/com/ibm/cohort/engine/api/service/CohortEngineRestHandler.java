@@ -268,8 +268,7 @@ public class CohortEngineRestHandler {
 									@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam(CohortEngineRestHandler.VERSION) String version,
 								   @ApiParam(value = CQL_DEFINE, required = true) @QueryParam(CohortEngineRestHandler.COHORT_DEFINE) String defineToRun,
 								   @ApiParam(value = PATIENT_IDS, required = true) @QueryParam(CohortEngineRestHandler.COHORT_PATIENT_ID) String patientIds,
-								   //todo swap to enum
-								   @ApiParam(value = CohortEngineRestHandler.COHORT_ENABLE_LOGGING, defaultValue = "false") @DefaultValue ("NA") @QueryParam(CohortEngineRestHandler.ENABLE_LOGGING) String enableLogging,
+								   @ApiParam(value = CohortEngineRestHandler.COHORT_ENABLE_LOGGING, defaultValue = "false") @DefaultValue ("NA") @QueryParam(CohortEngineRestHandler.ENABLE_LOGGING) LoggingEnum enableLogging,
 								   @ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody)
 	{
 
@@ -334,7 +333,7 @@ public class CohortEngineRestHandler {
 			//for right now we're not going to support custom parameters, since I think that would be instead of uploaded cql and define
 			SingleEvaluationResultCallback callback = new SingleEvaluationResultCallback();
 			//todo here
-			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), null, expressions, patientsToRun, LoggingEnum.getLoggingFromString(enableLogging), callback);
+			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), null, expressions, patientsToRun, enableLogging, callback);
 
 			response = Response.status(Response.Status.ACCEPTED).header("Content-Type", "application/json").entity("{\"result\":" + om.writeValueAsString(callback.getPassingPatients()) + "}").build();
 
