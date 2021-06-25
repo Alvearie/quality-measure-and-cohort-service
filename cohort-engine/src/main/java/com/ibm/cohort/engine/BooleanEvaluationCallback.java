@@ -15,18 +15,15 @@ import org.slf4j.Logger;
 
 import org.slf4j.LoggerFactory;
 
-public class SingleEvaluationResultCallback implements EvaluationResultCallback {
+public class BooleanEvaluationCallback implements EvaluationResultCallback {
 
-//	public Boolean getSingleExpressionResult() {
-//		return singleExpressionResult;
-//	}
 
 	public List<String> getPassingPatients(){
 		return passingPatients;
 	}
 
 	private List<String> passingPatients = new ArrayList<>();
-	private static final Logger logger = LoggerFactory.getLogger(SingleEvaluationResultCallback.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(BooleanEvaluationCallback.class.getName());
 
 	@Override
 	public void onContextBegin(String contextId) {
@@ -40,9 +37,6 @@ public class SingleEvaluationResultCallback implements EvaluationResultCallback 
 
 	@Override
 	public void onEvaluationComplete(String contextId, String expression, Object result) {
-//		if(singleExpressionResult != null){
-//			throw new RuntimeException("Unexpected additional result!");
-//		}
 		if( result != null ) {
 			if (result instanceof Boolean) {
 				if((Boolean) result){

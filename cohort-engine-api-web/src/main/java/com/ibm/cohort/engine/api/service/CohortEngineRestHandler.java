@@ -43,7 +43,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.CqlEvaluator;
 import com.ibm.cohort.engine.DefaultFilenameToVersionedIdentifierStrategy;
 import com.ibm.cohort.engine.LoggingEnum;
-import com.ibm.cohort.engine.SingleEvaluationResultCallback;
+import com.ibm.cohort.engine.BooleanEvaluationCallback;
 import com.ibm.cohort.engine.TranslatingLibraryLoader;
 import com.ibm.cohort.engine.ZipStreamLibrarySourceProvider;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
@@ -331,7 +331,7 @@ public class CohortEngineRestHandler {
 
 			//todo is it fair to assume the default strategy will be appropriate? Currently it would be being used elsewhere
 			//for right now we're not going to support custom parameters, since I think that would be instead of uploaded cql and define
-			SingleEvaluationResultCallback callback = new SingleEvaluationResultCallback();
+			BooleanEvaluationCallback callback = new BooleanEvaluationCallback();
 			//todo here
 			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), null, expressions, patientsToRun, enableLogging, callback);
 

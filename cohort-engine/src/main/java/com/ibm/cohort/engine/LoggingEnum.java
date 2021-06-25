@@ -24,7 +24,6 @@ public enum LoggingEnum {
 		try{
 			return LoggingEnum.valueOf(value);
 		}
-		//todo only need to catch IllegalArgument and NPE
 		catch(Exception e) {
 			return LoggingEnum.NA;
 		}
