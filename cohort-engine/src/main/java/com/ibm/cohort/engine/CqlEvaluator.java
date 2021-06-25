@@ -388,12 +388,12 @@ public class CqlEvaluator {
 	 */
 	protected void evaluateWithEngineWrapper(String libraryName, String libraryVersion, Map<String, Parameter> parameters,
 											 Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback){
-		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters, expressions, contextIds, callback, LoggingEnum.NA);
+		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters, expressions, contextIds, LoggingEnum.NA, callback);
 	}
 
 
 	protected void evaluateWithEngineWrapper(String libraryName, String libraryVersion, Map<String, Parameter> parameters,
-											 Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback, LoggingEnum enableLogging) {
+											 Set<String> expressions, List<String> contextIds, LoggingEnum enableLogging, EvaluationResultCallback callback) {
 		if (this.libraryLoader == null || this.dataServerClient == null || this.terminologyServerClient == null
 				|| this.measureServerClient == null) {
 			throw new IllegalArgumentException(
@@ -470,11 +470,13 @@ public class CqlEvaluator {
 	 * @param contextIds     list of contexts (generally patient IDs) for which the
 	 *                       specified <code>expressions</code> will be executed. At
 	 *                       least one value is required.
+	 * @param enableLogging  The level of logging enabled, either TRACE, COVERAGE, or NA
+	 *
 	 * @param callback       callback function for receiving engine execution events
 	 */
 	public void evaluate(String libraryName, String libraryVersion, Map<String, Parameter> parameters,
-			Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback, LoggingEnum enableLogging) {
-		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters, expressions, contextIds, callback, enableLogging);
+			Set<String> expressions, List<String> contextIds, LoggingEnum enableLogging, EvaluationResultCallback callback) {
+		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters, expressions, contextIds, enableLogging, callback);
 	}
 
 	/**

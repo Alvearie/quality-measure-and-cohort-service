@@ -223,6 +223,13 @@
 		</dependency>
 
 		<dependency>
+			<groupId>info.cqframework</groupId>
+			<artifactId>elm</artifactId>
+			<version>1.5.1</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>com.github.ben-manes.caffeine</groupId>
 			<artifactId>jcache</artifactId>
 			<scope>runtime</scope>

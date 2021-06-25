@@ -7,7 +7,6 @@ package com.ibm.cohort.engine.api.service;
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -44,6 +43,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.CqlEvaluator;
 import com.ibm.cohort.engine.DefaultFilenameToVersionedIdentifierStrategy;
 import com.ibm.cohort.engine.LoggingEnum;
+import com.ibm.cohort.engine.SingleEvaluationResultCallback;
 import com.ibm.cohort.engine.TranslatingLibraryLoader;
 import com.ibm.cohort.engine.ZipStreamLibrarySourceProvider;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
@@ -58,7 +58,6 @@ import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 import com.ibm.cohort.engine.translation.CqlTranslationProvider;
 import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
-import com.ibm.cohort.engine.SingleEvaluationResultCallback;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
@@ -335,7 +334,7 @@ public class CohortEngineRestHandler {
 			//for right now we're not going to support custom parameters, since I think that would be instead of uploaded cql and define
 			SingleEvaluationResultCallback callback = new SingleEvaluationResultCallback();
 			//todo here
-			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), null, expressions, patientsToRun, callback, LoggingEnum.getLoggingFromString(enableLogging));
+			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), null, expressions, patientsToRun, LoggingEnum.getLoggingFromString(enableLogging), callback);
 
 			response = Response.status(Response.Status.ACCEPTED).header("Content-Type", "application/json").entity("{\"result\":" + om.writeValueAsString(callback.getPassingPatients()) + "}").build();
 
