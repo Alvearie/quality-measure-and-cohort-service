@@ -21,6 +21,7 @@ import org.cqframework.cql.elm.execution.Library;
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
 import org.opencds.cqf.cql.engine.data.CompositeDataProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
+import org.opencds.cqf.cql.engine.debug.DebugMap;
 import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.execution.CqlEngine;
 import org.opencds.cqf.cql.engine.execution.EvaluationResult;
@@ -386,7 +387,13 @@ public class CqlEvaluator {
 	 *                       executed define
 	 */
 	protected void evaluateWithEngineWrapper(String libraryName, String libraryVersion, Map<String, Parameter> parameters,
-			Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback) {
+											 Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback){
+		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters, expressions, contextIds, callback, LoggingEnum.NA);
+	}
+
+
+	protected void evaluateWithEngineWrapper(String libraryName, String libraryVersion, Map<String, Parameter> parameters,
+											 Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback, LoggingEnum enableLogging) {
 		if (this.libraryLoader == null || this.dataServerClient == null || this.terminologyServerClient == null
 				|| this.measureServerClient == null) {
 			throw new IllegalArgumentException(
@@ -407,6 +414,16 @@ public class CqlEvaluator {
 		if (libraryVersion != null) {
 			libraryId.setVersion(libraryVersion);
 		}
+		DebugMap debugMap = null;
+		if(!enableLogging.equals(LoggingEnum.NA)){
+			debugMap = new DebugMap();
+			if(enableLogging.equals(LoggingEnum.COVERAGE)){
+				debugMap.setIsCoverageEnabled(true);
+			}
+			else {
+				debugMap.setIsLoggingEnabled(true);
+			};
+		}
 
 		Library library = libraryLoader.load(libraryId);
 		LibraryUtils.requireNoTranslationErrors(library);
@@ -419,7 +436,7 @@ public class CqlEvaluator {
 		for (String contextId : contextIds) {
 			callback.onContextBegin(contextId);
 			EvaluationResult er = cqlEngine.evaluate(libraryId, expressions, Pair.of(ContextNames.PATIENT, contextId),
-					typedParameters, /* debugMap= */null);
+					typedParameters, debugMap);
 			for (Map.Entry<String, Object> result : er.expressionResults.entrySet()) {
 				callback.onEvaluationComplete(contextId, result.getKey(), result.getValue());
 			}
@@ -456,8 +473,8 @@ public class CqlEvaluator {
 	 * @param callback       callback function for receiving engine execution events
 	 */
 	public void evaluate(String libraryName, String libraryVersion, Map<String, Parameter> parameters,
-			Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback) {
-		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters, expressions, contextIds, callback);
+			Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback, LoggingEnum enableLogging) {
+		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters, expressions, contextIds, callback, enableLogging);
 	}
 
 	/**

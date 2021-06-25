@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.cohort.engine.LoggingEnum;
 import com.ibm.cohort.engine.api.service.CohortEngineRestConstants;
 import com.ibm.cohort.engine.api.service.CohortEngineRestHandler;
 import com.ibm.cohort.engine.api.service.ServiceBuildConstants;
@@ -456,7 +457,7 @@ public class DefaultVT extends ServiceVTBase {
 	}
 
 	@Test
-	public void testCohortEvaluation(){
+	public void testCohortEvaluationTrue(){
 		final String RESOURCE = getUrlBase() + "/{version}/cohort-evaluation";
 		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD));
 
@@ -473,11 +474,110 @@ public class DefaultVT extends ServiceVTBase {
 		RequestSpecification request = buildBaseRequest(new Headers())
 				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
 				.queryParam(CohortEngineRestHandler.COHORT_DEFINE, "Over the hill")
-				.queryParam(CohortEngineRestHandler.COHORT_PATIENT_ID, "47c883bb-160a-7117-c5df-9344041ef048")
+				.queryParam(CohortEngineRestHandler.COHORT_PATIENT_ID, VALID_PATIENT_ID)
 				.multiPart(CohortEngineRestHandler.FHIR_DATA_SERVER_CONFIG_PART, fhirConfigjson, "application/json")
 				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
-		runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_ACCEPTED);
+		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_ACCEPTED);
+
+		String actual = vr.extract().response().getBody().prettyPrint();
+		String expected = "{\n    \"result\": [\n        \"" + VALID_PATIENT_ID + "\"\n    ]\n}";
+
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void testCohortEvaluationFalse(){
+		final String RESOURCE = getUrlBase() + "/{version}/cohort-evaluation";
+		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD));
+
+		// Create the metadata part of the request
+		ObjectMapper om = new ObjectMapper();
+		String fhirConfigjson = "";
+		try {
+			fhirConfigjson = om.writeValueAsString(dataServerConfig);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+			fail();
+		}
+
+		RequestSpecification request = buildBaseRequest(new Headers())
+				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
+				.queryParam(CohortEngineRestHandler.COHORT_DEFINE, "Male")
+				.queryParam(CohortEngineRestHandler.COHORT_PATIENT_ID, VALID_PATIENT_ID)
+				.multiPart(CohortEngineRestHandler.FHIR_DATA_SERVER_CONFIG_PART, fhirConfigjson, "application/json")
+				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
+		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
+		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_ACCEPTED);
+
+		String actual = vr.extract().response().getBody().prettyPrint();
+		String expected = "{\n    \"result\": [\n        \n    ]\n}";
+
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void testCohortEvaluationWithLogging(){
+		final String RESOURCE = getUrlBase() + "/{version}/cohort-evaluation";
+		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD));
+
+		// Create the metadata part of the request
+		ObjectMapper om = new ObjectMapper();
+		String fhirConfigjson = "";
+		try {
+			fhirConfigjson = om.writeValueAsString(dataServerConfig);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+			fail();
+		}
+
+		RequestSpecification request = buildBaseRequest(new Headers())
+				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
+				.queryParam(CohortEngineRestHandler.COHORT_DEFINE, "Male")
+				.queryParam(CohortEngineRestHandler.ENABLE_LOGGING, LoggingEnum.TRACE)
+				.queryParam(CohortEngineRestHandler.COHORT_PATIENT_ID, VALID_PATIENT_ID)
+				.multiPart(CohortEngineRestHandler.FHIR_DATA_SERVER_CONFIG_PART, fhirConfigjson, "application/json")
+				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
+		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
+		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_ACCEPTED);
+
+		String actual = vr.extract().response().getBody().prettyPrint();
+		String expected = "{\n    \"result\": [\n        \n    ]\n}";
+
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void testCohortEvaluationList(){
+		final String RESOURCE = getUrlBase() + "/{version}/cohort-evaluation";
+		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD));
+
+		// Create the metadata part of the request
+		ObjectMapper om = new ObjectMapper();
+		String fhirConfigjson = "";
+		try {
+			fhirConfigjson = om.writeValueAsString(dataServerConfig);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+			fail();
+		}
+
+		String SECOND_VALID_PATIENT_ID = "47c883bb-160a-7117-c5df-9344041ef048";
+		String patientInput = VALID_PATIENT_ID + "," + SECOND_VALID_PATIENT_ID;
+
+		RequestSpecification request = buildBaseRequest(new Headers())
+				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
+				.queryParam(CohortEngineRestHandler.COHORT_DEFINE, "Female")
+				.queryParam(CohortEngineRestHandler.COHORT_PATIENT_ID, patientInput)
+				.multiPart(CohortEngineRestHandler.FHIR_DATA_SERVER_CONFIG_PART, fhirConfigjson, "application/json")
+				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
+		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
+		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_ACCEPTED);
+
+		String actual = vr.extract().response().getBody().prettyPrint();
+		String expected = "{\n    \"result\": [\n        \"" + VALID_PATIENT_ID + "\",\n        \"" + SECOND_VALID_PATIENT_ID + "\"\n    ]\n}";
+
+		assertEquals(expected, actual);
 	}
 
 	@Override

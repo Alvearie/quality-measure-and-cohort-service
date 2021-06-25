@@ -8,6 +8,7 @@ package com.ibm.cohort.engine.api.service;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.CqlEvaluator;
 import com.ibm.cohort.engine.DefaultFilenameToVersionedIdentifierStrategy;
+import com.ibm.cohort.engine.LoggingEnum;
 import com.ibm.cohort.engine.TranslatingLibraryLoader;
 import com.ibm.cohort.engine.ZipStreamLibrarySourceProvider;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
@@ -115,6 +117,10 @@ public class CohortEngineRestHandler {
 	private static final String VALUE_SET_DESC = "Spreadsheet containing the Value Set definition.";
 	private static final String CUSTOM_CODE_SYSTEM_DESC = "A custom mapping of code systems to urls";
 
+	private static final String COHORT_ENABLE_LOGGING = "A flag set to true to enable more detailed logging of the cohort evaluation";
+	private static final String PATIENT_IDS = "A comma separated list of patients to evaluate against a CQL";
+	private static final String CQL_DEFINE = "The specific define of the given CQL to analyze the patients against";
+
 	public static final String DELAY_DEFAULT = "3";
 	
 	public static final String CQL_DEFINITION = "cql_definition";
@@ -129,6 +135,8 @@ public class CohortEngineRestHandler {
 	public static final String MEASURE_ID = "measure_id";
 	public static final String COHORT_DEFINE = "define";
 	public static final String COHORT_PATIENT_ID = "patient_id";
+	public static final String ENABLE_LOGGING = "enable_logging";
+	public static final String CQL_PART = "cohort";
 
 	
 	public final static String VALUE_SET_PART = "value_set";
@@ -182,7 +190,7 @@ public class CohortEngineRestHandler {
 			"fhirResources/libraries/LibraryName1-LibraryVersion.json\n" + 
 			"fhirResources/libraries/LibraryName2-LibraryVersion.json\n" +
 			"etc.\n</pre>";
-	
+
 	public static final String EXAMPLE_DATA_SERVER_CONFIG_JSON = "A configuration file containing information needed to connect to the FHIR server. "
 			+ "See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/getting-started.md#fhir-server-configuration for more details. \n"
 			+ "Example Contents: \n <pre>{\n" + 
@@ -232,25 +240,24 @@ public class CohortEngineRestHandler {
 	@Path("/cohort-evaluation")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "Evaluates a measure bundle for a single patient"
+	@ApiOperation(value = "Evaluates a specific define within a CQL for a set of patients"
 			, notes = EVALUATION_API_NOTES, response = String.class
-			, tags = {"Measure Evaluation"}
-			, nickname = "evaluate_measure"
+			, tags = {"Cohort Evaluation"}
+			, nickname = "evaluate_cohort"
 			, extensions = {
 			@Extension(properties = {
 					@ExtensionProperty(
 							name = DarkFeatureSwaggerFilter.DARK_FEATURE_NAME
-							, value = CohortEngineRestConstants.DARK_LAUNCHED_MEASURE_EVALUATION)
+							, value = CohortEngineRestConstants.DARK_LAUNCHED_COHORT_EVALUATION)
 			})
 	}
 	)
-	//todo fix all API params
 	@ApiImplicitParams({
 			// This is necessary for the dark launch feature
 			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
 			// These are necessary to create a proper view of the request body that is all wrapped up in the Liberty IMultipartBody parameter
 			@ApiImplicitParam(name=REQUEST_DATA_PART, value=EXAMPLE_REQUEST_DATA_JSON, dataTypeClass = MeasureEvaluation.class, required=true, paramType="form", type="file"),
-			@ApiImplicitParam(name=MEASURE_PART, value=EXAMPLE_MEASURE_ZIP, dataTypeClass = File.class, required=true, paramType="form", type="file" )
+			@ApiImplicitParam(name=CQL_PART, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful Operation"),
@@ -260,17 +267,14 @@ public class CohortEngineRestHandler {
 	public Response evaluateCohort(@Context HttpServletRequest request,
 
 									@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam(CohortEngineRestHandler.VERSION) String version,
-									//todo do we still need to alter this at all?
-								   @ApiParam(value = "CQL_DEFINE_NAME", required = true) @QueryParam(CohortEngineRestHandler.COHORT_DEFINE) String defineToRun,
-								   @ApiParam(value = "PATIENT_ID", required = true) @QueryParam(CohortEngineRestHandler.COHORT_PATIENT_ID) String patientId,
-	@ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody)
-	//todo extract these strings and change the path param
+								   @ApiParam(value = CQL_DEFINE, required = true) @QueryParam(CohortEngineRestHandler.COHORT_DEFINE) String defineToRun,
+								   @ApiParam(value = PATIENT_IDS, required = true) @QueryParam(CohortEngineRestHandler.COHORT_PATIENT_ID) String patientIds,
+								   //todo swap to enum
+								   @ApiParam(value = CohortEngineRestHandler.COHORT_ENABLE_LOGGING, defaultValue = "false") @DefaultValue ("NA") @QueryParam(CohortEngineRestHandler.ENABLE_LOGGING) String enableLogging,
+								   @ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody)
 	{
 
 		final String methodName = MethodNames.EVALUATE_COHORT.getName();
-		//todo create a measureContext from a CQL definition (perhaps?)
-		//fetch data from fhir server
-		//use CQL + fhir data to execute measure
 		Response response = null;
 
 		// Error out if feature is not enabled
@@ -306,11 +310,6 @@ public class CohortEngineRestHandler {
 			//validate the contents of the fhirServerConfig
 			validateBean(fhirServerConfig);
 
-			//get the fhir client object used to call to FHIR
-			FhirContext ctx = FhirContext.forR4();
-			DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(ctx);
-			IGenericClient terminologyClient = builder.createFhirClient(fhirServerConfig);
-
 			FhirClientBuilderFactory clientFactory = FhirClientBuilderFactory.newInstance();
 
 			CqlEvaluator evaluator = new CqlEvaluator(clientFactory);
@@ -319,19 +318,15 @@ public class CohortEngineRestHandler {
 			evaluator.setTerminologyServerConnectionProperties(fhirServerConfig);
 			evaluator.setMeasureServerConnectionProperties(fhirServerConfig);
 
-			String[] searchPaths = new String[]{"fhirResources", "fhirResources/libraries"};
 			ZipStreamLibrarySourceProvider provider = new ZipStreamLibrarySourceProvider(new ZipInputStream(cqlAttachment.getDataHandler().getInputStream()));
 			CqlTranslationProvider translationProvider = new InJVMCqlTranslationProvider(provider);
 
-			//todo ought we allow input expressions to be its own set? or specifically have a single define?
 			Set<String> expressions = new HashSet<>();
 			expressions.add(defineToRun);
 
-			List<String> patientsToRun = new ArrayList<>();
-			patientsToRun.add(patientId);
+			String[] patients = patientIds.split(",");
+			List<String> patientsToRun = Arrays.asList(patients);
 
-
-			//todo should we set forceTranslation?
 			evaluator.setLibraryLoader(new TranslatingLibraryLoader(provider, translationProvider));
 
 			VersionedIdentifier versionedIdentifier = new DefaultFilenameToVersionedIdentifierStrategy().filenameToVersionedIdentifier(cqlAttachment.getDataHandler().getName());
@@ -339,9 +334,10 @@ public class CohortEngineRestHandler {
 			//todo is it fair to assume the default strategy will be appropriate? Currently it would be being used elsewhere
 			//for right now we're not going to support custom parameters, since I think that would be instead of uploaded cql and define
 			SingleEvaluationResultCallback callback = new SingleEvaluationResultCallback();
-			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), null, expressions, patientsToRun, callback);
+			//todo here
+			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), null, expressions, patientsToRun, callback, LoggingEnum.getLoggingFromString(enableLogging));
 
-			response = Response.status(Response.Status.ACCEPTED).header("Content-Type", "application/json").entity("{\"result\":\"" + callback.getSingleExpressionResult() + "\"}").build();
+			response = Response.status(Response.Status.ACCEPTED).header("Content-Type", "application/json").entity("{\"result\":" + om.writeValueAsString(callback.getPassingPatients()) + "}").build();
 
 		} catch (Throwable e) {
 			//map any exceptions caught into the proper REST error response objects

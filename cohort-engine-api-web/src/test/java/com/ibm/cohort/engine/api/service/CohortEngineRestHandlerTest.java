@@ -55,6 +55,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.LoggingEnum;
 import com.ibm.cohort.engine.api.service.CohortEngineRestHandler.MethodNames;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
@@ -685,6 +686,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 	}
 
 	@PrepareForTest({ Response.class, FHIRRestUtils.class })
+	@Test
 	public void testCohortEvaluation() throws Exception {
 		prepMocks();
 		mockResponseClasses();
@@ -695,13 +697,29 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		PowerMockito.when(ServiceBaseUtility.apiSetup(VERSION, logger, MethodNames.EVALUATE_COHORT.getName())).thenReturn(null);
 		PowerMockito.whenNew(DefaultFhirClientBuilder.class).withArguments(Mockito.any()).thenReturn(mockDefaultFhirClientBuilder);
 
+		// Create the metadata part of the request
 		String json = "{}";
 		ByteArrayInputStream jsonIs = new ByteArrayInputStream(json.getBytes());
 		IAttachment rootPart = mockAttachment(jsonIs);
 
 		// Create the ZIP part of the request
 		ByteArrayInputStream zipIs = TestHelper.emptyZip();
-		IAttachment cqlAttachment = mockAttachment(zipIs);
+		IAttachment measurePart = mockAttachment(zipIs);
+
+		// Assemble them together into a reasonable facsimile of the real request
+		IMultipartBody body = mock(IMultipartBody.class);
+		when( body.getAttachment(CohortEngineRestHandler.REQUEST_DATA_PART) ).thenReturn(rootPart);
+		when( body.getAttachment(CohortEngineRestHandler.CQL_DEFINITION) ).thenReturn(measurePart);
+
+		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, null, null, null, body);
+		assertNotNull(loadResponse);
+
+		PowerMockito.verifyStatic(ServiceBaseUtility.class);
+		ServiceBaseUtility.apiSetup(Mockito.isNull(), Mockito.any(), Mockito.anyString());
+
+		// verifyStatic must be called before each verification
+		PowerMockito.verifyStatic(ServiceBaseUtility.class);
+		ServiceBaseUtility.apiCleanup(Mockito.any(), Mockito.eq(MethodNames.EVALUATE_COHORT.getName()));
 	}
 
 	private void validateParameterResponse(Response loadResponse) {
