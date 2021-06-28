@@ -32,6 +32,7 @@ public class BooleanEvaluationCallback implements EvaluationResultCallback {
 
 	@Override
 	public void onContextComplete(String contextId) {
+		logger.info(contextId + "complete");
 		logger.info("---");
 	}
 
@@ -44,6 +45,11 @@ public class BooleanEvaluationCallback implements EvaluationResultCallback {
 				}
 				logger.info(String.format("Expression: \"%s\", Result: %s", expression, result));
 			}
+			else {
+				throw new RuntimeException("Only boolean CQLs are currently supported!");
+			}
+		} else {
+			throw new RuntimeException("Null result is unsupported");
 		}
 	}
 }

@@ -9,27 +9,7 @@
 package com.ibm.cohort.engine;
 
 public enum LoggingEnum {
-	COVERAGE("coverage"),
-	TRACE("trace"),
-	NA(null);
-
-	private String debugLevel;
-
-	LoggingEnum(String debugLevel){
-		this.debugLevel = debugLevel;
-	}
-
-	public static LoggingEnum getLoggingFromString(String value){
-
-		try{
-			return LoggingEnum.valueOf(value);
-		}
-		catch(Exception e) {
-			return LoggingEnum.NA;
-		}
-	}
-
-	public String getDebugLevel() {
-		return debugLevel;
-	}
+	COVERAGE,
+	TRACE,
+	NA;
 }

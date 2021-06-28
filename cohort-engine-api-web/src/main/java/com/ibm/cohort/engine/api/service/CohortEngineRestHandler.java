@@ -263,13 +263,13 @@ public class CohortEngineRestHandler {
 			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
 			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
 	})
-	public Response evaluateCohort(@Context HttpServletRequest request,
-
-									@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam(CohortEngineRestHandler.VERSION) String version,
-								   @ApiParam(value = CQL_DEFINE, required = true) @QueryParam(CohortEngineRestHandler.COHORT_DEFINE) String defineToRun,
-								   @ApiParam(value = PATIENT_IDS, required = true) @QueryParam(CohortEngineRestHandler.COHORT_PATIENT_ID) String patientIds,
-								   @ApiParam(value = CohortEngineRestHandler.COHORT_ENABLE_LOGGING, defaultValue = "false") @DefaultValue ("NA") @QueryParam(CohortEngineRestHandler.ENABLE_LOGGING) LoggingEnum enableLogging,
-								   @ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody)
+	public Response evaluateCohort(
+			@Context HttpServletRequest request,
+			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam(CohortEngineRestHandler.VERSION) String version,
+			@ApiParam(value = CQL_DEFINE, required = true) @QueryParam(CohortEngineRestHandler.COHORT_DEFINE) String defineToRun,
+			@ApiParam(value = PATIENT_IDS, required = true) @QueryParam(CohortEngineRestHandler.COHORT_PATIENT_ID) String patientIds,
+			@ApiParam(value = CohortEngineRestHandler.COHORT_ENABLE_LOGGING, defaultValue = "NA") @DefaultValue ("NA") @QueryParam(CohortEngineRestHandler.ENABLE_LOGGING) LoggingEnum loggingLevel,
+			@ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody)
 	{
 
 		final String methodName = MethodNames.EVALUATE_COHORT.getName();
@@ -333,7 +333,7 @@ public class CohortEngineRestHandler {
 			//for right now we're not going to support custom parameters, since I think that would be instead of uploaded cql and define
 			BooleanEvaluationCallback callback = new BooleanEvaluationCallback();
 			//todo here
-			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), null, expressions, patientsToRun, enableLogging, callback);
+			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), null, expressions, patientsToRun, loggingLevel, callback);
 
 			response = Response.status(Response.Status.ACCEPTED).header("Content-Type", "application/json").entity("{\"result\":" + om.writeValueAsString(callback.getPassingPatients()) + "}").build();
 
