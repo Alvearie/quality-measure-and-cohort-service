@@ -32,7 +32,7 @@ public class BooleanEvaluationCallback implements EvaluationResultCallback {
 
 	@Override
 	public void onContextComplete(String contextId) {
-		logger.info(contextId + "complete");
+		logger.info(contextId + " complete");
 		logger.info("---");
 	}
 
@@ -43,13 +43,13 @@ public class BooleanEvaluationCallback implements EvaluationResultCallback {
 				if((Boolean) result){
 					passingPatients.add(contextId);
 				}
-				logger.info(String.format("Expression: \"%s\", Result: %s", expression, result));
+				logger.info(String.format("Expression: \"%s\", Result: %s, ContextId: %s", expression, result, contextId));
 			}
 			else {
-				throw new RuntimeException("Only boolean CQLs are currently supported!");
+				throw new RuntimeException(String.format("Only boolean CQLs are currently supported! Expression: \"%s\", Result: %s, ContextId: %s", expression, result, contextId));
 			}
 		} else {
-			throw new RuntimeException("Null result is unsupported");
+			throw new RuntimeException(String.format("Null result is unsupported! Expression: \"%s\", Result: %s, ContextId: %s", expression, result, contextId));
 		}
 	}
 }
