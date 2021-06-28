@@ -99,7 +99,7 @@ import net.javacrumbs.jsonunit.core.Option;
 
 @Category(BVT.class) 			// all classes must be tagged as BVT, otherwise will not be picked up by automation runs
 public class DefaultVT extends ServiceVTBase {
-	private static final String VALID_PATIENT_ID = "eb068c3f-3954-50c6-0c67-2b82d29865f0";
+	private static final String VALID_PATIENT_ID = "0889b410-89cd-8cac-9bf6-314272f3699a";
 
 	private static final Logger logger = LoggerFactory.getLogger(DefaultVT.class.getName());
 
