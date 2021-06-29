@@ -161,6 +161,23 @@ public class ResourceResolutionProviderTest extends BaseFhirTest {
 		assertNotNull(actual);
 		assertEquals(expected, actual);
 	}
+
+	@Test
+	public void when_resolve_by_name_with_version_single_result___return_single_result() {
+
+		Measure expected = getMeasure( "MyTestMeasure", "9.5.zzzzz", "my_identifier" );
+		provider.processResource("MyTestMeasure-9.5.zzzzz.json", expected);
+
+		Measure other = getMeasure( "MyTestMeasure", "1.0.0", "my_identifier" );
+		provider.processResource("MyTestMeasure-1.0.0.json", other);
+
+		other = getMeasure( "MyTestMeasure", "1.2.0", "my_identifier" );
+		provider.processResource("MyTestMeasure-1.2.0.json", other);
+
+		Measure actual = provider.resolveMeasureByName("MyTestMeasure", "9.5.zzzzz");
+		assertNotNull(actual);
+		assertEquals(expected, actual);
+	}
 	
 	protected Measure getMeasure( String name, String version, String identifier ) {
 		Measure expected = new Measure();
