@@ -319,9 +319,15 @@ public class CohortEngineRestHandler {
 			ZipStreamLibrarySourceProvider provider = new ZipStreamLibrarySourceProvider(new ZipInputStream(cqlAttachment.getDataHandler().getInputStream()));
 			CqlTranslationProvider translationProvider = new InJVMCqlTranslationProvider(provider);
 
+			if(defineToRun == null){
+				throw new IllegalArgumentException("Must specify define to be run!");
+			}
 			Set<String> expressions = new HashSet<>();
 			expressions.add(defineToRun);
 
+			if(patientIds == null){
+				throw new IllegalArgumentException("Must specify at least one patient to be run!");
+			}
 			String[] patients = patientIds.split(",");
 			List<String> patientsToRun = Arrays.asList(patients);
 
@@ -329,10 +335,7 @@ public class CohortEngineRestHandler {
 
 			VersionedIdentifier versionedIdentifier = new DefaultFilenameToVersionedIdentifierStrategy().filenameToVersionedIdentifier(cqlAttachment.getDataHandler().getName());
 
-			//todo is it fair to assume the default strategy will be appropriate? Currently it would be being used elsewhere
-			//for right now we're not going to support custom parameters, since I think that would be instead of uploaded cql and define
 			BooleanEvaluationCallback callback = new BooleanEvaluationCallback();
-			//todo here
 			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), null, expressions, patientsToRun, loggingLevel, callback);
 
 			response = Response.status(Response.Status.ACCEPTED).header("Content-Type", "application/json").entity("{\"result\":" + om.writeValueAsString(callback.getPassingPatients()) + "}").build();
