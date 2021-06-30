@@ -184,7 +184,21 @@ public class CohortEngineRestHandler {
 			"    \"expandValueSets\": true\n" +
 			"    \"searchPageSize\": 1000\n" +
 			"}</pre></p>";
-	
+
+	public static final String EXAMPLE_FHIR_CONFIG = "<p>A configuration file containing the information needed to access a FHIR server."+
+			"<p>Example Contents: \n <pre>{\n" +
+			"    \"dataServerConfig\": {\n" +
+			"        \"@class\": \"com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\",\n" +
+			"        \"endpoint\": \"ENDPOINT\",\n" +
+			"        \"user\": \"USER\",\n" +
+			"        \"password\": \"PASSWORD\",\n" +
+			"        \"logInfo\": [\n" +
+			"            \"REQUEST_SUMMARY\",\n" +
+			"            \"RESPONSE_SUMMARY\"\n" +
+			"        ],\n" +
+			"        \"tenantId\": \"default\"\n" +
+			"    }";
+
 	public static final String EXAMPLE_MEASURE_ZIP = "A file in ZIP format that contains the FHIR resources to use in the evaluation. This should contain all the FHIR Measure and Library resources needed in a particular directory structure as follows:" +
 			"<pre>fhirResources/MeasureName-MeasureVersion.json\n" +
 			"fhirResources/libraries/LibraryName1-LibraryVersion.json\n" + 
@@ -255,8 +269,7 @@ public class CohortEngineRestHandler {
 	@ApiImplicitParams({
 			// This is necessary for the dark launch feature
 			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
-			// These are necessary to create a proper view of the request body that is all wrapped up in the Liberty IMultipartBody parameter
-			@ApiImplicitParam(name=FHIR_DATA_SERVER_CONFIG_PART, value=EXAMPLE_REQUEST_DATA_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
+			@ApiImplicitParam(name=FHIR_DATA_SERVER_CONFIG_PART, value=EXAMPLE_FHIR_CONFIG, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
 			@ApiImplicitParam(name=CQL_DEFINITION, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
