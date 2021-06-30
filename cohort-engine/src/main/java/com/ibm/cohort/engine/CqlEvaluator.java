@@ -393,7 +393,7 @@ public class CqlEvaluator {
 
 
 	protected void evaluateWithEngineWrapper(String libraryName, String libraryVersion, Map<String, Parameter> parameters,
-											 Set<String> expressions, List<String> contextIds, LoggingEnum enableLogging, EvaluationResultCallback callback) {
+											 Set<String> expressions, List<String> contextIds, LoggingEnum loggingLevel, EvaluationResultCallback callback) {
 		if (this.libraryLoader == null || this.dataServerClient == null || this.terminologyServerClient == null
 				|| this.measureServerClient == null) {
 			throw new IllegalArgumentException(
@@ -415,9 +415,9 @@ public class CqlEvaluator {
 			libraryId.setVersion(libraryVersion);
 		}
 		DebugMap debugMap = null;
-		if(!enableLogging.equals(LoggingEnum.NA)){
+		if(loggingLevel != null && !loggingLevel.equals(LoggingEnum.NA)){
 			debugMap = new DebugMap();
-			if(enableLogging.equals(LoggingEnum.COVERAGE)){
+			if(loggingLevel.equals(LoggingEnum.COVERAGE)){
 				debugMap.setIsCoverageEnabled(true);
 			}
 			else {

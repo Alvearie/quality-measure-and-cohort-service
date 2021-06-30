@@ -99,6 +99,7 @@ tags={	@Tag(name = "FHIR Measures", description = "IBM Cohort Engine FHIR Measur
 		@Tag(name = "ValueSet", description = "IBM Cohort Engine ValueSet Operations")})
 public class CohortEngineRestHandler {
 	private static final String EVALUATION_API_NOTES = "The body of the request is a multipart/form-data request with an application/json attachment named 'request_data' that describes the measure evaluation that will be performed and an application/zip attachment named 'measure' that contains the measure and library artifacts to be evaluated. Valueset resources required for Measure evaluation must be loaded to the FHIR server in advance of an evaluation request. ";
+	private static final String COHORT_EVALUATION_API_NOTES = "The body of the request is a multipart/form-data request with  an application/zip attachment named 'cql_definition' that contains the cohort cql definition to be evaluated.";
 	private static final Logger logger = LoggerFactory.getLogger(CohortEngineRestHandler.class.getName());
 	private static final String MEASURE_IDENTIFIER_VALUE_DESC = "Used to identify the FHIR measure resource you would like the parameter information "
 			+ "for using the Measure.Identifier.Value field.";
@@ -240,7 +241,7 @@ public class CohortEngineRestHandler {
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Produces({ MediaType.APPLICATION_JSON })
 	@ApiOperation(value = "Evaluates a specific define within a CQL for a set of patients"
-			, notes = EVALUATION_API_NOTES, response = String.class
+			, notes = COHORT_EVALUATION_API_NOTES, response = String.class
 			, tags = {"Cohort Evaluation"}
 			, nickname = "evaluate_cohort"
 			, extensions = {
@@ -255,8 +256,8 @@ public class CohortEngineRestHandler {
 			// This is necessary for the dark launch feature
 			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
 			// These are necessary to create a proper view of the request body that is all wrapped up in the Liberty IMultipartBody parameter
-			@ApiImplicitParam(name=REQUEST_DATA_PART, value=EXAMPLE_REQUEST_DATA_JSON, dataTypeClass = MeasureEvaluation.class, required=true, paramType="form", type="file"),
-			@ApiImplicitParam(name=CQL_PART, dataTypeClass = File.class, required=true, paramType="form", type="file" )
+			@ApiImplicitParam(name=FHIR_DATA_SERVER_CONFIG_PART, value=EXAMPLE_REQUEST_DATA_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
+			@ApiImplicitParam(name=CQL_DEFINITION, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful Operation"),
