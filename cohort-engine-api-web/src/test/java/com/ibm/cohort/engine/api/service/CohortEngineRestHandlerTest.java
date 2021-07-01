@@ -15,6 +15,7 @@ import static org.mockito.Mockito.when;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -55,7 +56,6 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.BaseFhirTest;
-import com.ibm.cohort.engine.LoggingEnum;
 import com.ibm.cohort.engine.api.service.CohortEngineRestHandler.MethodNames;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
@@ -102,6 +102,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 			Arrays.asList(new MeasureParameterInfo().documentation("documentation").name("name").min(0).max("max")
 					.use("IN").type("type")));
 	private static final String VALUE_SET_INPUT = "src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx";
+	private static final String COHORT_INPUT = "src/test/resources/Test-1.0.0.zip";
 
 	@Mock
 	private static DefaultFhirClientBuilder mockDefaultFhirClientBuilder;
@@ -685,11 +686,16 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		Response.status(Status.CONFLICT);
 	}
 
+	//todo fix both tests
 	@PrepareForTest({ Response.class, FHIRRestUtils.class })
 	@Test
 	public void testCohortEvaluation() throws Exception {
 		prepMocks();
 		mockResponseClasses();
+		//todo try without
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		Patient patient = getPatient("123", AdministrativeGender.FEMALE, 40);
+		mockFhirResourceRetrieval(patient);
 
 		PowerMockito.mockStatic(ServiceBaseUtility.class);
 		PowerMockito.mockStatic(FHIRRestUtils.class);
@@ -697,22 +703,66 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		PowerMockito.when(ServiceBaseUtility.apiSetup(VERSION, logger, MethodNames.EVALUATE_COHORT.getName())).thenReturn(null);
 		PowerMockito.whenNew(DefaultFhirClientBuilder.class).withArguments(Mockito.any()).thenReturn(mockDefaultFhirClientBuilder);
 
-		// Create the metadata part of the request
-		String json = "{}";
-		ByteArrayInputStream jsonIs = new ByteArrayInputStream(json.getBytes());
-		IAttachment rootPart = mockAttachment(jsonIs);
 
 		// Create the ZIP part of the request
-		ByteArrayInputStream zipIs = TestHelper.emptyZip();
+		File tempFile = new File(COHORT_INPUT);
+		byte[] x = new byte[(int) tempFile.length()];
+		new FileInputStream(tempFile).read(x);
+		ByteArrayInputStream zipIs = new ByteArrayInputStream(x);
 		IAttachment measurePart = mockAttachment(zipIs);
 
 		// Assemble them together into a reasonable facsimile of the real request
-		IMultipartBody body = mock(IMultipartBody.class);
-		when( body.getAttachment(CohortEngineRestHandler.REQUEST_DATA_PART) ).thenReturn(rootPart);
+		IMultipartBody body = getFhirConfigFileBody();
 		when( body.getAttachment(CohortEngineRestHandler.CQL_DEFINITION) ).thenReturn(measurePart);
+		when( measurePart.getDataHandler().getName()).thenReturn("Test-1.0.0.cql");
 
-		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, null, null, null, body);
+		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, "Female", "123", null, body);
 		assertNotNull(loadResponse);
+		PowerMockito.verifyStatic(Response.class);
+		Response.status(Status.ACCEPTED);
+
+		PowerMockito.verifyStatic(ServiceBaseUtility.class);
+		ServiceBaseUtility.apiSetup(Mockito.isNull(), Mockito.any(), Mockito.anyString());
+
+		// verifyStatic must be called before each verification
+		PowerMockito.verifyStatic(ServiceBaseUtility.class);
+		ServiceBaseUtility.apiCleanup(Mockito.any(), Mockito.eq(MethodNames.EVALUATE_COHORT.getName()));
+	}
+
+
+	@PrepareForTest({ Response.class, FHIRRestUtils.class })
+	@Test
+	public void testCohortBadCQLDefinition() throws Exception {
+		prepMocks();
+		mockResponseClasses();
+		//todo try without
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		Patient patient = getPatient("123", AdministrativeGender.FEMALE, 40);
+		mockFhirResourceRetrieval(patient);
+
+		PowerMockito.mockStatic(ServiceBaseUtility.class);
+		PowerMockito.mockStatic(FHIRRestUtils.class);
+		PowerMockito.mockStatic(DefaultFhirClientBuilder.class);
+		PowerMockito.when(ServiceBaseUtility.apiSetup(VERSION, logger, MethodNames.EVALUATE_COHORT.getName())).thenReturn(null);
+		PowerMockito.whenNew(DefaultFhirClientBuilder.class).withArguments(Mockito.any()).thenReturn(mockDefaultFhirClientBuilder);
+
+
+		// Create the ZIP part of the request
+		File tempFile = new File("src/test/resources/Test-bad-1.0.0.zip");
+		byte[] x = new byte[(int) tempFile.length()];
+		new FileInputStream(tempFile).read(x);
+		ByteArrayInputStream zipIs = new ByteArrayInputStream(x);
+		IAttachment measurePart = mockAttachment(zipIs);
+
+		// Assemble them together into a reasonable facsimile of the real request
+		IMultipartBody body = getFhirConfigFileBody();
+		when( body.getAttachment(CohortEngineRestHandler.CQL_DEFINITION) ).thenReturn(measurePart);
+		when( measurePart.getDataHandler().getName()).thenReturn("Test-1.0.0.cql");
+
+		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, "Female", "123", null, body);
+		assertNotNull(loadResponse);
+		PowerMockito.verifyStatic(Response.class);
+		Response.status(400);
 
 		PowerMockito.verifyStatic(ServiceBaseUtility.class);
 		ServiceBaseUtility.apiSetup(Mockito.isNull(), Mockito.any(), Mockito.anyString());
