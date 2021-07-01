@@ -126,7 +126,7 @@ public class CohortEngineRestHandler {
 	public static final String CQL_DEFINITION = "cql_definition";
 	public static final String REQUEST_DATA_PART = "request_data";
 	public static final String MEASURE_PART = "measure";
-	public static final String DATA_SERVER_CONFIG_PART = "data_server_config";
+	public static final String FHIR_DATA_SERVER_CONFIG_PART = "fhir_data_server_config";
 	public static final String TERMINOLOGY_SERVER_CONFIG_PART = "terminology_server_config";
 	public static final String MEASURE_SERVER_CONFIG_PART = "measure_server_config";
 	public static final String UPDATE_IF_EXISTS_PARM = "update_if_exists";
@@ -273,7 +273,7 @@ public class CohortEngineRestHandler {
 	@ApiImplicitParams({
 			// This is necessary for the dark launch feature
 			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
-			@ApiImplicitParam(name= DATA_SERVER_CONFIG_PART, value=EXAMPLE_FHIR_CONFIG, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
+			@ApiImplicitParam(name= FHIR_DATA_SERVER_CONFIG_PART, value=EXAMPLE_FHIR_CONFIG, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
 			@ApiImplicitParam(name= TERMINOLOGY_SERVER_CONFIG_PART, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
 			@ApiImplicitParam(name= MEASURE_SERVER_CONFIG_PART, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
 			@ApiImplicitParam(name=CQL_DEFINITION, value = CQL_REQUIREMENTS,dataTypeClass = File.class, required=true, paramType="form", type="file" )
@@ -311,9 +311,9 @@ public class CohortEngineRestHandler {
 
 			ObjectMapper om = new ObjectMapper();
 
-			IAttachment dataServerConfigAttachment = multipartBody.getAttachment(DATA_SERVER_CONFIG_PART);
+			IAttachment dataServerConfigAttachment = multipartBody.getAttachment(FHIR_DATA_SERVER_CONFIG_PART);
 			if (dataServerConfigAttachment == null) {
-				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", DATA_SERVER_CONFIG_PART));
+				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", FHIR_DATA_SERVER_CONFIG_PART));
 			}
 
 			FhirServerConfig dataServerConfig = om.readValue( dataServerConfigAttachment.getDataHandler().getInputStream(), FhirServerConfig.class );
@@ -506,7 +506,7 @@ public class CohortEngineRestHandler {
 	@ApiOperation(value = "Get measure parameters", notes = CohortEngineRestHandler.MEASURE_API_NOTES, response = MeasureParameterInfoList.class, authorizations = {@Authorization(value = "BasicAuth")   }, responseContainer = "List", tags = {
 			"FHIR Measures" })
 	@ApiImplicitParams({
-		@ApiImplicitParam(name= DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file")
+		@ApiImplicitParam(name= FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file")
 	})
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful Operation", response = MeasureParameterInfoList.class),
@@ -530,9 +530,9 @@ public class CohortEngineRestHandler {
 				return errorResponse;
 			}
 			
-			IAttachment dataSourceAttachment = multipartBody.getAttachment(DATA_SERVER_CONFIG_PART);
+			IAttachment dataSourceAttachment = multipartBody.getAttachment(FHIR_DATA_SERVER_CONFIG_PART);
 			if( dataSourceAttachment == null ) {
-				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", DATA_SERVER_CONFIG_PART));
+				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", FHIR_DATA_SERVER_CONFIG_PART));
 			}
 			
 			// deserialize the MeasuresEvaluation request
@@ -580,7 +580,7 @@ public class CohortEngineRestHandler {
 	@ApiOperation(value = "Get measure parameters by id", notes = CohortEngineRestHandler.MEASURE_API_NOTES, response = MeasureParameterInfoList.class, nickname = "get_measure_parameters_by_id", tags = {
 			"FHIR Measures" })
 	@ApiImplicitParams({
-		@ApiImplicitParam(name= DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
+		@ApiImplicitParam(name= FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
 	})
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful Operation", response = MeasureParameterInfoList.class),
@@ -603,9 +603,9 @@ public class CohortEngineRestHandler {
 				return errorResponse;
 			}
 
-			IAttachment dataSourceAttachment = multipartBody.getAttachment(DATA_SERVER_CONFIG_PART);
+			IAttachment dataSourceAttachment = multipartBody.getAttachment(FHIR_DATA_SERVER_CONFIG_PART);
 			if( dataSourceAttachment == null ) {
-				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", DATA_SERVER_CONFIG_PART));
+				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", FHIR_DATA_SERVER_CONFIG_PART));
 			}
 			
 			// deserialize the MeasuresEvaluation request
@@ -648,7 +648,7 @@ public class CohortEngineRestHandler {
 	@ApiImplicitParams({
 			// This is necessary for the dark launch feature
 			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
-			@ApiImplicitParam(name= DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
+			@ApiImplicitParam(name= FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
 			@ApiImplicitParam(name=VALUE_SET_PART, value= VALUE_SET_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" ),
 			@ApiImplicitParam(name=CUSTOM_CODE_SYSTEM, value= CUSTOM_CODE_SYSTEM_DESC, dataTypeClass = File.class, paramType="form", type="file" )
 	})
@@ -683,9 +683,9 @@ public class CohortEngineRestHandler {
 				return errorResponse;
 			}
 
-			IAttachment dataSourceAttachment = multipartBody.getAttachment(DATA_SERVER_CONFIG_PART);
+			IAttachment dataSourceAttachment = multipartBody.getAttachment(FHIR_DATA_SERVER_CONFIG_PART);
 			if( dataSourceAttachment == null ) {
-				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", DATA_SERVER_CONFIG_PART));
+				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", FHIR_DATA_SERVER_CONFIG_PART));
 			}
 			
 			// deserialize the MeasuresEvaluation request

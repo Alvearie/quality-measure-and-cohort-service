@@ -819,7 +819,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		
 		// Assemble them together into a reasonable facsimile of the real request
 		IMultipartBody body = mock(IMultipartBody.class);
-		when( body.getAttachment(CohortEngineRestHandler.DATA_SERVER_CONFIG_PART) ).thenReturn(rootPart);
+		when( body.getAttachment(CohortEngineRestHandler.FHIR_DATA_SERVER_CONFIG_PART) ).thenReturn(rootPart);
 		
 		return body;
 	}
