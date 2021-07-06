@@ -11,7 +11,6 @@ import java.util.Map;
 
 import org.opencds.cqf.cql.engine.data.CompositeDataProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
-import org.opencds.cqf.cql.engine.fhir.model.FhirModelResolver;
 import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
 import org.opencds.cqf.cql.engine.fhir.searchparam.SearchParameterResolver;
 import org.opencds.cqf.cql.engine.retrieve.RetrieveProvider;
@@ -63,7 +62,7 @@ public class R4DataProviderFactory {
 			IGenericClient client,
 			TerminologyProvider terminologyProvider,
 			RetrieveCacheContext retrieveCacheContext,
-			FhirModelResolver modelResolver,
+			R4FhirModelResolver modelResolver,
 			boolean isExpandValueSets,
 			Integer pageSize
 	) {
