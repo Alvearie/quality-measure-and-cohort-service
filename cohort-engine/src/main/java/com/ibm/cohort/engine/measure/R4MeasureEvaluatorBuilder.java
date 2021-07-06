@@ -12,6 +12,8 @@ import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
+import org.opencds.cqf.cql.engine.fhir.model.FhirModelResolver;
+import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
@@ -27,6 +29,7 @@ public class R4MeasureEvaluatorBuilder {
 	private RetrieveCacheContext cacheContext;
 	private boolean isExpandValueSets = R4DataProviderFactory.DEFAULT_IS_EXPAND_VALUE_SETS;
 	private Integer pageSize = R4DataProviderFactory.DEFAULT_PAGE_SIZE;
+	private FhirModelResolver modelResolver = new R4FhirModelResolver();
 
 	public R4MeasureEvaluatorBuilder withClientContext(FHIRClientContext value) {
 		this.clientContext = value;
@@ -48,6 +51,11 @@ public class R4MeasureEvaluatorBuilder {
 		return this;
 	}
 
+	public R4MeasureEvaluatorBuilder withModelResolver(FhirModelResolver modelResolver) {
+		this.modelResolver = modelResolver;
+		return this;
+	}
+
 	public MeasureEvaluator build() {
 		if (clientContext == null) {
 			throw new IllegalArgumentException("Client context not provided");
@@ -58,6 +66,7 @@ public class R4MeasureEvaluatorBuilder {
 				clientContext.getDataClient(),
 				terminologyProvider,
 				cacheContext,
+				modelResolver,
 				isExpandValueSets,
 				pageSize
 		);

@@ -45,6 +45,7 @@ import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
+import com.ibm.cohort.engine.r4.cache.CachingR4FhirModelResolver;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 
@@ -178,7 +179,7 @@ public class MeasureCLI extends BaseCLI {
 
 			TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(terminologyServerClient);
 			try (RetrieveCacheContext retrieveCacheContext = arguments.disableRetrieveCache ? null : new DefaultRetrieveCacheContext()) {
-				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataServerClient, terminologyProvider, retrieveCacheContext, ! arguments.enableTerminologyOptimization, arguments.searchPageSize);
+				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataServerClient, terminologyProvider, retrieveCacheContext, new CachingR4FhirModelResolver(), ! arguments.enableTerminologyOptimization, arguments.searchPageSize);
 
 				evaluator = new MeasureEvaluator(measureProvider, libraryProvider, terminologyProvider, dataProviders);
 

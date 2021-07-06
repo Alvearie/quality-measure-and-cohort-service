@@ -25,13 +25,13 @@ import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.execution.CqlEngine;
 import org.opencds.cqf.cql.engine.execution.EvaluationResult;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
-import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
 import org.opencds.cqf.cql.engine.fhir.searchparam.SearchParameterResolver;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.cohort.engine.r4.cache.CachingR4FhirModelResolver;
 import com.ibm.cohort.engine.retrieve.R4RestFhirRetrieveProvider;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
@@ -324,7 +324,7 @@ public class CqlEvaluator {
 		//reliable way to do that right now using HAPI and IBM FHIR as examples.
 		retrieveProvider.setExpandValueSets(isExpandValueSets());
 		retrieveProvider.setSearchPageSize(getSearchPageSize());
-		CompositeDataProvider dataProvider = new CompositeDataProvider(new R4FhirModelResolver(), retrieveProvider);
+		CompositeDataProvider dataProvider = new CompositeDataProvider(new CachingR4FhirModelResolver(), retrieveProvider);
 
 		return mapSupportedModelsToDataProvider(dataProvider);
 	}

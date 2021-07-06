@@ -23,6 +23,8 @@ import com.ibm.cohort.engine.measure.R4MeasureEvaluatorBuilder;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
+import com.ibm.cohort.engine.r4.cache.CachingR4FhirModelResolver;
+
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -191,7 +193,9 @@ public class CohortEngineFlinkDriver implements Serializable {
 		FHIRClientContext clientContext = new FHIRClientContext.Builder()
 				.withDefaultClient(fhirServerInfo.toIbmServerConfig())
 				.build();
-		R4MeasureEvaluatorBuilder evalBuilder = new R4MeasureEvaluatorBuilder().withClientContext(clientContext);
+		R4MeasureEvaluatorBuilder evalBuilder = new R4MeasureEvaluatorBuilder()
+				.withClientContext(clientContext)
+				.withModelResolver(new CachingR4FhirModelResolver());
 		if (!disableRetrieveCache) {
 			evalBuilder.withRetrieveCacheContext(getRetrieveCacheContext());
 		}
