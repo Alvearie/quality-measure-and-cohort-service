@@ -131,6 +131,53 @@ public class ResourceResolutionProviderTest extends BaseFhirTest {
 				new Identifier().setSystem("my_system").setValue("my_identifier"), "10.0.0");
 		assertNull(actual);
 	}
+
+	@Test
+	public void when_resolve_by_name_with_version_none_matched___null_is_returned() {
+
+		Measure other = getMeasure( "MyTestMeasure", "1.0.0", "my_identifier" );
+		provider.processResource("MyTestMeasure-1.0.0.json", other);
+
+		other = getMeasure( "MyTestMeasure", "1.2.0", "my_identifier" );
+		provider.processResource("MyTestMeasure-1.2.0.json", other);
+
+		Measure actual = provider.resolveMeasureByName("Other", null);
+		assertNull(actual);
+	}
+
+	@Test
+	public void when_resolve_by_name_with_version_multiple_result___latest_semantic_version_returned() {
+
+		Measure expected = getMeasure( "MyTestMeasure", "1.2.0", "my_identifier" );
+		provider.processResource("MyTestMeasure-1.2.0.json", expected);
+
+		Measure other = getMeasure( "MyTestMeasure", "1.0.0", "my_identifier" );
+		provider.processResource("MyTestMeasure-1.0.0.json", other);
+
+		other = getMeasure( "MyTestMeasure", "9.5.zzzzz", "my_identifier" );
+		provider.processResource("MyTestMeasure-9.5.zzzzz.json", other);
+
+		Measure actual = provider.resolveMeasureByName("MyTestMeasure", null);
+		assertNotNull(actual);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void when_resolve_by_name_with_version_single_result___return_single_result() {
+
+		Measure expected = getMeasure( "MyTestMeasure", "9.5.zzzzz", "my_identifier" );
+		provider.processResource("MyTestMeasure-9.5.zzzzz.json", expected);
+
+		Measure other = getMeasure( "MyTestMeasure", "1.0.0", "my_identifier" );
+		provider.processResource("MyTestMeasure-1.0.0.json", other);
+
+		other = getMeasure( "MyTestMeasure", "1.2.0", "my_identifier" );
+		provider.processResource("MyTestMeasure-1.2.0.json", other);
+
+		Measure actual = provider.resolveMeasureByName("MyTestMeasure", "9.5.zzzzz");
+		assertNotNull(actual);
+		assertEquals(expected, actual);
+	}
 	
 	protected Measure getMeasure( String name, String version, String identifier ) {
 		Measure expected = new Measure();
