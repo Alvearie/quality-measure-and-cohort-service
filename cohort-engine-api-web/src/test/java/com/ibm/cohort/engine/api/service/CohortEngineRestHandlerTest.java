@@ -25,6 +25,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import javax.activation.DataHandler;
 import javax.servlet.http.HttpServletRequest;
@@ -102,7 +105,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 			Arrays.asList(new MeasureParameterInfo().documentation("documentation").name("name").min(0).max("max")
 					.use("IN").type("type")));
 	private static final String VALUE_SET_INPUT = "src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx";
-	private static final String COHORT_INPUT = "src/test/resources/Test-1.0.0.zip";
+	private static final String COHORT_INPUT = "src/test/resources/Test_1.0.0.zip";
 
 	@Mock
 	private static DefaultFhirClientBuilder mockDefaultFhirClientBuilder;
@@ -703,18 +706,34 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 
 
 		// Create the ZIP part of the request
-		File tempFile = new File(COHORT_INPUT);
-		byte[] x = new byte[(int) tempFile.length()];
-		new FileInputStream(tempFile).read(x);
-		ByteArrayInputStream zipIs = new ByteArrayInputStream(x);
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try( ZipOutputStream zos = new ZipOutputStream(baos) ) {
+			File tempFile = new File(COHORT_INPUT);
+			ZipInputStream zis = new ZipInputStream(new FileInputStream(tempFile));
+			for(ZipEntry entry = zis.getNextEntry(); entry != null; entry = zis.getNextEntry()){
+				if(entry.getName().equals("Test-1.0.0/cql/Test-1.0.0.cql")){
+					ZipEntry libEntry = new ZipEntry("cql/Test-1.0.0.cql");
+					zos.putNextEntry(libEntry);
+
+					int size = (int)entry.getSize();
+					byte[] bytes = new byte[size];
+					zis.read(bytes, 0, size);
+					zos.write(bytes);
+					zos.closeEntry();
+				}
+			}
+		}
+
+		ByteArrayInputStream zipIs = new ByteArrayInputStream(baos.toByteArray());
 		IAttachment measurePart = mockAttachment(zipIs);
 
 		// Assemble them together into a reasonable facsimile of the real request
 		IMultipartBody body = getFhirConfigFileBody();
 		when( body.getAttachment(CohortEngineRestHandler.CQL_DEFINITION) ).thenReturn(measurePart);
-		when( measurePart.getDataHandler().getName()).thenReturn("Test-1.0.0.cql");
+		when( measurePart.getDataHandler().getName()).thenReturn("Test_1.0.0.zip");
+		when( measurePart.getHeader("Content-Disposition")).thenReturn("Test_1.0.0.zip");
 
-		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, "Female", "123", null, body);
+		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, "Female", "123", null, "Test-1.0.0.cql", body);
 		assertNotNull(loadResponse);
 		PowerMockito.verifyStatic(Response.class);
 		Response.status(Status.ACCEPTED);
@@ -745,21 +764,30 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 
 
 		// Create the ZIP part of the request
-		File tempFile = new File("src/test/resources/Test-bad-1.0.0.zip");
-		byte[] x = new byte[(int) tempFile.length()];
-		new FileInputStream(tempFile).read(x);
-		ByteArrayInputStream zipIs = new ByteArrayInputStream(x);
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try( ZipOutputStream zos = new ZipOutputStream(baos) ) {
+			File tempFile = new File("src/test/resources/Test-bad-1.0.0.cql");
+			ZipEntry entry = new ZipEntry("cql/Test-bad-1.0.0.cql");
+			zos.putNextEntry(entry);
+
+			byte[] x = new byte[(int) tempFile.length()];
+			new FileInputStream(tempFile).read(x);
+			zos.write(x);
+			zos.closeEntry();
+		}
+		ByteArrayInputStream zipIs = new ByteArrayInputStream(baos.toByteArray());
 		IAttachment measurePart = mockAttachment(zipIs);
 
 		// Assemble them together into a reasonable facsimile of the real request
 		IMultipartBody body = getFhirConfigFileBody();
 		when( body.getAttachment(CohortEngineRestHandler.CQL_DEFINITION) ).thenReturn(measurePart);
-		when( measurePart.getDataHandler().getName()).thenReturn("Test-1.0.0.cql");
+		when( measurePart.getDataHandler().getName()).thenReturn("Test-bad_1.0.0_cql.zip");
+		when( measurePart.getHeader("Content-Disposition")).thenReturn("Test-bad_1.0.0_cql.zip");
 
-		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, "Female", "123", null, body);
+		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, "Female", "123", null, "Test-bad-1.0.0.cql", body);
 		assertNotNull(loadResponse);
 		PowerMockito.verifyStatic(Response.class);
-		Response.status(400);
+		Response.status(500);
 
 		PowerMockito.verifyStatic(ServiceBaseUtility.class);
 		ServiceBaseUtility.apiSetup(Mockito.isNull(), Mockito.any(), Mockito.anyString());
@@ -776,18 +804,27 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		mockResponseClasses();
 
 		// Create the ZIP part of the request
-		File tempFile = new File("src/test/resources/Test-1.0.0.zip");
-		byte[] x = new byte[(int) tempFile.length()];
-		new FileInputStream(tempFile).read(x);
-		ByteArrayInputStream zipIs = new ByteArrayInputStream(x);
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try( ZipOutputStream zos = new ZipOutputStream(baos) ) {
+			File tempFile = new File("src/test/resources/Test-1.0.0.cql");
+			ZipEntry entry = new ZipEntry("cql/Test-1.0.0.cql");
+			zos.putNextEntry(entry);
+
+			byte[] x = new byte[(int) tempFile.length()];
+			new FileInputStream(tempFile).read(x);
+			zos.write(x);
+			zos.closeEntry();
+		}
+		ByteArrayInputStream zipIs = new ByteArrayInputStream(baos.toByteArray());
 		IAttachment measurePart = mockAttachment(zipIs);
 
 		// Assemble them together into a reasonable facsimile of the real request
 		IMultipartBody body = getFhirConfigFileBody();
 		when( body.getAttachment(CohortEngineRestHandler.CQL_DEFINITION) ).thenReturn(measurePart);
 		when( measurePart.getDataHandler().getName()).thenReturn("Test-1.0.0.cql");
+		when( measurePart.getHeader("Content-Disposition")).thenReturn("Test-1.0.0.cql");
 
-		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, null, "123", null, body);
+		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, null, "123", null,"Test-1.0.0.cql", body);
 		assertNotNull(loadResponse);
 		PowerMockito.verifyStatic(Response.class);
 		Response.status(400);

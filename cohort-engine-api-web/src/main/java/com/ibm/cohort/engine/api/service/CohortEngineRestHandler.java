@@ -31,6 +31,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import org.apache.commons.io.FilenameUtils;
 import org.hl7.elm.r1.VersionedIdentifier;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.MeasureReport;
@@ -40,10 +41,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.cohort.engine.BooleanEvaluationCallback;
 import com.ibm.cohort.engine.CqlEvaluator;
 import com.ibm.cohort.engine.DefaultFilenameToVersionedIdentifierStrategy;
 import com.ibm.cohort.engine.LoggingEnum;
-import com.ibm.cohort.engine.BooleanEvaluationCallback;
 import com.ibm.cohort.engine.TranslatingLibraryLoader;
 import com.ibm.cohort.engine.ZipStreamLibrarySourceProvider;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
@@ -118,6 +119,7 @@ public class CohortEngineRestHandler {
 	private static final String CUSTOM_CODE_SYSTEM_DESC = "A custom mapping of code systems to urls";
 
 	private static final String COHORT_ENABLE_LOGGING = "A flag set to true to enable more detailed logging of the cohort evaluation";
+	private static final String COHORT_ENTRY_POINT = "The name and version of the Cohort definition to use as an entrypoint, written as name-version";
 	private static final String PATIENT_IDS = "A comma separated list of patients to evaluate against a CQL";
 	private static final String CQL_DEFINE = "The specific define of the given CQL to analyze the patients against";
 
@@ -138,7 +140,7 @@ public class CohortEngineRestHandler {
 	public static final String COHORT_DEFINE = "define";
 	public static final String COHORT_PATIENT_ID = "patient_id";
 	public static final String ENABLE_LOGGING = "enable_logging";
-	public static final String CQL_PART = "cohort";
+	public static final String ENTRY_POINT = "cohort_entry_point";
 
 	
 	public final static String VALUE_SET_PART = "value_set";
@@ -274,8 +276,7 @@ public class CohortEngineRestHandler {
 			// This is necessary for the dark launch feature
 			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
 			@ApiImplicitParam(name= FHIR_DATA_SERVER_CONFIG_PART, value=EXAMPLE_FHIR_CONFIG, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
-			@ApiImplicitParam(name= TERMINOLOGY_SERVER_CONFIG_PART, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
-			@ApiImplicitParam(name= MEASURE_SERVER_CONFIG_PART, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
+			@ApiImplicitParam(name= TERMINOLOGY_SERVER_CONFIG_PART, dataTypeClass = FhirServerConfig.class, paramType="form", type="file"),
 			@ApiImplicitParam(name=CQL_DEFINITION, value = CQL_REQUIREMENTS,dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
@@ -289,6 +290,8 @@ public class CohortEngineRestHandler {
 			@ApiParam(value = CQL_DEFINE, required = true) @QueryParam(CohortEngineRestHandler.COHORT_DEFINE) String defineToRun,
 			@ApiParam(value = PATIENT_IDS, required = true) @QueryParam(CohortEngineRestHandler.COHORT_PATIENT_ID) String patientIds,
 			@ApiParam(value = CohortEngineRestHandler.COHORT_ENABLE_LOGGING, defaultValue = "NA") @DefaultValue ("NA") @QueryParam(CohortEngineRestHandler.ENABLE_LOGGING) LoggingEnum loggingLevel,
+			//todo name/version as input, replace AuthoringToolFilenameIdentifier
+			@ApiParam(value = CohortEngineRestHandler.COHORT_ENTRY_POINT)  @QueryParam(CohortEngineRestHandler.ENTRY_POINT) String cohortEntryPoint,
 			@ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody)
 	{
 
@@ -323,8 +326,7 @@ public class CohortEngineRestHandler {
 			IAttachment terminologyServerConfigAttachment = multipartBody.getAttachment(TERMINOLOGY_SERVER_CONFIG_PART);
 			terminologyServerConfig = terminologyServerConfigAttachment == null ? dataServerConfig : om.readValue( terminologyServerConfigAttachment.getDataHandler().getInputStream(), FhirServerConfig.class );
 
-			IAttachment measureServerConfigAttachment = multipartBody.getAttachment(MEASURE_SERVER_CONFIG_PART);
-			measureServerConfig = measureServerConfigAttachment == null ?dataServerConfig : om.readValue( measureServerConfigAttachment.getDataHandler().getInputStream(), FhirServerConfig.class );
+			measureServerConfig = dataServerConfig;
 
 			IAttachment cqlAttachment = multipartBody.getAttachment(CQL_DEFINITION);
 			if (cqlAttachment == null) {
@@ -344,7 +346,16 @@ public class CohortEngineRestHandler {
 			evaluator.setTerminologyServerConnectionProperties(terminologyServerConfig);
 			evaluator.setMeasureServerConnectionProperties(measureServerConfig);
 
-			ZipStreamLibrarySourceProvider provider = new ZipStreamLibrarySourceProvider(new ZipInputStream(cqlAttachment.getDataHandler().getInputStream()));
+			//consider adding ZipName/cql to search paths (once we look at an official one)
+			String[] attachmentHeaders = cqlAttachment.getHeader("Content-Disposition").split(";");
+			String filename = null;
+			for(String header : attachmentHeaders){
+				if(header.contains("filename")){
+					filename = FilenameUtils.removeExtension(header.split("=")[1].replaceAll("\"", ""));
+				}
+			}
+			String [] searchPaths = new String[] { "cql", filename+"/cql"};
+			ZipStreamLibrarySourceProvider provider = new ZipStreamLibrarySourceProvider(new ZipInputStream(cqlAttachment.getDataHandler().getInputStream()), searchPaths);
 			CqlTranslationProvider translationProvider = new InJVMCqlTranslationProvider(provider);
 
 			if(defineToRun == null){
@@ -361,7 +372,10 @@ public class CohortEngineRestHandler {
 
 			evaluator.setLibraryLoader(new TranslatingLibraryLoader(provider, translationProvider));
 
-			VersionedIdentifier versionedIdentifier = new DefaultFilenameToVersionedIdentifierStrategy().filenameToVersionedIdentifier(cqlAttachment.getDataHandler().getName());
+			//todo as of right now, we require a certain filename structure for zip and cql within zip separately, this is obnoxious for users
+			//todo and it seems like it would be better to change that strategy/find another way to get the names in question.
+//			VersionedIdentifier versionedIdentifier = new AuthoringToolFilenameToVersionIdentifierStrategy().filenameToVersionedIdentifier(cqlAttachment.getDataHandler().getName());
+			VersionedIdentifier versionedIdentifier = new DefaultFilenameToVersionedIdentifierStrategy().filenameToVersionedIdentifier(cohortEntryPoint);
 
 			BooleanEvaluationCallback callback = new BooleanEvaluationCallback();
 			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), null, expressions, patientsToRun, loggingLevel, callback);

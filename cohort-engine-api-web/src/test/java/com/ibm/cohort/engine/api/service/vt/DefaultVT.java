@@ -474,9 +474,11 @@ public class DefaultVT extends ServiceVTBase {
 		RequestSpecification request = buildBaseRequest(new Headers())
 				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
 				.queryParam(CohortEngineRestHandler.COHORT_DEFINE, "Over the hill")
+				.queryParam(CohortEngineRestHandler.ENTRY_POINT, "Test-1.0.0.cql")
 				.queryParam(CohortEngineRestHandler.COHORT_PATIENT_ID, VALID_PATIENT_ID)
 				.multiPart(CohortEngineRestHandler.FHIR_DATA_SERVER_CONFIG_PART, fhirConfigjson, "application/json")
 				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
+
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
 		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_ACCEPTED);
 
@@ -505,8 +507,9 @@ public class DefaultVT extends ServiceVTBase {
 				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
 				.queryParam(CohortEngineRestHandler.COHORT_DEFINE, "Male")
 				.queryParam(CohortEngineRestHandler.COHORT_PATIENT_ID, VALID_PATIENT_ID)
+				.queryParam(CohortEngineRestHandler.ENTRY_POINT, "Test-1.0.0.cql")
 				.multiPart(CohortEngineRestHandler.FHIR_DATA_SERVER_CONFIG_PART, fhirConfigjson, "application/json")
-				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
+				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test_1.0.0.zip"));
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
 		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_ACCEPTED);
 
@@ -536,8 +539,9 @@ public class DefaultVT extends ServiceVTBase {
 				.queryParam(CohortEngineRestHandler.COHORT_DEFINE, "Male")
 				.queryParam(CohortEngineRestHandler.ENABLE_LOGGING, LoggingEnum.TRACE)
 				.queryParam(CohortEngineRestHandler.COHORT_PATIENT_ID, VALID_PATIENT_ID)
+				.queryParam(CohortEngineRestHandler.ENTRY_POINT, "Test-1.0.0.cql")
 				.multiPart(CohortEngineRestHandler.FHIR_DATA_SERVER_CONFIG_PART, fhirConfigjson, "application/json")
-				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
+				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test_1.0.0.zip"));
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
 		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_ACCEPTED);
 
@@ -569,8 +573,9 @@ public class DefaultVT extends ServiceVTBase {
 				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
 				.queryParam(CohortEngineRestHandler.COHORT_DEFINE, "Female")
 				.queryParam(CohortEngineRestHandler.COHORT_PATIENT_ID, patientInput)
+				.queryParam(CohortEngineRestHandler.ENTRY_POINT, "Test-1.0.0.cql")
 				.multiPart(CohortEngineRestHandler.FHIR_DATA_SERVER_CONFIG_PART, fhirConfigjson, "application/json")
-				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
+				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test_1.0.0.zip"));
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
 		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_ACCEPTED);
 
