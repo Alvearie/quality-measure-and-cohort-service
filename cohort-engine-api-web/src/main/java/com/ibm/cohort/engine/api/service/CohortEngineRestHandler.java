@@ -349,7 +349,7 @@ public class CohortEngineRestHandler {
 				}
 				
 				Integer searchPageSize = evaluationRequest.getSearchPageSize();
-				if( searchPageSize != null ) {
+				if( searchPageSize == null ) {
 					searchPageSize = R4DataProviderFactory.DEFAULT_PAGE_SIZE;
 				}
 				
@@ -465,7 +465,7 @@ public class CohortEngineRestHandler {
 				}
 
 				Integer searchPageSize = evaluationRequest.getSearchPageSize();
-				if( searchPageSize != null ) {
+				if( searchPageSize == null ) {
 					searchPageSize = R4DataProviderFactory.DEFAULT_PAGE_SIZE;
 				}
 
