@@ -307,8 +307,7 @@ public class CohortEngineRestHandler {
 	@ApiImplicitParams({
 			// This is necessary for the dark launch feature
 			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
-			@ApiImplicitParam(name= FHIR_DATA_SERVER_CONFIG_PART, value=EXAMPLE_FHIR_CONFIG, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
-			@ApiImplicitParam(name= TERMINOLOGY_SERVER_CONFIG_PART, dataTypeClass = FhirServerConfig.class, paramType="form", type="file"),
+			@ApiImplicitParam(name=REQUEST_DATA_PART, value=EXAMPLE_COHORT_REQUEST_DATA_JSON, dataTypeClass = CohortEvaluation.class, required=true, paramType="form", type="file"),
 			@ApiImplicitParam(name=CQL_DEFINITION, value = CQL_REQUIREMENTS,dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
