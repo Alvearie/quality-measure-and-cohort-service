@@ -463,34 +463,17 @@ public class DefaultVT extends ServiceVTBase {
 		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD));
 
 		// Create the metadata part of the request
-		ObjectMapper om = new ObjectMapper();
-		String fhirConfigjson = "";
-		try {
-			fhirConfigjson = om.writeValueAsString(dataServerConfig);
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-			fail();
-		}
-
 		CohortEvaluation requestData = new CohortEvaluation();
-
-		Map<String,Parameter> parameterOverrides = new HashMap<>();
-		parameterOverrides.put("Measurement Period", new IntervalParameter(new DateParameter("2019-07-04")
-				, true
-				, new DateParameter( "2020-07-04")
-				, true));
-		requestData.setParameters(parameterOverrides);
 		requestData.setDataServerConfig(dataServerConfig);
 		requestData.setTerminologyServerConfig(dataServerConfig);
-		requestData.setDefineToRun("QualifyingEncounters");
-		requestData.setEntrypoint("EMX153_InitPop-1.1.1.cql");
+		requestData.setDefineToRun("Female");
+		requestData.setEntrypoint("Test-1.0.0.cql");
 		requestData.setPatientIds(VALID_PATIENT_ID);
 
 		RequestSpecification request = buildBaseRequest(new Headers())
 				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
-				.multiPart("TODO", requestData, "application/json")
-//				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
-				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("/Users/mshelley/Downloads/emx153_init_pop_v1_1_1_cql.zip"));
+				.multiPart(CohortEngineRestHandler.REQUEST_DATA_PART, requestData, "application/json")
+				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
 
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
 		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_ACCEPTED);
@@ -507,21 +490,16 @@ public class DefaultVT extends ServiceVTBase {
 		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD));
 
 		// Create the metadata part of the request
-		ObjectMapper om = new ObjectMapper();
-		String fhirConfigjson = "";
-		try {
-			fhirConfigjson = om.writeValueAsString(dataServerConfig);
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-			fail();
-		}
+		CohortEvaluation requestData = new CohortEvaluation();
+		requestData.setDataServerConfig(dataServerConfig);
+		requestData.setTerminologyServerConfig(dataServerConfig);
+		requestData.setDefineToRun("Male");
+		requestData.setEntrypoint("Test-1.0.0.cql");
+		requestData.setPatientIds(VALID_PATIENT_ID);
 
 		RequestSpecification request = buildBaseRequest(new Headers())
 				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
-				.queryParam(CohortEngineRestHandler.COHORT_DEFINE, "Male")
-				.queryParam(CohortEngineRestHandler.COHORT_PATIENT_ID, VALID_PATIENT_ID)
-				.queryParam(CohortEngineRestHandler.ENTRY_POINT, "Test-1.0.0.cql")
-				.multiPart(CohortEngineRestHandler.FHIR_DATA_SERVER_CONFIG_PART, fhirConfigjson, "application/json")
+				.multiPart(CohortEngineRestHandler.REQUEST_DATA_PART, requestData, "application/json")
 				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
 		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_ACCEPTED);
@@ -538,22 +516,17 @@ public class DefaultVT extends ServiceVTBase {
 		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD));
 
 		// Create the metadata part of the request
-		ObjectMapper om = new ObjectMapper();
-		String fhirConfigjson = "";
-		try {
-			fhirConfigjson = om.writeValueAsString(dataServerConfig);
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-			fail();
-		}
+		CohortEvaluation requestData = new CohortEvaluation();
+		requestData.setDataServerConfig(dataServerConfig);
+		requestData.setTerminologyServerConfig(dataServerConfig);
+		requestData.setDefineToRun("Male");
+		requestData.setEntrypoint("Test-1.0.0.cql");
+		requestData.setPatientIds(VALID_PATIENT_ID);
+		requestData.setLoggingLevel(LoggingEnum.TRACE);
 
 		RequestSpecification request = buildBaseRequest(new Headers())
 				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
-				.queryParam(CohortEngineRestHandler.COHORT_DEFINE, "Male")
-				.queryParam(CohortEngineRestHandler.ENABLE_LOGGING, LoggingEnum.TRACE)
-				.queryParam(CohortEngineRestHandler.COHORT_PATIENT_ID, VALID_PATIENT_ID)
-				.queryParam(CohortEngineRestHandler.ENTRY_POINT, "Test-1.0.0.cql")
-				.multiPart(CohortEngineRestHandler.FHIR_DATA_SERVER_CONFIG_PART, fhirConfigjson, "application/json")
+				.multiPart(CohortEngineRestHandler.REQUEST_DATA_PART, requestData, "application/json")
 				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
 		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_ACCEPTED);
@@ -569,25 +542,23 @@ public class DefaultVT extends ServiceVTBase {
 		final String RESOURCE = getUrlBase() + "/{version}/cohort-evaluation";
 		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD));
 
-		// Create the metadata part of the request
-		ObjectMapper om = new ObjectMapper();
-		String fhirConfigjson = "";
-		try {
-			fhirConfigjson = om.writeValueAsString(dataServerConfig);
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-			fail();
-		}
 
 		String SECOND_VALID_PATIENT_ID = "47c883bb-160a-7117-c5df-9344041ef048";
 		String patientInput = VALID_PATIENT_ID + "," + SECOND_VALID_PATIENT_ID;
 
+		// Create the metadata part of the request
+		CohortEvaluation requestData = new CohortEvaluation();
+		requestData.setDataServerConfig(dataServerConfig);
+		requestData.setTerminologyServerConfig(dataServerConfig);
+		requestData.setDefineToRun("Female");
+		requestData.setEntrypoint("Test-1.0.0.cql");
+		requestData.setPatientIds(patientInput);
+		requestData.setLoggingLevel(LoggingEnum.TRACE);
+
+
 		RequestSpecification request = buildBaseRequest(new Headers())
 				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
-				.queryParam(CohortEngineRestHandler.COHORT_DEFINE, "Female")
-				.queryParam(CohortEngineRestHandler.COHORT_PATIENT_ID, patientInput)
-				.queryParam(CohortEngineRestHandler.ENTRY_POINT, "Test-1.0.0.cql")
-				.multiPart(CohortEngineRestHandler.FHIR_DATA_SERVER_CONFIG_PART, fhirConfigjson, "application/json")
+				.multiPart(CohortEngineRestHandler.REQUEST_DATA_PART, requestData, "application/json")
 				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
 		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_ACCEPTED);
