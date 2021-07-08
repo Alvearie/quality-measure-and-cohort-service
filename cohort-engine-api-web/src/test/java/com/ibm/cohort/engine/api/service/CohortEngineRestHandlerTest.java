@@ -59,7 +59,9 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.LoggingEnum;
 import com.ibm.cohort.engine.api.service.CohortEngineRestHandler.MethodNames;
+import com.ibm.cohort.engine.api.service.model.CohortEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
@@ -724,16 +726,33 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 			}
 		}
 
+		CohortEvaluation requestData = new CohortEvaluation();
+
+		FhirServerConfig serverConfig = getFhirServerConfig();
+
+		requestData.setDataServerConfig(serverConfig);
+		requestData.setTerminologyServerConfig(serverConfig);
+		requestData.setDefineToRun("Female");
+		requestData.setEntrypoint("Test-1.0.0.cql");
+		requestData.setPatientIds("123");
+		requestData.setLoggingLevel(LoggingEnum.TRACE);
+
+		ObjectMapper om = new ObjectMapper();
+		String json = om.writeValueAsString(requestData);
+		ByteArrayInputStream jsonIs = new ByteArrayInputStream(json.getBytes());
+		IAttachment request = mockAttachment(jsonIs);
+
 		ByteArrayInputStream zipIs = new ByteArrayInputStream(baos.toByteArray());
 		IAttachment measurePart = mockAttachment(zipIs);
 
 		// Assemble them together into a reasonable facsimile of the real request
 		IMultipartBody body = getFhirConfigFileBody();
 		when( body.getAttachment(CohortEngineRestHandler.CQL_DEFINITION) ).thenReturn(measurePart);
+		when( body.getAttachment(CohortEngineRestHandler.REQUEST_DATA_PART) ).thenReturn(request);
 		when( measurePart.getDataHandler().getName()).thenReturn("Test_1.0.0.zip");
 		when( measurePart.getHeader("Content-Disposition")).thenReturn("Test_1.0.0.zip");
 
-		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, "Female", "123", null, "Test-1.0.0.cql", body);
+		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, body);
 		assertNotNull(loadResponse);
 		PowerMockito.verifyStatic(Response.class);
 		Response.status(Status.ACCEPTED);
@@ -778,13 +797,30 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		ByteArrayInputStream zipIs = new ByteArrayInputStream(baos.toByteArray());
 		IAttachment measurePart = mockAttachment(zipIs);
 
+		CohortEvaluation requestData = new CohortEvaluation();
+
+		FhirServerConfig serverConfig = getFhirServerConfig();
+
+		requestData.setDataServerConfig(serverConfig);
+		requestData.setTerminologyServerConfig(serverConfig);
+		requestData.setDefineToRun("Female");
+		requestData.setEntrypoint("Test-bad-1.0.0.cql");
+		requestData.setPatientIds("123");
+		requestData.setLoggingLevel(LoggingEnum.TRACE);
+
+		ObjectMapper om = new ObjectMapper();
+		String json = om.writeValueAsString(requestData);
+		ByteArrayInputStream jsonIs = new ByteArrayInputStream(json.getBytes());
+		IAttachment request = mockAttachment(jsonIs);
+
 		// Assemble them together into a reasonable facsimile of the real request
 		IMultipartBody body = getFhirConfigFileBody();
 		when( body.getAttachment(CohortEngineRestHandler.CQL_DEFINITION) ).thenReturn(measurePart);
+		when( body.getAttachment(CohortEngineRestHandler.REQUEST_DATA_PART) ).thenReturn(request);
 		when( measurePart.getDataHandler().getName()).thenReturn("Test-bad_1.0.0_cql.zip");
 		when( measurePart.getHeader("Content-Disposition")).thenReturn("Test-bad_1.0.0_cql.zip");
 
-		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, "Female", "123", null, "Test-bad-1.0.0.cql", body);
+		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, body);
 		assertNotNull(loadResponse);
 		PowerMockito.verifyStatic(Response.class);
 		Response.status(500);
@@ -818,13 +854,30 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		ByteArrayInputStream zipIs = new ByteArrayInputStream(baos.toByteArray());
 		IAttachment measurePart = mockAttachment(zipIs);
 
+		CohortEvaluation requestData = new CohortEvaluation();
+
+		FhirServerConfig serverConfig = getFhirServerConfig();
+
+		requestData.setDataServerConfig(serverConfig);
+		requestData.setTerminologyServerConfig(serverConfig);
+		requestData.setDefineToRun(null);
+		requestData.setLoggingLevel(LoggingEnum.TRACE);
+		requestData.setEntrypoint("Test-1.0.0.cql");
+		requestData.setPatientIds("123");
+
+		ObjectMapper om = new ObjectMapper();
+		String json = om.writeValueAsString(requestData);
+		ByteArrayInputStream jsonIs = new ByteArrayInputStream(json.getBytes());
+		IAttachment request = mockAttachment(jsonIs);
+
 		// Assemble them together into a reasonable facsimile of the real request
 		IMultipartBody body = getFhirConfigFileBody();
 		when( body.getAttachment(CohortEngineRestHandler.CQL_DEFINITION) ).thenReturn(measurePart);
+		when( body.getAttachment(CohortEngineRestHandler.REQUEST_DATA_PART) ).thenReturn(request);
 		when( measurePart.getDataHandler().getName()).thenReturn("Test-1.0.0.cql");
 		when( measurePart.getHeader("Content-Disposition")).thenReturn("Test-1.0.0.cql");
 
-		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, null, "123", null,"Test-1.0.0.cql", body);
+		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, body);
 		assertNotNull(loadResponse);
 		PowerMockito.verifyStatic(Response.class);
 		Response.status(400);

@@ -44,9 +44,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.BooleanEvaluationCallback;
 import com.ibm.cohort.engine.CqlEvaluator;
 import com.ibm.cohort.engine.DefaultFilenameToVersionedIdentifierStrategy;
-import com.ibm.cohort.engine.LoggingEnum;
 import com.ibm.cohort.engine.TranslatingLibraryLoader;
 import com.ibm.cohort.engine.ZipStreamLibrarySourceProvider;
+import com.ibm.cohort.engine.api.service.model.CohortEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfoList;
@@ -118,11 +118,6 @@ public class CohortEngineRestHandler {
 	private static final String VALUE_SET_DESC = "Spreadsheet containing the Value Set definition.";
 	private static final String CUSTOM_CODE_SYSTEM_DESC = "A custom mapping of code systems to urls";
 
-	private static final String COHORT_ENABLE_LOGGING = "A flag set to true to enable more detailed logging of the cohort evaluation";
-	private static final String COHORT_ENTRY_POINT = "The name and version of the Cohort definition to use as an entrypoint, written as name-version";
-	private static final String PATIENT_IDS = "A comma separated list of patients to evaluate against a CQL";
-	private static final String CQL_DEFINE = "The specific define of the given CQL to analyze the patients against";
-
 	public static final String DELAY_DEFAULT = "3";
 	
 	public static final String CQL_DEFINITION = "cql_definition";
@@ -130,7 +125,6 @@ public class CohortEngineRestHandler {
 	public static final String MEASURE_PART = "measure";
 	public static final String FHIR_DATA_SERVER_CONFIG_PART = "fhir_data_server_config";
 	public static final String TERMINOLOGY_SERVER_CONFIG_PART = "terminology_server_config";
-	public static final String MEASURE_SERVER_CONFIG_PART = "measure_server_config";
 	public static final String UPDATE_IF_EXISTS_PARM = "update_if_exists";
 	public static final String VERSION = "version";
 	public static final String MEASURE_IDENTIFIER_VALUE = "measure_identifier_value";
@@ -141,6 +135,7 @@ public class CohortEngineRestHandler {
 	public static final String COHORT_PATIENT_ID = "patient_id";
 	public static final String ENABLE_LOGGING = "enable_logging";
 	public static final String ENTRY_POINT = "cohort_entry_point";
+	public static final String PARAMETERS = "cohort_parameters";
 
 	
 	public final static String VALUE_SET_PART = "value_set";
@@ -187,6 +182,43 @@ public class CohortEngineRestHandler {
 			"    },\n" +
 			"    \"expandValueSets\": true\n" +
 			"    \"searchPageSize\": 1000\n" +
+			"}</pre></p>";
+
+	public static final String EXAMPLE_COHORT_REQUEST_DATA_JSON = "<p>A configuration file containing the information needed to process a cohort evaluation request. Two possible FHIR server endoints can be configured <code>dataServerConfig</code> and <code>terminologyServerConfig</code>. Only the <code>dataServerConfig</code> is required. If <code>terminologyServerConfig</code> is not provided, the connection details are assumed to be the same as the <code>dataServerConfig</code> connection.</p>" +
+			"<p>The <code>defineToRun</code> will be the specific define of the given CQL to analyze the patients against</code></p>" +
+			"<p>The <code>entrypoint</code> will be the cql file containing the define intended to run, as defined by the <code>defineToRun</code></p>" +
+			"<p>The <code>patientIds</code> is a comma separated list of patients to run. Supplying a single patient does not need any trailing commas.</p>" +
+			"<p>The parameter types and formats are described in detail in the <a href=\"http://alvearie.io/quality-measure-and-cohort-service/#/user-guide/parameter-formats?id=parameter-formats\">user guide</a>.</p>" +
+			"<p>The <code>loggingLevel</code> will determine how much and what type of logging to provide. The options are NA, COVERAGE, and TRACE.</p>" +
+			"<p>Example Contents: \n <pre>{\n" +
+			"    \"dataServerConfig\": {\n" +
+			"        \"@class\": \"com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\",\n" +
+			"        \"endpoint\": \"ENDPOINT\",\n" +
+			"        \"user\": \"USER\",\n" +
+			"        \"password\": \"PASSWORD\",\n" +
+			"        \"logInfo\": [\n" +
+			"            \"REQUEST_SUMMARY\",\n" +
+			"            \"RESPONSE_SUMMARY\"\n" +
+			"        ],\n" +
+			"        \"tenantId\": \"default\"\n" +
+			"    },\n" +
+			"    \"patientIds\": \"PATIENTIDS\",\n" +
+			"     \"parameters\": {\n" +
+			"            \"Measurement Period\": {\n" +
+			"                \"type\": \"interval\",\n" +
+			"                \"start\": {\n" +
+			"                    \"type\": \"date\",\n" +
+			"                    \"value\": \"2019-07-04\"\n" +
+			"                },\n" +
+			"                \"startInclusive\": true,\n" +
+			"                \"end\": {\n" +
+			"                    \"type\": \"date\",\n" +
+			"                    \"value\": \"2020-07-04\"\n" +
+			"                },\n" +
+			"                \"endInclusive\": true\n" +
+			"    },\n" +
+			"    \"entrypoint\": Test-1.0.0.cql\n" +
+			"    \"defineToRun\": InitialPopulation\n" +
 			"}</pre></p>";
 
 	public static final String EXAMPLE_FHIR_CONFIG = "<p>A configuration file containing the information needed to access a FHIR server."+
@@ -287,11 +319,6 @@ public class CohortEngineRestHandler {
 	public Response evaluateCohort(
 			@Context HttpServletRequest request,
 			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam(CohortEngineRestHandler.VERSION) String version,
-			@ApiParam(value = CQL_DEFINE, required = true) @QueryParam(CohortEngineRestHandler.COHORT_DEFINE) String defineToRun,
-			@ApiParam(value = PATIENT_IDS, required = true) @QueryParam(CohortEngineRestHandler.COHORT_PATIENT_ID) String patientIds,
-			@ApiParam(value = CohortEngineRestHandler.COHORT_ENABLE_LOGGING, defaultValue = "NA") @DefaultValue ("NA") @QueryParam(CohortEngineRestHandler.ENABLE_LOGGING) LoggingEnum loggingLevel,
-			//todo name/version as input, replace AuthoringToolFilenameIdentifier
-			@ApiParam(value = CohortEngineRestHandler.COHORT_ENTRY_POINT)  @QueryParam(CohortEngineRestHandler.ENTRY_POINT) String cohortEntryPoint,
 			@ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody)
 	{
 
@@ -312,32 +339,29 @@ public class CohortEngineRestHandler {
 				throw new IllegalArgumentException("A multipart/form-data body is required");
 			}
 
-			ObjectMapper om = new ObjectMapper();
-
-			IAttachment dataServerConfigAttachment = multipartBody.getAttachment(FHIR_DATA_SERVER_CONFIG_PART);
-			if (dataServerConfigAttachment == null) {
-				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", FHIR_DATA_SERVER_CONFIG_PART));
+			IAttachment metadataAttachment = multipartBody.getAttachment(REQUEST_DATA_PART);
+			if (metadataAttachment == null) {
+				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", REQUEST_DATA_PART));
 			}
 
-			FhirServerConfig dataServerConfig = om.readValue( dataServerConfigAttachment.getDataHandler().getInputStream(), FhirServerConfig.class );
-			FhirServerConfig terminologyServerConfig;
-			FhirServerConfig measureServerConfig;
+			// deserialize the MeasuresEvaluation request
+			ObjectMapper om = new ObjectMapper();
+			CohortEvaluation evaluationRequest = om.readValue( metadataAttachment.getDataHandler().getInputStream(), CohortEvaluation.class );
 
-			IAttachment terminologyServerConfigAttachment = multipartBody.getAttachment(TERMINOLOGY_SERVER_CONFIG_PART);
-			terminologyServerConfig = terminologyServerConfigAttachment == null ? dataServerConfig : om.readValue( terminologyServerConfigAttachment.getDataHandler().getInputStream(), FhirServerConfig.class );
-
-			measureServerConfig = dataServerConfig;
+			FhirServerConfig dataServerConfig = evaluationRequest.getDataServerConfig();
+			FhirServerConfig terminologyServerConfig = evaluationRequest.getTerminologyServerConfig() == null
+					? evaluationRequest.getDataServerConfig() : evaluationRequest.getTerminologyServerConfig();
+			FhirServerConfig measureServerConfig = dataServerConfig;
 
 			IAttachment cqlAttachment = multipartBody.getAttachment(CQL_DEFINITION);
 			if (cqlAttachment == null) {
 				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", CQL_DEFINITION));
 			}
 
-
 			//validate the contents of the fhirServerConfig
 			validateBean(dataServerConfig);
 			validateBean(terminologyServerConfig);
-			validateBean(measureServerConfig);
+//			validateBean(measureServerConfig);
 
 			FhirClientBuilderFactory clientFactory = FhirClientBuilderFactory.newInstance();
 
@@ -346,7 +370,6 @@ public class CohortEngineRestHandler {
 			evaluator.setTerminologyServerConnectionProperties(terminologyServerConfig);
 			evaluator.setMeasureServerConnectionProperties(measureServerConfig);
 
-			//consider adding ZipName/cql to search paths (once we look at an official one)
 			String[] attachmentHeaders = cqlAttachment.getHeader("Content-Disposition").split(";");
 			String filename = null;
 			for(String header : attachmentHeaders){
@@ -358,27 +381,18 @@ public class CohortEngineRestHandler {
 			ZipStreamLibrarySourceProvider provider = new ZipStreamLibrarySourceProvider(new ZipInputStream(cqlAttachment.getDataHandler().getInputStream()), searchPaths);
 			CqlTranslationProvider translationProvider = new InJVMCqlTranslationProvider(provider);
 
-			if(defineToRun == null){
-				throw new IllegalArgumentException("Must specify define to be run!");
-			}
 			Set<String> expressions = new HashSet<>();
-			expressions.add(defineToRun);
+			expressions.add(evaluationRequest.getDefineToRun());
 
-			if(patientIds == null){
-				throw new IllegalArgumentException("Must specify at least one patient to be run!");
-			}
-			String[] patients = patientIds.split(",");
+			String[] patients = evaluationRequest.getPatientIds().split(",");
 			List<String> patientsToRun = Arrays.asList(patients);
 
 			evaluator.setLibraryLoader(new TranslatingLibraryLoader(provider, translationProvider));
 
-			//todo as of right now, we require a certain filename structure for zip and cql within zip separately, this is obnoxious for users
-			//todo and it seems like it would be better to change that strategy/find another way to get the names in question.
-//			VersionedIdentifier versionedIdentifier = new AuthoringToolFilenameToVersionIdentifierStrategy().filenameToVersionedIdentifier(cqlAttachment.getDataHandler().getName());
-			VersionedIdentifier versionedIdentifier = new DefaultFilenameToVersionedIdentifierStrategy().filenameToVersionedIdentifier(cohortEntryPoint);
+			VersionedIdentifier versionedIdentifier = new DefaultFilenameToVersionedIdentifierStrategy().filenameToVersionedIdentifier(evaluationRequest.getEntrypoint());
 
 			BooleanEvaluationCallback callback = new BooleanEvaluationCallback();
-			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), null, expressions, patientsToRun, loggingLevel, callback);
+			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), evaluationRequest.getParameters(), expressions, patientsToRun, evaluationRequest.getLoggingLevel(), callback);
 
 			response = Response.status(Response.Status.ACCEPTED).header("Content-Type", "application/json").entity("{\"result\":" + om.writeValueAsString(callback.getPassingPatients()) + "}").build();
 
