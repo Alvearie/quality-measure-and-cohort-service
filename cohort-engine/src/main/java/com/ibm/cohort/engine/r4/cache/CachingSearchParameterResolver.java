@@ -32,6 +32,7 @@ public class CachingSearchParameterResolver extends SearchParameterResolver {
 		this.context = context;
 	}
 
+	@Override
 	public RuntimeSearchParam getSearchParameterDefinition(String dataType, String path, RestSearchParameterTypeEnum paramType) {
 		if (dataType == null || path == null) {
 			return null;
@@ -77,9 +78,6 @@ public class CachingSearchParameterResolver extends SearchParameterResolver {
 	}
 
 	protected String normalizePath(String path) {
-		// Copied code overwrites `path`. Save the initial value for caching later.
-		String pathArgument = path;
-
 		// TODO: What we really need is FhirPath parsing to just get the path
 		//MedicationAdministration.medication.as(CodeableConcept)
 		//MedicationAdministration.medication.as(Reference)
@@ -120,7 +118,6 @@ public class CachingSearchParameterResolver extends SearchParameterResolver {
 		path = String.join(".", newPathParts);
 		
 		return path;
-
 	}
 	
 	protected static void clearCache() {
