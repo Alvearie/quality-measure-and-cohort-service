@@ -476,7 +476,7 @@ public class DefaultVT extends ServiceVTBase {
 				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
 
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
-		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_ACCEPTED);
+		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
 
 		String actual = vr.extract().response().getBody().prettyPrint();
 		String expected = "{\n    \"result\": [\n        \"" + VALID_PATIENT_ID + "\"\n    ]\n}";
@@ -502,7 +502,7 @@ public class DefaultVT extends ServiceVTBase {
 				.multiPart(CohortEngineRestHandler.REQUEST_DATA_PART, requestData, "application/json")
 				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
-		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_ACCEPTED);
+		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
 
 		String actual = vr.extract().response().getBody().prettyPrint();
 		String expected = "{\n    \"result\": [\n        \n    ]\n}";
@@ -529,7 +529,7 @@ public class DefaultVT extends ServiceVTBase {
 				.multiPart(CohortEngineRestHandler.REQUEST_DATA_PART, requestData, "application/json")
 				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
-		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_ACCEPTED);
+		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
 
 		String actual = vr.extract().response().getBody().prettyPrint();
 		String expected = "{\n    \"result\": [\n        \n    ]\n}";
@@ -561,7 +561,7 @@ public class DefaultVT extends ServiceVTBase {
 				.multiPart(CohortEngineRestHandler.REQUEST_DATA_PART, requestData, "application/json")
 				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
-		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_ACCEPTED);
+		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
 
 		String actual = vr.extract().response().getBody().prettyPrint();
 		String expected = "{\n    \"result\": [\n        \"" + VALID_PATIENT_ID + "\",\n        \"" + SECOND_VALID_PATIENT_ID + "\"\n    ]\n}";

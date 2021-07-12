@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import javax.activation.DataHandler;
@@ -710,20 +709,14 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		// Create the ZIP part of the request
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try( ZipOutputStream zos = new ZipOutputStream(baos) ) {
-			File tempFile = new File(COHORT_INPUT);
-			ZipInputStream zis = new ZipInputStream(new FileInputStream(tempFile));
-			for(ZipEntry entry = zis.getNextEntry(); entry != null; entry = zis.getNextEntry()){
-				if(entry.getName().equals("Test-1.0.0/cql/Test-1.0.0.cql")){
-					ZipEntry libEntry = new ZipEntry("cql/Test-1.0.0.cql");
-					zos.putNextEntry(libEntry);
+			File tempFile = new File("src/test/resources/Test-1.0.0.cql");
+			ZipEntry entry = new ZipEntry("cql/Test-1.0.0.cql");
+			zos.putNextEntry(entry);
 
-					int size = (int)entry.getSize();
-					byte[] bytes = new byte[size];
-					zis.read(bytes, 0, size);
-					zos.write(bytes);
-					zos.closeEntry();
-				}
-			}
+			byte[] x = new byte[(int) tempFile.length()];
+			new FileInputStream(tempFile).read(x);
+			zos.write(x);
+			zos.closeEntry();
 		}
 
 		CohortEvaluation requestData = new CohortEvaluation();
@@ -755,7 +748,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, body);
 		assertNotNull(loadResponse);
 		PowerMockito.verifyStatic(Response.class);
-		Response.status(Status.ACCEPTED);
+		Response.status(Status.OK);
 
 		PowerMockito.verifyStatic(ServiceBaseUtility.class);
 		ServiceBaseUtility.apiSetup(Mockito.isNull(), Mockito.any(), Mockito.anyString());

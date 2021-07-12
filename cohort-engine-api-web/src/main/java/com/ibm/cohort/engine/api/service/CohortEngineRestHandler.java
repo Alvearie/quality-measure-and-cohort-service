@@ -124,18 +124,12 @@ public class CohortEngineRestHandler {
 	public static final String REQUEST_DATA_PART = "request_data";
 	public static final String MEASURE_PART = "measure";
 	public static final String FHIR_DATA_SERVER_CONFIG_PART = "fhir_data_server_config";
-	public static final String TERMINOLOGY_SERVER_CONFIG_PART = "terminology_server_config";
 	public static final String UPDATE_IF_EXISTS_PARM = "update_if_exists";
 	public static final String VERSION = "version";
 	public static final String MEASURE_IDENTIFIER_VALUE = "measure_identifier_value";
 	public static final String MEASURE_IDENTIFIER_SYSTEM = "measure_identifier_system";
 	public static final String MEASURE_VERSION = "measure_version";
 	public static final String MEASURE_ID = "measure_id";
-	public static final String COHORT_DEFINE = "define";
-	public static final String COHORT_PATIENT_ID = "patient_id";
-	public static final String ENABLE_LOGGING = "enable_logging";
-	public static final String ENTRY_POINT = "cohort_entry_point";
-	public static final String PARAMETERS = "cohort_parameters";
 
 	
 	public final static String VALUE_SET_PART = "value_set";
@@ -212,28 +206,16 @@ public class CohortEngineRestHandler {
 			"                },\n" +
 			"                \"startInclusive\": true,\n" +
 			"                \"end\": {\n" +
-			"                    \"type\": \"date\",\n" +
-			"                    \"value\": \"2020-07-04\"\n" +
+			"                    \"type\": \"datetime\",\n" +
+			"                    \"value\": \"2020-07-04T00:00:00\"\n" +
 			"                },\n" +
 			"                \"endInclusive\": true\n" +
 			"    },\n" +
 			"    \"entrypoint\": Test-1.0.0.cql\n" +
 			"    \"defineToRun\": InitialPopulation\n" +
+			"    \"loggingLevel\": NA\n" +
 			"}</pre></p>";
 
-	public static final String EXAMPLE_FHIR_CONFIG = "<p>A configuration file containing the information needed to access a FHIR server."+
-			"<p>Example Contents: \n <pre>\n" +
-			"    {\n" +
-			"        \"@class\": \"com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\",\n" +
-			"        \"endpoint\": \"ENDPOINT\",\n" +
-			"        \"user\": \"USER\",\n" +
-			"        \"password\": \"PASSWORD\",\n" +
-			"        \"logInfo\": [\n" +
-			"            \"REQUEST_SUMMARY\",\n" +
-			"            \"RESPONSE_SUMMARY\"\n" +
-			"        ],\n" +
-			"        \"tenantId\": \"default\"\n" +
-			"    }";
 
 	public static final String EXAMPLE_MEASURE_ZIP = "A file in ZIP format that contains the FHIR resources to use in the evaluation. This should contain all the FHIR Measure and Library resources needed in a particular directory structure as follows:" +
 			"<pre>fhirResources/MeasureName-MeasureVersion.json\n" +
@@ -393,7 +375,7 @@ public class CohortEngineRestHandler {
 			BooleanEvaluationCallback callback = new BooleanEvaluationCallback();
 			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), evaluationRequest.getParameters(), expressions, patientsToRun, evaluationRequest.getLoggingLevel(), callback);
 
-			response = Response.status(Response.Status.ACCEPTED).header("Content-Type", "application/json").entity("{\"result\":" + om.writeValueAsString(callback.getPassingPatients()) + "}").build();
+			response = Response.status(Response.Status.OK).header("Content-Type", "application/json").entity("{\"result\":" + om.writeValueAsString(callback.getPassingPatients()) + "}").build();
 
 		} catch (Throwable e) {
 			//map any exceptions caught into the proper REST error response objects
