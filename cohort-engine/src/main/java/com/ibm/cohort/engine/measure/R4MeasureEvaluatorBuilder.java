@@ -17,6 +17,7 @@ import org.opencds.cqf.cql.engine.model.ModelResolver;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
+import com.ibm.cohort.engine.r4.cache.CachingModelResolverDecorator;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 
 /**
@@ -29,6 +30,7 @@ public class R4MeasureEvaluatorBuilder {
 	private RetrieveCacheContext cacheContext;
 	private boolean isExpandValueSets = R4DataProviderFactory.DEFAULT_IS_EXPAND_VALUE_SETS;
 	private Integer pageSize = R4DataProviderFactory.DEFAULT_PAGE_SIZE;
+	private Boolean isCachingModelResolver = false;
 	private ModelResolver modelResolver = new R4FhirModelResolver();
 
 	public R4MeasureEvaluatorBuilder withClientContext(FHIRClientContext value) {
@@ -51,8 +53,8 @@ public class R4MeasureEvaluatorBuilder {
 		return this;
 	}
 
-	public R4MeasureEvaluatorBuilder withModelResolver(ModelResolver modelResolver) {
-		this.modelResolver = modelResolver;
+	public R4MeasureEvaluatorBuilder withModelResolverCaching(Boolean isCachingModelResolver) {
+		this.isCachingModelResolver = isCachingModelResolver;
 		return this;
 	}
 
@@ -66,7 +68,7 @@ public class R4MeasureEvaluatorBuilder {
 				clientContext.getDataClient(),
 				terminologyProvider,
 				cacheContext,
-				modelResolver,
+				isCachingModelResolver ? new CachingModelResolverDecorator(modelResolver) : modelResolver,
 				isExpandValueSets,
 				pageSize
 		);

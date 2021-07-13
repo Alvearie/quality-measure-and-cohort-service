@@ -25,7 +25,6 @@ import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.execution.CqlEngine;
 import org.opencds.cqf.cql.engine.execution.EvaluationResult;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
-import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
 import org.opencds.cqf.cql.engine.fhir.searchparam.SearchParameterResolver;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
@@ -325,7 +324,7 @@ public class CqlEvaluator {
 		//reliable way to do that right now using HAPI and IBM FHIR as examples.
 		retrieveProvider.setExpandValueSets(isExpandValueSets());
 		retrieveProvider.setSearchPageSize(getSearchPageSize());
-		CompositeDataProvider dataProvider = new CompositeDataProvider(new CachingModelResolverDecorator(new R4FhirModelResolver()), retrieveProvider);
+		CompositeDataProvider dataProvider = new CompositeDataProvider(CachingModelResolverDecorator.forR4(), retrieveProvider);
 
 		return mapSupportedModelsToDataProvider(dataProvider);
 	}

@@ -18,7 +18,6 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.util.Collector;
 import org.hl7.fhir.r4.model.MeasureReport;
-import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.flink.KafkaCommon;
@@ -31,7 +30,6 @@ import com.ibm.cohort.engine.measure.R4MeasureEvaluatorBuilder;
 import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
-import com.ibm.cohort.engine.r4.cache.CachingModelResolverDecorator;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
@@ -197,7 +195,7 @@ public class CohortEngineFlinkDriver implements Serializable {
 				.build();
 		R4MeasureEvaluatorBuilder evalBuilder = new R4MeasureEvaluatorBuilder()
 				.withClientContext(clientContext)
-				.withModelResolver(new CachingModelResolverDecorator(new R4FhirModelResolver()));
+				.withModelResolverCaching(true);
 		if (!disableRetrieveCache) {
 			evalBuilder.withRetrieveCacheContext(getRetrieveCacheContext());
 		}

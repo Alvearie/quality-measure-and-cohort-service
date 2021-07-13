@@ -32,7 +32,6 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.MeasureReport;
 import org.opencds.cqf.cql.engine.data.DataProvider;
-import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -307,7 +306,7 @@ public class CohortEngineRestHandler {
 					searchPageSize = R4DataProviderFactory.DEFAULT_PAGE_SIZE;
 				}
 				
-				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataClient, terminologyProvider, retrieveCacheContext, new CachingModelResolverDecorator(new R4FhirModelResolver()), expandValueSets, searchPageSize);
+				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataClient, terminologyProvider, retrieveCacheContext, CachingModelResolverDecorator.forR4(), expandValueSets, searchPageSize);
 				
 				MeasureEvaluator evaluator = new MeasureEvaluator(provider, provider, terminologyProvider, dataProviders);
 				

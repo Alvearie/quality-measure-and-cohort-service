@@ -23,7 +23,6 @@ import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
-import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.beust.jcommander.JCommander;
@@ -180,7 +179,7 @@ public class MeasureCLI extends BaseCLI {
 
 			TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(terminologyServerClient);
 			try (RetrieveCacheContext retrieveCacheContext = arguments.disableRetrieveCache ? null : new DefaultRetrieveCacheContext()) {
-				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataServerClient, terminologyProvider, retrieveCacheContext, new CachingModelResolverDecorator(new R4FhirModelResolver()), ! arguments.enableTerminologyOptimization, arguments.searchPageSize);
+				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataServerClient, terminologyProvider, retrieveCacheContext, CachingModelResolverDecorator.forR4(), ! arguments.enableTerminologyOptimization, arguments.searchPageSize);
 
 				evaluator = new MeasureEvaluator(measureProvider, libraryProvider, terminologyProvider, dataProviders);
 

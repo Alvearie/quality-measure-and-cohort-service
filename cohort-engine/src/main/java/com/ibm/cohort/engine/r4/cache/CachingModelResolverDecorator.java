@@ -7,6 +7,7 @@ import javax.cache.Cache;
 import javax.cache.Caching;
 import javax.cache.configuration.MutableConfiguration;
 
+import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
 import org.opencds.cqf.cql.engine.model.ModelResolver;
 
 
@@ -17,12 +18,15 @@ public class CachingModelResolverDecorator implements ModelResolver {
 	private static final String PER_PACKAGE_TYPE_RESOLUTION_BY_NAME_CACHE_PREFIX = CACHE_PREFIX + "-type-resolution-by-name";
 	private static final String PER_PACKAGE_TYPE_RESOLUTION_BY_CLASS_CACHE_PREFIX = CACHE_PREFIX + "-type-resolution-by-class";
 	
-	private static Map<String, Map<String, Cache<String, Object>>> perPackageContextResolutions = new HashMap<>();
-	private static Map<String, Cache<String,Class<?>>> perPackageTypeResolutionsByTypeName = new HashMap<>();
-	private static Map<String, Cache<Class<?>,Class<?>>> perPackageTypeResolutionsByClass = new HashMap<>();
-	
+	static final Map<String, Map<String, Cache<String, Object>>> perPackageContextResolutions = new HashMap<>();
+	static final Map<String, Cache<String,Class<?>>> perPackageTypeResolutionsByTypeName = new HashMap<>();
+	static final Map<String, Cache<Class<?>,Class<?>>> perPackageTypeResolutionsByClass = new HashMap<>();
 
 	private ModelResolver innerResolver;
+	
+	public static CachingModelResolverDecorator forR4() {
+		return new CachingModelResolverDecorator(new R4FhirModelResolver());
+	}
 
 	public CachingModelResolverDecorator(ModelResolver modelResolver) {
 		this.innerResolver = modelResolver;
