@@ -145,7 +145,6 @@ public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
      */
     private static String formatMsg(List<CqlTranslatorException> translationErrs) {
         StringBuilder msg = new StringBuilder();
-        msg.append("Translation failed due to errors:");
         for (CqlTranslatorException error : translationErrs) {
           TrackBack tb = error.getLocator();
           String lines = tb == null ? "[n/a]" : String.format("[%s:%s (start:%d:%d, end:%d:%d)]",
