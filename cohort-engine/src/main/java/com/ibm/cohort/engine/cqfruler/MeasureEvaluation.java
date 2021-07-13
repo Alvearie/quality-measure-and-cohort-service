@@ -92,8 +92,6 @@ public class MeasureEvaluation {
 
         context.setContextValue(PATIENT, patient.getIdElement().getIdPart());
 
-        clearExpressionCache(context);
-
         ExpressionDef populationExpressionDef = context.resolveExpressionRef(pop.getCriteria().getExpression());
         Object result = populationExpressionDef.evaluate(context);
         
@@ -302,6 +300,7 @@ public class MeasureEvaluation {
 
                     // For each patient in the initial population
                     for (Patient patient : patients) {
+                        clearExpressionCache(context);
                         // Are they in the initial population?
                         boolean inInitialPopulation = evaluatePopulationCriteria(context, patient,
                                 initialPopulationCriteria, initialPopulation, initialPopulationPatients, null, null,
@@ -362,6 +361,7 @@ public class MeasureEvaluation {
 
                     // For each patient in the patient list
                     for (Patient patient : patients) {
+                        clearExpressionCache(context);
                         evaluatePopulationCriteria(context, patient,
                                 initialPopulationCriteria, initialPopulation, initialPopulationPatients, null, null,
                                 null);
