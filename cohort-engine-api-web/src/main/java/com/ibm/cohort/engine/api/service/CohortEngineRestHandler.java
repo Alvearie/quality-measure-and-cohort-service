@@ -383,7 +383,7 @@ public class CohortEngineRestHandler {
 	@Path("/evaluation-patient-list")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Produces({ MediaType.APPLICATION_JSON })
-	@ApiOperation(value = "Evaluates a measure bundle for a list of patient"
+	@ApiOperation(value = "Evaluates a measure bundle for a list of patients"
 			, notes = EVALUATION_API_NOTES, response = String.class
 			, tags = {"Measure Evaluation"}
 			, extensions = {
