@@ -13,10 +13,12 @@
 
 package com.ibm.cohort.engine.cqfruler;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -48,7 +50,7 @@ public class MeasureEvaluation {
     private static final Logger logger = LoggerFactory.getLogger(MeasureEvaluation.class);
 
     public static final String PATIENT = "Patient";
-    
+
     private DataProvider provider;
     private Interval measurementPeriod;
 
@@ -60,7 +62,7 @@ public class MeasureEvaluation {
     public MeasureReport evaluatePatientMeasure(Measure measure, Context context, String patientId) {
     	return evaluatePatientMeasure(measure, context, patientId, false);
     }
-    
+
     public MeasureReport evaluatePatientMeasure(Measure measure, Context context, String patientId, boolean includeEvaluatedResources) {
         logger.info("Generating individual report");
 
@@ -90,6 +92,8 @@ public class MeasureEvaluation {
 
         context.setContextValue(PATIENT, patient.getIdElement().getIdPart());
 
+        clearExpressionCache(context);
+
         ExpressionDef populationExpressionDef = context.resolveExpressionRef(pop.getCriteria().getExpression());
         Object result = populationExpressionDef.evaluate(context);
         
@@ -107,6 +111,21 @@ public class MeasureEvaluation {
 
         return (Iterable<Resource>) result;
     }
+
+	@SuppressWarnings("unchecked")
+	private void clearExpressionCache(Context context) {
+		// Hack to clear expression cache
+		// See cqf-ruler github issue #153
+		try {
+			Field privateField = context.getClass().getDeclaredField("expressions");
+			privateField.setAccessible(true);
+			LinkedHashMap expressions = (LinkedHashMap) privateField.get(context);
+			expressions.clear();
+
+		} catch (Exception e) {
+			logger.warn("Error resetting expression cache", e);
+		}
+	}
 
     private boolean evaluatePopulationCriteria(Context context, Patient patient,
             Measure.MeasureGroupPopulationComponent criteria, Map<String, Resource> population,
