@@ -29,7 +29,7 @@
 	"type": "individual",
 	"measure": "Measure/measureId",
 	"subject": {
-		"reference": "Patient/eb068c3f-3954-50c6-0c67-2b82d29865f0"
+		"reference": "Patient/0889b410-89cd-8cac-9bf6-314272f3699a"
 	},
 	"period": {
 		"start": "2019-07-04T00:00:00+00:00",

@@ -7,6 +7,8 @@ package com.ibm.cohort.engine.api.service;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +31,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import org.apache.commons.io.FilenameUtils;
+import org.hl7.elm.r1.VersionedIdentifier;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.MeasureReport;
 import org.opencds.cqf.cql.engine.data.DataProvider;
@@ -37,6 +41,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.cohort.engine.BooleanEvaluationCallback;
+import com.ibm.cohort.engine.CqlEvaluator;
+import com.ibm.cohort.engine.DefaultFilenameToVersionedIdentifierStrategy;
+import com.ibm.cohort.engine.TranslatingLibraryLoader;
+import com.ibm.cohort.engine.ZipStreamLibrarySourceProvider;
+import com.ibm.cohort.engine.api.service.model.CohortEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfoList;
@@ -47,6 +57,8 @@ import com.ibm.cohort.engine.measure.ZipResourceResolutionProvider;
 import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
+import com.ibm.cohort.engine.translation.CqlTranslationProvider;
+import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
@@ -88,6 +100,7 @@ tags={	@Tag(name = "FHIR Measures", description = "IBM Cohort Engine FHIR Measur
 		@Tag(name = "ValueSet", description = "IBM Cohort Engine ValueSet Operations")})
 public class CohortEngineRestHandler {
 	private static final String EVALUATION_API_NOTES = "The body of the request is a multipart/form-data request with an application/json attachment named 'request_data' that describes the measure evaluation that will be performed and an application/zip attachment named 'measure' that contains the measure and library artifacts to be evaluated. Valueset resources required for Measure evaluation must be loaded to the FHIR server in advance of an evaluation request. ";
+	private static final String COHORT_EVALUATION_API_NOTES = "The body of the request is a multipart/form-data request with  an application/zip attachment named 'cql_definition' that contains the cohort cql definition to be evaluated.";
 	private static final Logger logger = LoggerFactory.getLogger(CohortEngineRestHandler.class.getName());
 	private static final String MEASURE_IDENTIFIER_VALUE_DESC = "Used to identify the FHIR measure resource you would like the parameter information "
 			+ "for using the Measure.Identifier.Value field.";
@@ -107,6 +120,7 @@ public class CohortEngineRestHandler {
 
 	public static final String DELAY_DEFAULT = "3";
 	
+	public static final String CQL_DEFINITION = "cql_definition";
 	public static final String REQUEST_DATA_PART = "request_data";
 	public static final String MEASURE_PART = "measure";
 	public static final String FHIR_DATA_SERVER_CONFIG_PART = "fhir_data_server_config";
@@ -116,7 +130,7 @@ public class CohortEngineRestHandler {
 	public static final String MEASURE_IDENTIFIER_SYSTEM = "measure_identifier_system";
 	public static final String MEASURE_VERSION = "measure_version";
 	public static final String MEASURE_ID = "measure_id";
-	
+
 	
 	public final static String VALUE_SET_PART = "value_set";
 	public final static String CUSTOM_CODE_SYSTEM = "custom_code_system";
@@ -163,13 +177,52 @@ public class CohortEngineRestHandler {
 			"    \"expandValueSets\": true\n" +
 			"    \"searchPageSize\": 1000\n" +
 			"}</pre></p>";
-	
+
+	public static final String EXAMPLE_COHORT_REQUEST_DATA_JSON = "<p>A configuration file containing the information needed to process a cohort evaluation request. Two possible FHIR server endoints can be configured <code>dataServerConfig</code> and <code>terminologyServerConfig</code>. Only the <code>dataServerConfig</code> is required. If <code>terminologyServerConfig</code> is not provided, the connection details are assumed to be the same as the <code>dataServerConfig</code> connection.</p>" +
+			"<p>The <code>defineToRun</code> will be the specific define of the given CQL to analyze the patients against</code></p>" +
+			"<p>The <code>entrypoint</code> will be the cql file containing the define intended to run, as defined by the <code>defineToRun</code></p>" +
+			"<p>The <code>patientIds</code> is a comma separated list of patients to run. Supplying a single patient does not need any trailing commas.</p>" +
+			"<p>The parameter types and formats are described in detail in the <a href=\"http://alvearie.io/quality-measure-and-cohort-service/#/user-guide/parameter-formats?id=parameter-formats\">user guide</a>.</p>" +
+			"<p>The <code>loggingLevel</code> will determine how much and what type of logging to provide. The options are NA, COVERAGE, and TRACE.</p>" +
+			"<p>Example Contents: \n <pre>{\n" +
+			"    \"dataServerConfig\": {\n" +
+			"        \"@class\": \"com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\",\n" +
+			"        \"endpoint\": \"ENDPOINT\",\n" +
+			"        \"user\": \"USER\",\n" +
+			"        \"password\": \"PASSWORD\",\n" +
+			"        \"logInfo\": [\n" +
+			"            \"REQUEST_SUMMARY\",\n" +
+			"            \"RESPONSE_SUMMARY\"\n" +
+			"        ],\n" +
+			"        \"tenantId\": \"default\"\n" +
+			"    },\n" +
+			"    \"patientIds\": \"PATIENTIDS\",\n" +
+			"     \"parameters\": {\n" +
+			"            \"Measurement Period\": {\n" +
+			"                \"type\": \"interval\",\n" +
+			"                \"start\": {\n" +
+			"                    \"type\": \"date\",\n" +
+			"                    \"value\": \"2019-07-04\"\n" +
+			"                },\n" +
+			"                \"startInclusive\": true,\n" +
+			"                \"end\": {\n" +
+			"                    \"type\": \"datetime\",\n" +
+			"                    \"value\": \"2020-07-04T00:00:00\"\n" +
+			"                },\n" +
+			"                \"endInclusive\": true\n" +
+			"    },\n" +
+			"    \"entrypoint\": Test-1.0.0.cql\n" +
+			"    \"defineToRun\": InitialPopulation\n" +
+			"    \"loggingLevel\": NA\n" +
+			"}</pre></p>";
+
+
 	public static final String EXAMPLE_MEASURE_ZIP = "A file in ZIP format that contains the FHIR resources to use in the evaluation. This should contain all the FHIR Measure and Library resources needed in a particular directory structure as follows:" +
 			"<pre>fhirResources/MeasureName-MeasureVersion.json\n" +
 			"fhirResources/libraries/LibraryName1-LibraryVersion.json\n" + 
 			"fhirResources/libraries/LibraryName2-LibraryVersion.json\n" +
 			"etc.\n</pre>";
-	
+
 	public static final String EXAMPLE_DATA_SERVER_CONFIG_JSON = "A configuration file containing information needed to connect to the FHIR server. "
 			+ "See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/getting-started.md#fhir-server-configuration for more details. \n"
 			+ "Example Contents: \n <pre>{\n" + 
@@ -182,9 +235,12 @@ public class CohortEngineRestHandler {
 			"    ],\n" + 
 			"    \"tenantId\": \"default\"\n" + 
 			"}</pre>";
-	
+
+	public static final String CQL_REQUIREMENTS = "A zip file containing the cohort definition to run. NOTE: The name of the file must follow the convention [NAME]-[VERSION].zip";
+
 	public enum MethodNames {
 		EVALUATE_MEASURE("evaluateMeasure"),
+		EVALUATE_COHORT("evaluateCohort"),
 		GET_MEASURE_PARAMETERS("getMeasureParameters"),
 		GET_MEASURE_PARAMETERS_BY_ID("getMeasureParametersById"),
 		CREATE_VALUE_SET("createValueSet")
@@ -212,6 +268,127 @@ public class CohortEngineRestHandler {
 		super();
 		// Instance initialization here.
 		// NOTE: This constructor is called on every REST call!
+	}
+
+	@POST
+	@Path("/cohort-evaluation")
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces({ MediaType.APPLICATION_JSON })
+	@ApiOperation(value = "Evaluates a specific define within a CQL for a set of patients"
+			, notes = COHORT_EVALUATION_API_NOTES, response = String.class
+			, tags = {"Cohort Evaluation"}
+			, nickname = "evaluate_cohort"
+			, extensions = {
+			@Extension(properties = {
+					@ExtensionProperty(
+							name = DarkFeatureSwaggerFilter.DARK_FEATURE_NAME
+							, value = CohortEngineRestConstants.DARK_LAUNCHED_COHORT_EVALUATION)
+			})
+	}
+	)
+	@ApiImplicitParams({
+			// This is necessary for the dark launch feature
+			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
+			@ApiImplicitParam(name=REQUEST_DATA_PART, value=EXAMPLE_COHORT_REQUEST_DATA_JSON, dataTypeClass = CohortEvaluation.class, required=true, paramType="form", type="file"),
+			@ApiImplicitParam(name=CQL_DEFINITION, value = CQL_REQUIREMENTS,dataTypeClass = File.class, required=true, paramType="form", type="file" )
+	})
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Successful Operation"),
+			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
+			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
+	})
+	public Response evaluateCohort(
+			@Context HttpServletRequest request,
+			@ApiParam(value = ServiceBaseConstants.MINOR_VERSION_DESCRIPTION, required = true, defaultValue = ServiceBuildConstants.DATE) @QueryParam(CohortEngineRestHandler.VERSION) String version,
+			@ApiParam(hidden = true, type="file", required=true) IMultipartBody multipartBody)
+	{
+
+		final String methodName = MethodNames.EVALUATE_COHORT.getName();
+		Response response = null;
+
+		// Error out if feature is not enabled
+		ServiceBaseUtility.isDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_MEASURE_EVALUATION);
+
+		try {
+			// Perform api setup
+			Response errorResponse = ServiceBaseUtility.apiSetup(version, logger, methodName);
+			if (errorResponse != null) {
+				return errorResponse;
+			}
+
+			if (multipartBody == null) {
+				throw new IllegalArgumentException("A multipart/form-data body is required");
+			}
+
+			IAttachment metadataAttachment = multipartBody.getAttachment(REQUEST_DATA_PART);
+			if (metadataAttachment == null) {
+				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", REQUEST_DATA_PART));
+			}
+
+			// deserialize the MeasuresEvaluation request
+			ObjectMapper om = new ObjectMapper();
+			CohortEvaluation evaluationRequest = om.readValue( metadataAttachment.getDataHandler().getInputStream(), CohortEvaluation.class );
+
+			FhirServerConfig dataServerConfig = evaluationRequest.getDataServerConfig();
+			FhirServerConfig terminologyServerConfig = evaluationRequest.getTerminologyServerConfig() == null
+					? evaluationRequest.getDataServerConfig() : evaluationRequest.getTerminologyServerConfig();
+			FhirServerConfig measureServerConfig = dataServerConfig;
+
+			IAttachment cqlAttachment = multipartBody.getAttachment(CQL_DEFINITION);
+			if (cqlAttachment == null) {
+				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", CQL_DEFINITION));
+			}
+
+			//validate the contents of the fhirServerConfig
+			validateBean(dataServerConfig);
+			validateBean(terminologyServerConfig);
+//			validateBean(measureServerConfig);
+
+			FhirClientBuilderFactory clientFactory = FhirClientBuilderFactory.newInstance();
+
+			CqlEvaluator evaluator = new CqlEvaluator(clientFactory);
+			evaluator.setDataServerConnectionProperties(dataServerConfig);
+			evaluator.setTerminologyServerConnectionProperties(terminologyServerConfig);
+			evaluator.setMeasureServerConnectionProperties(measureServerConfig);
+
+			String[] attachmentHeaders = cqlAttachment.getHeader("Content-Disposition").split(";");
+			String filename = null;
+			for(String header : attachmentHeaders){
+				if(header.contains("filename")){
+					filename = FilenameUtils.removeExtension(header.split("=")[1].replaceAll("\"", ""));
+				}
+			}
+			String [] searchPaths = new String[] { "cql", filename+"/cql"};
+			ZipStreamLibrarySourceProvider provider = new ZipStreamLibrarySourceProvider(new ZipInputStream(cqlAttachment.getDataHandler().getInputStream()), searchPaths);
+			CqlTranslationProvider translationProvider = new InJVMCqlTranslationProvider(provider);
+
+			Set<String> expressions = new HashSet<>();
+			expressions.add(evaluationRequest.getDefineToRun());
+
+			String[] patients = evaluationRequest.getPatientIds().split(",");
+			List<String> patientsToRun = Arrays.asList(patients);
+
+			evaluator.setLibraryLoader(new TranslatingLibraryLoader(provider, translationProvider));
+
+			VersionedIdentifier versionedIdentifier = new DefaultFilenameToVersionedIdentifierStrategy().filenameToVersionedIdentifier(evaluationRequest.getEntrypoint());
+
+			BooleanEvaluationCallback callback = new BooleanEvaluationCallback();
+			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), evaluationRequest.getParameters(), expressions, patientsToRun, evaluationRequest.getLoggingLevel(), callback);
+
+			response = Response.status(Response.Status.OK).header("Content-Type", "application/json").entity("{\"result\":" + om.writeValueAsString(callback.getPassingPatients()) + "}").build();
+
+		} catch (Throwable e) {
+			//map any exceptions caught into the proper REST error response objects
+			response = new CohortServiceExceptionMapper().toResponse(e);
+		} finally {
+			// Perform api cleanup
+			Response errorResponse = ServiceBaseUtility.apiCleanup(logger, methodName);
+			if (errorResponse != null) {
+				response = errorResponse;
+			}
+		}
+
+		return response;
 	}
 
 	@POST
@@ -291,7 +468,7 @@ public class CohortEngineRestHandler {
 			IParser parser = dataClient.getFhirContext().newJsonParser();
 			
 			String [] searchPaths = new String[] { "fhirResources", "fhirResources/libraries" };
-			ZipResourceResolutionProvider provider = new ZipResourceResolutionProvider(new ZipInputStream( measureAttachment.getDataHandler().getInputStream()), parser, searchPaths);;
+			ZipResourceResolutionProvider provider = new ZipResourceResolutionProvider(new ZipInputStream( measureAttachment.getDataHandler().getInputStream()), parser, searchPaths);
 			
 			TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(terminologyClient);
 			try (RetrieveCacheContext retrieveCacheContext = new DefaultRetrieveCacheContext()) {
@@ -338,7 +515,7 @@ public class CohortEngineRestHandler {
 	@ApiOperation(value = "Get measure parameters", notes = CohortEngineRestHandler.MEASURE_API_NOTES, response = MeasureParameterInfoList.class, authorizations = {@Authorization(value = "BasicAuth")   }, responseContainer = "List", tags = {
 			"FHIR Measures" })
 	@ApiImplicitParams({
-		@ApiImplicitParam(name=FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file")
+		@ApiImplicitParam(name= FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file")
 	})
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful Operation", response = MeasureParameterInfoList.class),
@@ -412,7 +589,7 @@ public class CohortEngineRestHandler {
 	@ApiOperation(value = "Get measure parameters by id", notes = CohortEngineRestHandler.MEASURE_API_NOTES, response = MeasureParameterInfoList.class, nickname = "get_measure_parameters_by_id", tags = {
 			"FHIR Measures" })
 	@ApiImplicitParams({
-		@ApiImplicitParam(name=FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
+		@ApiImplicitParam(name= FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
 	})
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful Operation", response = MeasureParameterInfoList.class),
@@ -480,7 +657,7 @@ public class CohortEngineRestHandler {
 	@ApiImplicitParams({
 			// This is necessary for the dark launch feature
 			@ApiImplicitParam(access = DarkFeatureSwaggerFilter.DARK_FEATURE_CONTROLLED, paramType = "header", dataType = "string"),
-			@ApiImplicitParam(name=FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
+			@ApiImplicitParam(name= FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestHandler.EXAMPLE_DATA_SERVER_CONFIG_JSON, dataTypeClass = FhirServerConfig.class, required=true, paramType="form", type="file"),
 			@ApiImplicitParam(name=VALUE_SET_PART, value= VALUE_SET_DESC, dataTypeClass = File.class, required=true, paramType="form", type="file" ),
 			@ApiImplicitParam(name=CUSTOM_CODE_SYSTEM, value= CUSTOM_CODE_SYSTEM_DESC, dataTypeClass = File.class, paramType="form", type="file" )
 	})
