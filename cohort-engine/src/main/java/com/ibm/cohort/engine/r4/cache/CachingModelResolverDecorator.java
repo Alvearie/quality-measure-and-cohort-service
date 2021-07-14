@@ -4,7 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.cache.Cache;
+import javax.cache.CacheManager;
 import javax.cache.Caching;
+import javax.cache.configuration.Configuration;
 import javax.cache.configuration.MutableConfiguration;
 
 import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
@@ -23,6 +25,22 @@ public class CachingModelResolverDecorator implements ModelResolver {
 	static final Map<String, Cache<Class<?>,Class<?>>> perPackageTypeResolutionsByClass = new HashMap<>();
 
 	private ModelResolver innerResolver;
+	
+	private static <K, V, C extends Configuration<K, V>> Cache<K, V> getOrCreateCache(String cacheName, C configuration) {
+		Cache<K, V> cache;
+
+		CacheManager cacheManager = Caching.getCachingProvider().getCacheManager();
+		cache = cacheManager.getCache(cacheName);
+		if (cache == null) {
+			synchronized (CachingModelResolverDecorator.class) {
+				cache = cacheManager.getCache(cacheName);
+				if (cache == null) {
+					cache = cacheManager.createCache(cacheName, configuration);
+				}
+			}
+		}
+		return cache;
+	}
 	
 	public static CachingModelResolverDecorator forR4() {
 		return new CachingModelResolverDecorator(new R4FhirModelResolver());
@@ -58,7 +76,7 @@ public class CachingModelResolverDecorator implements ModelResolver {
 		if (!packageContextResolutions.containsKey(contextType)) {
 			packageContextResolutions.put(
 					contextType,
-					Caching.getCachingProvider().getCacheManager().createCache(
+					getOrCreateCache(
 							PER_PACKAGE_CONTEXT_RESOLUTION_CACHE_PREFIX + "-" + this.getPackageName(),
 							new MutableConfiguration<String, Object>().setStoreByValue(false)
 					)
@@ -78,7 +96,7 @@ public class CachingModelResolverDecorator implements ModelResolver {
 		if (!perPackageTypeResolutionsByTypeName.containsKey(this.getPackageName())) {
 			perPackageTypeResolutionsByTypeName.put(
 					this.getPackageName(),
-					Caching.getCachingProvider().getCacheManager().createCache(
+					getOrCreateCache(
 							PER_PACKAGE_TYPE_RESOLUTION_BY_NAME_CACHE_PREFIX + "-" + this.getPackageName(),
 							new MutableConfiguration<String, Class<?>>().setStoreByValue(false)
 					)
@@ -98,7 +116,7 @@ public class CachingModelResolverDecorator implements ModelResolver {
 		if (!perPackageTypeResolutionsByClass.containsKey(this.getPackageName())) {
 			perPackageTypeResolutionsByClass.put(
 					this.getPackageName(),
-					Caching.getCachingProvider().getCacheManager().createCache(
+					getOrCreateCache(
 							PER_PACKAGE_TYPE_RESOLUTION_BY_CLASS_CACHE_PREFIX + "-" + this.getPackageName(),
 							new MutableConfiguration<Class<?>, Class<?>>().setStoreByValue(false)
 					)
