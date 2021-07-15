@@ -6,10 +6,15 @@
 
 package com.ibm.cohort.engine;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.cqframework.cql.cql2elm.LibrarySourceProvider;
 import org.hl7.elm.r1.VersionedIdentifier;
@@ -23,7 +28,7 @@ import org.hl7.elm.r1.VersionedIdentifier;
  */
 public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
 
-	protected Map<VersionedIdentifier, Map<LibraryFormat, InputStream>> sources = new HashMap<>();
+	Map<VersionedIdentifier, Map<LibraryFormat, String>> sources = new HashMap<>();
 
 	/**
 	 * Retrieve the stream for the Library content that matches the given identifier and
@@ -37,10 +42,10 @@ public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
 	 * @param sourceFormat      Source format of the stream of interest
 	 * @return InputStream where source data can be read.
 	 */
-	public InputStream getLibrarySource(VersionedIdentifier libraryIdentifier, LibraryFormat sourceFormat) {
-		InputStream result = null;
+	public String getLibrarySource(VersionedIdentifier libraryIdentifier, LibraryFormat sourceFormat) {
+		String result = null;
 
-		Map<LibraryFormat, InputStream> byLibrary = sources.get(libraryIdentifier);
+		Map<LibraryFormat, String> byLibrary = sources.get(libraryIdentifier);
 		if (byLibrary == null) {
 			if (libraryIdentifier.getVersion() != null) {
 				// Check for a library with the same name, but no version
@@ -73,12 +78,12 @@ public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
 	 * @param sourceFormat source format of interest
 	 * @return Map of library identifier to InputStream containing the source data.
 	 */
-	public Map<VersionedIdentifier, InputStream> getSourcesByFormat(LibraryFormat sourceFormat) {
-		Map<VersionedIdentifier, InputStream> filtered = new HashMap<>();
-		for (Map.Entry<VersionedIdentifier, Map<LibraryFormat, InputStream>> entry : sources.entrySet()) {
-			InputStream is = entry.getValue().get(sourceFormat);
-			if (is != null) {
-				filtered.put(entry.getKey(), is);
+	public Map<VersionedIdentifier, String> getSourcesByFormat(LibraryFormat sourceFormat) {
+		Map<VersionedIdentifier, String> filtered = new HashMap<>();
+		for (Map.Entry<VersionedIdentifier, Map<LibraryFormat, String>> entry : sources.entrySet()) {
+			Map<LibraryFormat, String> x = entry.getValue();
+			if(x != null && x.get(sourceFormat) != null) {
+				filtered.put(entry.getKey(), x.get(sourceFormat));
 			}
 		}
 		return filtered;
@@ -86,22 +91,31 @@ public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
 
 	@Override
 	public InputStream getLibrarySource(VersionedIdentifier libraryIdentifier) {
-		return getSourcesByFormat(LibraryFormat.CQL).get(libraryIdentifier);
+		String string = getSourcesByFormat(LibraryFormat.CQL).get(libraryIdentifier);
+		return new ByteArrayInputStream(string.getBytes());
 	}
 
-	public static void addClasspathFhirHelpers(Map<VersionedIdentifier, Map<LibraryFormat, InputStream>> sources, VersionedIdentifier libraryIdentifier){
-		Map<LibraryFormat, InputStream> specFormat = sources.computeIfAbsent(libraryIdentifier, key -> new HashMap<>());
+	private static void addClasspathFhirHelpers(Map<VersionedIdentifier, Map<LibraryFormat, String>> sources, VersionedIdentifier libraryIdentifier){
+		Map<LibraryFormat, String> specFormat = sources.computeIfAbsent(libraryIdentifier, key -> new HashMap<>());
 		if(specFormat.isEmpty()) {
 			InputStream fhirHelperResource = MultiFormatLibrarySourceProvider.class.getResourceAsStream(
 					String.format("/org/hl7/fhir/%s-%s.xml",
 							libraryIdentifier.getId(),
 							libraryIdentifier.getVersion()));
-			specFormat.put(LibraryFormat.XML, fhirHelperResource);
+			String fhirHelperResourceAsString = new BufferedReader(
+					new InputStreamReader(fhirHelperResource, StandardCharsets.UTF_8))
+					.lines()
+					.collect(Collectors.joining("\n"));
+			specFormat.put(LibraryFormat.XML, fhirHelperResourceAsString);
 			InputStream fhirHelperResourceCQL = MultiFormatLibrarySourceProvider.class.getResourceAsStream(
 					String.format("/org/hl7/fhir/%s-%s.cql",
 							libraryIdentifier.getId(),
 							libraryIdentifier.getVersion()));
-			specFormat.put(LibraryFormat.CQL, fhirHelperResourceCQL);
+			String fhirHelperResourceCQLAsString = new BufferedReader(
+					new InputStreamReader(fhirHelperResourceCQL, StandardCharsets.UTF_8))
+					.lines()
+					.collect(Collectors.joining("\n"));
+			specFormat.put(LibraryFormat.CQL, fhirHelperResourceCQLAsString);
 		}
 	}
 }
