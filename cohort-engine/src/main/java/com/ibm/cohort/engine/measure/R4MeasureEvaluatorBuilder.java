@@ -12,12 +12,12 @@ import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
-import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
 import org.opencds.cqf.cql.engine.model.ModelResolver;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.r4.cache.CachingModelResolverDecorator;
+import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 
 /**
@@ -31,7 +31,7 @@ public class R4MeasureEvaluatorBuilder {
 	private boolean isExpandValueSets = R4DataProviderFactory.DEFAULT_IS_EXPAND_VALUE_SETS;
 	private Integer pageSize = R4DataProviderFactory.DEFAULT_PAGE_SIZE;
 	private Boolean isCachingModelResolver = false;
-	private ModelResolver modelResolver = new R4FhirModelResolver();
+	private ModelResolver modelResolver = R4FhirModelResolverFactory.createNonCachingResolver();
 
 	public R4MeasureEvaluatorBuilder withClientContext(FHIRClientContext value) {
 		this.clientContext = value;

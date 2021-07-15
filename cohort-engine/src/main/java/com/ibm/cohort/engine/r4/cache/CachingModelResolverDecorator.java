@@ -9,7 +9,6 @@ import javax.cache.Caching;
 import javax.cache.configuration.Configuration;
 import javax.cache.configuration.MutableConfiguration;
 
-import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
 import org.opencds.cqf.cql.engine.model.ModelResolver;
 
 
@@ -40,10 +39,6 @@ public class CachingModelResolverDecorator implements ModelResolver {
 			}
 		}
 		return cache;
-	}
-	
-	public static CachingModelResolverDecorator forR4() {
-		return new CachingModelResolverDecorator(new R4FhirModelResolver());
 	}
 
 	public CachingModelResolverDecorator(ModelResolver modelResolver) {
