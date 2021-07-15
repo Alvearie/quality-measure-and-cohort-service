@@ -10,19 +10,6 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.IParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.flink.KafkaCommon;
-import com.ibm.cohort.engine.flink.KafkaInfo;
-import com.ibm.cohort.engine.flink.MeasureExecution;
-import com.ibm.cohort.engine.measure.FHIRClientContext;
-import com.ibm.cohort.engine.measure.MeasureContext;
-import com.ibm.cohort.engine.measure.MeasureEvaluator;
-import com.ibm.cohort.engine.measure.R4MeasureEvaluatorBuilder;
-import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
-import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
-import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -31,6 +18,21 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.util.Collector;
 import org.hl7.fhir.r4.model.MeasureReport;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.cohort.engine.flink.KafkaCommon;
+import com.ibm.cohort.engine.flink.KafkaInfo;
+import com.ibm.cohort.engine.flink.MeasureExecution;
+import com.ibm.cohort.engine.measure.FHIRClientContext;
+import com.ibm.cohort.engine.measure.MeasureContext;
+import com.ibm.cohort.engine.measure.MeasureEvaluator;
+import com.ibm.cohort.engine.measure.R4MeasureEvaluatorBuilder;
+import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
+import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
+import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
+
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.parser.IParser;
 
 public class CohortEngineFlinkDriver implements Serializable {
 
@@ -191,7 +193,9 @@ public class CohortEngineFlinkDriver implements Serializable {
 		FHIRClientContext clientContext = new FHIRClientContext.Builder()
 				.withDefaultClient(fhirServerInfo.toIbmServerConfig())
 				.build();
-		R4MeasureEvaluatorBuilder evalBuilder = new R4MeasureEvaluatorBuilder().withClientContext(clientContext);
+		R4MeasureEvaluatorBuilder evalBuilder = new R4MeasureEvaluatorBuilder()
+				.withClientContext(clientContext)
+				.withModelResolverCaching(true);
 		if (!disableRetrieveCache) {
 			evalBuilder.withRetrieveCacheContext(getRetrieveCacheContext());
 		}

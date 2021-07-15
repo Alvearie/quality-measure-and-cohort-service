@@ -11,7 +11,6 @@ import java.util.Map;
 
 import org.opencds.cqf.cql.engine.data.CompositeDataProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
-import org.opencds.cqf.cql.engine.fhir.model.R4FhirModelResolver;
 import org.opencds.cqf.cql.engine.fhir.searchparam.SearchParameterResolver;
 import org.opencds.cqf.cql.engine.model.ModelResolver;
 import org.opencds.cqf.cql.engine.retrieve.RetrieveProvider;
@@ -19,6 +18,7 @@ import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.ibm.cohort.engine.measure.cache.CachingRetrieveProvider;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
+import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;
 import com.ibm.cohort.engine.retrieve.R4RestFhirRetrieveProvider;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
@@ -48,7 +48,7 @@ public class R4DataProviderFactory {
 	public static final Integer DEFAULT_PAGE_SIZE = 1000;
 	
 	protected static final String FHIR_R4_URL = "http://hl7.org/fhir";
-	
+
 	public static Map<String, DataProvider> createDataProviderMap(
 			IGenericClient client,
 			TerminologyProvider terminologyProvider,
@@ -56,8 +56,17 @@ public class R4DataProviderFactory {
 			boolean isExpandValueSets,
 			Integer pageSize
 	) {
-		ModelResolver modelResolver = new R4FhirModelResolver();
-
+		return createDataProviderMap(client, terminologyProvider, retrieveCacheContext, R4FhirModelResolverFactory.createNonCachingResolver(), isExpandValueSets, pageSize);
+	}
+	
+	public static Map<String, DataProvider> createDataProviderMap(
+			IGenericClient client,
+			TerminologyProvider terminologyProvider,
+			RetrieveCacheContext retrieveCacheContext,
+			ModelResolver modelResolver,
+			boolean isExpandValueSets,
+			Integer pageSize
+	) {
 		SearchParameterResolver resolver = new SearchParameterResolver(client.getFhirContext());
 		R4RestFhirRetrieveProvider baseRetrieveProvider = new R4RestFhirRetrieveProvider(resolver, client);
 		baseRetrieveProvider.setExpandValueSets(isExpandValueSets);
