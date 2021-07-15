@@ -25,10 +25,14 @@ import com.ibm.cohort.engine.LibraryFormat;
 public interface CqlTranslationProvider {
 	Library translate(InputStream cql) throws Exception;
 
+	Library translate(String cql) throws Exception;
+
 	Library translate(InputStream cql, List<Options> options) throws Exception;
 
 	Library translate(InputStream cql, List<Options> options, LibraryFormat targetFormat) throws Exception;
-	
+
+	Library translate(String cql, List<Options> options, LibraryFormat targetFormat) throws Exception;
+
 	void registerModelInfo(ModelInfo modelInfo);
 	
 	default void convertAndRegisterModelInfo(InputStream modelInfoInputStream) {

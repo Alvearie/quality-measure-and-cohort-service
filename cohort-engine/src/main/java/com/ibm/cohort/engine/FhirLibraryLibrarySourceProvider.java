@@ -6,18 +6,17 @@
 
 package com.ibm.cohort.engine;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.ibm.cohort.engine.measure.RestFhirLibraryResolutionProvider;
 import org.hl7.elm.r1.VersionedIdentifier;
 import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.RelatedArtifact;
+import org.hl7.fhir.r4.model.RelatedArtifact.RelatedArtifactType;
+
+import com.ibm.cohort.engine.measure.RestFhirLibraryResolutionProvider;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
-import org.hl7.fhir.r4.model.RelatedArtifact.RelatedArtifactType;
 
 /**
  * Implementation of the MultiFormatLibrarySourceProvider that uses FHIR R4
@@ -60,10 +59,10 @@ public class FhirLibraryLibrarySourceProvider extends MultiFormatLibrarySourcePr
 
 					LibraryFormat sourceFormat = LibraryFormat.forMimeType(attachment.getContentType());
 
-					Map<LibraryFormat, InputStream> formats = sources.computeIfAbsent(id,
-							vid -> new HashMap<LibraryFormat, InputStream>());
+					Map<LibraryFormat, String> formats = sources.computeIfAbsent(id,
+							vid -> new HashMap<>());
 
-					formats.put(sourceFormat, new ByteArrayInputStream(attachment.getData()));
+					formats.put(sourceFormat, new String(attachment.getData()));
 					numLoaded++;
 				}
 			}
