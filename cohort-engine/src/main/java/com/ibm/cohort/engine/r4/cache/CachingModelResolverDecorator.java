@@ -3,43 +3,15 @@ package com.ibm.cohort.engine.r4.cache;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.cache.Cache;
-import javax.cache.CacheManager;
-import javax.cache.Caching;
-import javax.cache.configuration.Configuration;
-import javax.cache.configuration.MutableConfiguration;
-
 import org.opencds.cqf.cql.engine.model.ModelResolver;
 
 
 public class CachingModelResolverDecorator implements ModelResolver {
-	private static final String CACHE_PREFIX = "model-resolver";
-	
-	private static final String PER_PACKAGE_CONTEXT_RESOLUTION_CACHE_PREFIX = CACHE_PREFIX + "-context-resolution";
-	private static final String PER_PACKAGE_TYPE_RESOLUTION_BY_NAME_CACHE_PREFIX = CACHE_PREFIX + "-type-resolution-by-name";
-	private static final String PER_PACKAGE_TYPE_RESOLUTION_BY_CLASS_CACHE_PREFIX = CACHE_PREFIX + "-type-resolution-by-class";
-	
-	static final Map<String, Map<String, Cache<String, Object>>> perPackageContextResolutions = new HashMap<>();
-	static final Map<String, Cache<String,Class<?>>> perPackageTypeResolutionsByTypeName = new HashMap<>();
-	static final Map<String, Cache<Class<?>,Class<?>>> perPackageTypeResolutionsByClass = new HashMap<>();
+	static Map<String, Map<String,Map<String, Object>>> perPackageContextResolutions = new HashMap<>();
+	static Map<String, Map<String,Class<?>>> perPackageTypeResolutionsByTypeName = new HashMap<>();
+	static Map<String, Map<Class<?>,Class<?>>> perPackageTypeResolutionsByClass = new HashMap<>();
 
 	private ModelResolver innerResolver;
-	
-	private static <K, V, C extends Configuration<K, V>> Cache<K, V> getOrCreateCache(String cacheName, C configuration) {
-		Cache<K, V> cache;
-
-		CacheManager cacheManager = Caching.getCachingProvider().getCacheManager();
-		cache = cacheManager.getCache(cacheName);
-		if (cache == null) {
-			synchronized (CachingModelResolverDecorator.class) {
-				cache = cacheManager.getCache(cacheName);
-				if (cache == null) {
-					cache = cacheManager.createCache(cacheName, configuration);
-				}
-			}
-		}
-		return cache;
-	}
 
 	public CachingModelResolverDecorator(ModelResolver modelResolver) {
 		this.innerResolver = modelResolver;
@@ -66,19 +38,13 @@ public class CachingModelResolverDecorator implements ModelResolver {
 			perPackageContextResolutions.put(this.getPackageName(),  new HashMap<>());
 		}
 
-		Map<String,Cache<String, Object>> packageContextResolutions = perPackageContextResolutions.get(this.getPackageName());
+		Map<String,Map<String, Object>> packageContextResolutions = perPackageContextResolutions.get(this.getPackageName());
 
 		if (!packageContextResolutions.containsKey(contextType)) {
-			packageContextResolutions.put(
-					contextType,
-					getOrCreateCache(
-							PER_PACKAGE_CONTEXT_RESOLUTION_CACHE_PREFIX + "-" + this.getPackageName(),
-							new MutableConfiguration<String, Object>().setStoreByValue(false)
-					)
-			);
+			packageContextResolutions.put(contextType, new HashMap<>());
 		}
 
-		Cache<String, Object> contextTypeResolutions = packageContextResolutions.get(contextType);
+		Map<String, Object> contextTypeResolutions = packageContextResolutions.get(contextType);
 		if (!contextTypeResolutions.containsKey(targetType)) {
 			contextTypeResolutions.put(targetType, this.innerResolver.getContextPath(contextType, targetType));
 		}
@@ -89,16 +55,10 @@ public class CachingModelResolverDecorator implements ModelResolver {
 	@Override
 	public Class<?> resolveType(String typeName) {
 		if (!perPackageTypeResolutionsByTypeName.containsKey(this.getPackageName())) {
-			perPackageTypeResolutionsByTypeName.put(
-					this.getPackageName(),
-					getOrCreateCache(
-							PER_PACKAGE_TYPE_RESOLUTION_BY_NAME_CACHE_PREFIX + "-" + this.getPackageName(),
-							new MutableConfiguration<String, Class<?>>().setStoreByValue(false)
-					)
-			);
+			perPackageTypeResolutionsByTypeName.put(this.getPackageName(), new HashMap<>());
 		}
 
-		Cache<String, Class<?>> packageTypeResolutions = perPackageTypeResolutionsByTypeName.get(this.getPackageName());
+		Map<String, Class<?>> packageTypeResolutions = perPackageTypeResolutionsByTypeName.get(this.getPackageName());
 		if (!packageTypeResolutions.containsKey(typeName)) {
 			packageTypeResolutions.put(typeName, this.innerResolver.resolveType(typeName));
 		}
@@ -109,16 +69,10 @@ public class CachingModelResolverDecorator implements ModelResolver {
 	@Override
 	public Class<?> resolveType(Object value) {
 		if (!perPackageTypeResolutionsByClass.containsKey(this.getPackageName())) {
-			perPackageTypeResolutionsByClass.put(
-					this.getPackageName(),
-					getOrCreateCache(
-							PER_PACKAGE_TYPE_RESOLUTION_BY_CLASS_CACHE_PREFIX + "-" + this.getPackageName(),
-							new MutableConfiguration<Class<?>, Class<?>>().setStoreByValue(false)
-					)
-			);
+			perPackageTypeResolutionsByClass.put(this.getPackageName(), new HashMap<>());
 		}
 
-		Cache<Class<?>, Class<?>> packageTypeResolutions = perPackageTypeResolutionsByClass.get(this.getPackageName());
+		Map<Class<?>, Class<?>> packageTypeResolutions = perPackageTypeResolutionsByClass.get(this.getPackageName());
 
 		Class<?> valueClass = value.getClass();
 		if (!packageTypeResolutions.containsKey(valueClass)) {
@@ -161,5 +115,4 @@ public class CachingModelResolverDecorator implements ModelResolver {
 	public ModelResolver getInnerResolver() {
 		return this.innerResolver;
 	}
-
 }
