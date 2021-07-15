@@ -32,6 +32,7 @@ import com.ibm.cohort.engine.DirectoryLibrarySourceProvider;
 import com.ibm.cohort.engine.EvaluationResultCallback;
 import com.ibm.cohort.engine.FhirLibraryLibrarySourceProvider;
 import com.ibm.cohort.engine.LibraryFormat;
+import com.ibm.cohort.engine.LoggingEnum;
 import com.ibm.cohort.engine.MultiFormatLibrarySourceProvider;
 import com.ibm.cohort.engine.TranslatingLibraryLoader;
 import com.ibm.cohort.engine.ZipStreamLibrarySourceProvider;
@@ -81,7 +82,10 @@ public class CohortCLI extends BaseCLI {
 		@Parameter(names = { "-i",
 				"--model-info" }, description = "Model info file used when translating CQL", required = false)
 		private File modelInfoFile;
-		
+
+		@Parameter(names = {"--logging-level" }, description = "Specific logging level")
+		private LoggingEnum loggingLevel = LoggingEnum.NA;
+
 		@Parameter(names = { "--enable-terminology-optimization" }, description = "By default, ValueSet resources used in CQL are first expanded by the terminology provider, then the codes are used to query the data server. If the data server contains the necessary terminology resources and supports the token :in search modifier, setting this flag to false will enable code filtering directly on the data server which should improve CQL engine throughput.", required = false )
 		private boolean enableTerminologyOptimization = DEFAULT_TERMINOLOGY_OPTIMIZATION_ENABLED;
 		
@@ -158,7 +162,7 @@ public class CohortCLI extends BaseCLI {
 			}
 			
 			wrapper.evaluate(arguments.libraryName, arguments.libraryVersion, parameters, arguments.expressions,
-					arguments.contextIds, new EvaluationResultCallback() {
+					arguments.contextIds, arguments.loggingLevel, new EvaluationResultCallback() {
 
 						@Override
 						public void onContextBegin(String contextId) {

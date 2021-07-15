@@ -48,10 +48,12 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.cohort.engine.LoggingEnum;
 import com.ibm.cohort.engine.api.service.CohortEngineRestConstants;
 import com.ibm.cohort.engine.api.service.CohortEngineRestHandler;
 import com.ibm.cohort.engine.api.service.ServiceBuildConstants;
 import com.ibm.cohort.engine.api.service.TestHelper;
+import com.ibm.cohort.engine.api.service.model.CohortEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
@@ -98,7 +100,7 @@ import net.javacrumbs.jsonunit.core.Option;
 
 @Category(BVT.class) 			// all classes must be tagged as BVT, otherwise will not be picked up by automation runs
 public class DefaultVT extends ServiceVTBase {
-	private static final String VALID_PATIENT_ID = "eb068c3f-3954-50c6-0c67-2b82d29865f0";
+	private static final String VALID_PATIENT_ID = "0889b410-89cd-8cac-9bf6-314272f3699a";
 
 	private static final Logger logger = LoggerFactory.getLogger(DefaultVT.class.getName());
 
@@ -183,7 +185,7 @@ public class DefaultVT extends ServiceVTBase {
 		parameterOverrides.put("Measurement Period", new IntervalParameter(new DateParameter("2019-07-04")
 				, true
 				, new DateParameter( "2020-07-04")
-				, true));;
+				, true));
 		
 		MeasureEvaluation requestData = new MeasureEvaluation();
 		requestData.setDataServerConfig(dataServerConfig);
@@ -453,6 +455,118 @@ public class DefaultVT extends ServiceVTBase {
 
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
 		runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_CREATED);
+	}
+
+	@Test
+	public void testCohortEvaluationTrue(){
+		final String RESOURCE = getUrlBase() + "/{version}/cohort-evaluation";
+		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD));
+
+		// Create the metadata part of the request
+		CohortEvaluation requestData = new CohortEvaluation();
+		requestData.setDataServerConfig(dataServerConfig);
+		requestData.setTerminologyServerConfig(dataServerConfig);
+		requestData.setDefineToRun("Female");
+		requestData.setEntrypoint("Test-1.0.0.cql");
+		requestData.setPatientIds(VALID_PATIENT_ID);
+
+		RequestSpecification request = buildBaseRequest(new Headers())
+				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
+				.multiPart(CohortEngineRestHandler.REQUEST_DATA_PART, requestData, "application/json")
+				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
+
+		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
+		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
+
+		String actual = vr.extract().response().getBody().prettyPrint();
+		String expected = "{\n    \"result\": [\n        \"" + VALID_PATIENT_ID + "\"\n    ]\n}";
+
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void testCohortEvaluationFalse(){
+		final String RESOURCE = getUrlBase() + "/{version}/cohort-evaluation";
+		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD));
+
+		// Create the metadata part of the request
+		CohortEvaluation requestData = new CohortEvaluation();
+		requestData.setDataServerConfig(dataServerConfig);
+		requestData.setTerminologyServerConfig(dataServerConfig);
+		requestData.setDefineToRun("Male");
+		requestData.setEntrypoint("Test-1.0.0.cql");
+		requestData.setPatientIds(VALID_PATIENT_ID);
+
+		RequestSpecification request = buildBaseRequest(new Headers())
+				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
+				.multiPart(CohortEngineRestHandler.REQUEST_DATA_PART, requestData, "application/json")
+				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
+		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
+		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
+
+		String actual = vr.extract().response().getBody().prettyPrint();
+		String expected = "{\n    \"result\": [\n        \n    ]\n}";
+
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void testCohortEvaluationWithLogging(){
+		final String RESOURCE = getUrlBase() + "/{version}/cohort-evaluation";
+		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD));
+
+		// Create the metadata part of the request
+		CohortEvaluation requestData = new CohortEvaluation();
+		requestData.setDataServerConfig(dataServerConfig);
+		requestData.setTerminologyServerConfig(dataServerConfig);
+		requestData.setDefineToRun("Male");
+		requestData.setEntrypoint("Test-1.0.0.cql");
+		requestData.setPatientIds(VALID_PATIENT_ID);
+		requestData.setLoggingLevel(LoggingEnum.TRACE);
+
+		RequestSpecification request = buildBaseRequest(new Headers())
+				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
+				.multiPart(CohortEngineRestHandler.REQUEST_DATA_PART, requestData, "application/json")
+				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
+		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
+		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
+
+		String actual = vr.extract().response().getBody().prettyPrint();
+		String expected = "{\n    \"result\": [\n        \n    ]\n}";
+
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	public void testCohortEvaluationList(){
+		final String RESOURCE = getUrlBase() + "/{version}/cohort-evaluation";
+		Assume.assumeTrue(isServiceDarkFeatureEnabled(CohortEngineRestConstants.DARK_LAUNCHED_VALUE_SET_UPLOAD));
+
+
+		String SECOND_VALID_PATIENT_ID = "47c883bb-160a-7117-c5df-9344041ef048";
+		String patientInput = VALID_PATIENT_ID + "," + SECOND_VALID_PATIENT_ID;
+
+		// Create the metadata part of the request
+		CohortEvaluation requestData = new CohortEvaluation();
+		requestData.setDataServerConfig(dataServerConfig);
+		requestData.setTerminologyServerConfig(dataServerConfig);
+		requestData.setDefineToRun("Female");
+		requestData.setEntrypoint("Test-1.0.0.cql");
+		requestData.setPatientIds(patientInput);
+		requestData.setLoggingLevel(LoggingEnum.TRACE);
+
+
+		RequestSpecification request = buildBaseRequest(new Headers())
+				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
+				.multiPart(CohortEngineRestHandler.REQUEST_DATA_PART, requestData, "application/json")
+				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
+		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
+		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
+
+		String actual = vr.extract().response().getBody().prettyPrint();
+		String expected = "{\n    \"result\": [\n        \"" + VALID_PATIENT_ID + "\",\n        \"" + SECOND_VALID_PATIENT_ID + "\"\n    ]\n}";
+
+		assertEquals(expected, actual);
 	}
 
 	@Override

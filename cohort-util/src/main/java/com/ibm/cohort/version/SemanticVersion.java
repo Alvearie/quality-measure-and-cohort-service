@@ -14,6 +14,7 @@ import com.ibm.cohort.annotations.Generated;
 
 public class SemanticVersion implements Comparable<SemanticVersion> {
 	private static final Pattern SEMANTIC_VERSION_PATTERN = Pattern.compile("^(?<major>0|[1-9]\\d*)\\.(?<minor>0|[1-9]\\d*)\\.(?<patch>0|[1-9]\\d*)");
+	private static final char SEPARATOR = '.';
 
 	public static Optional<SemanticVersion> create(String version) {
 		if (version != null) {
@@ -85,5 +86,18 @@ public class SemanticVersion implements Comparable<SemanticVersion> {
 		} else {
 			return this.patch - o.patch;
 		}
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(this.major);
+		sb.append(SEPARATOR);
+		sb.append(this.minor);
+		sb.append(SEPARATOR);
+		sb.append(this.patch);
+
+		return sb.toString();
 	}
 }
