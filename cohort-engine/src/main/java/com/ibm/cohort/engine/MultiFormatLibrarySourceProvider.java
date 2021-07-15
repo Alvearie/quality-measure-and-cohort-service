@@ -91,8 +91,8 @@ public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
 
 	@Override
 	public InputStream getLibrarySource(VersionedIdentifier libraryIdentifier) {
-		String string = getSourcesByFormat(LibraryFormat.CQL).get(libraryIdentifier);
-		return new ByteArrayInputStream(string.getBytes());
+		String library = getSourcesByFormat(LibraryFormat.CQL).get(libraryIdentifier);
+		return (library == null) ? null : new ByteArrayInputStream(library.getBytes());
 	}
 
 	private static void addClasspathFhirHelpers(Map<VersionedIdentifier, Map<LibraryFormat, String>> sources, VersionedIdentifier libraryIdentifier){
