@@ -13,7 +13,6 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXB;
 
@@ -115,44 +114,7 @@ public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
 
 	@Override
 	public Library translate(String cql, List<Options> options, LibraryFormat targetFormat) throws Exception {
-		Library result;
-
-		UcumService ucumService = null;
-		LibraryBuilder.SignatureLevel signatureLevel = LibraryBuilder.SignatureLevel.None;
-
-		List<Options> optionsList = new ArrayList<>();
-		if (options != null) {
-			optionsList.addAll(options);
-		}
-
-		CqlTranslator translator = CqlTranslator.fromStream(new ByteArrayInputStream(cql.getBytes()), modelManager, libraryManager, ucumService,
-				CqlTranslatorException.ErrorSeverity.Info, signatureLevel,
-				optionsList.toArray(new Options[optionsList.size()]));
-
-		LOG.debug("Translated CQL contains {} errors", translator.getErrors().size());
-		if (!translator.getErrors().isEmpty()) {
-			throw new Exception("CQL translation contained errors: " + translator.getErrors().stream().map(Throwable::toString).collect(Collectors.joining("\n")));
-		}
-
-		LOG.debug("Translated CQL contains {} exceptions", translator.getExceptions().size());
-		if (!translator.getExceptions().isEmpty()) {
-			throw new Exception("CQL translation contained exceptions: " + translator.getExceptions().stream().map(Throwable::toString).collect(Collectors.joining("\n")));
-		}
-
-		switch (targetFormat) {
-			case XML:
-				result = CqlLibraryReader.read(new StringReader(translator.toXml()));
-				break;
-// This is only a theoretical nice-to-have and fails deserialization, so disabling support for now.
-//		case JSON:
-//			result = JsonCqlLibraryReader.read(new StringReader(translator.toJxson()));
-//			break;
-			default:
-				throw new IllegalArgumentException(
-						String.format("The CQL Engine does not support format %s", targetFormat.name()));
-		}
-
-		return result;
+		return translate(new ByteArrayInputStream(cql.getBytes()), options, targetFormat);
 	}
 
 	@Override
