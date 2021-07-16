@@ -422,7 +422,7 @@ public class CqlEvaluator {
 			}
 			else {
 				debugMap.setIsLoggingEnabled(true);
-			};
+			}
 		}
 
 		Library library = libraryLoader.load(libraryId);
