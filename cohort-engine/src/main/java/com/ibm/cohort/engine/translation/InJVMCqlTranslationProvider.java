@@ -6,6 +6,7 @@
 
 package com.ibm.cohort.engine.translation;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.Reader;
@@ -110,7 +111,12 @@ public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
 
 		return result;
 	}
-	
+
+	@Override
+	public Library translate(String cql, List<Options> options, LibraryFormat targetFormat) throws Exception {
+		return translate(new ByteArrayInputStream(cql.getBytes()), options, targetFormat);
+	}
+
 	@Override
 	public void registerModelInfo(ModelInfo modelInfo) {
 		// Force mapping  to FHIR 4.0.1. Consider supporting different versions in the future.

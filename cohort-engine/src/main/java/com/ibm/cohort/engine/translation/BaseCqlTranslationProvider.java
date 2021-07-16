@@ -30,14 +30,23 @@ public abstract class BaseCqlTranslationProvider implements CqlTranslationProvid
 		//defaults.add( CqlTranslator.Options.EnableDateRangeOptimization );
 		return defaults;
 	}
-	
+
 	@Override
 	public Library translate(InputStream cql) throws Exception {
 		return translate( cql, getDefaultOptions() );
 	}
-	
+
 	@Override
 	public Library translate(InputStream cql, List<Options> options) throws Exception {
+		return translate(cql, options, DEFAULT_TARGET_FORMAT);
+	}
+
+	@Override
+	public Library translate(String cql) throws Exception {
+		return translate( cql, getDefaultOptions() );
+	}
+
+	public Library translate(String cql, List<Options> options) throws Exception {
 		return translate(cql, options, DEFAULT_TARGET_FORMAT);
 	}
 }

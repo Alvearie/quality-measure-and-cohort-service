@@ -6,7 +6,7 @@
 
 package com.ibm.cohort.engine;
 
-import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -70,14 +70,14 @@ public class TranslatingLibraryLoader implements LibraryLoader {
 
 			try {
 				if (!isForceTranslation) {
-					InputStream is = provider.getLibrarySource(translatorVersionedId, LibraryFormat.XML);
-					if (is != null) {
-						library = CqlLibraryReader.read(is);
+					String librarySource = provider.getLibrarySource(translatorVersionedId, LibraryFormat.XML);
+					if (librarySource != null) {
+						library = CqlLibraryReader.read(new ByteArrayInputStream(librarySource.getBytes()));
 					}
 				}
 
 				if (library == null) {
-					InputStream is = provider.getLibrarySource(translatorVersionedId, LibraryFormat.CQL);
+					String is = provider.getLibrarySource(translatorVersionedId, LibraryFormat.CQL);
 					if (is != null) {
 						logger.debug("Translating \"{}\" version '{}'", translatorVersionedId.getId(), translatorVersionedId.getVersion());
 						library = translator.translate(is);
