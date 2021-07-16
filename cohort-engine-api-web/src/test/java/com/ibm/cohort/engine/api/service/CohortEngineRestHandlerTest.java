@@ -901,7 +901,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		// Create the ZIP part of the request
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try( ZipOutputStream zos = new ZipOutputStream(baos) ) {
-			File tempFile = new File("src/test/resources/Test-1.0.0.cql");
+			File tempFile = new File("src/test/resources/cql/basic/Test-1.0.0.cql");
 			ZipEntry entry = new ZipEntry("cql/Test-1.0.0.cql");
 			zos.putNextEntry(entry);
 
@@ -950,6 +950,80 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		ServiceBaseUtility.apiCleanup(Mockito.any(), Mockito.eq(MethodNames.EVALUATE_COHORT.getName()));
 	}
 
+	@PrepareForTest({ Response.class, FHIRRestUtils.class })
+	@Test
+	public void testCohortMultipleDependencies() throws Exception {
+		prepMocks();
+		mockResponseClasses();
+		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		Patient patient = getPatient("123", AdministrativeGender.FEMALE, 40);
+		mockFhirResourceRetrieval(patient);
+
+		PowerMockito.mockStatic(ServiceBaseUtility.class);
+		PowerMockito.mockStatic(FHIRRestUtils.class);
+		PowerMockito.mockStatic(DefaultFhirClientBuilder.class);
+		PowerMockito.when(ServiceBaseUtility.apiSetup(VERSION, logger, MethodNames.EVALUATE_COHORT.getName())).thenReturn(null);
+		PowerMockito.whenNew(DefaultFhirClientBuilder.class).withArguments(Mockito.any()).thenReturn(mockDefaultFhirClientBuilder);
+
+
+		// Create the ZIP part of the request
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try( ZipOutputStream zos = new ZipOutputStream(baos) ) {
+			File baseFile = new File("src/test/resources/cql/dependency_test-1.0.0/dependency_test-1.0.0.cql");
+			ZipEntry firstEntry = new ZipEntry("cql/dependency_test-1.0.0.cql");
+			zos.putNextEntry(firstEntry);
+			byte[] x = new byte[(int) baseFile.length()];
+			new FileInputStream(baseFile).read(x);
+			zos.write(x);
+
+			File additionalFile = new File("src/test/resources/cql/dependency_test-1.0.0/ImportantDependency-1.1.1.cql");
+			ZipEntry secondEntry = new ZipEntry("cql/ImportantDependency-1.1.1.cql");
+			zos.putNextEntry(secondEntry);
+			byte[] y = new byte[(int) additionalFile.length()];
+			new FileInputStream(additionalFile).read(y);
+			zos.write(y);
+
+			zos.closeEntry();
+		}
+
+		CohortEvaluation requestData = new CohortEvaluation();
+
+		FhirServerConfig serverConfig = getFhirServerConfig();
+
+		requestData.setDataServerConfig(serverConfig);
+		requestData.setTerminologyServerConfig(serverConfig);
+		requestData.setDefineToRun("DependentFemale");
+		requestData.setEntrypoint("dependency_test-1.0.0.cql");
+		requestData.setPatientIds("123");
+		requestData.setLoggingLevel(LoggingEnum.TRACE);
+
+		ObjectMapper om = new ObjectMapper();
+		String json = om.writeValueAsString(requestData);
+		ByteArrayInputStream jsonIs = new ByteArrayInputStream(json.getBytes());
+		IAttachment request = mockAttachment(jsonIs);
+
+		ByteArrayInputStream zipIs = new ByteArrayInputStream(baos.toByteArray());
+		IAttachment measurePart = mockAttachment(zipIs);
+
+		// Assemble them together into a reasonable facsimile of the real request
+		IMultipartBody body = getFhirConfigFileBody();
+		when( body.getAttachment(CohortEngineRestHandler.CQL_DEFINITION) ).thenReturn(measurePart);
+		when( body.getAttachment(CohortEngineRestHandler.REQUEST_DATA_PART) ).thenReturn(request);
+		when( measurePart.getDataHandler().getName()).thenReturn("dependency_test-1.0.0.zip");
+		when( measurePart.getHeader("Content-Disposition")).thenReturn("dependency_test-1.0.0.zip");
+
+		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, body);
+		assertNotNull(loadResponse);
+		PowerMockito.verifyStatic(Response.class);
+		Response.status(Status.OK);
+
+		PowerMockito.verifyStatic(ServiceBaseUtility.class);
+		ServiceBaseUtility.apiSetup(Mockito.isNull(), Mockito.any(), Mockito.anyString());
+
+		// verifyStatic must be called before each verification
+		PowerMockito.verifyStatic(ServiceBaseUtility.class);
+		ServiceBaseUtility.apiCleanup(Mockito.any(), Mockito.eq(MethodNames.EVALUATE_COHORT.getName()));
+	}
 
 	@PrepareForTest({ Response.class, FHIRRestUtils.class })
 	@Test
@@ -970,7 +1044,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		// Create the ZIP part of the request
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try( ZipOutputStream zos = new ZipOutputStream(baos) ) {
-			File tempFile = new File("src/test/resources/Test-bad-1.0.0.cql");
+			File tempFile = new File("src/test/resources/cql/basic/Test-bad-1.0.0.cql");
 			ZipEntry entry = new ZipEntry("cql/Test-bad-1.0.0.cql");
 			zos.putNextEntry(entry);
 
@@ -1027,7 +1101,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		// Create the ZIP part of the request
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try( ZipOutputStream zos = new ZipOutputStream(baos) ) {
-			File tempFile = new File("src/test/resources/Test-1.0.0.cql");
+			File tempFile = new File("src/test/resources/cql/basic/Test-1.0.0.cql");
 			ZipEntry entry = new ZipEntry("cql/Test-1.0.0.cql");
 			zos.putNextEntry(entry);
 
@@ -1059,8 +1133,8 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		IMultipartBody body = getFhirConfigFileBody();
 		when( body.getAttachment(CohortEngineRestHandler.CQL_DEFINITION) ).thenReturn(measurePart);
 		when( body.getAttachment(CohortEngineRestHandler.REQUEST_DATA_PART) ).thenReturn(request);
-		when( measurePart.getDataHandler().getName()).thenReturn("Test-1.0.0.cql");
-		when( measurePart.getHeader("Content-Disposition")).thenReturn("Test-1.0.0.cql");
+		when( measurePart.getDataHandler().getName()).thenReturn("cql/basic/Test-1.0.0.cql");
+		when( measurePart.getHeader("Content-Disposition")).thenReturn("cql/basic/Test-1.0.0.cql");
 
 		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, body);
 		assertNotNull(loadResponse);
@@ -1074,6 +1148,8 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		PowerMockito.verifyStatic(ServiceBaseUtility.class);
 		ServiceBaseUtility.apiCleanup(Mockito.any(), Mockito.eq(MethodNames.EVALUATE_COHORT.getName()));
 	}
+
+
 
 	private void validateParameterResponse(Response loadResponse) {
 		assertEquals(Status.OK.getStatusCode(), loadResponse.getStatus());
