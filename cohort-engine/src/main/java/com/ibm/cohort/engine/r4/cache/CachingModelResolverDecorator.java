@@ -1,3 +1,9 @@
+/*
+ * (C) Copyright IBM Copr. 2021, 2021
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.ibm.cohort.engine.r4.cache;
 
 import java.util.HashMap;
@@ -5,7 +11,7 @@ import java.util.Map;
 
 import org.opencds.cqf.cql.engine.model.ModelResolver;
 
-
+// copy/pasted from CQL Engine 1.5.1. Revisit on upgrade of that dependency
 public class CachingModelResolverDecorator implements ModelResolver {
 	static Map<String, Map<String,Map<String, Object>>> perPackageContextResolutions = new HashMap<>();
 	static Map<String, Map<String,Class<?>>> perPackageTypeResolutionsByTypeName = new HashMap<>();
