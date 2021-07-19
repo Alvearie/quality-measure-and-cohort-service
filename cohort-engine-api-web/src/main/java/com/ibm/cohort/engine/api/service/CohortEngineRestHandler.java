@@ -631,7 +631,7 @@ public class CohortEngineRestHandler {
 			IParser parser = dataClient.getFhirContext().newJsonParser();
 
 			String [] searchPaths = new String[] { "fhirResources", "fhirResources/libraries" };
-			ZipResourceResolutionProvider provider = new ZipResourceResolutionProvider(new ZipInputStream( measureAttachment.getDataHandler().getInputStream()), parser, searchPaths);;
+			ZipResourceResolutionProvider provider = new ZipResourceResolutionProvider(new ZipInputStream( measureAttachment.getDataHandler().getInputStream()), parser, searchPaths);
 
 			TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(terminologyClient);
 			try (RetrieveCacheContext retrieveCacheContext = new DefaultRetrieveCacheContext()) {
