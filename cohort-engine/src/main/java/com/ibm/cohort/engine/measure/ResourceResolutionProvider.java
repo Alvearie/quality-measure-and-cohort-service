@@ -11,8 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
@@ -48,8 +46,8 @@ public abstract class ResourceResolutionProvider
 	private static final String LIBRARY = "Library";
 	
 	private Map<String, Map<String, MetadataResource>> resourcesByIdByResourceType = new HashMap<>();
-	private Map<String, Map<String, SortedMap<SemanticVersion, MetadataResource>>> resourcesByNameByResourceType = new HashMap<>();
-	private Map<String, Map<String, SortedMap<SemanticVersion, MetadataResource>>> resourcesByUrlByResourceType = new HashMap<>();
+	private Map<String, Map<String, Map<String, MetadataResource>>> resourcesByNameByResourceType = new HashMap<>();
+	private Map<String, Map<String, Map<String, MetadataResource>>> resourcesByUrlByResourceType = new HashMap<>();
 	
 	
 	
@@ -120,34 +118,34 @@ public abstract class ResourceResolutionProvider
 		}
 
 		Map<String, MetadataResource> typedResourcesById = resourcesByIdByResourceType
-				.computeIfAbsent(resource.fhirType(), x -> new HashMap<String, MetadataResource>());
+				.computeIfAbsent(resource.fhirType(), x -> new HashMap<>());
 		typedResourcesById.put(resource.getIdElement().getIdPart(), resource);
 
-		Optional<SemanticVersion> version = SemanticVersion.create(resource.getVersion());
-		if (!version.isPresent()) {
+		String version = resource.getVersion();
+		if (version == null || version.isEmpty()) {
 			throw new IllegalArgumentException(
-					String.format("Error processing %s-%s: knowledge artifacts must contain a version and the value must be a valid semantic version string", resource.getName(), resource.getVersion()));
+					String.format("Error processing %s-%s: knowledge artifacts must contain a version", resource.getName(), resource.getVersion()));
 		}
 
-		Map<String, SortedMap<SemanticVersion, MetadataResource>> typedResourcesByName = resourcesByNameByResourceType
+		Map<String, Map<String, MetadataResource>> typedResourcesByName = resourcesByNameByResourceType
 				.computeIfAbsent(resource.fhirType(),
-						x -> new HashMap<String, SortedMap<SemanticVersion, MetadataResource>>());
+						x -> new HashMap<>());
 
-		Map<SemanticVersion, MetadataResource> resourceByVersion = typedResourcesByName
-				.computeIfAbsent(resource.getName(), key -> new TreeMap<SemanticVersion, MetadataResource>());
-		resourceByVersion.put(version.get(), resource);
+		Map<String, MetadataResource> resourceByVersion = typedResourcesByName
+				.computeIfAbsent(resource.getName(), key -> new HashMap<>());
+		resourceByVersion.put(version, resource);
 
 		if (resource.getUrl() == null) {
 			throw new IllegalArgumentException("Knowledge artifacts must contain a url");
 		}
 
-		Map<String, SortedMap<SemanticVersion, MetadataResource>> typedResourcesByUrl = resourcesByUrlByResourceType
+		Map<String, Map<String, MetadataResource>> typedResourcesByUrl = resourcesByUrlByResourceType
 				.computeIfAbsent(resource.fhirType(),
-						x -> new HashMap<String, SortedMap<SemanticVersion, MetadataResource>>());
+						x -> new HashMap<>());
 
 		resourceByVersion = typedResourcesByUrl.computeIfAbsent(resource.getUrl(),
-				key -> new TreeMap<SemanticVersion, MetadataResource>());
-		resourceByVersion.put(version.get(), resource);
+				key -> new HashMap<>());
+		resourceByVersion.put(version, resource);
 	}
 
 	/**
@@ -184,19 +182,26 @@ public abstract class ResourceResolutionProvider
 	 * @param requestedVersion the version requested by the user. If null, the
 	 *                         latest version is returned.
 	 * @return the requested resource version or the latest if no specific version
-	 *         was requested.
+	 *         was requested. Only resources with semantic versions are considered
+	 *         when finding the latest version.
 	 */
-	protected MetadataResource getByVersion(Map<SemanticVersion, MetadataResource> resourceVersions, String requestedVersion) {
+	protected MetadataResource getByVersion(Map<String, MetadataResource> resourceVersions, String requestedVersion) {
 		MetadataResource result = null;
 		
 		if( resourceVersions != null ) {
-			Optional<SemanticVersion> semver = SemanticVersion.create(requestedVersion);
-			if (semver.isPresent()) {
-				result = resourceVersions.get(semver.get());
+			if (requestedVersion != null && !requestedVersion.isEmpty()) {
+				result = resourceVersions.get(requestedVersion);
 			} else {
-				Optional<MetadataResource> latest = resourceVersions.values().stream().reduce((x, y) -> y);
+				Optional<SemanticVersion> latest = resourceVersions
+						.values()
+						.stream()
+						.map(x -> SemanticVersion.create(x.getVersion()))
+						.filter(Optional::isPresent)
+						.map(Optional::get)
+						.sorted()
+						.reduce((x, y) -> y);
 				if (latest.isPresent()) {
-					result = latest.get();
+					result = resourceVersions.get(latest.get().toString());
 				}
 			}
 		}
@@ -215,9 +220,9 @@ public abstract class ResourceResolutionProvider
 		
 		Pair<String, String> parts = CanonicalHelper.separateParts(canonicalUrl);
 
-		Map<String, SortedMap<SemanticVersion, MetadataResource>> resourcesByUrl = resourcesByUrlByResourceType.get(fhirType);
+		Map<String, Map<String, MetadataResource>> resourcesByUrl = resourcesByUrlByResourceType.get(fhirType);
 		if( resourcesByUrl != null ) {
-			SortedMap<SemanticVersion, MetadataResource> versions = resourcesByUrl.get(parts.getLeft());
+			Map<String, MetadataResource> versions = resourcesByUrl.get(parts.getLeft());
 	
 			String version = parts.getRight();
 	
@@ -237,7 +242,7 @@ public abstract class ResourceResolutionProvider
 	 * @return resolved resource or null if not found
 	 */
 	protected MetadataResource resolveByName(String fhirType, String name, String version) {
-		SortedMap<SemanticVersion, MetadataResource> versions = resourcesByNameByResourceType.get(fhirType).get(name);
+		Map<String, MetadataResource> versions = resourcesByNameByResourceType.get(fhirType).get(name);
 
 		return getByVersion(versions, version);
 	}
@@ -283,7 +288,7 @@ public abstract class ResourceResolutionProvider
 			});
 		}).collect(Collectors.toList());
 		
-		if( matchesByIdentifier.size() > 0 ) {
+		if( !matchesByIdentifier.isEmpty() ) {
 			if( version != null ) {
 				// The user requested a specific version, so find it in the list.
 				List<MetadataResource> matchesByVersion = matchesByIdentifier.stream()
