@@ -826,6 +826,62 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		Response.status(400);
 	}
 
+	@PrepareForTest({ Response.class, TenantManager.class, ServiceBaseUtility.class })
+	@Test
+	public void testEvaluatePatientListMeasure_null_multipart_body() {
+		prepMocks();
+
+		PowerMockito.mockStatic(ServiceBaseUtility.class);
+		PowerMockito.when(ServiceBaseUtility.apiSetup(VERSION, logger, MethodNames.EVALUATE_PATIENT_LIST_MEASURE.getName())).thenReturn(null);
+
+		mockResponseClasses();
+
+		restHandler.evaluatePatientListMeasure(mockRequestContext, VERSION, null);
+
+		PowerMockito.verifyStatic(Response.class);
+		Response.status(400);
+	}
+
+	@PrepareForTest({ Response.class, TenantManager.class, ServiceBaseUtility.class })
+	@Test
+	public void testEvaluatePatientListMeasure_null_request_part() {
+		prepMocks();
+
+		PowerMockito.mockStatic(ServiceBaseUtility.class);
+		PowerMockito.when(ServiceBaseUtility.apiSetup(VERSION, logger, MethodNames.EVALUATE_PATIENT_LIST_MEASURE.getName())).thenReturn(null);
+
+		mockResponseClasses();
+
+		IMultipartBody body = mock(IMultipartBody.class);
+		when(body.getAttachment(CohortEngineRestHandler.REQUEST_DATA_PART)).thenReturn(null);
+		when(body.getAttachment(CohortEngineRestHandler.MEASURE_PART)).thenReturn(mock(IAttachment.class));
+
+		restHandler.evaluatePatientListMeasure(mockRequestContext, VERSION, body);
+
+		PowerMockito.verifyStatic(Response.class);
+		Response.status(400);
+	}
+
+	@PrepareForTest({ Response.class, TenantManager.class, ServiceBaseUtility.class })
+	@Test
+	public void testEvaluatePatientListMeasure_null_measure_part() {
+		prepMocks();
+
+		PowerMockito.mockStatic(ServiceBaseUtility.class);
+		PowerMockito.when(ServiceBaseUtility.apiSetup(VERSION, logger, MethodNames.EVALUATE_PATIENT_LIST_MEASURE.getName())).thenReturn(null);
+
+		mockResponseClasses();
+
+		IMultipartBody body = mock(IMultipartBody.class);
+		when(body.getAttachment(CohortEngineRestHandler.REQUEST_DATA_PART)).thenReturn(mock(IAttachment.class));
+		when(body.getAttachment(CohortEngineRestHandler.MEASURE_PART)).thenReturn(null);
+
+		restHandler.evaluatePatientListMeasure(mockRequestContext, VERSION, body);
+
+		PowerMockito.verifyStatic(Response.class);
+		Response.status(400);
+	}
+
 	@PrepareForTest({ Response.class, FHIRRestUtils.class })
 	@Test
 	public void testCohortEvaluation() throws Exception {
