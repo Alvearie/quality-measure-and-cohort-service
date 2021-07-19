@@ -116,7 +116,7 @@ public class CDMMeasureEvaluation {
 	 * @param measure   CDM Patient Quality Measure
 	 * @param context   CQL Engine Execution Context pre-configured for use in
 	 *                  measure evaluation
-	 * @param patientIds Patient ID(s) of the patient to evaluate (first element when generating INDIVIDUAL type report
+	 * @param patientIds Patient ID(s) of the patient to evaluate (first element when generating INDIVIDUAL type report)
 	 * @param evidenceOptions MeasureEvidenceOptions to indicate whether or not to return evaluated resources and define level results
      * @param parameterMap Map of parameter names to Parameter objects
 	 * @param type  Type of report to be generated
