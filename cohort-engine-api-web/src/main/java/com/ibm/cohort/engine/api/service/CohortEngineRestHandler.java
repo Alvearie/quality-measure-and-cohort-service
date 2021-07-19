@@ -155,6 +155,8 @@ public class CohortEngineRestHandler {
 			"    \"patientId\": \"PATIENTID\",\n" + 
 			"    \"measureContext\": {\n" + 
 			"        \"measureId\": \"MEASUREID\",\n" + 
+			"        \"identifier\": null,\n" +
+			"        \"version\": null,\n" +
 			"        \"parameters\": {\n" + 
 			"            \"Measurement Period\": {\n" + 
 			"                \"type\": \"interval\",\n" + 
@@ -201,6 +203,8 @@ public class CohortEngineRestHandler {
 			"    ],\n" +
 			"    \"measureContext\": {\n" +
 			"        \"measureId\": \"MEASUREID\",\n" +
+			"        \"identifier\": null,\n" +
+			"        \"version\": null,\n" +
 			"        \"parameters\": {\n" +
 			"            \"Measurement Period\": {\n" +
 			"                \"type\": \"interval\",\n" +
