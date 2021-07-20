@@ -969,8 +969,8 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		// Create the ZIP part of the request
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try( ZipOutputStream zos = new ZipOutputStream(baos) ) {
-			File baseFile = new File("src/test/resources/cql/dependency_test-1.0.0/dependency_test-1.0.0.cql");
-			ZipEntry firstEntry = new ZipEntry("cql/dependency_test-1.0.0.cql");
+			File baseFile = new File("src/test/resources/cql/dependency_test-1.0.0/DependencyTest-1.0.0.cql");
+			ZipEntry firstEntry = new ZipEntry("cql/DependencyTest-1.0.0.cql");
 			zos.putNextEntry(firstEntry);
 			byte[] x = new byte[(int) baseFile.length()];
 			new FileInputStream(baseFile).read(x);
@@ -993,7 +993,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		requestData.setDataServerConfig(serverConfig);
 		requestData.setTerminologyServerConfig(serverConfig);
 		requestData.setDefineToRun("DependentFemale");
-		requestData.setEntrypoint("dependency_test-1.0.0.cql");
+		requestData.setEntrypoint("DependencyTest-1.0.0.cql");
 		requestData.setPatientIds("123");
 		requestData.setLoggingLevel(LoggingEnum.TRACE);
 

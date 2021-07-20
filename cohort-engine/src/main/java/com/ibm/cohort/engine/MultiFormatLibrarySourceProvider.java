@@ -40,7 +40,7 @@ public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
 	 * 
 	 * @param libraryIdentifier Library identifier and optional version.
 	 * @param sourceFormat      Source format of the stream of interest
-	 * @return InputStream where source data can be read.
+	 * @return String where source data can be read or turned into an InputStream for downstream processes.
 	 */
 	public String getLibrarySource(VersionedIdentifier libraryIdentifier, LibraryFormat sourceFormat) {
 		String result = null;
@@ -76,7 +76,7 @@ public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
 	 * Retrieve all sources in the collection of a given source format.
 	 * 
 	 * @param sourceFormat source format of interest
-	 * @return Map of library identifier to InputStream containing the source data.
+	 * @return Map of library identifier to String containing the source data.
 	 */
 	public Map<VersionedIdentifier, String> getSourcesByFormat(LibraryFormat sourceFormat) {
 		Map<VersionedIdentifier, String> filtered = new HashMap<>();
@@ -105,7 +105,7 @@ public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
 			String fhirHelperResourceAsString = new BufferedReader(
 					new InputStreamReader(fhirHelperResource, StandardCharsets.UTF_8))
 					.lines()
-					.collect(Collectors.joining("\n"));
+					.collect(Collectors.joining(System.lineSeparator()));
 			specFormat.put(LibraryFormat.XML, fhirHelperResourceAsString);
 			InputStream fhirHelperResourceCQL = MultiFormatLibrarySourceProvider.class.getResourceAsStream(
 					String.format("/org/hl7/fhir/%s-%s.cql",
@@ -114,7 +114,7 @@ public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
 			String fhirHelperResourceCQLAsString = new BufferedReader(
 					new InputStreamReader(fhirHelperResourceCQL, StandardCharsets.UTF_8))
 					.lines()
-					.collect(Collectors.joining("\n"));
+					.collect(Collectors.joining(System.lineSeparator()));
 			specFormat.put(LibraryFormat.CQL, fhirHelperResourceCQLAsString);
 		}
 	}

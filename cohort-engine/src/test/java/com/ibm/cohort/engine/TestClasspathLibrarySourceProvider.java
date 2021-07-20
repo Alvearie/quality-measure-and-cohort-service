@@ -29,7 +29,7 @@ public class TestClasspathLibrarySourceProvider extends MultiFormatLibrarySource
 			String resourceAsString = new BufferedReader(
 					new InputStreamReader(is, StandardCharsets.UTF_8))
 					.lines()
-					.collect(Collectors.joining("\n"));
+					.collect(Collectors.joining(System.lineSeparator()));
 			formats.put(LibraryFormat.forString(resource), resourceAsString);
 		}
 	}
