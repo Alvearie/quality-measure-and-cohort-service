@@ -111,7 +111,7 @@ public class MeasureEvaluation {
     }
 
 	@SuppressWarnings("unchecked")
-	private void clearExpressionCache(Context context) {
+	protected void clearExpressionCache(Context context) {
 		// Hack to clear expression cache
 		// See cqf-ruler github issue #153
 		try {
@@ -125,7 +125,7 @@ public class MeasureEvaluation {
 		}
 	}
 
-    private boolean evaluatePopulationCriteria(Context context, Patient patient,
+    protected boolean evaluatePopulationCriteria(Context context, Patient patient,
             Measure.MeasureGroupPopulationComponent criteria, Map<String, Resource> population,
             Map<String, Patient> populationPatients, Measure.MeasureGroupPopulationComponent exclusionCriteria,
             Map<String, Resource> exclusionPopulation, Map<String, Patient> exclusionPatients) {
@@ -186,7 +186,7 @@ public class MeasureEvaluation {
         }
     }
 
-    private MeasureReport evaluate(Measure measure, Context context, List<Patient> patients,
+    protected MeasureReport evaluate(Measure measure, Context context, List<Patient> patients,
             MeasureReport.MeasureReportType type, boolean isSingle, boolean includeEvaluatedResources) {
         MeasureReportBuilder reportBuilder = new MeasureReportBuilder();
         reportBuilder.buildStatus("complete");
@@ -428,7 +428,7 @@ public class MeasureEvaluation {
         return report;
     }
 
-    private void populateResourceMap(Context context, MeasurePopulationType type, Map<String, Resource> resources,
+    protected void populateResourceMap(Context context, MeasurePopulationType type, Map<String, Resource> resources,
             Map<String, Set<String>> codeToResourceMap, boolean includeEvaluatedResources) {
         if (context.getEvaluatedResources().isEmpty()) {
             return;
