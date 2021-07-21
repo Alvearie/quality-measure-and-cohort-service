@@ -6,7 +6,6 @@
 
 package com.ibm.cohort.engine;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -53,10 +52,10 @@ public class DirectoryLibrarySourceProvider extends MultiFormatLibrarySourceProv
 							String filename = entry.getFileName().toString();
 							VersionedIdentifier id = idStrategy.filenameToVersionedIdentifier(filename);
 							
-							Map<LibraryFormat, InputStream> formats = sources.computeIfAbsent( id, key -> new HashMap<>() );
+							Map<LibraryFormat, String> formats = sources.computeIfAbsent( id, key -> new HashMap<>() );
 							
 							String text = FileUtils.readFileToString(entry.toFile(), StandardCharsets.UTF_8);
-							formats.put(sourceFormat, new ByteArrayInputStream( text.getBytes() ) );
+							formats.put(sourceFormat, new String( text.getBytes() ) );
 							logger.debug("Found source Library '{}'", entry.toString() );
 						} else { 
 							logger.warn("Path '{}' contains an unrecognized/unsupported file extension", entry.toString() );

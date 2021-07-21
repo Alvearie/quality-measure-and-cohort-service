@@ -64,6 +64,7 @@ import com.ibm.cohort.engine.api.service.model.PatientListMeasureEvaluation;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.parameter.DateParameter;
+import com.ibm.cohort.engine.parameter.DatetimeParameter;
 import com.ibm.cohort.engine.parameter.IntervalParameter;
 import com.ibm.cohort.engine.parameter.Parameter;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
@@ -550,7 +551,7 @@ public class DefaultVT extends ServiceVTBase {
 		RequestSpecification request = buildBaseRequest(new Headers())
 				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
 				.multiPart(CohortEngineRestHandler.REQUEST_DATA_PART, requestData, "application/json")
-				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
+				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/cql/zip/Test-1.0.0.zip"));
 
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
 		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
@@ -571,13 +572,13 @@ public class DefaultVT extends ServiceVTBase {
 		requestData.setDataServerConfig(dataServerConfig);
 		requestData.setTerminologyServerConfig(dataServerConfig);
 		requestData.setDefineToRun("Male");
-		requestData.setEntrypoint("Test-1.0.0.cql");
+		requestData.setEntrypoint("cql/basic/Test-1.0.0.cql");
 		requestData.setPatientIds(VALID_PATIENT_ID);
 
 		RequestSpecification request = buildBaseRequest(new Headers())
 				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
 				.multiPart(CohortEngineRestHandler.REQUEST_DATA_PART, requestData, "application/json")
-				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
+				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/cql/zip/Test-1.0.0.zip"));
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
 		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
 
@@ -597,14 +598,14 @@ public class DefaultVT extends ServiceVTBase {
 		requestData.setDataServerConfig(dataServerConfig);
 		requestData.setTerminologyServerConfig(dataServerConfig);
 		requestData.setDefineToRun("Male");
-		requestData.setEntrypoint("Test-1.0.0.cql");
+		requestData.setEntrypoint("cql/basic/Test-1.0.0.cql");
 		requestData.setPatientIds(VALID_PATIENT_ID);
 		requestData.setLoggingLevel(LoggingEnum.TRACE);
 
 		RequestSpecification request = buildBaseRequest(new Headers())
 				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
 				.multiPart(CohortEngineRestHandler.REQUEST_DATA_PART, requestData, "application/json")
-				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
+				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/cql/zip/Test-1.0.0.zip"));
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
 		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
 
@@ -628,7 +629,7 @@ public class DefaultVT extends ServiceVTBase {
 		requestData.setDataServerConfig(dataServerConfig);
 		requestData.setTerminologyServerConfig(dataServerConfig);
 		requestData.setDefineToRun("Female");
-		requestData.setEntrypoint("Test-1.0.0.cql");
+		requestData.setEntrypoint("cql/basic/Test-1.0.0.cql");
 		requestData.setPatientIds(patientInput);
 		requestData.setLoggingLevel(LoggingEnum.TRACE);
 
@@ -636,7 +637,7 @@ public class DefaultVT extends ServiceVTBase {
 		RequestSpecification request = buildBaseRequest(new Headers())
 				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
 				.multiPart(CohortEngineRestHandler.REQUEST_DATA_PART, requestData, "application/json")
-				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/Test-1.0.0.zip"));
+				.multiPart(CohortEngineRestHandler.CQL_DEFINITION, new File("src/test/resources/cql/zip/Test-1.0.0.zip"));
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
 		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
 

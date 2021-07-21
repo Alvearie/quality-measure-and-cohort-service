@@ -6,7 +6,6 @@
 package com.ibm.cohort.engine.measure;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -105,7 +104,7 @@ public class LibraryLoader implements org.opencds.cqf.cql.engine.execution.Libra
 		return elmLibrary;
 	}
 
-	protected InputStream getAttachmentData(Attachment attachment) throws IOException {
+	protected InputStream getAttachmentData(Attachment attachment) {
 		return new ByteArrayInputStream(attachment.getData());
 	}
 

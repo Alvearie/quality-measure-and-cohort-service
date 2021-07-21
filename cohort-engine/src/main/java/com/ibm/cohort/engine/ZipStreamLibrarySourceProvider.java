@@ -6,10 +6,9 @@
 
 package com.ibm.cohort.engine;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -61,8 +60,8 @@ public class ZipStreamLibrarySourceProvider extends MultiFormatLibrarySourceProv
 		
 						ByteArrayOutputStream baos = new ByteArrayOutputStream();
 						IOUtils.copy(zipInputStream, baos);
-						Map<LibraryFormat, InputStream> formats = sources.computeIfAbsent(id, key -> new HashMap<>());
-						formats.put(format, new ByteArrayInputStream(baos.toByteArray()));
+						Map<LibraryFormat, String> formats = sources.computeIfAbsent(id, key -> new HashMap<>());
+						formats.put(format, baos.toString(StandardCharsets.UTF_8.name()));
 						logger.debug("Found source Library '{}'", ze.getName() );
 					} else { 
 						logger.warn("Path '{}' contains an unrecognized/unsupported file extension", ze.getName() );
