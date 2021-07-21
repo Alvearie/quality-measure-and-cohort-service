@@ -1,10 +1,10 @@
-package com.ibm.cohort.engine.translation;
+package com.ibm.cohort.engine.elm.execution;
 
-import org.cqframework.cql.elm.execution.Or;
-import org.opencds.cqf.cql.engine.elm.execution.OrEvaluator;
+import org.cqframework.cql.elm.execution.And;
+import org.opencds.cqf.cql.engine.elm.execution.AndEvaluator;
 import org.opencds.cqf.cql.engine.execution.Context;
 
-public class ShortOrEvaluator extends Or {
+public class ShortAndEvaluator extends And {
 
     @Override
     protected Object internalEvaluate(Context context) {
@@ -17,15 +17,15 @@ public class ShortOrEvaluator extends Or {
             right = null;
         }
         else if (left) {
-            // Default to false because left is already true
+            right = getValue(1, context);
+        }
+        else {
+            // Default to false because left is already false
             // thus we don't care about the result of right.
             right = Boolean.FALSE;
         }
-        else {
-            right = getValue(1, context);
-        }
 
-        return OrEvaluator.or(left, right);
+        return AndEvaluator.and(left, right);
     }
 
     private Boolean getValue(int idx, Context context) {
