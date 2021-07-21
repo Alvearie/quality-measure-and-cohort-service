@@ -12,9 +12,12 @@ import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
+import org.opencds.cqf.cql.engine.model.ModelResolver;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
+import com.ibm.cohort.engine.r4.cache.CachingModelResolverDecorator;
+import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 
 /**
@@ -27,6 +30,8 @@ public class R4MeasureEvaluatorBuilder {
 	private RetrieveCacheContext cacheContext;
 	private boolean isExpandValueSets = R4DataProviderFactory.DEFAULT_IS_EXPAND_VALUE_SETS;
 	private Integer pageSize = R4DataProviderFactory.DEFAULT_PAGE_SIZE;
+	private Boolean isCachingModelResolver = false;
+	private ModelResolver modelResolver = R4FhirModelResolverFactory.createNonCachingResolver();
 
 	public R4MeasureEvaluatorBuilder withClientContext(FHIRClientContext value) {
 		this.clientContext = value;
@@ -48,6 +53,11 @@ public class R4MeasureEvaluatorBuilder {
 		return this;
 	}
 
+	public R4MeasureEvaluatorBuilder withModelResolverCaching(Boolean isCachingModelResolver) {
+		this.isCachingModelResolver = isCachingModelResolver;
+		return this;
+	}
+
 	public MeasureEvaluator build() {
 		if (clientContext == null) {
 			throw new IllegalArgumentException("Client context not provided");
@@ -58,6 +68,7 @@ public class R4MeasureEvaluatorBuilder {
 				clientContext.getDataClient(),
 				terminologyProvider,
 				cacheContext,
+				isCachingModelResolver ? new CachingModelResolverDecorator(modelResolver) : modelResolver,
 				isExpandValueSets,
 				pageSize
 		);
