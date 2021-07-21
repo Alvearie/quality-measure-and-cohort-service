@@ -19,6 +19,7 @@ public class CohortEngineRestConstants {
 	public static final String SERVICE_SWAGGER_PACKAGES = className.substring(0, className.lastIndexOf('.'));
 	
 	public static final String DARK_LAUNCHED_MEASURE_EVALUATION = "measure_evaluation_feature";
+	public static final String DARK_LAUNCHED_PATIENT_LIST_MEASURE_EVALUATION = "patient_list_measure_evaluation_feature";
 	public static final String DARK_LAUNCHED_VALUE_SET_UPLOAD = "value_set_upload_feature";
 	public static final String DARK_LAUNCHED_COHORT_EVALUATION = "cohort_evaluation_feature";
 }
