@@ -10,7 +10,6 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.Reader;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,11 +29,11 @@ import org.cqframework.cql.elm.execution.Library;
 import org.cqframework.cql.elm.tracking.TrackBack;
 import org.fhir.ucum.UcumService;
 import org.hl7.elm_modelinfo.r1.ModelInfo;
-import org.opencds.cqf.cql.engine.execution.CqlLibraryReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ibm.cohort.engine.LibraryFormat;
+import com.ibm.cohort.engine.elm.execution.OptimizedCqlLibraryReader;
 
 /**
  * Uses the CqlTranslator inprocess to convert CQL to ELM. 
@@ -98,7 +97,7 @@ public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
 
 		switch (targetFormat) {
 		case XML:
-			result = CqlLibraryReader.read(new StringReader(translator.toXml()));
+			result = OptimizedCqlLibraryReader.read(translator.toXml());
 			break;
 // This is only a theoretical nice-to-have and fails deserialization, so disabling support for now.
 //		case JSON:

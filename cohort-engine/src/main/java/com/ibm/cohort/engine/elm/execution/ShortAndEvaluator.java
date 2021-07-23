@@ -12,9 +12,8 @@ public class ShortAndEvaluator extends And {
 
         Boolean right;
         if (left == null) {
-            // Proliferate null if left is null.
-            // We will need to figure out when defaulting right to null is appropriate.
-            right = null;
+            // Evaluate to be consistent with base logic
+            right = getValue(1, context);
         }
         else if (left) {
             right = getValue(1, context);
@@ -28,7 +27,7 @@ public class ShortAndEvaluator extends And {
         return AndEvaluator.and(left, right);
     }
 
-    private Boolean getValue(int idx, Context context) {
+    protected Boolean getValue(int idx, Context context) {
         return (Boolean)getOperand().get(idx).evaluate(context);
     }
 

@@ -12,9 +12,8 @@ public class ShortOrEvaluator extends Or {
 
         Boolean right;
         if (left == null) {
-            // Proliferate null if left is null.
-            // We will need to figure out when defaulting right to null is appropriate.
-            right = null;
+	        // Evaluate to be consistent with base logic
+            right = getValue(1, context);
         }
         else if (left) {
             // Default to false because left is already true
@@ -28,7 +27,7 @@ public class ShortOrEvaluator extends Or {
         return OrEvaluator.or(left, right);
     }
 
-    private Boolean getValue(int idx, Context context) {
+    protected Boolean getValue(int idx, Context context) {
         return (Boolean)getOperand().get(idx).evaluate(context);
     }
 
