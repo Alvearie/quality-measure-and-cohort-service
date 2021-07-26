@@ -85,6 +85,15 @@ RUN chown -R --from=root 1001 $WLP_HOME && \
 # install any missing features required by server config
 RUN $WLP_HOME/bin/installUtility install --acceptLicense $SERVER_NAME
 
+# Add interim fixes (optional)
+COPY --chown=1001:0  interim-fixes /opt/ibm/fixes/
+
+# Default setting for the verbose option
+ARG VERBOSE=false
+
+# This script will add the requested XML snippets, grow image to be fit-for-purpose and apply interim fixes
+RUN configure.sh
+
 #DEBUG
 #RUN ["/bin/bash", "-c", "ls -al $WLP_HOME/usr/servers/$SERVER_NAME/" ]
 #RUN ["/bin/bash", "-c", "ls -al $WLP_HOME/usr/servers/$SERVER_NAME/*" ]
