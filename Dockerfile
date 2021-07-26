@@ -30,7 +30,7 @@ RUN mkdir -p $COHORT_DIST_SOLUTION && \
 # Liberty document reference : https://registry.hub.docker.com/r/ibmcom/websphere-liberty
 ####################
 #TODO periodically update to the latest base image
-FROM registry.hub.docker.com/ibmcom/websphere-liberty:21.0.0.7-full-java11-openj9-ubi
+FROM registry.hub.docker.com/ibmcom/websphere-liberty:full-java11-openj9-ubi:latest
 
 # Labels - certain labels are required if you want to have
 #          a Red Hat certified image (this is not a full set per se)
@@ -84,15 +84,6 @@ RUN chown -R --from=root 1001 $WLP_HOME && \
 
 # install any missing features required by server config
 RUN $WLP_HOME/bin/installUtility install --acceptLicense $SERVER_NAME
-
-# Add interim fixes (optional)
-COPY --chown=1001:0  interim-fixes /opt/ibm/fixes/
-
-# Default setting for the verbose option
-ARG VERBOSE=false
-
-# This script will add the requested XML snippets, grow image to be fit-for-purpose and apply interim fixes
-RUN configure.sh
 
 #DEBUG
 #RUN ["/bin/bash", "-c", "ls -al $WLP_HOME/usr/servers/$SERVER_NAME/" ]
