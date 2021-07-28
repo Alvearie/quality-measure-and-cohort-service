@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-
+ 
 ##############################################################################
 # This terraform script can be used to create various cloud resources that may
 # or may not be required depending on the cluster the cohorting engine is being
