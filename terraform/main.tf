@@ -204,8 +204,8 @@ module "k8s_spark_rbac" {
 #module "cr_namespace" {
 #  source                    = "./modules/cr_namespace"
 #  resource_group_id         = data.ibm_resource_group.resource_group_cloudsvc.id
-#  cr_namespace_name			= var.cr_namespace_name
-#  cr_ns_region				= var.cr_ns_region
+#  cr_namespace_name         = var.cr_namespace_name
+#  cr_ns_region              = var.cr_ns_region
 #}
 
 module "tls_cert" {

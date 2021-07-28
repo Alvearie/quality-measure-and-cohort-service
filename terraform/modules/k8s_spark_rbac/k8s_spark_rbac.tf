@@ -19,7 +19,8 @@ resource "kubernetes_service_account" "spark" {
 resource "kubernetes_role" "spark" {
   metadata {
     name = "spark-role"
-    namespace = var.k8s_spark_rbac_namespace_name  }
+    namespace = var.k8s_spark_rbac_namespace_name  
+  }
 
   rule {
     api_groups     = [""]
