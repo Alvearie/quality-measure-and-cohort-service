@@ -8,7 +8,7 @@
 ## -----------------------------------------------------------------------------------------
 resource "kubernetes_service_account" "spark" {
   metadata {
-    name = "spark"
+    name = var.spark_service_account_name
     namespace = var.k8s_spark_rbac_namespace_name
   }
 }
@@ -18,7 +18,7 @@ resource "kubernetes_service_account" "spark" {
 ## -----------------------------------------------------------------------------------------
 resource "kubernetes_role" "spark" {
   metadata {
-    name = "spark-role"
+    name = var.spark_kubernetes_role_name
     namespace = var.k8s_spark_rbac_namespace_name  
   }
 
@@ -46,17 +46,17 @@ resource "kubernetes_role" "spark" {
 ## -----------------------------------------------------------------------------------------
 resource "kubernetes_role_binding" "spark" {
   metadata {
-    name      = "spark-role-binding"
+    name      = var.spark_kubernetes_role_binding_name
     namespace = var.k8s_spark_rbac_namespace_name
   }
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "Role"
-    name      = "spark-role" 
+    name      = var.spark_kubernetes_role_name
   }
   subject {
     kind      = "ServiceAccount"
-    name      = "spark" 
+    name      = var.spark_service_account_name
     namespace = var.k8s_spark_rbac_namespace_name
   }
 }
