@@ -115,5 +115,5 @@ resource "kubernetes_role_binding" "spark" {
     name      = "spark" 
 >>>>>>> d5bda4e refactor tls cert terraform into module and add rbac config
     namespace = var.k8s_spark_rbac_namespace_name
-  }
+  } 
 }
