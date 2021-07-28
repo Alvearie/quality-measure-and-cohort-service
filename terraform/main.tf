@@ -12,9 +12,9 @@ data "ibm_resource_group" "resource_group_cloudsvc" {
   name = var.vpc_rg_cloudsvc
 }
 
-data "ibm_resource_group" "resource_group_ops" {
-  name = var.vpc_rg_ops
-}
+#data "ibm_resource_group" "resource_group_ops" {
+#  name = var.vpc_rg_ops
+#}
 
 data "ibm_resource_group" "resource_group_kube" {
   name = var.vpc_rg_kube
