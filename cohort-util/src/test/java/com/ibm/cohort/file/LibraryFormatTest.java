@@ -5,7 +5,7 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.ibm.cohort.translator.provider;
+package com.ibm.cohort.file;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

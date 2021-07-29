@@ -6,7 +6,7 @@
  *
  */
 
-package com.ibm.cohort.translator.provider;
+package com.ibm.cohort.file;
 
 import java.nio.file.Path;
 import java.util.HashMap;

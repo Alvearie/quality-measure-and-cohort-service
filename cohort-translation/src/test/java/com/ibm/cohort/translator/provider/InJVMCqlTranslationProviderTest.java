@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
@@ -34,6 +35,7 @@ import org.cqframework.cql.cql2elm.LibrarySourceProvider;
 import org.hl7.elm.r1.VersionedIdentifier;
 import org.junit.Before;
 
+import com.ibm.cohort.file.LibraryFormat;
 import com.ibm.cohort.version.DefaultFilenameToVersionedIdentifierStrategy;
 
 public class InJVMCqlTranslationProviderTest extends CqlTranslatorProviderTest {
@@ -133,6 +135,16 @@ public class InJVMCqlTranslationProviderTest extends CqlTranslatorProviderTest {
 
 	@Override
 	protected void registerModelInfo(File modelInfo) throws IOException {
+		translator.convertAndRegisterModelInfo(modelInfo);
+	}
+
+	@Override
+	protected void registerModelInfo(InputStream modelInfo) throws IOException {
+		translator.convertAndRegisterModelInfo(modelInfo);
+	}
+
+	@Override
+	protected void registerModelInfo(Reader modelInfo) throws IOException {
 		translator.convertAndRegisterModelInfo(modelInfo);
 	}
 }

@@ -15,6 +15,8 @@ import org.cqframework.cql.cql2elm.CqlTranslator.Options;
 import org.cqframework.cql.elm.execution.Library;
 import org.hl7.elm_modelinfo.r1.ModelInfo;
 
+import com.ibm.cohort.file.LibraryFormat;
+
 
 /**
  * A general interface that can be used to abstract interaction with multiple

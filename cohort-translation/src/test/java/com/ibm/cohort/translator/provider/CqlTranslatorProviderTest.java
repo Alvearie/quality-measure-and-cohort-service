@@ -16,6 +16,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -57,6 +59,8 @@ public abstract class CqlTranslatorProviderTest {
 	protected abstract void prepareForFolder(Path folder) throws IOException;
 
 	protected abstract void registerModelInfo(File modelInfo) throws IOException;
+	protected abstract void registerModelInfo(InputStream modelInfo) throws IOException;
+	protected abstract void registerModelInfo(Reader modelInfo) throws IOException;
 
 
 	@Test
@@ -86,39 +90,14 @@ public abstract class CqlTranslatorProviderTest {
 		assertEquals("BreastCancerScreening", library.getIdentifier().getId());
 	}
 
-//	@Test
-//	public void customModelInfo__translatedSuccessfully() throws Exception {
-//
-//		List<Library> libraries = new ArrayList<>();
-//
-//		File testdata = new File("src/test/resources/cql/zip/breast_cancer_screening_v1_0_0_cql.zip");
-//		prepareForZip(testdata);
-//
-//
-//		try( ZipFile zipFile = new ZipFile(testdata) ) {
-//			Enumeration<? extends ZipEntry> entries = zipFile.entries();
-//			while (entries.hasMoreElements()) {
-//				ZipEntry entry = entries.nextElement();
-//				if (entry.getName().endsWith(".cql")) {
-//					try (InputStream is = zipFile.getInputStream(entry)) {
-//						libraries.add(getTranslator().translate(is, null));
-//					}
-//				}
-//			}
-//		}
-//
-//		assertEquals(1, libraries.size());
-//		Library library = libraries.get(0);
-//		assertEquals(1, library.getAnnotation().size());
-//		assertEquals("BreastCancerScreening", library.getIdentifier().getId());
-//	}
-
 	@Test
 	public void multipleFilesInFolder__translatedSuccessfully() throws Exception {
 		List<Library> libraries = new ArrayList<Library>();
 
 		Path testdata = Paths.get("src/test/resources/cql/zip");
 		prepareForFolder(testdata);
+		registerModelInfo(new FileInputStream(new File("src/test/resources/model-info.xml")));
+
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(testdata, "*.cql")) {
 			for (Path entry : stream) {
 				try (InputStream cql = Files.newInputStream(entry)) {
@@ -137,6 +116,8 @@ public abstract class CqlTranslatorProviderTest {
 
 		Path testdata = Paths.get("src/test/resources/cql/basic");
 		prepareForFolder(testdata);
+		registerModelInfo(new InputStreamReader(new FileInputStream(new File("src/test/resources/model-info.xml"))));
+
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(testdata, "*.cql")) {
 			for (Path entry : stream) {
 				try (InputStream cql = Files.newInputStream(entry)) {

@@ -32,11 +32,6 @@
 			<version>${project.version}</version>
 		</dependency>
 		
-<!--		<dependency>-->
-<!--			<groupId>info.cqframework</groupId>-->
-<!--			<artifactId>model</artifactId>-->
-<!--		</dependency>-->
-		
 		<dependency>
 			<groupId>info.cqframework</groupId>
 			<artifactId>elm</artifactId>

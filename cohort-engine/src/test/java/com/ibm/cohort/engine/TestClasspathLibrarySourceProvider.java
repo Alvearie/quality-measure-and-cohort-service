@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 import org.hl7.elm.r1.VersionedIdentifier;
 
+import com.ibm.cohort.file.LibraryFormat;
 import com.ibm.cohort.version.FilenameToVersionedIdentifierStrategy;
 
 public class TestClasspathLibrarySourceProvider extends MultiFormatLibrarySourceProvider {

@@ -84,7 +84,13 @@
 		<dependency>
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
-		</dependency>		
+		</dependency>
+
+		<dependency>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-util</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<!-- Runtime dependencies -->
 		
