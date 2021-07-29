@@ -18,7 +18,8 @@ import org.hl7.fhir.r4.model.RelatedArtifact;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.common.providers.LibrarySourceProvider;
 
-import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
+import com.ibm.cohort.translator.provider.InJVMCqlTranslationProvider;
+
 
 /**
  * Helper functions for working with FHIR Library resources

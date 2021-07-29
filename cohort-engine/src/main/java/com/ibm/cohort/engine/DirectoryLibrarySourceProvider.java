@@ -24,6 +24,9 @@ import org.hl7.elm.r1.VersionedIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ibm.cohort.version.DefaultFilenameToVersionedIdentifierStrategy;
+import com.ibm.cohort.version.FilenameToVersionedIdentifierStrategy;
+
 /**
  * Directory-based implementation of MultiFormatLibrarySourceProvider. Filenames can contain
  * library ID and version based on the logic in the provided FilenameToVersionedIdentifierStrategy.
@@ -60,7 +63,7 @@ public class DirectoryLibrarySourceProvider extends MultiFormatLibrarySourceProv
 						} else { 
 							logger.warn("Path '{}' contains an unrecognized/unsupported file extension", entry.toString() );
 						}
-					} 
+					}
 				}
 				return FileVisitResult.CONTINUE;
 			}

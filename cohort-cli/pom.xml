@@ -140,7 +140,13 @@
 			<artifactId>wiremock-jre8</artifactId>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>com.ibm.cohort</groupId>
+            <artifactId>cohort-translation</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 
 	<build>
 		<plugins>

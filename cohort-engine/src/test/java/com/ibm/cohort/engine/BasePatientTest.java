@@ -12,10 +12,12 @@ import org.hl7.elm.r1.VersionedIdentifier;
 import org.hl7.fhir.r4.model.Patient;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 
-import com.ibm.cohort.engine.translation.CqlTranslationProvider;
-import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
+import com.ibm.cohort.translator.provider.CqlTranslationProvider;
+import com.ibm.cohort.translator.provider.InJVMCqlTranslationProvider;
+import com.ibm.cohort.version.DefaultFilenameToVersionedIdentifierStrategy;
+import com.ibm.cohort.version.FilenameToVersionedIdentifierStrategy;
 
 public class BasePatientTest extends BaseFhirTest {
 	protected CqlEvaluator setupTestFor(Patient patient, String... resources) {

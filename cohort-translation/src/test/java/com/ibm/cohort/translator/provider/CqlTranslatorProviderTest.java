@@ -3,7 +3,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.cohort.engine.translation;
+
+package com.ibm.cohort.translator.provider;
+
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -24,30 +26,35 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Unmarshaller;
+
 import org.cqframework.cql.cql2elm.CqlTranslator.Options;
 import org.cqframework.cql.cql2elm.CqlTranslatorOptions;
 import org.cqframework.cql.elm.execution.Library;
 import org.hl7.cql_annotations.r1.CqlToElmInfo;
+import org.hl7.cql_annotations.r1.ObjectFactory;
 import org.junit.Assert;
 import org.junit.Test;
+import org.w3c.dom.Element;
 
-import com.ibm.cohort.engine.LibraryUtils;
 
 /**
  * Baseline tests that can be run against multiple CqlTranslatorWrapper
- * implementations. The prepare methods provide call out points for 
+ * implementations. The prepare methods provide call out points for
  * implementations that have specific needs based on the source
- * of the input data. 
+ * of the input data.
  */
 public abstract class CqlTranslatorProviderTest {
 
 	protected abstract CqlTranslationProvider getTranslator();
 
 	protected abstract void prepareForZip(File zipFile) throws IOException;
-	
+
 	protected abstract void prepareForFolder(Path folder) throws IOException;
 
-	
+
 	@Test
 	public void multipleFilesInZip__translatedSuccessfully() throws Exception {
 
@@ -67,7 +74,7 @@ public abstract class CqlTranslatorProviderTest {
 				}
 			}
 		}
-		
+
 		assertEquals(1, libraries.size());
 		Library library = libraries.get(0);
 		assertEquals(1, library.getAnnotation().size());
@@ -111,7 +118,7 @@ public abstract class CqlTranslatorProviderTest {
 		assertEquals("Test", library.getIdentifier().getId());
 		assertEquals(1, library.getAnnotation().size());
 
-		List<Object> unmarshalled = LibraryUtils.unmarshallAnnotations(library);
+		List<Object> unmarshalled = unmarshallAnnotations(library);
 		Object o = unmarshalled.get(0);
 		assertTrue( o instanceof CqlToElmInfo );
 		CqlToElmInfo info = (CqlToElmInfo) o;
@@ -155,7 +162,7 @@ public abstract class CqlTranslatorProviderTest {
 			Assert.fail("Did not fail translation");
 		}
 	}
-	
+
 	private Library getById(List<Library> libraries, String libraryName) {
 		Library library = null;
 		for( Library l : libraries ) {
@@ -165,5 +172,20 @@ public abstract class CqlTranslatorProviderTest {
 			}
 		}
 		return library;
+	}
+
+	public static List<Object> unmarshallAnnotations(Library library) throws Exception {
+
+		List<Object> annotations = new ArrayList<>();
+		if (library.getAnnotation() != null) {
+			JAXBContext ctx = JAXBContext.newInstance(ObjectFactory.class);
+			Unmarshaller u = ctx.createUnmarshaller();
+
+			for (Object elem : library.getAnnotation()) {
+				JAXBElement<?> j = (JAXBElement<?>) u.unmarshal((Element) elem);
+				annotations.add(j.getValue());
+			}
+		}
+		return annotations;
 	}
 }

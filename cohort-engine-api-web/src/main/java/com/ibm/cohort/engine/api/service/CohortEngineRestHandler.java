@@ -43,7 +43,6 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.BooleanEvaluationCallback;
 import com.ibm.cohort.engine.CqlEvaluator;
-import com.ibm.cohort.engine.DefaultFilenameToVersionedIdentifierStrategy;
 import com.ibm.cohort.engine.TranslatingLibraryLoader;
 import com.ibm.cohort.engine.ZipStreamLibrarySourceProvider;
 import com.ibm.cohort.engine.api.service.model.CohortEvaluation;
@@ -59,14 +58,15 @@ import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
-import com.ibm.cohort.engine.translation.CqlTranslationProvider;
-import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
+import com.ibm.cohort.translator.provider.CqlTranslationProvider;
+import com.ibm.cohort.translator.provider.InJVMCqlTranslationProvider;
 import com.ibm.cohort.valueset.ValueSetArtifact;
 import com.ibm.cohort.valueset.ValueSetUtil;
+import com.ibm.cohort.version.DefaultFilenameToVersionedIdentifierStrategy;
 import com.ibm.watson.common.service.base.DarkFeatureSwaggerFilter;
 import com.ibm.watson.common.service.base.ServiceBaseConstants;
 import com.ibm.watson.common.service.base.ServiceBaseUtility;
@@ -395,6 +395,9 @@ public class CohortEngineRestHandler {
 			validateBean(dataServerConfig);
 			validateBean(terminologyServerConfig);
 //			validateBean(measureServerConfig);
+
+			//todo I'm putting this here for literally no reason. But I can find it here at least.
+//			ModelInfoLoader.registerModelInfoProvider();
 
 			FhirClientBuilderFactory clientFactory = FhirClientBuilderFactory.newInstance();
 

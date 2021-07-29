@@ -37,9 +37,9 @@ import com.ibm.cohort.engine.MultiFormatLibrarySourceProvider;
 import com.ibm.cohort.engine.TranslatingLibraryLoader;
 import com.ibm.cohort.engine.ZipStreamLibrarySourceProvider;
 import com.ibm.cohort.engine.helpers.FileHelpers;
-import com.ibm.cohort.engine.translation.CqlTranslationProvider;
-import com.ibm.cohort.engine.translation.InJVMCqlTranslationProvider;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
+import com.ibm.cohort.translator.provider.CqlTranslationProvider;
+import com.ibm.cohort.translator.provider.InJVMCqlTranslationProvider;
 
 public class CohortCLI extends BaseCLI {
 

@@ -1,10 +1,12 @@
 /*
- * (C) Copyright IBM Corp. 2020, 2020
  *
- * SPDX-License-Identifier: Apache-2.0
+ *  * (C) Copyright IBM Corp. 2021
+ *  *
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
  */
 
-package com.ibm.cohort.engine;
+package com.ibm.cohort.version;
 
 import org.hl7.elm.r1.VersionedIdentifier;
 
@@ -14,5 +16,5 @@ import org.hl7.elm.r1.VersionedIdentifier;
  */
 @FunctionalInterface
 public interface FilenameToVersionedIdentifierStrategy {
-	public VersionedIdentifier filenameToVersionedIdentifier( String filename );
+	public VersionedIdentifier filenameToVersionedIdentifier(String filename);
 }
