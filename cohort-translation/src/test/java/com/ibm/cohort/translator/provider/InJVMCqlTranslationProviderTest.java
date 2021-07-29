@@ -130,4 +130,9 @@ public class InJVMCqlTranslationProviderTest extends CqlTranslatorProviderTest {
 	protected void prepareForFolder(Path folder) throws IOException {
 		translator.addLibrarySourceProvider(new TestLibraryProvider(folder));
 	}
+
+	@Override
+	protected void registerModelInfo(File modelInfo) throws IOException {
+		translator.convertAndRegisterModelInfo(modelInfo);
+	}
 }

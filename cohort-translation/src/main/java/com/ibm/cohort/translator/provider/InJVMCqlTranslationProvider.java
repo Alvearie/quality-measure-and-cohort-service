@@ -50,10 +50,6 @@ public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
 		libraryManager.getLibrarySourceLoader().registerProvider(new FhirLibrarySourceProvider());
 	}
 
-	public InJVMCqlTranslationProvider(LibraryManager libraryManager, ModelManager modelManager) {
-		this.modelManager = modelManager;
-		this.libraryManager = libraryManager;
-	}
 	
 	public InJVMCqlTranslationProvider(LibrarySourceProvider provider) {
 		this();

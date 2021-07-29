@@ -66,23 +66,28 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-		<groupId>info.cqframework</groupId>
-		<artifactId>model</artifactId>
-		<version>1.5.1</version>
-		<scope>compile</scope>
-	</dependency>
+			<groupId>info.cqframework</groupId>
+			<artifactId>model</artifactId>
+			<version>1.5.1</version>
+			<scope>compile</scope>
+		</dependency>
 		<dependency>
-		<groupId>org.fhir</groupId>
-		<artifactId>ucum</artifactId>
-		<version>1.0.2</version>
-		<scope>compile</scope>
-	</dependency>
+			<groupId>org.fhir</groupId>
+			<artifactId>ucum</artifactId>
+			<version>1.0.2</version>
+			<scope>compile</scope>
+		</dependency>
 		<dependency>
-		<groupId>junit</groupId>
-		<artifactId>junit</artifactId>
-		<version>4.13.1</version>
-		<scope>compile</scope>
-	</dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.13.1</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>org.hamcrest</groupId>
@@ -90,11 +95,11 @@
 			<version>1.3</version>
 			<scope>test</scope>
 		</dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
 			<artifactId>cohort-util</artifactId>

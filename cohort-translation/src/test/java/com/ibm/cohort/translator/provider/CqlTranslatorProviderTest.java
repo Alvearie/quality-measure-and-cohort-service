@@ -13,6 +13,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -35,6 +36,7 @@ import org.cqframework.cql.cql2elm.CqlTranslatorOptions;
 import org.cqframework.cql.elm.execution.Library;
 import org.hl7.cql_annotations.r1.CqlToElmInfo;
 import org.hl7.cql_annotations.r1.ObjectFactory;
+import org.hl7.elm_modelinfo.r1.ModelInfo;
 import org.junit.Assert;
 import org.junit.Test;
 import org.w3c.dom.Element;
@@ -54,6 +56,8 @@ public abstract class CqlTranslatorProviderTest {
 
 	protected abstract void prepareForFolder(Path folder) throws IOException;
 
+	protected abstract void registerModelInfo(File modelInfo) throws IOException;
+
 
 	@Test
 	public void multipleFilesInZip__translatedSuccessfully() throws Exception {
@@ -62,6 +66,7 @@ public abstract class CqlTranslatorProviderTest {
 
 		File testdata = new File("src/test/resources/cql/zip/breast_cancer_screening_v1_0_0_cql.zip");
 		prepareForZip(testdata);
+		registerModelInfo(new File("src/test/resources/model-info.xml"));
 
 		try( ZipFile zipFile = new ZipFile(testdata) ) {
 			Enumeration<? extends ZipEntry> entries = zipFile.entries();
@@ -80,6 +85,33 @@ public abstract class CqlTranslatorProviderTest {
 		assertEquals(1, library.getAnnotation().size());
 		assertEquals("BreastCancerScreening", library.getIdentifier().getId());
 	}
+
+//	@Test
+//	public void customModelInfo__translatedSuccessfully() throws Exception {
+//
+//		List<Library> libraries = new ArrayList<>();
+//
+//		File testdata = new File("src/test/resources/cql/zip/breast_cancer_screening_v1_0_0_cql.zip");
+//		prepareForZip(testdata);
+//
+//
+//		try( ZipFile zipFile = new ZipFile(testdata) ) {
+//			Enumeration<? extends ZipEntry> entries = zipFile.entries();
+//			while (entries.hasMoreElements()) {
+//				ZipEntry entry = entries.nextElement();
+//				if (entry.getName().endsWith(".cql")) {
+//					try (InputStream is = zipFile.getInputStream(entry)) {
+//						libraries.add(getTranslator().translate(is, null));
+//					}
+//				}
+//			}
+//		}
+//
+//		assertEquals(1, libraries.size());
+//		Library library = libraries.get(0);
+//		assertEquals(1, library.getAnnotation().size());
+//		assertEquals("BreastCancerScreening", library.getIdentifier().getId());
+//	}
 
 	@Test
 	public void multipleFilesInFolder__translatedSuccessfully() throws Exception {
