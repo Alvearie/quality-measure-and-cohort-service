@@ -155,7 +155,7 @@ provider kubernetes {
 #  depends_on        			= [module.keyprotect]
 #}
 
-#module "k8s_namespaaces" {
+#module "k8s_namespaces" {
 #  source                        = "./modules/k8s_namespaces"
 #  configure_namespace		= var.configure_namespace
 #}
@@ -201,10 +201,12 @@ module "k8s_spark_rbac" {
 #  depends_on				= [module.cloud-object-storage,module.k8s_secrets]
 #}
 
+# Uncomment if you want terraform to create a separate container registry namespace
+# to contain your spark images
 #module "cr_namespace" {
 #  source                    = "./modules/cr_namespace"
 #  resource_group_id         = data.ibm_resource_group.resource_group_cloudsvc.id
-#  cr_namespace_name         = var.cr_namespace_name
+#  cr_namespace_name         = var.spark_cr_namespace_name
 #  cr_ns_region              = var.cr_ns_region
 #}
 

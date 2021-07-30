@@ -335,12 +335,12 @@ variable cluster_name {
 #
 ###############################################################################
 
-variable "configure_namespace" {
-  type = list
-  description = "Configures new namespace"
+#variable "configure_namespace" {
+#  type = list
+#  description = "Configures new namespace"
 #  default     = ["monitoring","msn-observe"]
-  default     = ["cicdtest"]
-}
+#  default     = ["cicdtest"]
+#}
 
 ## -----------------------------------------------------------------------------------------
 # Define already existing Namespaces
@@ -410,10 +410,10 @@ variable kubernetes_namespace {
 # Container Registry Namespace Used to Hold Spark Images
 ## -----------------------------------------------------------------------------------------
 
-variable "cr_namespace_name" {
+variable "spark_cr_namespace_name" {
   type          = string
-  description   = "Name of the container registry namespace"
-  default       = "vpc-dev-cohort-rns"
+  description   = "Name of the container registry namespace to contain spark images"
+  default       = "vpc-dev-cohort-rns-spark"
 }
 
 variable "cr_ns_region" {
