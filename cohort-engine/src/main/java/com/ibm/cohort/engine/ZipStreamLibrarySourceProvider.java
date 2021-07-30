@@ -39,12 +39,12 @@ public class ZipStreamLibrarySourceProvider extends MultiFormatLibrarySourceProv
 	}
 
 	public ZipStreamLibrarySourceProvider(ZipInputStream zipInputStream,
-										  FilenameToVersionedIdentifierStrategy idStrategy, String... searchPaths) throws IOException  {
+				    FilenameToVersionedIdentifierStrategy idStrategy, String... searchPaths) throws IOException  {
 
 		ZipEntry ze;
 		while ((ze = zipInputStream.getNextEntry()) != null) {
 			if (!ze.isDirectory()) {
-				boolean filter = false;
+				boolean filter;
 				if( ! ArrayUtils.isEmpty(searchPaths) ) {
 					String prefix = "";
 

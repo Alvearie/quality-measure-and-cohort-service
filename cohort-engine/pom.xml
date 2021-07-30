@@ -92,12 +92,6 @@
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
 		
-<!--		<dependency>-->
-<!--			<groupId>org.fhir</groupId>-->
-<!--			<artifactId>ucum</artifactId>-->
-<!--			<version>1.0.2</version>-->
-<!--		</dependency>-->
-		
 		<dependency>
 			<groupId>javax.cache</groupId>
 			<artifactId>cache-api</artifactId>

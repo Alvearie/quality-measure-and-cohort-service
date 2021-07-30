@@ -28,18 +28,6 @@
 	</scm>
 
 	<dependencies>
-<!--		<dependency>-->
-<!--			<groupId>com.ibm.cohort</groupId>-->
-<!--			<artifactId>fhir-client-config</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-
-<!--		<dependency>-->
-<!--			<groupId>com.ibm.cohort</groupId>-->
-<!--			<artifactId>cohort-util</artifactId>-->
-<!--			<version>${project.version}</version>-->
-<!--		</dependency>-->
-
 		<dependency>
 			<groupId>info.cqframework</groupId>
 			<artifactId>elm</artifactId>
@@ -53,12 +41,6 @@
 			<groupId>org.opencds.cqf.cql</groupId>
 			<artifactId>engine</artifactId>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>org.mockito</groupId>-->
-<!--			<artifactId>mockito-core</artifactId>-->
-<!--		</dependency>-->
-
-
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
@@ -106,12 +88,6 @@
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-util</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-
 	</dependencies>
 
 	<build>

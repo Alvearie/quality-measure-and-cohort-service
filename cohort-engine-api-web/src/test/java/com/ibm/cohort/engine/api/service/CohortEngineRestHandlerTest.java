@@ -35,13 +35,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.JAXB;
 
-import org.cqframework.cql.cql2elm.ModelInfoLoader;
-import org.cqframework.cql.cql2elm.ModelManager;
-import org.cqframework.cql.cql2elm.SystemModelInfoProvider;
-import org.hl7.elm.r1.VersionedIdentifier;
-import org.hl7.elm_modelinfo.r1.ModelInfo;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
@@ -1154,16 +1148,6 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		PowerMockito.verifyStatic(ServiceBaseUtility.class);
 		ServiceBaseUtility.apiCleanup(Mockito.any(), Mockito.eq(MethodNames.EVALUATE_COHORT.getName()));
 	}
-
-
-//	@Test
-//	public void doingSomeTestin(){
-//
-////		(ModelInfo) JAXB.unmarshal(CohortEngineRestHandlerTest.class.getResourceAsStream("/org/hl7/fhir/fhir-modelinfo-1.0.2.xml"), ModelInfo.class);
-////		ModelInfo x =  JAXB.unmarshal(new File("src/test/resources/model-info.xml"), ModelInfo.class);
-//		ModelInfoLoader.registerModelInfoProvider((new VersionedIdentifier()).withId("Custom").withVersion("1"), new CustomModelInfoProvider("src/test/resources/model-info.xml"));
-//		System.out.println("temp");
-//	}
 
 	private void validateParameterResponse(Response loadResponse) {
 		assertEquals(Status.OK.getStatusCode(), loadResponse.getStatus());

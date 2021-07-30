@@ -396,9 +396,6 @@ public class CohortEngineRestHandler {
 			validateBean(terminologyServerConfig);
 //			validateBean(measureServerConfig);
 
-			//todo I'm putting this here for literally no reason. But I can find it here at least.
-//			ModelInfoLoader.registerModelInfoProvider();
-
 			FhirClientBuilderFactory clientFactory = FhirClientBuilderFactory.newInstance();
 
 			CqlEvaluator evaluator = new CqlEvaluator(clientFactory);
