@@ -1,0 +1,12 @@
+execution:
+- executor: pytest
+  scenario: pytest-test
+
+scenarios:
+
+  pytest-test:
+    script: ../../src/main/python/rest/tests/CohortEvaluationAPITests.py
+
+reporting:
+- module: junit-xml
+  filename: /bzt-configs/tests/results/cohortEvaluationAPITests.xml
