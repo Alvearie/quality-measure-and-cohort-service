@@ -1,0 +1,36 @@
+{
+    "dataServerConfig": {
+        "@class": "com.ibm.cohort.fhir.client.config.IBMFhirServerConfig",
+		"endpoint": "https://fhir-internal.dev.svc:9443/fhir-server/api/v4",
+		"user": "fhiruser",
+		"password": "change-password",
+		"tenantId": "test-fvt"
+    },
+	"terminologyServerConfig": {
+        "@class": "com.ibm.cohort.fhir.client.config.IBMFhirServerConfig",
+		"endpoint": "https://fhir-internal.dev.svc:9443/fhir-server/api/v4",
+		"user": "fhiruser",
+		"password": "change-password",
+		"tenantId": "knowledge"
+    },
+    "patientIds": "patientIds",
+    "parameters": {
+            "Measurement Period": {
+                "type": "interval",
+                "start": {
+                    "type": "datetime",
+                    "value": "@2019-01-01T00:00:00.0"
+                },
+                "startInclusive": true,
+                "end": {
+                    "type": "datetime",
+                    "value": "@2020-01-01T00:00:00.0"
+                },
+                "endInclusive": true
+            }
+     },
+	"entrypoint": "entrypoint-cqlfile",
+	"defineToRun": "cql-definestmt",
+	"loggingLevel": "TRACE"
+		
+}
