@@ -24,7 +24,7 @@ from pprint import pprint
 
 # create an instance of the API class
 api_instance = swagger_client.ValueSetApi()
-version = '2021-04-26' # str | The release date of the version of the API you want to use. Specify dates in YYYY-MM-DD format. (default to 2021-04-26)
+version = '2021-07-22' # str | The release date of the version of the API you want to use. Specify dates in YYYY-MM-DD format. (default to 2021-07-22)
 fhir_data_server_config = '/path/to/file.txt' # file | A configuration file containing information needed to connect to the FHIR server. See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/getting-started.md#fhir-server-configuration for more details.  Example Contents:   <pre>{     \"@class\": \"com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\",     \"endpoint\": \"https://fhir-internal.dev:9443/fhir-server/api/v4\",     \"user\": \"fhiruser\",     \"password\": \"replaceWithfhiruserPassword\",     \"logInfo\": [         \"ALL\"     ],     \"tenantId\": \"default\" }</pre>
 value_set = '/path/to/file.txt' # file | Spreadsheet containing the Value Set definition.
 update_if_exists = false # bool | The parameter that, if true, will force updates of value sets if the value set already exists (optional) (default to false)
@@ -41,7 +41,7 @@ except ApiException as e:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **version** | **str**| The release date of the version of the API you want to use. Specify dates in YYYY-MM-DD format. | [default to 2021-04-26]
+ **version** | **str**| The release date of the version of the API you want to use. Specify dates in YYYY-MM-DD format. | [default to 2021-07-22]
  **fhir_data_server_config** | **file**| A configuration file containing information needed to connect to the FHIR server. See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/getting-started.md#fhir-server-configuration for more details.  Example Contents:   &lt;pre&gt;{     \&quot;@class\&quot;: \&quot;com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\&quot;,     \&quot;endpoint\&quot;: \&quot;https://fhir-internal.dev:9443/fhir-server/api/v4\&quot;,     \&quot;user\&quot;: \&quot;fhiruser\&quot;,     \&quot;password\&quot;: \&quot;replaceWithfhiruserPassword\&quot;,     \&quot;logInfo\&quot;: [         \&quot;ALL\&quot;     ],     \&quot;tenantId\&quot;: \&quot;default\&quot; }&lt;/pre&gt; | 
  **value_set** | **file**| Spreadsheet containing the Value Set definition. | 
  **update_if_exists** | **bool**| The parameter that, if true, will force updates of value sets if the value set already exists | [optional] [default to false]
