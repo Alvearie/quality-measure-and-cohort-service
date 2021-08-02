@@ -32,8 +32,10 @@ import org.hl7.elm_modelinfo.r1.ModelInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ibm.cohort.engine.LibraryFormat;
-import com.ibm.cohort.engine.elm.execution.OptimizedCqlLibraryReader;
+import com.ibm.cohort.file.LibraryFormat;
+import com.ibm.cohort.translator.optimization.OptimizedCqlLibraryReader;
+import com.ibm.cohort.translator.provider.BaseCqlTranslationProvider;
+
 
 /**
  * Uses the CqlTranslator inprocess to convert CQL to ELM. 
