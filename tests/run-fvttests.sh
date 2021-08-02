@@ -85,6 +85,8 @@ runTest "/bzt-configs/tests/scenarios/rest/getMeasureParametersByMeasureIdAPITes
 runTest "/bzt-configs/tests/scenarios/rest/getMeasureParametersByIdentifierAPITests.yaml"
 runTest "/bzt-configs/tests/scenarios/rest/valueSetImportAPITests.yaml"
 runTest "/bzt-configs/tests/scenarios/rest/measureEvaluationAPITests.yaml"
+runTest "/bzt-configs/tests/scenarios/rest/cohortEvaluationAPITests.yaml"
+runTest "/bzt-configs/tests/scenarios/rest/measureEvaluationUsingPatientListAPITests.yaml"
 
 # Save test results and logs to local directories. Combine results into a single xml file
 # called fvttest.xml (filename expected by the toolchain)
