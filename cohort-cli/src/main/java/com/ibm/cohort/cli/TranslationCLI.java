@@ -21,7 +21,7 @@ import com.ibm.cohort.engine.DirectoryLibrarySourceProvider;
 import com.ibm.cohort.translator.provider.CqlTranslationProvider;
 import com.ibm.cohort.translator.provider.InJVMCqlTranslationProvider;
 
-public class TranslationCli {
+public class TranslationCLI {
 
 	private static final class TranslationOptions extends ConnectionArguments {
 		@Parameter(names = { "-f",
@@ -72,7 +72,7 @@ public class TranslationCli {
 			System.exit(0);
 		}
 
-		TranslationCli wrapper = new TranslationCli();
+		TranslationCLI wrapper = new TranslationCLI();
 		wrapper.runWithArgs(options, System.out);
 	}
 

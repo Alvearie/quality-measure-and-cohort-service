@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.BasePatientTest;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
-public class TranslationCliTest extends BasePatientTest {
+public class TranslationCLITest extends BasePatientTest {
 
 	@Test
 	public void basicFunctionalityCheck() throws Exception {
@@ -39,7 +39,7 @@ public class TranslationCliTest extends BasePatientTest {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			try (PrintStream captureOut = new PrintStream(baos)) {
 				System.setOut(captureOut);
-				TranslationCli.main(new String[]{
+				TranslationCLI.main(new String[]{
 						"-d", tmpFile.getAbsolutePath(),
 						"-t", tmpFile.getAbsolutePath(),
 						"-f", "src/test/resources/cql/basic/test.cql"
@@ -72,7 +72,7 @@ public class TranslationCliTest extends BasePatientTest {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			try (PrintStream captureOut = new PrintStream(baos)) {
 				System.setOut(captureOut);
-				TranslationCli.main(new String[]{
+				TranslationCLI.main(new String[]{
 						"-d", tmpFile.getAbsolutePath(),
 						"-t", tmpFile.getAbsolutePath(),
 						"-f", "src/test/resources/cql/ig-test/test.cql",
