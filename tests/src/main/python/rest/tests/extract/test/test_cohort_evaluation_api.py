@@ -16,23 +16,23 @@ from __future__ import absolute_import
 import unittest
 
 import swagger_client
-from swagger_client.api.value_set_api import ValueSetApi  # noqa: E501
+from swagger_client.api.cohort_evaluation_api import CohortEvaluationApi  # noqa: E501
 from swagger_client.rest import ApiException
 
 
-class TestValueSetApi(unittest.TestCase):
-    """ValueSetApi unit test stubs"""
+class TestCohortEvaluationApi(unittest.TestCase):
+    """CohortEvaluationApi unit test stubs"""
 
     def setUp(self):
-        self.api = swagger_client.api.value_set_api.ValueSetApi()  # noqa: E501
+        self.api = swagger_client.api.cohort_evaluation_api.CohortEvaluationApi()  # noqa: E501
 
     def tearDown(self):
         pass
 
-    def test_create_value_set(self):
-        """Test case for create_value_set
+    def test_evaluate_cohort(self):
+        """Test case for evaluate_cohort
 
-        Insert a new value set to the fhir server or, if it already exists, update it in place  # noqa: E501
+        Evaluates a specific define within a CQL for a set of patients  # noqa: E501
         """
         pass
 
