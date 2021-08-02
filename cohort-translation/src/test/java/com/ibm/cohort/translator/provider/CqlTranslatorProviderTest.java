@@ -70,7 +70,7 @@ public abstract class CqlTranslatorProviderTest {
 
 		File testdata = new File("src/test/resources/cql/zip/breast_cancer_screening_v1_0_0_cql.zip");
 		prepareForZip(testdata);
-		registerModelInfo(new File("src/test/resources/model-info.xml"));
+		registerModelInfo(new File("src/test/resources/modelinfo/ig-with-target-modelinfo-0.0.1.xml"));
 
 		try( ZipFile zipFile = new ZipFile(testdata) ) {
 			Enumeration<? extends ZipEntry> entries = zipFile.entries();
@@ -96,7 +96,7 @@ public abstract class CqlTranslatorProviderTest {
 
 		Path testdata = Paths.get("src/test/resources/cql/zip");
 		prepareForFolder(testdata);
-		registerModelInfo(new FileInputStream(new File("src/test/resources/model-info.xml")));
+		registerModelInfo(new FileInputStream(new File("src/test/resources/modelinfo/ig-with-target-modelinfo-0.0.1.xml")));
 
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(testdata, "*.cql")) {
 			for (Path entry : stream) {
@@ -116,7 +116,7 @@ public abstract class CqlTranslatorProviderTest {
 
 		Path testdata = Paths.get("src/test/resources/cql/basic");
 		prepareForFolder(testdata);
-		registerModelInfo(new InputStreamReader(new FileInputStream(new File("src/test/resources/model-info.xml"))));
+		registerModelInfo(new InputStreamReader(new FileInputStream(new File("src/test/resources/modelinfo/ig-with-target-modelinfo-0.0.1.xml"))));
 
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(testdata, "*.cql")) {
 			for (Path entry : stream) {
