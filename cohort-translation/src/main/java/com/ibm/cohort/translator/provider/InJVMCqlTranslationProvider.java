@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.ibm.cohort.engine.translation;
+package com.ibm.cohort.translator.provider;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
