@@ -65,8 +65,133 @@ provider kubernetes {
 }
 
 ##############################################################################
+<<<<<<< Upstream, based on origin/main
 # Kubernetes signed certificate creation for REST API server
 ##############################################################################
+=======
+
+#module "app-id" {
+#  source		= "./modules/app-id"
+#  resource_group_id	= data.ibm_resource_group.resource_group_cloudsvc.id
+#  appid_name		= var.appid_name
+#  appid_plan		= var.appid_plan
+#  appid_location	= var.appid_location
+#}
+
+#module "keyprotect" {
+#  source		= "./modules/keyprotect"
+#  resource_group_id	= data.ibm_resource_group.resource_group_cloudsvc.id
+#  kp_name		= var.kp_name
+#  kp_plan		= var.kp_plan
+#  kp_location		= var.kp_location
+#}
+
+#module "certificate-manager" {
+#  source                = "./modules/certificate-manager"
+#  resource_group_id     = data.ibm_resource_group.resource_group_cloudsvc.id
+#  cm_name               = var.cm_name
+#  cm_location		= var.cm_location
+#}
+
+#module "internet-services" {
+#  source                = "./modules/internet-services"
+#  resource_group_id     = data.ibm_resource_group.resource_group_cloudsvc.id
+#  internet_svcs_name    = var.internet_svcs_name
+#  internet_svcs_plan    = var.internet_svcs_plan
+#  tag_list              = var.tag_list
+#}
+
+#module "cloud-object-storage" {
+#  source                		= "./modules/cloud-object-storage"
+#  resource_group_id     		= data.ibm_resource_group.resource_group_cloudsvc.id
+#  ibm_region            		= var.ibm_region
+#  cos_plan				= var.cos_plan
+#  cos_instance_one_name			= var.cos_instance_one_name
+#  cos_instance_two_name 		= var.cos_instance_two_name
+#  kp_name               		= var.kp_name
+#  scia_at_us_east_id			= data.ibm_resource_instance.scia_at_us_east.id
+#  ibm_region_cos			= var.ibm_region_cos
+#  cos_bucket_name_landing_dev		= var.cos_bucket_name_landing_dev
+#  cos_bucket_name_publish_dev		= var.cos_bucket_name_publish_dev
+#  cos_bucket_name_logs_dev		= var.cos_bucket_name_logs_dev
+#  cos_bucket_name_tmp_dev		= var.cos_bucket_name_tmp_dev
+#  cos_bucket_name_landing_test		= var.cos_bucket_name_landing_test
+#  cos_bucket_name_publish_test		= var.cos_bucket_name_publish_test
+#  cos_bucket_name_logs_test		= var.cos_bucket_name_logs_test
+#  cos_bucket_name_tmp_test		= var.cos_bucket_name_tmp_test
+#  cos_bucket_name_nifi			= var.cos_bucket_name_nifi
+#  cos_bucket_name_prometheus		= var.cos_bucket_name_prometheus
+#  cos_bucket_name_uap			= var.cos_bucket_name_uap
+#  cos_bucket_name_publish_awb		= var.cos_bucket_name_publish_awb
+#  cos_bucket_name_jupyterlab		= var.cos_bucket_name_jupyterlab
+#  ibm_resource_key_dev_name		= var.ibm_resource_key_dev_name
+#  ibm_resource_key_test_name		= var.ibm_resource_key_test_name
+#  ibm_resource_key_nifi_name_writer	= var.ibm_resource_key_nifi_name_writer
+#  ibm_resource_key_nifi_name_manager	= var.ibm_resource_key_nifi_name_manager
+#  depends_on        			= [module.keyprotect]
+#}
+
+#module "k8s_namespaces" {
+#  source                        = "./modules/k8s_namespaces"
+#  configure_namespace		= var.configure_namespace
+#}
+
+#module "k8s_secrets" {
+#  source                        	= "./modules/k8s_secrets"
+#  msn_ls_ns_01_name			= data.kubernetes_namespace.msn_ls_ns_01.0.metadata[0].name
+#  test_access_key_id			= module.cloud-object-storage.test_access_key_id
+#  test_secret_access_key		= module.cloud-object-storage.test_secret_access_key
+#  dev_access_key_id			= module.cloud-object-storage.dev_access_key_id
+#  dev_secret_access_key			= module.cloud-object-storage.dev_secret_access_key
+#  nifi_access_key_id			= module.cloud-object-storage.nifi_access_key_id
+#  nifi_secret_access_key		= module.cloud-object-storage.nifi_secret_access_key
+#  nifi_secret_apikey			= module.cloud-object-storage.nifi_secret_apikey
+#  cos_access_nophi_test_secret_name	= var.cos_access_nophi_test_secret_name
+#  cos_access_phi_dev_secret_name	= var.cos_access_phi_dev_secret_name
+#  cos_write_access_nifi_name		= var.cos_write_access_nifi_name
+#  organization				= var.organization
+#  deid_service_name			= var.deid_service_name
+#  resource_group_id     		= data.ibm_resource_group.resource_group_cloudsvc.id
+#  cm_name				= var.cm_name
+#  depends_on                    	= [module.cloud-object-storage,module.certificate-manager]
+#}
+
+module "k8s_secrets" {
+  source                                     = "./modules/k8s_secrets"
+  service_account_dockerconfigjson           = base64decode(var.service_account_dockerconfigjson)
+  service_account_dockerconfigjson_namespace = data.kubernetes_namespace.spark_k8s_namespace.0.metadata[0].name
+}
+
+module "k8s_spark_rbac" {
+  source                                = "./modules/k8s_spark_rbac"
+#  msn_ls_ns_01_name                     = data.kubernetes_namespace.msn_ls_ns_01.0.metadata[0].name
+  k8s_spark_rbac_namespace_name         = data.kubernetes_namespace.spark_k8s_namespace.0.metadata[0].name
+}
+
+#module "k8s_pvc" {
+#  source				= "./modules/k8s_pvc"
+#  msn_ls_ns_01_name			= data.kubernetes_namespace.msn_ls_ns_01.0.metadata[0].name
+#  cos_bucket_name_tmp_dev		= var.cos_bucket_name_tmp_dev
+#  cos_bucket_name_tmp_test		= var.cos_bucket_name_tmp_test
+#  ibm_region				= var.ibm_region
+#  pvc_spark_tmp_dev_name		= var.pvc_spark_tmp_dev_name
+#  pvc_spark_tmp_test_name		= var.pvc_spark_tmp_test_name
+#  cos_access_phi_dev_secret_name	= var.cos_access_phi_dev_secret_name
+#  cos_access_nophi_test_secret_name	= var.cos_access_nophi_test_secret_name
+#  pvc_spark_tmp_dev_storage_requests	= var.pvc_spark_tmp_dev_storage_requests
+#  pvc_spark_tmp_test_storage_requests	= var.pvc_spark_tmp_test_storage_requests
+#  depends_on				= [module.cloud-object-storage,module.k8s_secrets]
+#}
+
+# Uncomment if you want terraform to create a separate container registry namespace
+# to contain your spark images
+module "cr_namespace" {
+  source                    = "./modules/cr_namespace"
+  resource_group_id         = data.ibm_resource_group.resource_group_cloudsvc.id
+  cr_namespace_name         = var.spark_cr_namespace_name
+  cr_ns_region              = var.cr_ns_region
+}
+>>>>>>> fdb1d0b add k8s secret for imagePullSecret
 
 module "tls_cert" {
   source                    = "./modules/tls_cert"

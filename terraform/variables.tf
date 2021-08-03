@@ -76,6 +76,11 @@ variable kubernetes_namespace {
 ## -----------------------------------------------------------------------------------------
 # K8s secret
 ## -----------------------------------------------------------------------------------------
+variable "service_account_dockerconfigjson" {
+  description = "Dockerconfigjson value used to pull spark images from container registry namespace"
+  type = string
+}
+
 #variable "cos_access_nophi_test_secret_name" {
 #  type		= string
 #  description 	= "Name of the K8s secret for accessing test buckets"
