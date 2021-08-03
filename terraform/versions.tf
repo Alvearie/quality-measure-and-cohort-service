@@ -16,6 +16,14 @@ terraform {
       source  = "ibm-cloud/ibm"
       version = "~> 1.25.0"
     }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.3.2"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 3.1.0"
+    }
   }
 }
 
