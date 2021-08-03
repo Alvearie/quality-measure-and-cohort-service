@@ -1149,8 +1149,6 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		ServiceBaseUtility.apiCleanup(Mockito.any(), Mockito.eq(MethodNames.EVALUATE_COHORT.getName()));
 	}
 
-
-
 	private void validateParameterResponse(Response loadResponse) {
 		assertEquals(Status.OK.getStatusCode(), loadResponse.getStatus());
 		String validResp = "class MeasureParameterInfoList {\n"

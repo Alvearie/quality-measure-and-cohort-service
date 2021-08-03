@@ -67,7 +67,6 @@ import org.junit.Test;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 import org.opencds.cqf.cql.engine.exception.InvalidOperatorArgument;
 
-import com.ibm.cohort.engine.LibraryFormat;
 import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.cqfruler.MeasureSupplementalDataEvaluation;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
@@ -86,6 +85,7 @@ import com.ibm.cohort.engine.parameter.QuantityParameter;
 import com.ibm.cohort.engine.parameter.RatioParameter;
 import com.ibm.cohort.engine.parameter.StringParameter;
 import com.ibm.cohort.engine.parameter.TimeParameter;
+import com.ibm.cohort.file.LibraryFormat;
 
 public class MeasureEvaluatorTest extends BaseMeasureTest {
 

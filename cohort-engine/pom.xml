@@ -34,11 +34,6 @@
 		
 		<dependency>
 			<groupId>info.cqframework</groupId>
-			<artifactId>model</artifactId>
-		</dependency>
-		
-		<dependency>
-			<groupId>info.cqframework</groupId>
 			<artifactId>elm</artifactId>
 		</dependency>
 		
@@ -98,12 +93,6 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>org.fhir</groupId>
-			<artifactId>ucum</artifactId>
-			<version>1.0.2</version>
-		</dependency>
-		
-		<dependency>
 			<groupId>javax.cache</groupId>
 			<artifactId>cache-api</artifactId>
 			<version>1.1.1</version>
@@ -122,12 +111,6 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>xpp3</groupId>
-			<artifactId>xpp3</artifactId>
-			<version>1.1.4c</version>
 		</dependency>
 
 		<!-- Runtime dependencies -->
@@ -201,7 +184,13 @@
 			<artifactId>javax.el</artifactId>
 			<scope>test</scope>
 		</dependency>
-		
+		<dependency>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-translation</artifactId>
+			<version>${project.version}</version>
+			<scope>compile</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>

@@ -15,6 +15,7 @@ import org.hl7.fhir.r4.model.RelatedArtifact;
 import org.hl7.fhir.r4.model.RelatedArtifact.RelatedArtifactType;
 
 import com.ibm.cohort.engine.measure.RestFhirLibraryResolutionProvider;
+import com.ibm.cohort.file.LibraryFormat;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 

@@ -19,6 +19,7 @@
 		<module>../cohort-engine-api</module>
 		<module>../cohort-engine-api-web</module>
 		<module>../cohort-util</module>
+		<module>../cohort-translation</module>
 		<module>../fhir-resource-tooling</module>
 		<module>../tests</module>
 		<module>../reports</module>

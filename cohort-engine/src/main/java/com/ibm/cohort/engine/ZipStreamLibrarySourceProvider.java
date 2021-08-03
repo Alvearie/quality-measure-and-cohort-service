@@ -20,6 +20,10 @@ import org.hl7.elm.r1.VersionedIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ibm.cohort.file.LibraryFormat;
+import com.ibm.cohort.version.DefaultFilenameToVersionedIdentifierStrategy;
+import com.ibm.cohort.version.FilenameToVersionedIdentifierStrategy;
+
 /**
  * ZIP archive-based implementation of MultiFormatLibrarySourceProvider.
  * Filenames can contain library ID and version based on the logic in the
@@ -35,35 +39,35 @@ public class ZipStreamLibrarySourceProvider extends MultiFormatLibrarySourceProv
 	}
 
 	public ZipStreamLibrarySourceProvider(ZipInputStream zipInputStream,
-			FilenameToVersionedIdentifierStrategy idStrategy, String... searchPaths) throws IOException  {
+				    FilenameToVersionedIdentifierStrategy idStrategy, String... searchPaths) throws IOException  {
 
 		ZipEntry ze;
 		while ((ze = zipInputStream.getNextEntry()) != null) {
 			if (!ze.isDirectory()) {
-				boolean filter = false;
+				boolean filter;
 				if( ! ArrayUtils.isEmpty(searchPaths) ) {
 					String prefix = "";
-					
+
 					int ch;
 					if( (ch=ze.getName().lastIndexOf('/')) != -1 ) {
 						prefix = ze.getName().substring(0, ch);
 					}
 					filter = ! ArrayUtils.contains(searchPaths, prefix);
-				} else { 
+				} else {
 					filter = false;
 				}
-				
+
 				if( ! filter ) {
 					LibraryFormat format = LibraryFormat.forString(ze.getName());
 					if( format != null ) {
 						VersionedIdentifier id = idStrategy.filenameToVersionedIdentifier(ze.getName());
-		
+
 						ByteArrayOutputStream baos = new ByteArrayOutputStream();
 						IOUtils.copy(zipInputStream, baos);
 						Map<LibraryFormat, String> formats = sources.computeIfAbsent(id, key -> new HashMap<>());
 						formats.put(format, baos.toString(StandardCharsets.UTF_8.name()));
 						logger.debug("Found source Library '{}'", ze.getName() );
-					} else { 
+					} else {
 						logger.warn("Path '{}' contains an unrecognized/unsupported file extension", ze.getName() );
 					}
 				}
