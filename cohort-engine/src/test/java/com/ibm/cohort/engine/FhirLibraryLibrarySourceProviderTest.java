@@ -15,6 +15,8 @@ import org.hl7.fhir.r4.model.Library;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.ibm.cohort.file.LibraryFormat;
+
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 

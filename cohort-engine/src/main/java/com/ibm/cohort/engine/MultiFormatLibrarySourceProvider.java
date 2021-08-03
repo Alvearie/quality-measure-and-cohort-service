@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
 import org.cqframework.cql.cql2elm.LibrarySourceProvider;
 import org.hl7.elm.r1.VersionedIdentifier;
 
+import com.ibm.cohort.file.LibraryFormat;
+
 /**
  * The MultiFormatLibrarySourceProvider provides collection capabilities for
  * dealing with source collections that contain CQL libraries in multiple

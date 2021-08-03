@@ -76,7 +76,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		}
 
 		String output = new String(baos.toByteArray());
-		String[] lines = output.split(System.getProperty("line.separator"));
+		String[] lines = output.split(System.lineSeparator());
 		assertEquals( output, 4, lines.length );
 	}
 

@@ -16,7 +16,8 @@ import org.hl7.fhir.r4.model.Attachment;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.execution.CqlLibraryReader;
 
-import com.ibm.cohort.engine.translation.CqlTranslationProvider;
+import com.ibm.cohort.translator.provider.CqlTranslationProvider;
+
 
 /**
  * Implementation of a library loader that resolves FHIR R4 Library resources

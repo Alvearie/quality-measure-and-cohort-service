@@ -17,7 +17,9 @@ import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ibm.cohort.engine.translation.CqlTranslationProvider;
+import com.ibm.cohort.file.LibraryFormat;
+import com.ibm.cohort.translator.provider.CqlTranslationProvider;
+
 
 /**
  * Implementation of the CQL Engine LibraryLoader interface that supports
