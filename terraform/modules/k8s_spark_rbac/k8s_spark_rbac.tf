@@ -11,6 +11,11 @@ resource "kubernetes_service_account" "spark" {
     name = var.spark_service_account_name
     namespace = var.k8s_spark_rbac_namespace_name
   }
+  
+  #created in k8s_secrets module
+  image_pull_secret {
+    name = var.k8s_spark_rbac_image_pull_secret_name
+  }
 }
 
 ## -----------------------------------------------------------------------------------------

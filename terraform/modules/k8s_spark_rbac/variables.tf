@@ -24,3 +24,9 @@ variable "spark_kubernetes_role_binding_name" {
   type = string
   default = "spark-role-binding"
 }
+
+variable "k8s_spark_rbac_image_pull_secret_name" {
+  description = "Name of the image pull secret to be used for spark on k8s"
+  type = string
+  default = "spark-image-pull-secret"
+}

@@ -180,6 +180,12 @@ provider kubernetes {
 #  depends_on                    	= [module.cloud-object-storage,module.certificate-manager]
 #}
 
+module "k8s_secrets" {
+  source                                     = "./modules/k8s_secrets"
+  service_account_dockerconfigjson           = base64decode(var.service_account_dockerconfigjson)
+  service_account_dockerconfigjson_namespace = data.kubernetes_namespace.spark_k8s_namespace.0.metadata[0].name
+}
+
 module "k8s_spark_rbac" {
   source                                = "./modules/k8s_spark_rbac"
 #  msn_ls_ns_01_name                     = data.kubernetes_namespace.msn_ls_ns_01.0.metadata[0].name
@@ -203,12 +209,12 @@ module "k8s_spark_rbac" {
 
 # Uncomment if you want terraform to create a separate container registry namespace
 # to contain your spark images
-#module "cr_namespace" {
-#  source                    = "./modules/cr_namespace"
-#  resource_group_id         = data.ibm_resource_group.resource_group_cloudsvc.id
-#  cr_namespace_name         = var.spark_cr_namespace_name
-#  cr_ns_region              = var.cr_ns_region
-#}
+module "cr_namespace" {
+  source                    = "./modules/cr_namespace"
+  resource_group_id         = data.ibm_resource_group.resource_group_cloudsvc.id
+  cr_namespace_name         = var.spark_cr_namespace_name
+  cr_ns_region              = var.cr_ns_region
+}
 
 module "tls_cert" {
   source                    = "./modules/tls_cert"
