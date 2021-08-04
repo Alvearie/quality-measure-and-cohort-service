@@ -30,13 +30,18 @@ import com.ibm.cohort.datarow.model.DataRow;
  */
 public class DataRowRetrieveProvider implements RetrieveProvider {
 
-	private final Map<String, Iterable<Object>> data;
+	/**
+	 * Map of datatype to list of rows for that datatype. Aggregation
+	 * by "context" is assumed to be done ahead of this data being
+	 * used for retrieval.
+	 */
+	private final Map<String, ? extends Iterable<Object>> data;
 
 	private Map<String, Map<String, Map<Object, List<Object>>>> indexes;
 
 	private TerminologyProvider terminologyProvider;
 
-	public DataRowRetrieveProvider(Map<String, Iterable<Object>> data, TerminologyProvider terminologyProvider) {
+	public DataRowRetrieveProvider(Map<String, ? extends Iterable<Object>> data, TerminologyProvider terminologyProvider) {
 		this.data = data;
 		this.indexes = new HashMap<>();
 		this.terminologyProvider = terminologyProvider;

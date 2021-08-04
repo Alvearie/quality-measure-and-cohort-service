@@ -32,13 +32,65 @@
 		</dependency>
 
 		<dependency>
+			<groupId>info.cqframework</groupId>
+			<artifactId>cql-to-elm</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>info.cqframework</groupId>
+			<artifactId>model</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>info.cqframework</groupId>
+			<artifactId>elm</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-sql_${spark.scala.version}</artifactId>
 		</dependency>
 
 		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-bundle</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-aws</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.beust</groupId>
+			<artifactId>jcommander</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
