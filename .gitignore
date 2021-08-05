@@ -35,3 +35,6 @@ hs_err_pid*
 
 # Maven
 .flattened-pom.xml
+
+#terraform
+**/terraform/.terraform/
