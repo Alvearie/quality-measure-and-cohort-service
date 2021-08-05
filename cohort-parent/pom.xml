@@ -21,8 +21,8 @@
 		<module>../cohort-util</module>
 		<module>../cohort-translation</module>
 		<module>../fhir-resource-tooling</module>
-        <module>../datarow-data-provider</module>
-        <module>../spark-data-evaluator</module>
+		<module>../datarow-data-provider</module>
+		<module>../spark-data-evaluator</module>
 		<module>../tests</module>
 		<module>../reports</module>
 		<module>../cohort-engine-distribution</module>
@@ -49,10 +49,10 @@
 		<engine.version>1.5.1</engine.version>
 		<ruler.version>0.4.0</ruler.version>
 
-        <spark.version>3.1.2</spark.version>
-        <spark.scala.version>2.12</spark.scala.version>
-        <hadoop.version>3.2.0</hadoop.version>
-        
+		<spark.version>3.1.2</spark.version>
+		<spark.scala.version>2.12</spark.scala.version>
+		<hadoop.version>3.2.0</hadoop.version>
+
 		<!-- Scala 2.12 has a hard dependency on the 2.10.X lineage of Jackson -->
 		<jackson.version>2.10.5</jackson.version>
 		<jackson.databind.version>${jackson.version}.1</jackson.databind.version>
@@ -522,31 +522,134 @@
 				<version>1.1.0.Final</version>
 			</dependency>
 
-            <dependency>
-                <groupId>org.apache.spark</groupId>
-                <artifactId>spark-core_${spark.scala.version}</artifactId>
-                <version>${spark.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.spark</groupId>
-                <artifactId>spark-catalyst_${spark.scala.version}</artifactId>
-                <version>${spark.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.spark</groupId>
-                <artifactId>spark-sql_${spark.scala.version}</artifactId>
-                <version>${spark.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.spark</groupId>
-                <artifactId>spark-kubernetes_${spark.scala.version}</artifactId>
-                <version>${spark.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.hadoop</groupId>
-                <artifactId>hadoop-aws</artifactId>
-                <version>${hadoop.version}</version>
-            </dependency>           
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-core_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-catalyst_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-sql_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-kubernetes_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.hadoop</groupId>
+				<artifactId>hadoop-aws</artifactId>
+				<version>${hadoop.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-core_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-catalyst_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-sql_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-kubernetes_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.hadoop</groupId>
+				<artifactId>hadoop-aws</artifactId>
+				<version>${hadoop.version}</version>
+			</dependency>		   
+
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-core_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-catalyst_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-sql_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-kubernetes_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.hadoop</groupId>
+				<artifactId>hadoop-aws</artifactId>
+				<version>${hadoop.version}</version>
+			</dependency>		   
+
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-core_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-catalyst_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-sql_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-kubernetes_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.hadoop</groupId>
+				<artifactId>hadoop-aws</artifactId>
+				<version>${hadoop.version}</version>
+			</dependency>		   
+
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-core_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-catalyst_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-sql_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.spark</groupId>
+				<artifactId>spark-kubernetes_${spark.scala.version}</artifactId>
+				<version>${spark.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.hadoop</groupId>
+				<artifactId>hadoop-aws</artifactId>
+				<version>${hadoop.version}</version>
+			</dependency>		   
 			<dependency>
 				<groupId>net.javacrumbs.json-unit</groupId>
 				<artifactId>json-unit</artifactId>
@@ -1173,10 +1276,10 @@
 					</execution>
 					
 					<execution>
-            			<goals>
-            				<goal>analyze-only</goal>
-            			</goals>
-            			<configuration>
+						<goals>
+							<goal>analyze-only</goal>
+						</goals>
+						<configuration>
 							<failOnWarning>true</failOnWarning>
 							<ignoredUsedUndeclaredDependencies>
 								<!-- Excluding this because the JAXB classes are provided by the JRE as of Java 8, but there are potentially other classes in jakarta that we don't want to wholesale exclude -->
@@ -1200,7 +1303,7 @@
 								<ignoredUnusedDeclaredDependency>org.apache.hadoop:hadoop-aws</ignoredUnusedDeclaredDependency>
 							</ignoredUnusedDeclaredDependencies>
 						</configuration>
-            		</execution>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>
@@ -1243,8 +1346,8 @@
 						</goals>
 					</execution>
 				</executions>
-            </plugin>
-            <plugin>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
 				<executions>
