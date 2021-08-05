@@ -133,4 +133,3 @@ module "k8s_spark_cos_secret" {
   spark_cos_aws_endpoint                     = var.spark_cos_aws_endpoint
   spark_cos_aws_location                     = var.spark_cos_aws_location
 }
-
