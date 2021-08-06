@@ -68,7 +68,7 @@ public class SparkS3CqlEvaluator {
     @Parameter(names = { "-o", "--output-path" }, description = "The AWS output path")
     public String outputPath;
 
-    @Parameter(names = { "-m", "--model-info-path" }, description = "URI of a model info file to use during CQL translation", required = true)
+    @Parameter(names = { "-m", "--model-info-path" }, description = "Key prefix for objects in AWS bucket that contain model info definitions", required = true)
     public String modelInfoPath;
 
     @Parameter(names = { "-c", "--cql-path" }, description = "URI for a folder containing the CQL/ELM libraries to evaluate", required = true)
@@ -86,7 +86,7 @@ public class SparkS3CqlEvaluator {
     @Parameter(names = { "-e", "--expression" }, description = "CQL Expressions to evaluate", required = true)
     public Set<String> expressions;
 
-    @Parameter(names = { "-f", "--facts" }, description = "The facts to read as input", required = true)
+    @Parameter(names = { "-f", "--facts" }, description = "List of datafiles and optional datatypes required to support CQL evaluation. Pairs are delimited by a colon and are of the form fileId:dataType.", required = true)
     public List<String> facts;
 
     @Parameter(names = { "-n", "--context-column" }, description = "The context column", required = true)
@@ -254,17 +254,20 @@ public class SparkS3CqlEvaluator {
         CqlLibraryProvider libraryProvider = new S3CqlLibraryProvider(s3client, bucket, cqlPath);
 
         // TODO - replace with cohort shared translation component
-        CqlToElmTranslator translator = new CqlToElmTranslator();
+        final CqlToElmTranslator translator = new CqlToElmTranslator();
         if (modelInfoPath != null) {
-            String modelInfoXML = s3client.getObjectAsString(bucket, modelInfoPath);
-            Reader r = new StringReader(modelInfoXML);
-            translator.registerModelInfo(r);
+            AWSClientHelpers.processS3Objects(s3client, bucket, modelInfoPath, obj -> {
+                Reader r = new StringReader(obj);
+                translator.registerModelInfo(r);  
+            });
         }
         TranslatingCqlLibraryProvider translatingLibraryProvider = new TranslatingCqlLibraryProvider(libraryProvider,
                 translator);
 
         return evaluate(translatingLibraryProvider, rowsByContext);
     }
+
+
 
     /**
      * Evaluate the input CQL for a single context + data pair.
