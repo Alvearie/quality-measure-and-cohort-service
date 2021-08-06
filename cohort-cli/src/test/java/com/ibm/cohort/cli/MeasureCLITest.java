@@ -607,6 +607,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 					"-r", "http://ibm.com/health/Measure/measure-COL_ColorectalCancerScreening|1.0.0",
 					"--filter", "fhirResources",
 					"-c", patient.getId(),
+					"-o", "ALL",
 					"-f", "JSON"
 			}, out);	
 		} finally {

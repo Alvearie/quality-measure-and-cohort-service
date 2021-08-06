@@ -261,8 +261,8 @@ public class CohortEngineRestHandler {
 			"                },\n" +
 			"                \"startInclusive\": true,\n" +
 			"                \"end\": {\n" +
-			"                    \"type\": \"datetime\",\n" +
-			"                    \"value\": \"2020-07-04T00:00:00\"\n" +
+			"                    \"type\": \"date\",\n" +
+			"                    \"value\": \"2020-07-04\"\n" +
 			"                },\n" +
 			"                \"endInclusive\": true\n" +
 			"    },\n" +
