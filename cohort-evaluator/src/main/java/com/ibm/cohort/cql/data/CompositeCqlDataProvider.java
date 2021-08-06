@@ -1,0 +1,12 @@
+package com.ibm.cohort.cql.data;
+
+import org.opencds.cqf.cql.engine.data.CompositeDataProvider;
+import org.opencds.cqf.cql.engine.model.ModelResolver;
+import org.opencds.cqf.cql.engine.retrieve.RetrieveProvider;
+
+public class CompositeCqlDataProvider extends CompositeDataProvider implements CqlDataProvider {
+
+    public CompositeCqlDataProvider(ModelResolver modelResolver, RetrieveProvider retrieveProvider) {
+        super(modelResolver, retrieveProvider);
+    }
+}
