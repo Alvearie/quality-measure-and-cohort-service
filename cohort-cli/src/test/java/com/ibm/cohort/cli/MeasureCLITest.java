@@ -116,7 +116,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		}
 
 		String output = new String(baos.toByteArray());
-		String[] lines = output.split(System.getProperty("line.separator"));
+		String[] lines = output.split(System.lineSeparator());
 		assertEquals( output, 4, lines.length );
 	}
 
@@ -607,6 +607,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 					"-r", "http://ibm.com/health/Measure/measure-COL_ColorectalCancerScreening|1.0.0",
 					"--filter", "fhirResources",
 					"-c", patient.getId(),
+					"-o", "ALL",
 					"-f", "JSON"
 			}, out);	
 		} finally {
