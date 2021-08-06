@@ -56,6 +56,16 @@
 			<artifactId>model</artifactId>
 			<scope>compile</scope>
 		</dependency>
+        <dependency>
+			<groupId>info.cqframework</groupId>
+			<artifactId>qdm</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+        <dependency>
+			<groupId>info.cqframework</groupId>
+			<artifactId>quick</artifactId>
+			<scope>runtime</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.fhir</groupId>
 			<artifactId>ucum</artifactId>
