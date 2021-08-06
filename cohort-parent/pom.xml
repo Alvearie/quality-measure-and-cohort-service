@@ -21,8 +21,9 @@
 		<module>../cohort-util</module>
 		<module>../cohort-translation</module>
 		<module>../fhir-resource-tooling</module>
-		<module>../datarow-data-provider</module>
-		<module>../spark-data-evaluator</module>
+        <module>../cohort-evaluator</module>
+        <module>../cohort-model-datarow</module>
+        <module>../cohort-evaluator-spark</module>
 		<module>../tests</module>
 		<module>../reports</module>
 		<module>../cohort-engine-distribution</module>
@@ -1203,6 +1204,8 @@
 								<ignoredUnusedDeclaredDependency>org.glassfish:javax.el</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>com.github.tomakehurst:wiremock-jre8</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>org.apache.hadoop:hadoop-aws</ignoredUnusedDeclaredDependency>
+								<ignoredUnusedDeclaredDependency>info.cqframework:quick</ignoredUnusedDeclaredDependency>
+								<ignoredUnusedDeclaredDependency>info.cqframework:qdm</ignoredUnusedDeclaredDependency>
 							</ignoredUnusedDeclaredDependencies>
 						</configuration>
 					</execution>
