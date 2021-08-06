@@ -33,18 +33,19 @@ import com.ibm.cohort.cql.aws.AWSClientConfigFactory;
 import com.ibm.cohort.cql.aws.AWSClientFactory;
 import com.ibm.cohort.cql.aws.AWSClientHelpers;
 import com.ibm.cohort.cql.data.CqlDataProvider;
+import com.ibm.cohort.cql.evaluation.CqlDebug;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
 import com.ibm.cohort.cql.evaluation.CqlEvaluator;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryDeserializationException;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.library.s3.S3CqlLibraryProvider;
-import com.ibm.cohort.cql.spark.data.DataRowDataProvider;
 import com.ibm.cohort.cql.spark.data.SparkDataRow;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import com.ibm.cohort.cql.terminology.UnsupportedTerminologyProvider;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
+import com.ibm.cohort.datarow.engine.DataRowDataProvider;
 import com.ibm.cohort.datarow.engine.DataRowRetrieveProvider;
 import com.ibm.cohort.datarow.model.DataRow;
 
@@ -61,28 +62,25 @@ public class SparkS3CqlEvaluator {
     public String bucket;
 
     @Parameter(names = { "-i",
-            "--input-path" }, description = "The AWS input path without fact name(s)", required = true)
+            "--input-path" }, description = "URI of a folder that contains the data files that we be used as input to the CQL engine.", required = true)
     public String inputPath;
 
     @Parameter(names = { "-o", "--output-path" }, description = "The AWS output path")
     public String outputPath;
 
-    @Parameter(names = { "-v", "--valueset-path" }, description = "The AWS valueset path")
-    public String valuesetPath;
-
-    @Parameter(names = { "-m", "--model-info-path" }, description = "The AWS model info path", required = true)
+    @Parameter(names = { "-m", "--model-info-path" }, description = "URI of a model info file to use during CQL translation", required = true)
     public String modelInfoPath;
 
-    @Parameter(names = { "-c", "--cql-path" }, description = "The AWS CQL path", required = true)
+    @Parameter(names = { "-c", "--cql-path" }, description = "URI for a folder containing the CQL/ELM libraries to evaluate", required = true)
     public String cqlPath;
 
-    @Parameter(names = { "-l", "--library" }, description = "The AWS CQL path", required = true)
+    @Parameter(names = { "-l", "--library" }, description = "Name of the CQL library to evaluate", required = true)
     public String libraryId;
 
-    @Parameter(names = { "-v", "--library-version" }, description = "The CQL Library version", required = true)
+    @Parameter(names = { "-v", "--library-version" }, description = "Version of the CQL library to evaluate", required = true)
     public String libraryVersion;
 
-    @Parameter(names = { "--library-format" }, description = "The CQL Library Format (CQL|ELM)", required = true)
+    @Parameter(names = { "--library-format" }, description = "Format of the CQL library to evaluate (CQL|ELM)", required = true)
     public CqlLibraryDescriptor.Format libraryFormat;
 
     @Parameter(names = { "-e", "--expression" }, description = "CQL Expressions to evaluate", required = true)
@@ -96,6 +94,9 @@ public class SparkS3CqlEvaluator {
 
     @Parameter(names = { "-a", "--aggregate-on-context" }, description = "The context column")
     public boolean aggregateOnContext = false;
+    
+    @Parameter(names = { "--debug" }, description = "Enabled CQL debug logging")
+    public boolean debug = false;
 
     public void run(PrintStream out) {
         AWSClientConfig awsConfig = AWSClientConfigFactory.fromEnvironment();
@@ -170,8 +171,7 @@ public class SparkS3CqlEvaluator {
      */
     protected String getContextColumnForDataType(String dataType) {
         // TODO - Does this need to be more sophisticated than a single column name for
-        // every
-        // table that is used as input?
+        // every table that is used as input?
         return contextColumn;
     }
 
@@ -227,8 +227,7 @@ public class SparkS3CqlEvaluator {
             // that only serves to keep the "multirow" and "single row" usecases on the same
             // "java type".
             // If there's a big enough time sink here, then we may want to change
-            // `combinedData`
-            // to be something super generic.
+            // `combinedData` to be something super generic.
             combinedData = allData
                     .mapToPair((tuple2) -> new Tuple2<>(tuple2._1(), Collections.singletonList(tuple2._2())));
         }
@@ -264,7 +263,7 @@ public class SparkS3CqlEvaluator {
         TranslatingCqlLibraryProvider translatingLibraryProvider = new TranslatingCqlLibraryProvider(libraryProvider,
                 translator);
 
-        return extracted(translatingLibraryProvider, rowsByContext);
+        return evaluate(translatingLibraryProvider, rowsByContext);
     }
 
     /**
@@ -277,7 +276,7 @@ public class SparkS3CqlEvaluator {
      * @throws CqlLibraryDeserializationException if the CQL libraries cannot be
      *                                            loaded for any reason
      */
-    protected Tuple2<Object, Map<String, Object>> extracted(CqlLibraryProvider libraryProvider,
+    protected Tuple2<Object, Map<String, Object>> evaluate(CqlLibraryProvider libraryProvider,
             Tuple2<Object, List<Row>> rowsByContext) {
         CqlTerminologyProvider termProvider = new UnsupportedTerminologyProvider();
 
@@ -292,7 +291,7 @@ public class SparkS3CqlEvaluator {
         }
 
         DataRowRetrieveProvider retrieveProvider = new DataRowRetrieveProvider(dataByDataType, termProvider);
-        CqlDataProvider dataProvider = new DataRowDataProvider(retrieveProvider);
+        CqlDataProvider dataProvider = new DataRowDataProvider(getDataRowClass(), retrieveProvider);
 
         CqlEvaluator evaluator = new CqlEvaluator().setLibraryProvider(libraryProvider)
                 .setDataProvider(dataProvider).setTerminologyProvider(termProvider);
@@ -304,7 +303,7 @@ public class SparkS3CqlEvaluator {
         // very well if the values need to change on a per-context basis.
         Map<String, Object> parameters = new HashMap<>();
 
-        CqlEvaluationResult result = evaluator.evaluate(topLevelLibrary, parameters, expressions);
+        CqlEvaluationResult result = evaluator.evaluate(topLevelLibrary, parameters, expressions, debug ? CqlDebug.DEBUG : CqlDebug.NONE);
         return new Tuple2<>(rowsByContext._1(), result.getExpressionResults());
     }
 
@@ -313,6 +312,10 @@ public class SparkS3CqlEvaluator {
         String outputURI = AWSClientHelpers.toS3Url(bucket, outputPath, batchID);
         resultsByContext.saveAsTextFile(outputURI);
         out.println(String.format("Wrote batch %s to %s", batchID, outputURI));
+    }
+    
+    protected Class<? extends DataRow> getDataRowClass() {
+        return SparkDataRow.class;
     }
 
     protected Function<Row, DataRow> getDataRowFactory() {
