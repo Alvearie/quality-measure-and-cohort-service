@@ -7,10 +7,11 @@
 package com.ibm.cohort.cql.library.s3;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ObjectListing;
+import com.ibm.cohort.cql.aws.AWSClientHelpers;
 import com.ibm.cohort.cql.library.CqlLibrary;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryHelpers;
@@ -30,11 +31,11 @@ public class S3CqlLibraryProvider implements CqlLibraryProvider {
 
     @Override
     public Collection<CqlLibraryDescriptor> listLibraries() {
-        ObjectListing listing = client.listObjects(bucket, key);
-        return listing.getObjectSummaries().stream()
-                .map( summary -> summary.getKey() )
-                .map( CqlLibraryHelpers::filenameToLibraryDescriptor )
-                .collect(Collectors.toSet());
+        Set<CqlLibraryDescriptor> libraries = new HashSet<>();
+        AWSClientHelpers.processS3ObjectKeys(client, bucket, key, osm -> {
+            libraries.add( CqlLibraryHelpers.filenameToLibraryDescriptor(osm.getKey()) );
+        });
+        return libraries;
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.ibm.cohort.cql.library.s3;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -13,7 +14,8 @@ import java.util.List;
 import org.junit.Test;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.ListObjectsV2Request;
+import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.ibm.cohort.cql.library.CqlLibrary;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
@@ -40,15 +42,17 @@ public class S3CqlLibraryProviderTest {
         
         List<CqlLibraryDescriptor> descriptors = Arrays.asList(expectedCql, expectedElm);
         
-        ObjectListing objectListing = mock(ObjectListing.class);
+        ListObjectsV2Result result = mock(ListObjectsV2Result.class);
         List<S3ObjectSummary> summaries = new ArrayList<>();
         for( CqlLibraryDescriptor d : descriptors ) {
             S3ObjectSummary summary = mock(S3ObjectSummary.class);
             when(summary.getKey()).thenReturn(generateFilename(d));
             summaries.add(summary);
         }
-        when(objectListing.getObjectSummaries()).thenReturn(summaries);
-        when(client.listObjects(bucket, key)).thenReturn(objectListing);
+        
+        when(result.getObjectSummaries()).thenReturn(summaries);
+        when(result.isTruncated()).thenReturn(false);
+        when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
         
         CqlLibraryProvider provider = new S3CqlLibraryProvider(client, bucket, key);
         Collection<CqlLibraryDescriptor> libraries = provider.listLibraries();
