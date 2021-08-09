@@ -17,6 +17,7 @@ import org.cqframework.cql.elm.execution.Library;
 import org.hl7.elm.r1.VersionedIdentifier;
 import org.junit.Test;
 
+import com.ibm.cohort.engine.elm.execution.OptimizedCqlLibraryReader;
 import com.ibm.cohort.translator.provider.CqlTranslationProvider;
 import com.ibm.cohort.translator.provider.InJVMCqlTranslationProvider;
 
@@ -31,7 +32,7 @@ public class ZipStreamLibrarySourceProviderTest {
 				assertNotNull( is );
 
 				CqlTranslationProvider tx = new InJVMCqlTranslationProvider();
-				Library library = tx.translate( is );
+				Library library = OptimizedCqlLibraryReader.read( tx.translate( is ) );
 				assertEquals( "BreastCancerScreening", library.getIdentifier().getId() );
 			}
 		}
@@ -46,7 +47,7 @@ public class ZipStreamLibrarySourceProviderTest {
 				assertNotNull( is );
 				
 				CqlTranslationProvider tx = new InJVMCqlTranslationProvider();
-				Library library = tx.translate( is );
+				Library library = OptimizedCqlLibraryReader.read( tx.translate( is ) );
 				assertEquals( "COL_InitialPop", library.getIdentifier().getId() );
 			}
 		}

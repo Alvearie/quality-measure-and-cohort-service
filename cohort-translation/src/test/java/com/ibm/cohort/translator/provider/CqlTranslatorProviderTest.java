@@ -8,8 +8,6 @@ package com.ibm.cohort.translator.provider;
 
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -18,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -31,17 +30,17 @@ import java.util.zip.ZipFile;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.stream.StreamSource;
 
+import org.apache.commons.io.IOUtils;
 import org.cqframework.cql.cql2elm.CqlTranslator.Options;
 import org.cqframework.cql.cql2elm.CqlTranslatorOptions;
 import org.cqframework.cql.elm.execution.Library;
-import org.hl7.cql_annotations.r1.CqlToElmInfo;
-import org.hl7.cql_annotations.r1.ObjectFactory;
-import org.hl7.elm_modelinfo.r1.ModelInfo;
+import org.cqframework.cql.elm.execution.ObjectFactory;
 import org.junit.Assert;
 import org.junit.Test;
-import org.w3c.dom.Element;
 
 
 /**
@@ -66,7 +65,7 @@ public abstract class CqlTranslatorProviderTest {
 	@Test
 	public void multipleFilesInZip__translatedSuccessfully() throws Exception {
 
-		List<Library> libraries = new ArrayList<>();
+		List<String> libraries = new ArrayList<>();
 
 		File testdata = new File("src/test/resources/cql/zip/breast_cancer_screening_v1_0_0_cql.zip");
 		prepareForZip(testdata);
@@ -85,14 +84,11 @@ public abstract class CqlTranslatorProviderTest {
 		}
 
 		assertEquals(1, libraries.size());
-		Library library = libraries.get(0);
-		assertEquals(1, library.getAnnotation().size());
-		assertEquals("BreastCancerScreening", library.getIdentifier().getId());
 	}
 
 	@Test
 	public void multipleFilesInFolder__translatedSuccessfully() throws Exception {
-		List<Library> libraries = new ArrayList<Library>();
+		List<String> libraries = new ArrayList<>();
 
 		Path testdata = Paths.get("src/test/resources/cql/zip");
 		prepareForFolder(testdata);
@@ -106,13 +102,11 @@ public abstract class CqlTranslatorProviderTest {
 			}
 		}
 		assertEquals(2, libraries.size());
-		Library library = getById(libraries, "Breast-Cancer-Screening");
-		assertNotNull(library);
 	}
 
 	@Test
 	public void singleFile_withOptions__translatedSuccessfully() throws Exception {
-		List<Library> libraries = new ArrayList<Library>();
+		List<String> libraries = new ArrayList<>();
 
 		Path testdata = Paths.get("src/test/resources/cql/basic");
 		prepareForFolder(testdata);
@@ -127,15 +121,27 @@ public abstract class CqlTranslatorProviderTest {
 			}
 		}
 		assertEquals(1, libraries.size());
-		Library library = libraries.get(0);
-		assertEquals("Test", library.getIdentifier().getId());
-		assertEquals(1, library.getAnnotation().size());
+		
+		JAXBContext ctx = org.eclipse.persistence.jaxb.JAXBContextFactory.createContext(new Class[] { ObjectFactory.class }, null);
+		Unmarshaller u = ctx.createUnmarshaller();
+		
+		String elm;
+		elm = IOUtils.toString(Thread.currentThread().getContextClassLoader().getResource("cql/basic/test.xml"), "utf-8");
+		Library expectedLibrary = readLibrary(u, elm);
+		
+		elm = libraries.get(0);
+		Library actualLibrary = readLibrary(u, elm);
+		
+		assertEquals(expectedLibrary.getIdentifier(), actualLibrary.getIdentifier());
+		assertEquals(expectedLibrary.getAnnotation().size(), actualLibrary.getAnnotation().size());
+		assertEquals(expectedLibrary.getStatements().getDef().size(), actualLibrary.getStatements().getDef().size());
 
-		List<Object> unmarshalled = unmarshallAnnotations(library);
-		Object o = unmarshalled.get(0);
-		assertTrue( o instanceof CqlToElmInfo );
-		CqlToElmInfo info = (CqlToElmInfo) o;
-		assertEquals("EnableAnnotations,EnableLocators,DisableListDemotion,DisableListPromotion", info.getTranslatorOptions());
+	}
+
+	protected Library readLibrary(Unmarshaller u, String elm)
+			throws JAXBException {
+		JAXBElement<Library> e = u.unmarshal(new StreamSource(new StringReader(elm)), Library.class);
+		return e.getValue();
 	}
 
 	@Test
@@ -174,31 +180,5 @@ public abstract class CqlTranslatorProviderTest {
 		if (!failed) {
 			Assert.fail("Did not fail translation");
 		}
-	}
-
-	private Library getById(List<Library> libraries, String libraryName) {
-		Library library = null;
-		for( Library l : libraries ) {
-			if( l.getIdentifier().getId().equals(libraryName) ) {
-				library = l;
-				break;
-			}
-		}
-		return library;
-	}
-
-	public static List<Object> unmarshallAnnotations(Library library) throws Exception {
-
-		List<Object> annotations = new ArrayList<>();
-		if (library.getAnnotation() != null) {
-			JAXBContext ctx = JAXBContext.newInstance(ObjectFactory.class);
-			Unmarshaller u = ctx.createUnmarshaller();
-
-			for (Object elem : library.getAnnotation()) {
-				JAXBElement<?> j = (JAXBElement<?>) u.unmarshal((Element) elem);
-				annotations.add(j.getValue());
-			}
-		}
-		return annotations;
 	}
 }

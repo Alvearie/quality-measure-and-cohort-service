@@ -470,15 +470,41 @@ public class CqlEvaluator {
 	 * @param contextIds     list of contexts (generally patient IDs) for which the
 	 *                       specified <code>expressions</code> will be executed. At
 	 *                       least one value is required.
-	 * @param enableLogging  The level of logging enabled, either TRACE, COVERAGE, or NA
+	 * @param logLevel       The level of logging enabled, either TRACE, COVERAGE, or NA
 	 *
 	 * @param callback       callback function for receiving engine execution events
 	 */
 	public void evaluate(String libraryName, String libraryVersion, Map<String, Parameter> parameters,
-			Set<String> expressions, List<String> contextIds, LoggingEnum enableLogging, EvaluationResultCallback callback) {
-		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters, expressions, contextIds, enableLogging, callback);
+			Set<String> expressions, List<String> contextIds, LoggingEnum logLevel, EvaluationResultCallback callback) {
+		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters, expressions, contextIds, logLevel, callback);
 	}
 
+	/**
+	 * Execute the given <code>libraryName</code> for each context id specified in
+	 * <code>contextIds</code> using a FHIR R4 data provider and FHIR R4 terminology
+	 * provider. Library content and FHIR server configuration data should be
+	 * configured prior to invoking this method.
+	 * 
+	 * @param libraryName    Library identifier
+	 * @param libraryVersion Library version (optional/null)
+	 * @param parameters     parameter values for required input parameters in the
+	 *                       CQL (optional/null)
+	 * @param expressions    list of defines to be executed from the specified
+	 *                       <code>libraryName</code> (optional/null). When not
+	 *                       provided, all defines in the library will be executed.
+	 * @param contextIds     list of contexts (generally patient IDs) for which the
+	 *                       specified <code>expressions</code> will be executed. At
+	 *                       least one value is required.
+	 * @param logLevel       The level of logging enabled, either TRACE, COVERAGE, or NA
+	 * @param callback       callback function to be evaluated once per context per
+	 *                       executed define
+	 */
+	public void evaluate(String libraryName, String libraryVersion, Map<String, Parameter> parameters,
+			Set<String> expressions, List<String> contextIds, LoggingEnum logLevel, ExpressionResultCallback callback) {
+		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters, expressions, contextIds,
+				logLevel, new ProxyingEvaluationResultCallback(callback));
+	}
+	
 	/**
 	 * Execute the given <code>libraryName</code> for each context id specified in
 	 * <code>contextIds</code> using a FHIR R4 data provider and FHIR R4 terminology
@@ -500,7 +526,32 @@ public class CqlEvaluator {
 	 */
 	public void evaluate(String libraryName, String libraryVersion, Map<String, Parameter> parameters,
 			Set<String> expressions, List<String> contextIds, ExpressionResultCallback callback) {
-		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters, expressions, contextIds,
+		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters,
+				expressions, contextIds,
 				new ProxyingEvaluationResultCallback(callback));
+	}
+	
+	/**
+	 * Execute the given <code>libraryName</code> for each context id specified in
+	 * <code>contextIds</code> using a FHIR R4 data provider and FHIR R4 terminology
+	 * provider. Library content and FHIR server configuration data should be
+	 * configured prior to invoking this method.
+	 * 
+	 * @param libraryName    Library identifier
+	 * @param libraryVersion Library version (optional/null)
+	 * @param parameters     parameter values for required input parameters in the
+	 *                       CQL (optional/null)
+	 * @param expressions    list of defines to be executed from the specified
+	 *                       <code>libraryName</code> (optional/null). When not
+	 *                       provided, all defines in the library will be executed.
+	 * @param contextIds     list of contexts (generally patient IDs) for which the
+	 *                       specified <code>expressions</code> will be executed. At
+	 *                       least one value is required.
+	 * @param callback       callback function for receiving engine execution events
+	 */
+	public void evaluate(String libraryName, String libraryVersion, Map<String, Parameter> parameters,
+			Set<String> expressions, List<String> contextIds, EvaluationResultCallback callback) {
+		evaluateWithEngineWrapper(libraryName, libraryVersion, parameters,
+				expressions, contextIds, callback);
 	}
 }
