@@ -5,13 +5,13 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.ibm.cohort.translator.optimization;
+package com.ibm.cohort.engine.elm.execution;
 
-import org.cqframework.cql.elm.execution.And;
-import org.opencds.cqf.cql.engine.elm.execution.AndEvaluator;
+import org.cqframework.cql.elm.execution.Or;
+import org.opencds.cqf.cql.engine.elm.execution.OrEvaluator;
 import org.opencds.cqf.cql.engine.execution.Context;
 
-public class ShortAndEvaluator extends And {
+public class ShortOrEvaluator extends Or {
 
     @Override
     protected Object internalEvaluate(Context context) {
@@ -19,19 +19,19 @@ public class ShortAndEvaluator extends And {
 
         Boolean right;
         if (left == null) {
-            // Evaluate to be consistent with base logic
+	        // Evaluate to be consistent with base logic
             right = getValue(1, context);
         }
         else if (left) {
-            right = getValue(1, context);
-        }
-        else {
-            // Default to false because left is already false
+            // Default to false because left is already true
             // thus we don't care about the result of right.
             right = Boolean.FALSE;
         }
+        else {
+            right = getValue(1, context);
+        }
 
-        return AndEvaluator.and(left, right);
+        return OrEvaluator.or(left, right);
     }
 
     protected Boolean getValue(int idx, Context context) {
