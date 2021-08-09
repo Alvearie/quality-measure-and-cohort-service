@@ -9,7 +9,7 @@ import org.junit.Test;
 
 public class AWSClientConfigFactoryTest {
     @Test
-    public void testConfigFromEnvironment() {
+    public void testConfigFromMap() {
 
         String expectedAccess = "access";
         String expectedSecret = "secret";
@@ -23,6 +23,25 @@ public class AWSClientConfigFactoryTest {
         env.put(EnvConstants.AWS_LOCATION_KEY, expectedLocation);
 
         AWSClientConfig config = AWSClientConfigFactory.fromMap(env);
+        assertEquals(expectedAccess, config.getAwsAccessKey());
+        assertEquals(expectedSecret, config.getAwsSecretKey());
+        assertEquals(expectedEndpoint, config.getAwsEndpoint());
+        assertEquals(expectedLocation, config.getAwsLocation());
+    }
+    
+    public void testConfigFromEnvironment() {
+
+        String expectedAccess = "access";
+        String expectedSecret = "secret";
+        String expectedEndpoint = "endpoint";
+        String expectedLocation = "location";
+
+        System.setProperty(EnvConstants.AWS_ACCESS_KEY_KEY, expectedAccess);
+        System.setProperty(EnvConstants.AWS_SECRET_KEY_KEY, expectedSecret);
+        System.setProperty(EnvConstants.AWS_ENDPOINT_KEY, expectedEndpoint);
+        System.setProperty(EnvConstants.AWS_LOCATION_KEY, expectedLocation);
+
+        AWSClientConfig config = AWSClientConfigFactory.fromEnvironment();
         assertEquals(expectedAccess, config.getAwsAccessKey());
         assertEquals(expectedSecret, config.getAwsSecretKey());
         assertEquals(expectedEndpoint, config.getAwsEndpoint());
