@@ -14,6 +14,7 @@ import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 public class AWSClientHelpers {
+    
     public static String toS3Url(String bucket, String inputPath, String filename) {
         return String.format(
                 "s3a://%s/%s/%s",
@@ -23,10 +24,10 @@ public class AWSClientHelpers {
         );
     }
     
-    public static void processS3Objects(AmazonS3 s3client, String bucket, String keyPrefix, Consumer<String> consumer) {
+    public static void processS3Objects(AmazonS3 s3client, String bucket, String keyPrefix, ObjectConsumer consumer) {
         processS3ObjectKeys(s3client, bucket, keyPrefix, osm -> {
             String obj = s3client.getObjectAsString(bucket, osm.getKey());
-            consumer.accept(obj);
+            consumer.consume(osm,obj);
         });
     }
     
