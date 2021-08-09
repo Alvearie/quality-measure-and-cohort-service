@@ -16,6 +16,7 @@ import org.hl7.fhir.r4.model.Attachment;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.execution.CqlLibraryReader;
 
+import com.ibm.cohort.engine.elm.execution.OptimizedCqlLibraryReader;
 import com.ibm.cohort.translator.provider.CqlTranslationProvider;
 
 
@@ -92,7 +93,7 @@ public class LibraryLoader implements org.opencds.cqf.cql.engine.execution.Libra
 								libraryIdentifier.getId(), libraryIdentifier.getVersion()));
 			} else {
 				try {
-					elmLibrary = translationProvider.translate(getAttachmentData(attachment));
+					elmLibrary = OptimizedCqlLibraryReader.read(translationProvider.translate(getAttachmentData(attachment)));
 				} catch (Exception ex) {
 					throw new IllegalArgumentException(
 							String.format("Library %s-%s cql attachment failed to deserialize",

@@ -1,52 +1,122 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <library xmlns="urn:hl7-org:elm:r1" xmlns:t="urn:hl7-org:elm-types:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:fhir="http://hl7.org/fhir" xmlns:qdm43="urn:healthit-gov:qdm:v4_3" xmlns:qdm53="urn:healthit-gov:qdm:v5_3" xmlns:a="urn:hl7-org:cql-annotations:r1">
-   <annotation translatorOptions="" xsi:type="a:CqlToElmInfo"/>
+   <annotation translatorOptions="EnableAnnotations,EnableLocators,DisableListDemotion,DisableListPromotion" xsi:type="a:CqlToElmInfo"/>
    <identifier id="Test" version="1.0.0"/>
    <schemaIdentifier id="urn:hl7-org:elm" version="r1"/>
    <usings>
       <def localIdentifier="System" uri="urn:hl7-org:elm-types:r1"/>
-      <def localIdentifier="FHIR" uri="http://hl7.org/fhir" version="4.0.0"/>
+      <def localId="1" locator="2:1-2:28" localIdentifier="FHIR" uri="http://hl7.org/fhir" version="4.0.0">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="1">
+               <a:s>using &quot;FHIR&quot; version '4.0.0'</a:s>
+            </a:s>
+         </annotation>
+      </def>
    </usings>
    <contexts>
-      <def name="Patient"/>
+      <def locator="3:1-3:15" name="Patient"/>
    </contexts>
    <statements>
-      <def name="Patient" context="Patient">
+      <def locator="3:1-3:15" name="Patient" context="Patient">
          <expression xsi:type="SingletonFrom">
-            <operand dataType="fhir:Patient" xsi:type="Retrieve"/>
+            <operand locator="3:1-3:15" dataType="fhir:Patient" xsi:type="Retrieve"/>
          </expression>
       </def>
-      <def name="Female" context="Patient" accessLevel="Public">
-         <expression xsi:type="Equal">
-            <operand path="value" xsi:type="Property">
-               <source path="gender" xsi:type="Property">
-                  <source name="Patient" xsi:type="ExpressionRef"/>
+      <def localId="7" locator="4:1-5:32" name="Female" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="7">
+               <a:s>define &quot;Female&quot;:&#xd;
+	</a:s>
+               <a:s r="6">
+                  <a:s r="4">
+                     <a:s r="3">
+                        <a:s r="2">
+                           <a:s>Patient</a:s>
+                        </a:s>
+                        <a:s>.</a:s>
+                        <a:s r="3">
+                           <a:s>gender</a:s>
+                        </a:s>
+                     </a:s>
+                     <a:s>.</a:s>
+                     <a:s r="4">
+                        <a:s>value</a:s>
+                     </a:s>
+                  </a:s>
+                  <a:s> = </a:s>
+                  <a:s r="5">
+                     <a:s>'female'</a:s>
+                  </a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="6" locator="5:2-5:32" xsi:type="Equal">
+            <operand localId="4" locator="5:2-5:21" path="value" xsi:type="Property">
+               <source localId="3" locator="5:2-5:15" path="gender" xsi:type="Property">
+                  <source localId="2" locator="5:2-5:8" name="Patient" xsi:type="ExpressionRef"/>
                </source>
             </operand>
-            <operand valueType="t:String" value="female" xsi:type="Literal"/>
+            <operand localId="5" locator="5:25-5:32" valueType="t:String" value="female" xsi:type="Literal"/>
          </expression>
       </def>
-      <def name="Male" context="Patient" accessLevel="Public">
-         <expression xsi:type="Equal">
-            <operand path="value" xsi:type="Property">
-               <source path="gender" xsi:type="Property">
-                  <source name="Patient" xsi:type="ExpressionRef"/>
+      <def localId="13" locator="6:1-7:30" name="Male" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="13">
+               <a:s>define &quot;Male&quot;:&#xd;
+	</a:s>
+               <a:s r="12">
+                  <a:s r="10">
+                     <a:s r="9">
+                        <a:s r="8">
+                           <a:s>Patient</a:s>
+                        </a:s>
+                        <a:s>.</a:s>
+                        <a:s r="9">
+                           <a:s>gender</a:s>
+                        </a:s>
+                     </a:s>
+                     <a:s>.</a:s>
+                     <a:s r="10">
+                        <a:s>value</a:s>
+                     </a:s>
+                  </a:s>
+                  <a:s> = </a:s>
+                  <a:s r="11">
+                     <a:s>'male'</a:s>
+                  </a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="12" locator="7:2-7:30" xsi:type="Equal">
+            <operand localId="10" locator="7:2-7:21" path="value" xsi:type="Property">
+               <source localId="9" locator="7:2-7:15" path="gender" xsi:type="Property">
+                  <source localId="8" locator="7:2-7:8" name="Patient" xsi:type="ExpressionRef"/>
                </source>
             </operand>
-            <operand valueType="t:String" value="male" xsi:type="Literal"/>
+            <operand localId="11" locator="7:25-7:30" valueType="t:String" value="male" xsi:type="Literal"/>
          </expression>
       </def>
-      <def name="Over the hill" context="Patient" accessLevel="Public">
-         <expression xsi:type="GreaterOrEqual">
-            <operand precision="Year" xsi:type="CalculateAge">
+      <def localId="17" locator="8:1-9:19" name="Over the hill" context="Patient" accessLevel="Public">
+         <annotation xsi:type="a:Annotation">
+            <a:s r="17">
+               <a:s>define &quot;Over the hill&quot;:&#xd;
+	</a:s>
+               <a:s r="16">
+                  <a:s r="14">
+                     <a:s>AgeInYears()</a:s>
+                  </a:s>
+                  <a:s r="15"> >= 40</a:s>
+               </a:s>
+            </a:s>
+         </annotation>
+         <expression localId="16" locator="9:2-9:19" xsi:type="GreaterOrEqual">
+            <operand localId="14" locator="9:2-9:13" precision="Year" xsi:type="CalculateAge">
                <operand path="birthDate.value" xsi:type="Property">
                   <source name="Patient" xsi:type="ExpressionRef"/>
                </operand>
             </operand>
-            <operand valueType="t:Integer" value="40" xsi:type="Literal"/>
+            <operand localId="15" locator="9:18-9:19" valueType="t:Integer" value="40" xsi:type="Literal"/>
          </expression>
       </def>
    </statements>
 </library>
-
-

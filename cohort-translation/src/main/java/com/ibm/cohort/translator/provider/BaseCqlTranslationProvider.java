@@ -16,7 +16,6 @@ import com.ibm.cohort.file.LibraryFormat;
 
 import org.cqframework.cql.cql2elm.CqlTranslator.Options;
 import org.cqframework.cql.cql2elm.CqlTranslatorOptions;
-import org.cqframework.cql.elm.execution.Library;
 
 /**
  * Common functionality for use when implementing CQL translator
@@ -34,21 +33,21 @@ public abstract class BaseCqlTranslationProvider implements CqlTranslationProvid
 	}
 
 	@Override
-	public Library translate(InputStream cql) throws Exception {
+	public String translate(InputStream cql) throws Exception {
 		return translate( cql, getDefaultOptions() );
 	}
 
 	@Override
-	public Library translate(InputStream cql, List<Options> options) throws Exception {
+	public String translate(InputStream cql, List<Options> options) throws Exception {
 		return translate(cql, options, DEFAULT_TARGET_FORMAT);
 	}
 
 	@Override
-	public Library translate(String cql) throws Exception {
+	public String translate(String cql) throws Exception {
 		return translate( cql, getDefaultOptions() );
 	}
 
-	public Library translate(String cql, List<Options> options) throws Exception {
+	public String translate(String cql, List<Options> options) throws Exception {
 		return translate(cql, options, DEFAULT_TARGET_FORMAT);
 	}
 }

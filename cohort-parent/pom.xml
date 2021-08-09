@@ -665,6 +665,11 @@
 				<version>${jackson.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>com.fasterxml.jackson.module</groupId>
+				<artifactId>jackson-module-jaxb-annotations</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>commons-collections</groupId>
 				<artifactId>commons-collections</artifactId>
 				<version>3.2.2</version>
@@ -1134,10 +1139,10 @@
 					</execution>
 					
 					<execution>
-            			<goals>
-            				<goal>analyze-only</goal>
-            			</goals>
-            			<configuration>
+						<goals>
+							<goal>analyze-only</goal>
+						</goals>
+						<configuration>
 							<failOnWarning>true</failOnWarning>
 							<ignoredUsedUndeclaredDependencies>
 								<!-- Excluding this because the JAXB classes are provided by the JRE as of Java 8, but there are potentially other classes in jakarta that we don't want to wholesale exclude -->
@@ -1156,7 +1161,7 @@
 								<ignoredUnusedDeclaredDependency>com.github.tomakehurst:wiremock-jre8</ignoredUnusedDeclaredDependency>
 							</ignoredUnusedDeclaredDependencies>
 						</configuration>
-            		</execution>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>
@@ -1199,8 +1204,8 @@
 						</goals>
 					</execution>
 				</executions>
-            </plugin>
-            <plugin>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
 				<executions>
