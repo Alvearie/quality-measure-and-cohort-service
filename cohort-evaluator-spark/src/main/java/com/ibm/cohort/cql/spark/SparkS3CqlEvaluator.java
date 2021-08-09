@@ -51,6 +51,13 @@ import com.ibm.cohort.datarow.model.DataRow;
 
 import scala.Tuple2;
 
+/**
+ * Given knowledge and clinical data artifacts provided in an Amazon S3
+ * compatible storage bucket, evaluate clinical queries defined in the HL7
+ * clinical quality language (CQL). Clinical data can be evaluated either a
+ * single row at a time or aggregated together on a per context basis (e.g.
+ * Patient, Claim, Practitioner, etc.). The primary/foreign key for the 
+ */
 public class SparkS3CqlEvaluator {
 
     public static final String SOURCE_FACT_IDX = "__SOURCE_FACT";
@@ -61,29 +68,28 @@ public class SparkS3CqlEvaluator {
     @Parameter(names = { "-b", "--bucket" }, description = "The AWS bucket", required = false)
     public String bucket;
 
-    @Parameter(names = { "-i",
-            "--input-path" }, description = "URI of a folder that contains the data files that we be used as input to the CQL engine.", required = true)
+    @Parameter(names = { "-i", "--input-path" }, description = "Key prefix for objects in the AWS bucket that contain the clinical data used in calculations.", required = true)
     public String inputPath;
 
-    @Parameter(names = { "-o", "--output-path" }, description = "The AWS output path")
+    @Parameter(names = { "-o", "--output-path" }, description = "Key prefix for objects that will be written to the AWS bucket as a result of CQL evaluation. A separate output file will be written for each context that is evaluated.")
     public String outputPath;
 
-    @Parameter(names = { "-m", "--model-info-path" }, description = "Key prefix for objects in AWS bucket that contain model info definitions", required = true)
+    @Parameter(names = { "-m", "--model-info-path" }, description = "Key prefix for objects in AWS bucket that are CQL model definitions.", required = true)
     public String modelInfoPath;
 
-    @Parameter(names = { "-c", "--cql-path" }, description = "URI for a folder containing the CQL/ELM libraries to evaluate", required = true)
+    @Parameter(names = { "-c", "--cql-path" }, description = "Key prefix for objects in the AWS bucket that contain CQL library definitions.", required = true)
     public String cqlPath;
 
-    @Parameter(names = { "-l", "--library" }, description = "Name of the CQL library to evaluate", required = true)
+    @Parameter(names = { "-l", "--library" }, description = "Name of the CQL library to evaluate.", required = true)
     public String libraryId;
 
-    @Parameter(names = { "-v", "--library-version" }, description = "Version of the CQL library to evaluate", required = true)
+    @Parameter(names = { "-v", "--library-version" }, description = "Version of the CQL library to evaluate.", required = true)
     public String libraryVersion;
 
-    @Parameter(names = { "--library-format" }, description = "Format of the CQL library to evaluate (CQL|ELM)", required = true)
+    @Parameter(names = { "--library-format" }, description = "Format of the CQL library to evaluate (CQL|ELM).", required = true)
     public CqlLibraryDescriptor.Format libraryFormat;
 
-    @Parameter(names = { "-e", "--expression" }, description = "CQL Expressions to evaluate", required = true)
+    @Parameter(names = { "-e", "--expression" }, description = "One or more expressions names in the CQL library that should be evaluated. When not provided, all expresions will be evaluated.", required = false)
     public Set<String> expressions;
 
     @Parameter(names = { "-f", "--facts" }, description = "List of datafiles and optional datatypes required to support CQL evaluation. Pairs are delimited by a colon and are of the form fileId:dataType.", required = true)
@@ -256,7 +262,7 @@ public class SparkS3CqlEvaluator {
         // TODO - replace with cohort shared translation component
         final CqlToElmTranslator translator = new CqlToElmTranslator();
         if (modelInfoPath != null) {
-            AWSClientHelpers.processS3Objects(s3client, bucket, modelInfoPath, obj -> {
+            AWSClientHelpers.processS3Objects(s3client, bucket, modelInfoPath, (osm,obj) -> {
                 Reader r = new StringReader(obj);
                 translator.registerModelInfo(r);  
             });
