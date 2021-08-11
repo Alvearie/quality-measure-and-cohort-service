@@ -12,7 +12,6 @@ import java.io.Reader;
 import java.util.List;
 
 import org.cqframework.cql.cql2elm.CqlTranslator.Options;
-import org.cqframework.cql.elm.execution.Library;
 import org.hl7.elm_modelinfo.r1.ModelInfo;
 
 import com.ibm.cohort.file.LibraryFormat;
@@ -24,15 +23,15 @@ import com.ibm.cohort.file.LibraryFormat;
  * JAR or calling out to the CqlTranslationService microservice.
  */
 public interface CqlTranslationProvider {
-	Library translate(InputStream cql) throws Exception;
+	String translate(InputStream cql) throws Exception;
 
-	Library translate(String cql) throws Exception;
+	String translate(String cql) throws Exception;
 
-	Library translate(InputStream cql, List<Options> options) throws Exception;
+	String translate(InputStream cql, List<Options> options) throws Exception;
 
-	Library translate(InputStream cql, List<Options> options, LibraryFormat targetFormat) throws Exception;
+	String translate(InputStream cql, List<Options> options, LibraryFormat targetFormat) throws Exception;
 
-	Library translate(String cql, List<Options> options, LibraryFormat targetFormat) throws Exception;
+	String translate(String cql, List<Options> options, LibraryFormat targetFormat) throws Exception;
 
 	void registerModelInfo(ModelInfo modelInfo);
 	

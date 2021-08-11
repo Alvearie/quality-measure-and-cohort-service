@@ -18,6 +18,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.DefaultConsole;
 import com.ibm.cohort.engine.DirectoryLibrarySourceProvider;
+import com.ibm.cohort.engine.elm.execution.OptimizedCqlLibraryReader;
 import com.ibm.cohort.translator.provider.CqlTranslationProvider;
 import com.ibm.cohort.translator.provider.InJVMCqlTranslationProvider;
 
@@ -54,7 +55,7 @@ public class TranslationCLI {
 			provider.convertAndRegisterModelInfo(options.modelInfoFile);
 		}
 
-		Library library = provider.translate(new FileInputStream(new File(options.cqlPath)));
+		Library library = OptimizedCqlLibraryReader.read(provider.translate(new FileInputStream(new File(options.cqlPath))));
 
 		out.println("Translated Library: ");
 		out.println(library.toString());
