@@ -32,10 +32,15 @@ import com.ibm.cohort.cql.spark.BaseSparkTest;
 import com.ibm.cohort.datarow.exception.UnsupportedConversionException;
 
 public class SparkDataRowTest extends BaseSparkTest {
-    
+    private static final long serialVersionUID = 1L;
+
     @Test
     public void testConvertAllDatatypes() {
-        try( SparkSession session = initializeSession(Java8API.ENABLED) ) {
+        Java8API useJava8API = Java8API.ENABLED;
+        
+        try( SparkSession session = initializeSession(useJava8API) ) {
+            SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
+            
             int rowCount = 1000;
             List<AllTypesJava8DatesPOJO> data = new ArrayList<>();
             for(int i=0; i<rowCount; i++) {
@@ -45,7 +50,7 @@ public class SparkDataRowTest extends BaseSparkTest {
             assertEquals(rowCount, df.count());
             
             df.foreach( row -> {
-                final SparkDataRow sdr = new SparkDataRow(row);
+                final SparkDataRow sdr = new SparkDataRow(typeConverter, row);
                 sdr.getFieldNames().forEach( fn -> {
                     sdr.getValue(fn);
                 });
@@ -55,7 +60,11 @@ public class SparkDataRowTest extends BaseSparkTest {
     
     @Test
     public void testConversionSemantics() {
-        try( SparkSession session = initializeSession(Java8API.ENABLED) ) {
+        Java8API useJava8API = Java8API.ENABLED;
+
+        try( SparkSession session = initializeSession(useJava8API) ) {
+            SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
+
             List<AllTypesJava8DatesPOJO> data = new ArrayList<>();
     
             AllTypesJava8DatesPOJO pojo = new AllTypesJava8DatesPOJO();
@@ -79,7 +88,7 @@ public class SparkDataRowTest extends BaseSparkTest {
             assertEquals(1, df.count());
             
             df.foreach( row -> {
-                SparkDataRow sdr = new SparkDataRow(row);
+                SparkDataRow sdr = new SparkDataRow(typeConverter, row);
                 assertTrue( sdr.getValue( "stringField" ) instanceof String );
                 assertEquals( pojo.getStringField(), (String) sdr.getValue("stringField") );
     
@@ -124,7 +133,11 @@ public class SparkDataRowTest extends BaseSparkTest {
     
     @Test
     public void testConversionSemanticsNullValues() {
-        try( SparkSession session = initializeSession(Java8API.ENABLED) ) {
+        Java8API useJava8API = Java8API.ENABLED;
+
+        try( SparkSession session = initializeSession(useJava8API) ) {
+            SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
+
             List<AllTypesJava8DatesPOJO> data = new ArrayList<>();
     
             AllTypesJava8DatesPOJO pojo = new AllTypesJava8DatesPOJO();
@@ -134,7 +147,7 @@ public class SparkDataRowTest extends BaseSparkTest {
             assertEquals(1, df.count());
             
             df.foreach( row -> {
-                SparkDataRow sdr = new SparkDataRow(row);
+                SparkDataRow sdr = new SparkDataRow(typeConverter, row);
                 assertEquals( pojo.getStringField(), sdr.getValue("stringField") );
                 assertEquals( pojo.getBooleanField(), sdr.getValue("booleanField") );
                 assertEquals( pojo.getByteField(), sdr.getValue("byteField") );
@@ -154,8 +167,11 @@ public class SparkDataRowTest extends BaseSparkTest {
     
     @Test
     public void testDateTimeConversionSemanticsWithoutJava8Enabled() {
-        try( SparkSession session = initializeSession(Java8API.DISABLED) ) {
-
+        Java8API useJava8API = Java8API.DISABLED;
+        
+        try( SparkSession session = initializeSession(useJava8API) ) {
+            SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
+            
             List<PreJava8DateTypesPOJO> data = new ArrayList<>();
     
             Date expectedDate = new Date(1111000000);
@@ -173,7 +189,7 @@ public class SparkDataRowTest extends BaseSparkTest {
             df.show();
             
             df.foreach( row -> {
-                SparkDataRow sdr = new SparkDataRow(row);
+                SparkDataRow sdr = new SparkDataRow(typeConverter, row);
                 
                 assertTrue( sdr.getValue( "timestampField" ) instanceof org.opencds.cqf.cql.engine.runtime.DateTime );
                 org.opencds.cqf.cql.engine.runtime.DateTime dt = (org.opencds.cqf.cql.engine.runtime.DateTime) sdr.getValue( "timestampField" );
@@ -188,8 +204,10 @@ public class SparkDataRowTest extends BaseSparkTest {
     
     @Test
     public void testUnhandledTypeConversionSemantics() {
+        Java8API useJava8API = Java8API.ENABLED;
 
-        try( SparkSession session = initializeSession(Java8API.ENABLED) ) {
+        try( SparkSession session = initializeSession(useJava8API) ) {
+            SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
 
             List<UnhandledTypesPOJO> data = new ArrayList<>();
     
@@ -201,7 +219,7 @@ public class SparkDataRowTest extends BaseSparkTest {
             assertEquals(1, df.count());
             assertEquals(expectedFieldCount, df.schema().names().length);
 
-            SparkDataRow sdr = new SparkDataRow(df.head());
+            SparkDataRow sdr = new SparkDataRow(typeConverter, df.head());
             assertEquals(expectedFieldCount, sdr.getFieldNames().size());
             sdr.getFieldNames().forEach( fn -> {
                 assertThrows(UnsupportedConversionException.class, () -> sdr.getValue(fn) );
@@ -263,8 +281,11 @@ public class SparkDataRowTest extends BaseSparkTest {
     }
     
     public SparkDataRow runMetadataTest(CodeWithMetadataPOJO pojo, Metadata codeMetadata) {
+        Java8API useJava8API = Java8API.ENABLED;
+        
+        try( SparkSession session = initializeSession(useJava8API) ) {
+            SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
 
-        try( SparkSession session = initializeSession(Java8API.ENABLED) ) {
             int expectedFieldCount = 4;
 
             List<CodeWithMetadataPOJO> data = new ArrayList<>();
@@ -275,7 +296,7 @@ public class SparkDataRowTest extends BaseSparkTest {
             assertEquals(1, df.count());
             assertEquals(expectedFieldCount, df.schema().names().length);
             
-            return new SparkDataRow(df.head());
+            return new SparkDataRow(typeConverter, df.head());
         }
     }
 }

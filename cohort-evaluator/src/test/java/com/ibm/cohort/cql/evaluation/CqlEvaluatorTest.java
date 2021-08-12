@@ -93,7 +93,7 @@ public class CqlEvaluatorTest {
                 .setDataProvider(dataProvider)
                 .setLibraryProvider(translatingProvider);
         
-        CqlEvaluationResult result = evaluator.evaluate(libraryDescriptor, new HashSet<>(Collections.singletonList("OtherThing")));
+        CqlEvaluationResult result = evaluator.evaluate(libraryDescriptor, null, new HashSet<>(Collections.singletonList("OtherThing")));
         assertNotNull(result);
         assertEquals(1, result.getExpressionResults().size());
         assertEquals(false, result.getExpressionResults().get("OtherThing"));
