@@ -25,13 +25,13 @@ public class AWSClientHelpers {
     }
     
     public static void processS3Objects(AmazonS3 s3client, String bucket, String keyPrefix, ObjectConsumer consumer) {
-        processS3ObjectKeys(s3client, bucket, keyPrefix, osm -> {
+        processS3ObjectSummaries(s3client, bucket, keyPrefix, osm -> {
             String obj = s3client.getObjectAsString(bucket, osm.getKey());
             consumer.consume(osm,obj);
         });
     }
     
-    public static void processS3ObjectKeys(AmazonS3 s3client, String bucket, String keyPrefix, Consumer<S3ObjectSummary> consumer) {
+    public static void processS3ObjectSummaries(AmazonS3 s3client, String bucket, String keyPrefix, Consumer<S3ObjectSummary> consumer) {
         //https://docs.aws.amazon.com/AmazonS3/latest/userguide/ListingKeysUsingAPIs.html
         ListObjectsV2Request req = new ListObjectsV2Request().withBucketName(bucket).withPrefix(keyPrefix);
         ListObjectsV2Result result;
