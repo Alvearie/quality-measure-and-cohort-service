@@ -1,8 +1,12 @@
 package com.ibm.cohort.cql.spark;
 
+import java.io.Serializable;
+
 import org.apache.spark.sql.SparkSession;
 
-public class BaseSparkTest {
+public class BaseSparkTest implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     public static enum Java8API {
         ENABLED(true), DISABLED(false);
         

@@ -5,16 +5,22 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -24,13 +30,15 @@ import org.junit.Test;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.library.fs.DirectoryBasedCqlLibraryProvider;
 import com.ibm.cohort.cql.spark.data.Patient;
+import com.ibm.cohort.cql.spark.data.SparkTypeConverter;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
 
 import scala.Tuple2;
 
 public class SparkS3CqlEvaluatorTest extends BaseSparkTest {
-
+    private static final long serialVersionUID = 1L;
+    
     private SparkS3CqlEvaluator evaluator;
     
     @Before
@@ -44,9 +52,13 @@ public class SparkS3CqlEvaluatorTest extends BaseSparkTest {
         int groups = 2;
         
         evaluator.aggregateOnContext = true;
+        evaluator.libraryId = "OutputTypeTest";
+        evaluator.libraryVersion = "1.0.0";
         evaluator.debug = true;
         
-        try( SparkSession spark = initializeSession(Java8API.ENABLED) ) {
+        Java8API useJava8API = Java8API.ENABLED;
+        try( SparkSession spark = initializeSession(useJava8API) ) {
+            evaluator.typeConverter = new SparkTypeConverter(useJava8API.getValue());
             
             List<Patient> sourceData = new ArrayList<>();
             for(int i=0; i<rowCount; i++) {
@@ -74,6 +86,18 @@ public class SparkS3CqlEvaluatorTest extends BaseSparkTest {
             Tuple2<Object,List<Row>> singleContext = aggregated.take(1).get(0);
             List<Row> rows = singleContext._2();
             assertEquals( rowCount / groups, rows.size() );
+
+            CqlLibraryProvider translatingProvider = getTestLibraryProvider();
+            Tuple2<Object,Map<String,Object>> result = evaluator.evaluate(translatingProvider, singleContext);
+            
+            JavaSparkContext sc = JavaSparkContext.fromSparkContext(spark.sparkContext());
+            JavaPairRDD<Object,Map<String,Object>> resultsByContext = sc.parallelizePairs(Arrays.asList(result));
+           
+            String filename = String.format("target/all_types_by_context-%s.txt", UUID.randomUUID().toString());
+            evaluator.writeResults(resultsByContext, new File(filename).toURI().toString());
+            
+            JavaRDD<String> lines = sc.textFile(filename);
+            assertEquals(resultsByContext.count(), lines.count());
         }
     }
     
@@ -86,7 +110,9 @@ public class SparkS3CqlEvaluatorTest extends BaseSparkTest {
         evaluator.libraryId = "SampleLibrary";
         evaluator.libraryVersion = "1.0.0";
         
-        try( SparkSession spark = initializeSession(Java8API.ENABLED) ) {
+        Java8API useJava8API = Java8API.ENABLED;
+        try( SparkSession spark = initializeSession(useJava8API) ) {
+            evaluator.typeConverter = new SparkTypeConverter(useJava8API.getValue());
             
             List<Patient> sourceData = new ArrayList<>();
             for(int i=0; i<rowCount; i++) {
@@ -113,13 +139,7 @@ public class SparkS3CqlEvaluatorTest extends BaseSparkTest {
 
             Tuple2<Object,List<Row>> singleContext = aggregated.take(1).get(0);
             
-            CqlToElmTranslator translator = new CqlToElmTranslator();
-            try( Reader r = new FileReader(new File("src/test/resources/modelinfo/mock-modelinfo-1.0.0.xml") ) ) {
-                translator.registerModelInfo(r);
-            }
-            
-            CqlLibraryProvider libraryProvider = new DirectoryBasedCqlLibraryProvider(new File("src/test/resources/cql"));
-            CqlLibraryProvider translatingProvider = new TranslatingCqlLibraryProvider(libraryProvider, translator);
+            CqlLibraryProvider translatingProvider = getTestLibraryProvider();
             Tuple2<Object,Map<String,Object>> result = evaluator.evaluate(translatingProvider, singleContext);
             assertNotNull(result);
             assertEquals(singleContext._1(), result._1());
@@ -130,6 +150,17 @@ public class SparkS3CqlEvaluatorTest extends BaseSparkTest {
             Map<String,Object> defineResults = result._2();
             assertEquals(expectedGender.equals("female"), defineResults.get("IsFemale"));
         }
+    }
+
+    protected CqlLibraryProvider getTestLibraryProvider() throws IOException, FileNotFoundException {
+        CqlToElmTranslator translator = new CqlToElmTranslator();
+        try( Reader r = new FileReader(new File("src/test/resources/modelinfo/mock-modelinfo-1.0.0.xml") ) ) {
+            translator.registerModelInfo(r);
+        }
+        
+        CqlLibraryProvider libraryProvider = new DirectoryBasedCqlLibraryProvider(new File("src/test/resources/cql"));
+        CqlLibraryProvider translatingProvider = new TranslatingCqlLibraryProvider(libraryProvider, translator);
+        return translatingProvider;
     }
     
     @Test

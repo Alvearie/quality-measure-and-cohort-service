@@ -32,7 +32,7 @@ public class S3CqlLibraryProvider implements CqlLibraryProvider {
     @Override
     public Collection<CqlLibraryDescriptor> listLibraries() {
         Set<CqlLibraryDescriptor> libraries = new HashSet<>();
-        AWSClientHelpers.processS3ObjectKeys(client, bucket, key, osm -> {
+        AWSClientHelpers.processS3ObjectSummaries(client, bucket, key, osm -> {
             libraries.add( CqlLibraryHelpers.filenameToLibraryDescriptor(osm.getKey()) );
         });
         return libraries;
