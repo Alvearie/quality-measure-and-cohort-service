@@ -46,6 +46,7 @@ import com.ibm.cohort.engine.CqlEvaluator;
 import com.ibm.cohort.engine.TranslatingLibraryLoader;
 import com.ibm.cohort.engine.ZipStreamLibrarySourceProvider;
 import com.ibm.cohort.engine.api.service.model.CohortEvaluation;
+import com.ibm.cohort.engine.api.service.model.CohortResult;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.PatientListMeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
@@ -101,7 +102,7 @@ tags={	@Tag(name = "FHIR Measures", description = "IBM Cohort Engine FHIR Measur
 		@Tag(name = "Measure Evaluation", description = "IBM Cohort Engine Measure Evaluation"),
 		@Tag(name = "ValueSet", description = "IBM Cohort Engine ValueSet Operations")})
 public class CohortEngineRestHandler {
-	private static final String EVALUATION_API_NOTES = "The body of the request is a multipart/form-data request with an application/json attachment named 'request_data' that describes the measure evaluation that will be performed and an application/zip attachment named 'measure' that contains the measure and library artifacts to be evaluated. Valueset resources required for Measure evaluation must be loaded to the FHIR server in advance of an evaluation request. ";
+	private static final String EVALUATION_API_NOTES = "The body of the request is a multipart/form-data request with an application/json attachment named 'request_data' that describes the measure evaluation that will be performed and an application/zip attachment named 'measure' that contains the measure and library artifacts to be evaluated. Valueset resources required for Measure evaluation must be loaded to the FHIR server in advance of an evaluation request. Examples of the response measure reports (individual and patient list) can be found as part the FHIR IG: https://www.hl7.org/fhir/measurereport-examples.html.";
 	private static final String COHORT_EVALUATION_API_NOTES = "The body of the request is a multipart/form-data request with  an application/zip attachment named 'cql_definition' that contains the cohort cql definition to be evaluated.";
 	private static final Logger logger = LoggerFactory.getLogger(CohortEngineRestHandler.class.getName());
 	private static final String MEASURE_IDENTIFIER_VALUE_DESC = "Used to identify the FHIR measure resource you would like the parameter information "
@@ -141,7 +142,7 @@ public class CohortEngineRestHandler {
 			"<p>The <code>measureContext.measureId</code> field can be a FHIR resource ID or canonical URL. Alternatively, <code>measureContext.identifier</code> and <code>measureContext.version</code> can be used to lookup the measure based on a business identifier found in the resource definition. Only one of measureId or identifier + version should be specified. Canonical URL is the recommended lookup mechanism.</p>" +
 			"<p>The parameter types and formats are described in detail in the <a href=\"http://alvearie.io/quality-measure-and-cohort-service/#/user-guide/parameter-formats?id=parameter-formats\">user guide</a>.</p>" +
 			"<p>The <code>evidenceOptions</code> controls the granularity of evidence data to be written to the FHIR MeasureReport. The <code>expandValueSets</code> flag is used to control whether or not the terminology provider is used to expand ValueSet references or if the FHIR :in modifier is used during search requests. The FHIR :in modifier is supported in IBM FHIR 4.7.0 and above. The default behavior is to expand value sets using the terminology provider in order to cover the widest range of FHIR server functionality. A value of false can be used to improve search performance if terminology resources are available on the data server and it supports the :in modifier. The <code>searchPageSize</code> controls how many data records are retrieved per request during FHIR search API execution. The default value for this setting is small in most servers and performance can be boosted by larger values. The default is 1000 which is the maximum allowed page size in IBM FHIR.</p>" +
-			"<p>For more detailed information about the evidence options, check out measure evaluation <a href=\"https://github.com/Alvearie/quality-measure-and-cohort-service/blob/WFFHCOHORT-525/docs/user-guide/getting-started.md#evidence-options\">documentation</a> here.</p>" +
+			"<p>For more detailed information about the evidence options, check out measure evaluation <a href=\"https://alvearie.io/quality-measure-and-cohort-service/#/user-guide/getting-started?id=evidence-options\">documentation</a> here.</p>" +
 			"<p>Example Contents: \n <pre>{\n" +
 			"    \"dataServerConfig\": {\n" + 
 			"        \"@class\": \"com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\",\n" + 
@@ -187,7 +188,7 @@ public class CohortEngineRestHandler {
 			"<p>The <code>measureContext.measureId</code> field can be a FHIR resource ID or canonical URL. Alternatively, <code>measureContext.identifier</code> and <code>measureContext.version</code> can be used to lookup the measure based on a business identifier found in the resource definition. Only one of measureId or identifier + version should be specified. Canonical URL is the recommended lookup mechanism.</p>" +
 			"<p>The parameter types and formats are described in detail in the <a href=\"http://alvearie.io/quality-measure-and-cohort-service/#/user-guide/parameter-formats?id=parameter-formats\">user guide</a>.</p>" +
 			"<p>The <code>evidenceOptions</code> controls the granularity of evidence data to be written to the FHIR MeasureReport. The <code>expandValueSets</code> flag is used to control whether or not the terminology provider is used to expand ValueSet references or if the FHIR :in modifier is used during search requests. The FHIR :in modifier is supported in IBM FHIR 4.7.0 and above. The default behavior is to expand value sets using the terminology provider in order to cover the widest range of FHIR server functionality. A value of false can be used to improve search performance if terminology resources are available on the data server and it supports the :in modifier. The <code>searchPageSize</code> controls how many data records are retrieved per request during FHIR search API execution. The default value for this setting is small in most servers and performance can be boosted by larger values. The default is 1000 which is the maximum allowed page size in IBM FHIR.</p>" +
-			"<p>For more detailed information about the evidence options, check out measure evaluation <a href=\"https://github.com/Alvearie/quality-measure-and-cohort-service/blob/WFFHCOHORT-525/docs/user-guide/getting-started.md#evidence-options\">documentation</a> here.</p>" +
+			"<p>For more detailed information about the evidence options, check out measure evaluation <a href=\"https://alvearie.io/quality-measure-and-cohort-service/#/user-guide/getting-started?id=evidence-options\">documentation</a> here.</p>" +
 			"<p>Example Contents: \n <pre>{\n" +
 			"    \"dataServerConfig\": {\n" +
 			"        \"@class\": \"com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\",\n" +
@@ -347,7 +348,7 @@ public class CohortEngineRestHandler {
 			@ApiImplicitParam(name=CQL_DEFINITION, value = CQL_REQUIREMENTS,dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successful Operation"),
+			@ApiResponse(code = 200, message = "Successful Operation", response = CohortResult.class),
 			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
 			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
 	})
@@ -429,7 +430,7 @@ public class CohortEngineRestHandler {
 			BooleanEvaluationCallback callback = new BooleanEvaluationCallback();
 			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), evaluationRequest.getParameters(), expressions, patientsToRun, evaluationRequest.getLoggingLevel(), callback);
 
-			response = Response.status(Response.Status.OK).header("Content-Type", "application/json").entity("{\"result\":" + om.writeValueAsString(callback.getPassingPatients()) + "}").build();
+			response = Response.status(Response.Status.OK).header("Content-Type", "application/json").entity(new CohortResult(callback.getPassingPatients())).build();
 
 		} catch (Throwable e) {
 			//map any exceptions caught into the proper REST error response objects
@@ -469,7 +470,7 @@ public class CohortEngineRestHandler {
 		@ApiImplicitParam(name=MEASURE_PART, value=EXAMPLE_MEASURE_ZIP, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successful Operation"),
+			@ApiResponse(code = 200, message = "Successful Operation: This API returns the JSON representation of a FHIR MeasureReport. A full example can be found at https://www.hl7.org/fhir/measurereport-cms146-cat1-example.html"),
 			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
 			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
 	})
@@ -585,7 +586,7 @@ public class CohortEngineRestHandler {
 			@ApiImplicitParam(name=MEASURE_PART, value=EXAMPLE_MEASURE_ZIP, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successful Operation"),
+			@ApiResponse(code = 200, message = "Successful Operation: This API returns the JSON representation of a FHIR MeasureReport. A full example can be found at https://www.hl7.org/fhir/measurereport-cms146-cat2-example.html"),
 			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
 			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
 	})
