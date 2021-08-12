@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.opencds.cqf.cql.engine.execution.Context;
 
 import com.ibm.cohort.cql.data.CqlDataProvider;
@@ -26,19 +27,23 @@ public class CqlEvaluator {
     private CqlTerminologyProvider terminologyProvider;
     
     public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary) throws CqlLibraryDeserializationException {
-        return evaluate(topLevelLibrary, null, null, CqlDebug.NONE);
+        return evaluate(topLevelLibrary, null);
     }
     
-    public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary, Set<String> expressions) throws CqlLibraryDeserializationException {
-        return evaluate(topLevelLibrary, null, expressions, CqlDebug.NONE);
+    public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary, Pair<String,String> context) throws CqlLibraryDeserializationException {
+        return evaluate(topLevelLibrary, null, context, null, CqlDebug.NONE);
     }
     
-    public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary, Map<String,Object> parameters) throws CqlLibraryDeserializationException {
-        return evaluate(topLevelLibrary, parameters, null, CqlDebug.NONE);
+    public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary, Pair<String,String> context, Set<String> expressions) throws CqlLibraryDeserializationException {
+        return evaluate(topLevelLibrary, null, context, expressions, CqlDebug.NONE);
+    }
+    
+    public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary, Map<String,Object> parameters, Pair<String,String> context) throws CqlLibraryDeserializationException {
+        return evaluate(topLevelLibrary, parameters, context, null, CqlDebug.NONE);
     }
 
     
-    public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary, Map<String,Object> parameters, Set<String> expressions, CqlDebug debug) throws CqlLibraryDeserializationException {
+    public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary, Map<String,Object> parameters, Pair<String,String> context, Set<String> expressions, CqlDebug debug) throws CqlLibraryDeserializationException {
         Context cqlContext = new CqlContextFactory().setDebug(debug).createContext(libraryProvider, topLevelLibrary, terminologyProvider, dataProvider);
         
         if( expressions == null ) {
@@ -49,6 +54,10 @@ public class CqlEvaluator {
         for( String expression : expressions ) {
             Object result = cqlContext.resolveExpressionRef(expression).evaluate(cqlContext);
             results.put(expression, result);
+        }
+        
+        if( context != null ) {
+        	cqlContext.setContextValue(context.getLeft(), context.getRight());
         }
         
         return new CqlEvaluationResult(results);

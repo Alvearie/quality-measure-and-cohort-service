@@ -6,14 +6,8 @@
 
 package com.ibm.cohort.cql.spark.data;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.spark.sql.Row;
@@ -49,31 +43,16 @@ public class SparkDataRow implements DataRow {
     public static final String SYSTEM_COL = "systemCol";
     public static final String DISPLAY_COL = "dispalyCol";
 
-    protected static final Map<Class<?>, Function<Object, Object>> CONVERTERS = new HashMap<>();
-    static {
-        CONVERTERS.put(Boolean.class, SparkTypeConverter::toCqlBoolean);
-        CONVERTERS.put(Integer.class, SparkTypeConverter::toCqlInteger);
-        CONVERTERS.put(String.class, SparkTypeConverter::toCqlString);
-        CONVERTERS.put(BigDecimal.class, SparkTypeConverter::toCqlDecimal);
-        CONVERTERS.put(Byte.class, SparkTypeConverter::toCqlByte);
-        CONVERTERS.put(Short.class, SparkTypeConverter::toCqlShort);
-        CONVERTERS.put(Long.class, SparkTypeConverter::toCqlLong);
-        CONVERTERS.put(Float.class, SparkTypeConverter::toCqlFloat);
-        CONVERTERS.put(Double.class, SparkTypeConverter::toCqlDouble);
-        CONVERTERS.put(LocalDate.class, SparkTypeConverter::toCqlDate);
-        CONVERTERS.put(Instant.class, SparkTypeConverter::toCqlDateTime);
-        CONVERTERS.put(java.sql.Date.class, SparkTypeConverter::toCqlDate);
-        CONVERTERS.put(java.sql.Timestamp.class, SparkTypeConverter::toCqlDateTime);
-        CONVERTERS.put(scala.collection.Seq.class, SparkTypeConverter::toCqlList);
-        CONVERTERS.put(scala.collection.Map.class, SparkTypeConverter::toCqlTuple);
-        CONVERTERS.put(Row.class, SparkTypeConverter::toCqlTuple);
-        CONVERTERS.put(byte[].class, SparkTypeConverter::toCqlBinary);
-    }
-
+    private final SparkTypeConverter typeConverter;
     private final Row sparkRow;
 
-    public SparkDataRow(Row sparkRow) {
+    public SparkDataRow(SparkTypeConverter typeConverter, Row sparkRow) {
+        this.typeConverter = typeConverter;
         this.sparkRow = sparkRow;
+    }
+    
+    public Row getRow() {
+        return this.sparkRow;
     }
 
     @Override
@@ -124,13 +103,8 @@ public class SparkDataRow implements DataRow {
     protected Object doDefaultConversion(Object sparkVal) {
         Object result = null;
 
-        Function<Object, Object> converter = CONVERTERS.get(sparkVal.getClass());
         try {
-            if (converter != null) {
-                result = converter.apply(sparkVal);
-            } else {
-                SparkTypeConverter.convertUnhandledValue(sparkVal);
-            }
+            result = typeConverter.toCqlType(sparkVal);
         } catch (IllegalArgumentException ex) {
             throw new IllegalArgumentException(String.format("Failed to convert field '%s': %s", ex.getMessage()), ex);
         }
