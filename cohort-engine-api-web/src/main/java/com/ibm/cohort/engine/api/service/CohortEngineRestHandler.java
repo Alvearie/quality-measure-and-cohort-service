@@ -46,6 +46,7 @@ import com.ibm.cohort.engine.CqlEvaluator;
 import com.ibm.cohort.engine.TranslatingLibraryLoader;
 import com.ibm.cohort.engine.ZipStreamLibrarySourceProvider;
 import com.ibm.cohort.engine.api.service.model.CohortEvaluation;
+import com.ibm.cohort.engine.api.service.model.CohortResult;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.PatientListMeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
@@ -347,7 +348,7 @@ public class CohortEngineRestHandler {
 			@ApiImplicitParam(name=CQL_DEFINITION, value = CQL_REQUIREMENTS,dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successful Operation: The response object is a json payload with the list of passing patients: {\"result\": [\"patient1\", \"patient2\"] }"),
+			@ApiResponse(code = 200, message = "Successful Operation", response = CohortResult.class),
 			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
 			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
 	})
@@ -429,7 +430,7 @@ public class CohortEngineRestHandler {
 			BooleanEvaluationCallback callback = new BooleanEvaluationCallback();
 			evaluator.evaluate(versionedIdentifier.getId(), versionedIdentifier.getVersion(), evaluationRequest.getParameters(), expressions, patientsToRun, evaluationRequest.getLoggingLevel(), callback);
 
-			response = Response.status(Response.Status.OK).header("Content-Type", "application/json").entity("{\"result\":" + om.writeValueAsString(callback.getPassingPatients()) + "}").build();
+			response = Response.status(Response.Status.OK).header("Content-Type", "application/json").entity(new CohortResult(callback.getPassingPatients())).build();
 
 		} catch (Throwable e) {
 			//map any exceptions caught into the proper REST error response objects
@@ -469,7 +470,7 @@ public class CohortEngineRestHandler {
 		@ApiImplicitParam(name=MEASURE_PART, value=EXAMPLE_MEASURE_ZIP, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successful Operation: A full example can be found at https://www.hl7.org/fhir/measurereport-cms146-cat1-example.html", response = MeasureReport.class),
+			@ApiResponse(code = 200, message = "Successful Operation: This API returns the JSON representation of a FHIR MeasureReport. A full example can be found at https://www.hl7.org/fhir/measurereport-cms146-cat1-example.html"),
 			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
 			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
 	})
@@ -585,7 +586,7 @@ public class CohortEngineRestHandler {
 			@ApiImplicitParam(name=MEASURE_PART, value=EXAMPLE_MEASURE_ZIP, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successful Operation: A full example can be found at https://www.hl7.org/fhir/measurereport-cms146-cat2-example.html", response = MeasureReport.class),
+			@ApiResponse(code = 200, message = "Successful Operation: This API returns the JSON representation of a FHIR MeasureReport. A full example can be found at https://www.hl7.org/fhir/measurereport-cms146-cat2-example.html"),
 			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
 			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
 	})

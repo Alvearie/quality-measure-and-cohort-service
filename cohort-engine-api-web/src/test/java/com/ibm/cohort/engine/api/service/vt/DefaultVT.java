@@ -59,12 +59,12 @@ import com.ibm.cohort.engine.api.service.CohortEngineRestHandler;
 import com.ibm.cohort.engine.api.service.ServiceBuildConstants;
 import com.ibm.cohort.engine.api.service.TestHelper;
 import com.ibm.cohort.engine.api.service.model.CohortEvaluation;
+import com.ibm.cohort.engine.api.service.model.CohortResult;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.PatientListMeasureEvaluation;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.parameter.DateParameter;
-import com.ibm.cohort.engine.parameter.DatetimeParameter;
 import com.ibm.cohort.engine.parameter.IntervalParameter;
 import com.ibm.cohort.engine.parameter.Parameter;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
@@ -556,8 +556,8 @@ public class DefaultVT extends ServiceVTBase {
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
 		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
 
-		String actual = vr.extract().response().getBody().prettyPrint();
-		String expected = "{\n    \"result\": [\n        \"" + VALID_PATIENT_ID + "\"\n    ]\n}";
+		CohortResult actual = vr.extract().response().getBody().as(CohortResult.class);
+    CohortResult expected = new CohortResult(Collections.singletonList(VALID_PATIENT_ID));
 
 		assertEquals(expected, actual);
 	}
@@ -582,8 +582,8 @@ public class DefaultVT extends ServiceVTBase {
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
 		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
 
-		String actual = vr.extract().response().getBody().prettyPrint();
-		String expected = "{\n    \"result\": [\n        \n    ]\n}";
+    CohortResult actual = vr.extract().response().getBody().as(CohortResult.class);
+    CohortResult expected = new CohortResult(Collections.emptyList());
 
 		assertEquals(expected, actual);
 	}
