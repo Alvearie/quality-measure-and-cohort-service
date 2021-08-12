@@ -557,7 +557,7 @@ public class DefaultVT extends ServiceVTBase {
 		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
 
 		CohortResult actual = vr.extract().response().getBody().as(CohortResult.class);
-    CohortResult expected = new CohortResult(Collections.singletonList(VALID_PATIENT_ID));
+		CohortResult expected = new CohortResult(Collections.singletonList(VALID_PATIENT_ID));
 
 		assertEquals(expected, actual);
 	}
@@ -582,8 +582,8 @@ public class DefaultVT extends ServiceVTBase {
 		ValidatableResponse response = request.post(RESOURCE, getServiceVersion()).then();
 		ValidatableResponse vr = runSuccessValidation(response, ContentType.JSON, HttpStatus.SC_OK);
 
-    CohortResult actual = vr.extract().response().getBody().as(CohortResult.class);
-    CohortResult expected = new CohortResult(Collections.emptyList());
+		CohortResult actual = vr.extract().response().getBody().as(CohortResult.class);
+		CohortResult expected = new CohortResult(Collections.emptyList());
 
 		assertEquals(expected, actual);
 	}
