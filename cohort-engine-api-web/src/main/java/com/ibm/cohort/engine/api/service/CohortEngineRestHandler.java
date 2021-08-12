@@ -102,7 +102,7 @@ tags={	@Tag(name = "FHIR Measures", description = "IBM Cohort Engine FHIR Measur
 		@Tag(name = "ValueSet", description = "IBM Cohort Engine ValueSet Operations")})
 public class CohortEngineRestHandler {
 	private static final String EVALUATION_API_NOTES = "The body of the request is a multipart/form-data request with an application/json attachment named 'request_data' that describes the measure evaluation that will be performed and an application/zip attachment named 'measure' that contains the measure and library artifacts to be evaluated. Valueset resources required for Measure evaluation must be loaded to the FHIR server in advance of an evaluation request. Examples of the response measure reports (individual and patient list) can be found as part the FHIR IG: https://www.hl7.org/fhir/measurereport-examples.html.";
-	private static final String COHORT_EVALUATION_API_NOTES = "The body of the request is a multipart/form-data request with  an application/zip attachment named 'cql_definition' that contains the cohort cql definition to be evaluated. The response object is a json payload with the list of passing patients: {\"result\": [\"patient1\", \"patient2\"] }";
+	private static final String COHORT_EVALUATION_API_NOTES = "The body of the request is a multipart/form-data request with  an application/zip attachment named 'cql_definition' that contains the cohort cql definition to be evaluated.";
 	private static final Logger logger = LoggerFactory.getLogger(CohortEngineRestHandler.class.getName());
 	private static final String MEASURE_IDENTIFIER_VALUE_DESC = "Used to identify the FHIR measure resource you would like the parameter information "
 			+ "for using the Measure.Identifier.Value field.";
@@ -347,7 +347,7 @@ public class CohortEngineRestHandler {
 			@ApiImplicitParam(name=CQL_DEFINITION, value = CQL_REQUIREMENTS,dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successful Operation"),
+			@ApiResponse(code = 200, message = "Successful Operation: The response object is a json payload with the list of passing patients: {\"result\": [\"patient1\", \"patient2\"] }"),
 			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
 			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
 	})
@@ -469,7 +469,7 @@ public class CohortEngineRestHandler {
 		@ApiImplicitParam(name=MEASURE_PART, value=EXAMPLE_MEASURE_ZIP, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successful Operation", response = MeasureReport.class),
+			@ApiResponse(code = 200, message = "Successful Operation: A full example can be found at https://www.hl7.org/fhir/measurereport-cms146-cat1-example.html", response = MeasureReport.class),
 			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
 			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
 	})
@@ -585,7 +585,7 @@ public class CohortEngineRestHandler {
 			@ApiImplicitParam(name=MEASURE_PART, value=EXAMPLE_MEASURE_ZIP, dataTypeClass = File.class, required=true, paramType="form", type="file" )
 	})
 	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Successful Operation", response = MeasureReport.class),
+			@ApiResponse(code = 200, message = "Successful Operation: A full example can be found at https://www.hl7.org/fhir/measurereport-cms146-cat2-example.html", response = MeasureReport.class),
 			@ApiResponse(code = 400, message = "Bad Request", response = ServiceErrorList.class),
 			@ApiResponse(code = 500, message = "Server Error", response = ServiceErrorList.class)
 	})
