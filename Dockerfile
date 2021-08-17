@@ -9,6 +9,7 @@
 # unzip our binaries to. For reference:
 # https://access.redhat.com/containers/?tab=support#/registry.access.redhat.com/ubi8/ubi
 ####################
+# hadolint ignore=DL3006
 FROM registry.access.redhat.com/ubi8 AS builder
 
 WORKDIR /app
@@ -94,4 +95,5 @@ USER 1001
 # Expose the servers HTTP and HTTPS ports.  NOTE:  must match with hardcoded testcase stage scripts, Helm charts (values.yaml), server.xml
 EXPOSE 9080 9443
 
+# hadolint ignore=DL3025
 ENTRYPOINT $WLP_HOME/bin/entrypoint.sh
