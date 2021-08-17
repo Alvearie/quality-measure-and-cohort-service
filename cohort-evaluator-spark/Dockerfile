@@ -80,11 +80,11 @@ USER root
 # Delete any existing log4j jars.  We run logback over slf4j here.
 RUN rm "$SPARK_HOME"/jars/*log4j*jar
 
-# Copy all dependency jars into /opt/spark/jars (placeholder)
-# COPY --chown=root:root build/dependencies/*.jar $SPARK_HOME/jars/
+# Copy all dependency jars into /opt/spark/jars
+COPY --chown=root:root target/lib/*.jar $SPARK_HOME/jars/
 
-# Copy the main jar into the jars directory of spark home (placeholder)
-# COPY --chown=root:root build/libs/todo-*.jar $SPARK_HOME/jars/todo.jar
+# Copy the main jar into the jars directory of spark home
+COPY --chown=root:root target/cohort-evaluator-spark-*.jar $SPARK_HOME/jars/
 
 # Go back to the spark user for when a container is created
 USER spark
