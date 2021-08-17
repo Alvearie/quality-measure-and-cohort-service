@@ -147,6 +147,7 @@
 					</execution>
 				</executions>
 			</plugin>
+<<<<<<< Upstream, based on f40cb1a533888ec4a0b6f478022c71e9b1988892
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
@@ -253,6 +254,8 @@
 					</arguments>
 				</configuration>
 			</plugin>
+=======
+>>>>>>> 9654da3 setup dockerfile for cohort-evaluator-spark
 		</plugins>
 	</build>
 </project>
