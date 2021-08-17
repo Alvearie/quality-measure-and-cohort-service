@@ -22,7 +22,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
-            <artifactId>cohort-evaluator</artifactId>
+			<artifactId>cohort-evaluator</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -70,4 +70,23 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>
