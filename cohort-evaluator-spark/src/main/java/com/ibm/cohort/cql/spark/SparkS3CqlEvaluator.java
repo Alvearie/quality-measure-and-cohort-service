@@ -126,7 +126,7 @@ public class SparkS3CqlEvaluator implements Serializable {
 
             // TODO - Evaluate more than one CQL library
             JavaPairRDD<Object, Map<String, Object>> resultsByContext = rowsByContextId
-                    .mapToPair(contextData -> evaluate(awsConfig, contextData));
+                    .mapToPair(this::evaluate);
             
             String batchID = UUID.randomUUID().toString();
             String outputURI = AWSClientHelpers.toS3Url(bucket, outputPath, batchID);
@@ -255,19 +255,15 @@ public class SparkS3CqlEvaluator implements Serializable {
 
     /**
      * Evaluate the input CQL for a single context + data pair.
-     * 
-     * @param awsConfig     AWS S3 Client Config. This is used to access the CQL
-     *                      repository
+     *
      * @param rowsByContext Data for a single evaluation context
      * @return result of the evaluation of each specified expression mapped by
      *         context ID
      * @throws CqlLibraryDeserializationException if the CQL libraries cannot be
      *                                            loaded for any reason
      */
-    protected Tuple2<Object, Map<String, Object>> evaluate(AWSClientConfig awsConfig,
-            Tuple2<Object, List<Row>> rowsByContext) throws CqlLibraryDeserializationException {
-
-        AmazonS3 s3client = AWSClientFactory.getInstance().createClient(awsConfig);
+    protected Tuple2<Object, Map<String, Object>> evaluate(Tuple2<Object, List<Row>> rowsByContext) throws CqlLibraryDeserializationException {
+        AmazonS3 s3client = AWSClientFactory.getInstance().createClient(AWSClientConfigFactory.fromEnvironment());
 
         CqlLibraryProvider libraryProvider = new S3CqlLibraryProvider(s3client, bucket, cqlPath);
 
