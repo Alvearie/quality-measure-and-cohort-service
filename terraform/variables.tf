@@ -49,17 +49,17 @@ variable cluster_name {
 # tls-cert
 ## -----------------------------------------------------------------------------------------
 
-variable "tsl_cert_namespace" {
+variable "tls_cert_namespace" {
   description = "Kubernetes namespace to deploy to."
   type        = string
 }
 
-variable "tsl_cert_service_names" {
+variable "tls_cert_service_names" {
   description = "List of services names (DNS names) include as ALT names in generated TLS certificate."
   type        = list(string)
 }
 
-variable "tsl_cert_organization" {
+variable "tls_cert_organization" {
   description = "Organization name (OU) for TLS certificate"
   type        = string
 }

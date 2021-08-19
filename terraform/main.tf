@@ -74,9 +74,9 @@ provider kubernetes {
 
 module "tls_cert" {
   source                    = "./modules/tls_cert"
-  namespace                 = var.tsl_cert_namespace
-  service_names             = var.tsl_cert_service_names
-  organization              = var.tsl_cert_organization
+  namespace                 = var.tls_cert_namespace
+  service_names             = var.tls_cert_service_names
+  organization              = var.tls_cert_organization
 }
 
 ##############################################################################
