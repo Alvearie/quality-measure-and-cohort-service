@@ -95,7 +95,7 @@
             "resource": null,
             "params": null,
             "targets": ["a1637d9d-8de4-b8b8-be2e-94118c7f4d71"],
-            "response": "\\[0\\]\\.parameters\\[Measurement Period\\]\\.end: may not be null",
+            "response": "\\[0\\]\\.parameters\\[Measurement Period\\]\\.end: must not be null",
             "measureServer": "cohort-cli/config/local-ibm-fhir.json",
             "filters": null,
             "regEx": true
