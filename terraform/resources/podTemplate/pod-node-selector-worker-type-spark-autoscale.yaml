@@ -9,5 +9,5 @@ spec:
     effect: "NoExecute"
   initContainers:
     - name: init
-      image: us.icr.io/vpc-dev-cohort-rns/cohort-evaluator-spark:dan-1
+      image: us.icr.io/vpc-dev-cohort-rns/cohort-evaluator-spark
       command: ['sh', '-c', 'until getent hosts kubernetes.default.svc.cluster.local; do echo waiting for kubernetes.default; sleep 2; done;']
