@@ -1,0 +1,13 @@
+piVersion: v1
+kind: Pod
+spec:
+  nodeSelector:
+    worker-type: spark
+  tolerations:
+  - key: "autoscale"
+    operator: "Exists"
+    effect: "NoExecute"
+  initContainers:
+    - name: init
+      image: us.icr.io/vpc-dev-cohort-rns/cohort-evaluator-spark:dan-1
+      command: ['sh', '-c', 'until getent hosts kubernetes.default.svc.cluster.local; do echo waiting for kubernetes.default; sleep 2; done;']
