@@ -3,27 +3,21 @@ package com.ibm.cohort.cql.evaluation;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.tuple.Pair;
+import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 
 public class CqlEvaluationRequest {
-	private String libraryId;
-	private String libraryVersion;
+    private CqlLibraryDescriptor descriptor;
 	private Set<String> expressions;
 	private Map<String,Object> parameters;
-	private Pair<String,String> context;
+	private String contextKey;
+	private String contextValue;
 	
-	public String getLibraryId() {
-		return libraryId;
-	}
-	public void setLibraryId(String libraryId) {
-		this.libraryId = libraryId;
-	}
-	public String getLibraryVersion() {
-		return libraryVersion;
-	}
-	public void setLibraryVersion(String libraryVersion) {
-		this.libraryVersion = libraryVersion;
-	}
+    public CqlLibraryDescriptor getDescriptor() {
+        return descriptor;
+    }
+    public void setDescriptor(CqlLibraryDescriptor descriptor) {
+        this.descriptor = descriptor;
+    }
 	public Set<String> getExpressions() {
 		return expressions;
 	}
@@ -36,11 +30,16 @@ public class CqlEvaluationRequest {
 	public void setParameters(Map<String, Object> parameters) {
 		this.parameters = parameters;
 	}
-	public Pair<String, String> getContext() {
-		return context;
-	}
-	public void setContext(Pair<String, String> context) {
-		this.context = context;
-	}
-	
+    public String getContextKey() {
+        return contextKey;
+    }
+    public void setContextKey(String contextKey) {
+        this.contextKey = contextKey;
+    }
+    public String getContextValue() {
+        return contextValue;
+    }
+    public void setContextValue(String contextValue) {
+        this.contextValue = contextValue;
+    }
 }
