@@ -24,6 +24,7 @@ public class BaseSparkTest implements Serializable {
                 .appName("Local Application")
                 .master("local[2]")
                 .config("spark.sql.datetime.java8API.enabled", String.valueOf(java8APIEnabled.getValue()))
+                .config("spark.sql.sources.default", "delta")
                 .getOrCreate();
     }
 }
