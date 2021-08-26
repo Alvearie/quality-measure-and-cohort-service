@@ -1,0 +1,34 @@
+{
+	"globalParameters": {
+		"measurementPeriod": {
+			"__type": "Interval",
+			"begin": {
+				"__type": "Date",
+				"value": "2020-01-01"
+			},
+			"end": {
+				"__type": "Date",
+				"value": "2021-01-01"
+			}
+		}
+	},
+	"evaluations": [
+		{
+			"descriptor": {
+				"libraryId": "SampleLibrary",
+				"version": "1.0.0"
+			},
+			"expressions": [
+				"IsFemale"
+			],
+			"parameters": {
+				"MinimumAge": {
+					"__type": "Integer",
+					"value": 17
+				}
+			},
+			"contextKey": "Patient",
+			"contextValue": "NA"
+		}
+	]
+}

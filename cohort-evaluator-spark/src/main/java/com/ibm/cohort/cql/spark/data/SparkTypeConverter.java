@@ -358,7 +358,9 @@ public class SparkTypeConverter implements Serializable {
         Object result = null;
         if( obj instanceof Integer ) {
             result = toSparkInteger(obj);
-        } else if( obj instanceof BigDecimal ) {
+        } else if( obj instanceof Long ) {
+            result = toSparkLong(obj);
+        } else if( obj instanceof BigDecimal || obj instanceof Double) {
             result = toSparkDecimal(obj);
         } else if( obj instanceof String ) {
             result = toSparkString(obj);

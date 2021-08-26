@@ -547,7 +547,12 @@
 				<groupId>org.apache.hadoop</groupId>
 				<artifactId>hadoop-aws</artifactId>
 				<version>${hadoop.version}</version>
-			</dependency>		   
+			</dependency>
+			<dependency>
+				<groupId>io.delta</groupId>
+				<artifactId>delta-core_${spark.scala.version}</artifactId>
+				<version>1.0.0</version>
+			</dependency>	   
 			<dependency>
 				<groupId>net.javacrumbs.json-unit</groupId>
 				<artifactId>json-unit</artifactId>
@@ -1206,6 +1211,7 @@
 								<ignoredUnusedDeclaredDependency>org.apache.hadoop:hadoop-aws</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>info.cqframework:quick</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>info.cqframework:qdm</ignoredUnusedDeclaredDependency>
+								<ignoredUnusedDeclaredDependency>io.delta:delta-core_${spark.scala.version}</ignoredUnusedDeclaredDependency>
 							</ignoredUnusedDeclaredDependencies>
 						</configuration>
 					</execution>
