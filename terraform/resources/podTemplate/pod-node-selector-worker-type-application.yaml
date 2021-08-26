@@ -1,0 +1,6 @@
+piVersion: v1
+kind: Pod
+spec:
+  nodeSelector:
+    worker-type: application
+
