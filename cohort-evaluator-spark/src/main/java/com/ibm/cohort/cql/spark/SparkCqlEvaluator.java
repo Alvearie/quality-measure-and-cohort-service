@@ -61,7 +61,7 @@ import scala.Tuple2;
  * compatible storage bucket, evaluate clinical queries defined in the HL7
  * clinical quality language (CQL).
  */
-public class SparkS3CqlEvaluator implements Serializable {
+public class SparkCqlEvaluator implements Serializable {
     private static final long serialVersionUID = 1L;
 
     public static final String SOURCE_FACT_IDX = "__SOURCE_FACT";
@@ -421,7 +421,7 @@ public class SparkS3CqlEvaluator implements Serializable {
     }
 
     public static void main(String[] args) throws Exception {
-        SparkS3CqlEvaluator evaluator = new SparkS3CqlEvaluator();
+        SparkCqlEvaluator evaluator = new SparkCqlEvaluator();
 
         JCommander commander = JCommander.newBuilder().addObject(evaluator).build();
         commander.parse(args);
