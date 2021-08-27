@@ -29,14 +29,14 @@ import com.ibm.cohort.cql.spark.data.SparkTypeConverter;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
 
-public class SparkS3CqlEvaluatorTest extends BaseSparkTest {
+public class SparkCqlEvaluatorTest extends BaseSparkTest {
     private static final long serialVersionUID = 1L;
     
-    private SparkS3CqlEvaluator evaluator;
+    private SparkCqlEvaluator evaluator;
     
     @Before
     public void setUp() {
-        this.evaluator = new SparkS3CqlEvaluator();
+        this.evaluator = new SparkCqlEvaluator();
     }
 
     @Test
@@ -77,7 +77,7 @@ public class SparkS3CqlEvaluatorTest extends BaseSparkTest {
         try( SparkSession spark = initializeSession(useJava8API) ) {
             evaluator.typeConverter = new SparkTypeConverter(useJava8API.getValue());
             
-            SparkS3CqlEvaluator.main(args);
+            SparkCqlEvaluator.main(args);
         }
     }
 
