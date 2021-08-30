@@ -19,6 +19,14 @@
 		<developerConnection>scm:git:git@github.com:Alvearie/quality-measure-and-cohort-service.git</developerConnection>
 	</scm>
 
+    <properties>
+        <image.tag>us.icr.io/vpc-dev-cohort-rns/cohort-evaluator-spark:a-p3.4.3-tekton-20210830131326-5d4e50e71eafe9a27ca6abfe7c14104de3b6f26d</image.tag>
+        <config.volume>cohort-config</config.volume>
+        <data.bucket>kwasny-test</data.bucket>
+        <data.secret>spark-cos-secret</data.secret>
+        <job.name>simple-job</job.name>
+    </properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
@@ -41,6 +49,12 @@
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-sql_${spark.scala.version}</artifactId>
 		</dependency>
+
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-kubernetes_${spark.scala.version}</artifactId>
+            <scope>runtime</scope>
+        </dependency>
 
 		<dependency>
 			<groupId>io.delta</groupId>
@@ -100,6 +114,87 @@
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>java</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<mainClass>org.apache.spark.deploy.SparkSubmit</mainClass>
+					<arguments>
+						<argument>--conf</argument>
+						<argument>spark.driver.memoryOverhead=512m</argument>
+						<argument>--conf</argument>
+						<argument>spark.driver-memory=1g</argument>
+						<argument>--conf</argument>
+						<argument>spark.master=k8s://https://c105.us-east.containers.cloud.ibm.com:32327</argument>
+						<argument>--conf</argument>
+                        <argument>spark.eventLog.dir=s3a://${data.bucket}/z-spark-history</argument>
+						<argument>--conf</argument>
+						<argument>spark.eventLog.enabled=true</argument>
+						<argument>--conf</argument>
+						<argument>spark.executor.instances=2</argument>
+						<argument>--conf</argument>
+						<argument>spark.hadoop.fs.s3a.endpoint=https://s3.us-east.cloud-object-storage.appdomain.cloud</argument>
+						<argument>--conf</argument>
+                        <argument>spark.kubernetes.container.image=${image.tag}</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.authenticate.driver.serviceAccountName=spark</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.driver.secretKeyRef.AWS_SECRET_ACCESS_KEY=${data.secret}:AWS_SECRET_KEY</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.driver.secretKeyRef.AWS_ACCESS_KEY_ID=${data.secret}:AWS_ACCESS_KEY</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.executor.secretKeyRef.AWS_SECRET_ACCESS_KEY=${data.secret}:AWS_SECRET_KEY</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.executor.secretKeyRef.AWS_ACCESS_KEY_ID=${data.secret}:AWS_ACCESS_KEY</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.driver.podTemplateFile=pod-cohort-evaluator-spark.yaml</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.driver.volumes.persistentVolumeClaim.${config.volume}.options.claimName=${config.volume}</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.driver.volumes.persistentVolumeClaim.${config.volume}.mount.path=/${config.volume}</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.executor.podTemplateFile=pod-cohort-evaluator-spark.yaml</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.executor.volumes.persistentVolumeClaim.${config.volume}.options.claimName=${config.volume}</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.executor.volumes.persistentVolumeClaim.${config.volume}.mount.path=/${config.volume}</argument>
+						<argument>--deploy-mode</argument>
+						<argument>cluster</argument>
+						<argument>--name</argument>
+						<argument>cohort-evaluator-spark</argument>
+						<argument>--class</argument>
+						<argument>com.ibm.cohort.cql.spark.SparkCqlEvaluator</argument>
+                        <argument>local:///opt/spark/jars/${project.artifactId}-${project.version}.jar</argument>
+						<argument>-d</argument>
+						<argument>/${config.volume}/${job.name}/context-definitions.json</argument>
+						<argument>-j</argument>
+						<argument>/${config.volume}/${job.name}/cql-jobs.json</argument>
+						<argument>-m</argument>
+						<argument>/${config.volume}/${job.name}/mock-modelinfo-1.0.0.xml</argument>
+						<argument>-c</argument>
+						<argument>/${config.volume}/${job.name}/cql</argument>
+						<argument>-i</argument>
+                        <argument>Patient=s3a://${data.bucket}/${job.name}/patient</argument>
+						<argument>-o</argument>
+                        <argument>Patient=s3a://${data.bucket}/${job.name}/output/patient_cohort</argument>
+						<!-- These are optional arguments you can pass if you need to subset the job execution
+						<argument>-a</argument>
+						<argument>Patient</argument>
+						<argument>-l</argument>
+						<argument>SimpleLibrary=1.0.0</argument>
+						<argument>-e</argument>
+						<argument>IsFemale</argument>
+						-->
+					</arguments>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

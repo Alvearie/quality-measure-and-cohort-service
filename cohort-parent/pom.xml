@@ -1212,6 +1212,7 @@
 								<ignoredUnusedDeclaredDependency>info.cqframework:quick</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>info.cqframework:qdm</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>io.delta:delta-core_${spark.scala.version}</ignoredUnusedDeclaredDependency>
+								<ignoredUnusedDeclaredDependency>org.apache.spark:spark-kubernetes_${spark.scala.version}</ignoredUnusedDeclaredDependency>
 							</ignoredUnusedDeclaredDependencies>
 						</configuration>
 					</execution>
