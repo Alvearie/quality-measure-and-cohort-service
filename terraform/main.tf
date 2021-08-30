@@ -128,8 +128,8 @@ module "k8s_spark_cos_secret" {
   source                                     = "./modules/k8s_spark_cos_secret"
   spark_cos_secret_name                      = var.spark_cos_secret_name
   spark_cos_secret_namespace                 = data.kubernetes_namespace.spark_k8s_namespace.0.metadata[0].name
-  spark_cos_aws_secret_key                   = var.spark_cos_aws_secret_key
-  spark_cos_aws_access_key                   = var.spark_cos_aws_access_key
-  spark_cos_aws_endpoint                     = var.spark_cos_aws_endpoint
-  spark_cos_aws_location                     = var.spark_cos_aws_location
+  spark_cos_resource_key_manager             = var.spark_cos_resource_key_manager
+  spark_cos_resource_key_writer              = var.spark_cos_resource_key_writer
+  config_volume_claim_name                   = var.config_volume_claim_name
+  config_bucket_name                         = var.config_bucket_name
 }
