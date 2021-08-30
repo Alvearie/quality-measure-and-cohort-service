@@ -30,6 +30,7 @@ public class AWSClientFactory {
 
         return AmazonS3ClientBuilder
                 .standard()
+                // https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
                 .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(awsConfig.getAwsEndpoint(), awsConfig.getAwsLocation()))
                 .withPathStyleAccessEnabled(true)
