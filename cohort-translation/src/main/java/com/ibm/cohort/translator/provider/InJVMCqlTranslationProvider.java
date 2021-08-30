@@ -25,7 +25,6 @@ import org.cqframework.cql.cql2elm.LibrarySourceProvider;
 import org.cqframework.cql.cql2elm.ModelInfoLoader;
 import org.cqframework.cql.cql2elm.ModelInfoProvider;
 import org.cqframework.cql.cql2elm.ModelManager;
-import org.cqframework.cql.elm.execution.Library;
 import org.cqframework.cql.elm.tracking.TrackBack;
 import org.fhir.ucum.UcumService;
 import org.hl7.elm_modelinfo.r1.ModelInfo;
@@ -33,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ibm.cohort.file.LibraryFormat;
-import com.ibm.cohort.translator.optimization.OptimizedCqlLibraryReader;
 
 /**
  * Uses the CqlTranslator inprocess to convert CQL to ELM. 
@@ -62,8 +60,8 @@ public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
 	}
 
 	@Override
-	public Library translate(InputStream cql, List<Options> options, LibraryFormat targetFormat) throws Exception {
-		Library result;
+	public String translate(InputStream cql, List<Options> options, LibraryFormat targetFormat) throws Exception {
+		String result;
 
 		UcumService ucumService = null;
 		LibraryBuilder.SignatureLevel signatureLevel = LibraryBuilder.SignatureLevel.None;
@@ -93,7 +91,7 @@ public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
 
 		switch (targetFormat) {
 		case XML:
-			result = OptimizedCqlLibraryReader.read(translator.toXml());
+			result = translator.toXml();
 			break;
 // This is only a theoretical nice-to-have and fails deserialization, so disabling support for now.
 //		case JSON:
@@ -108,7 +106,7 @@ public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
 	}
 
 	@Override
-	public Library translate(String cql, List<Options> options, LibraryFormat targetFormat) throws Exception {
+	public String translate(String cql, List<Options> options, LibraryFormat targetFormat) throws Exception {
 		return translate(new ByteArrayInputStream(cql.getBytes()), options, targetFormat);
 	}
 

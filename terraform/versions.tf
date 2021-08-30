@@ -1,21 +1,21 @@
-# *****************************************************************
 #
-# Licensed Materials - Property of IBM
+# (C) Copyright IBM Corp. 2021, 2021
 #
-# (C) Copyright IBM Corp. 2021. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
 #
-# US Government Users Restricted Rights - Use, duplication or
-# disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
-#
-# *****************************************************************
   
 terraform {
-  required_version = "0.13.6"
+  required_version = ">=0.13.6"
   required_providers {
     ibm = {
       source  = "ibm-cloud/ibm"
       version = "~> 1.25.0"
     }
+    # The 0.13.6 version of terraform used by IBM Cloud toolchains
+    # is not compatible with the latest versions of the k8s provider
+    # (ie 2.4.0 or later) so we need to specify the version to avoid
+    # the toolchain downloading the latest version which will fail due
+    # to the incompatibility
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = "~> 2.3.2"
@@ -25,12 +25,4 @@ terraform {
       version = "~> 3.1.0"
     }
   }
-}
-
-provider "ibm" {
-}
-
-provider "kubernetes" {
-    config_path = "~/.kube/config"
-    config_context = var.kubernetes_config_context
 }
