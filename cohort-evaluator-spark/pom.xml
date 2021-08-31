@@ -20,7 +20,7 @@
 	</scm>
 
     <properties>
-        <image.tag>us.icr.io/vpc-dev-cohort-rns/cohort-evaluator-spark:a-p3.4.3-tekton-20210830131326-5d4e50e71eafe9a27ca6abfe7c14104de3b6f26d</image.tag>
+        <image.tag>us.icr.io/vpc-dev-cohort-rns/cohort-evaluator-spark:a-p3.4.3-tekton-20210831191041-5b74a7ab8f76f0e3c3f2273f49177128051e4e05</image.tag>
         <config.volume>cohort-config</config.volume>
         <data.bucket>kwasny-test</data.bucket>
         <data.secret>spark-cos-secret</data.secret>
