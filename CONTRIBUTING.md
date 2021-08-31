@@ -81,7 +81,7 @@ The IBM Quality Measure and Cohort Service is based on contributions from many i
 
 3. Keep the documentation up-to-date. Project documentation exists under the docs directory. 
 
-4. Use spaces (not tabs) in java source. For this we have a checkstyle rule which will fail the build if you're using tabs. We also prefer spaces over tabs in JSON and XML, but its not strictly enforced.
+4. Use spaces (not tabs) in java source. We also prefer spaces over tabs in JSON and XML.
 
 5. Use spaces after control flow keywords (they're not function calls!); if/for/while blocks should always have { }
 
