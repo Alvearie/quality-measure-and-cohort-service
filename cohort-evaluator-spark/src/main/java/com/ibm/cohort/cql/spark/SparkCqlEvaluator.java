@@ -339,8 +339,10 @@ public class SparkCqlEvaluator implements Serializable {
             }
 
             // add any global parameters that have not been overridden locally
-            for (Map.Entry<String, Object> globalParameter : requests.getGlobalParameters().entrySet()) {
-                request.getParameters().putIfAbsent(globalParameter.getKey(), globalParameter.getValue());
+            if( requests.getGlobalParameters() != null ) {
+                for (Map.Entry<String, Object> globalParameter : requests.getGlobalParameters().entrySet()) {
+                    request.getParameters().putIfAbsent(globalParameter.getKey(), globalParameter.getValue());
+                }
             }
 
             CqlEvaluationResult result = evaluator.evaluate(request, debug ? CqlDebug.DEBUG : CqlDebug.NONE);
