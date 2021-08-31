@@ -143,6 +143,8 @@
 						<argument>--conf</argument>
 						<argument>spark.hadoop.fs.s3a.endpoint=https://s3.us-east.cloud-object-storage.appdomain.cloud</argument>
 						<argument>--conf</argument>
+						<argument>spark.kubernetes.namespace=dev</argument>
+						<argument>--conf</argument>
                         <argument>spark.kubernetes.container.image=${image.tag}</argument>
 						<argument>--conf</argument>
 						<argument>spark.kubernetes.authenticate.driver.serviceAccountName=spark</argument>
