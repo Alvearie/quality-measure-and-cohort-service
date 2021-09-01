@@ -1,4 +1,4 @@
-package com.ibm.cohort.cql.library.fs;
+package com.ibm.cohort.cql.library;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -8,8 +8,6 @@ import java.util.Collection;
 
 import org.junit.Test;
 
-import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
-import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
 
 public class DirectoryBasedCqlLibraryProviderTest {

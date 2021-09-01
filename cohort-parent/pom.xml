@@ -21,9 +21,9 @@
 		<module>../cohort-util</module>
 		<module>../cohort-translation</module>
 		<module>../fhir-resource-tooling</module>
-        <module>../cohort-evaluator</module>
-        <module>../cohort-model-datarow</module>
-        <module>../cohort-evaluator-spark</module>
+		<module>../cohort-evaluator</module>
+		<module>../cohort-model-datarow</module>
+		<module>../cohort-evaluator-spark</module>
 		<module>../tests</module>
 		<module>../reports</module>
 		<module>../cohort-engine-distribution</module>
@@ -551,7 +551,7 @@
 				<groupId>io.delta</groupId>
 				<artifactId>delta-core_${spark.scala.version}</artifactId>
 				<version>1.0.0</version>
-			</dependency>	   
+			</dependency>
 			<dependency>
 				<groupId>net.javacrumbs.json-unit</groupId>
 				<artifactId>json-unit</artifactId>

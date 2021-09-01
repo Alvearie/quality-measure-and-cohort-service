@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modelInfo xmlns="urn:hl7-org:elm-modelinfo:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="CohortTest" version="0.0.1" url="http://mock.cohort.model" targetQualifier="IDontKnow" patientClassName="A" patientBirthDatePropertyName="none">
+    <typeInfo namespace="CohortTest" name="A" identifier="http://mock.cohort.model/A" label="A" retrievable="true" xsi:type="ClassInfo">
+        <element name="id_col" elementType="System.String"/>
+        <element name="boolean_col" elementType="System.Boolean"/>
+        <element name="integer_col" elementType="System.Integer"/>
+        <element name="decimal_col" elementType="System.Decimal"/>
+        <element name="string_col" elementType="System.String"/>
+        <element name="date_col" elementType="System.Date"/>
+        <element name="datetime_col" elementType="System.DateTime"/>
+        <element name="code_col" elementType="System.Code"/>
+        <element name="code_col_system" elementType="System.String"/>
+        <element name="code_col2" elementType="System.Code"/>
+        <element name="pat_id" elementType="System.String"/>
+        <element name="fake_int_col" elementType="System.Decimal"/>
+    </typeInfo>
+
+    <typeInfo namespace="CohortTest" name="B" identifier="http://mock.cohort.model/B" label="B" retrievable="true" xsi:type="ClassInfo">
+        <element name="id" elementType="System.String"/>
+        <element name="boolean" elementType="System.Boolean"/>
+        <element name="integer" elementType="System.Integer"/>
+        <element name="decimal" elementType="System.Decimal"/>
+        <element name="string" elementType="System.String"/>
+        <element name="date" elementType="System.Date"/>
+        <element name="datetime" elementType="System.DateTime"/>
+        <element name="pat_id" elementType="System.String"/>
+        <contextRelationship context="Patient" relatedKeyElement="pat_id"/>
+    </typeInfo>
+    
+    <typeInfo namespace="CohortTest" name="C" identifier="http://mock.cohort.model/C" label="C" retrievable="true" xsi:type="ClassInfo">
+        <element name="id" elementType="System.String"/>
+        <element name="pat_id" elementType="System.String"/>
+        <element name="big_decimal" elementType="System.Decimal"/>
+        <element name="double" elementType="System.Decimal"/>
+        <element name="float" elementType="System.Decimal"/>
+        <contextRelationship context="Patient" relatedKeyElement="pat_id"/>
+    </typeInfo>
+    
+    <typeInfo namespace="CohortTest" name="D" identifier="http://mock.cohort.model/D" label="D" retrievable="true" xsi:type="ClassInfo">
+        <element name="id" elementType="System.String"/>
+        <element name="pat_id" elementType="System.String"/>
+        <element name="integer" elementType="System.Integer"/>
+        <element name="long" elementType="System.Integer"/>
+        <element name="short" elementType="System.Integer"/>
+        <contextRelationship context="Patient" relatedKeyElement="pat_id"/>
+    </typeInfo>
+    
+    <contextInfo name="A" keyElement="id_col" birthDateElement="NA">
+        <contextType modelName="CohortTest" namespace="CohortTest" name="A" />
+    </contextInfo>
+
+    <contextInfo name="B" keyElement="id" birthDateElement="NA">
+        <contextType modelName="CohortTest" namespace="CohortTest" name="B" />
+    </contextInfo>
+    
+    <contextInfo name="C" keyElement="id" birthDateElement="NA">
+        <contextType modelName="CohortTest" namespace="CohortTest" name="C" />
+    </contextInfo>
+    
+    <contextInfo name="D" keyElement="id" birthDateElement="NA">
+        <contextType modelName="CohortTest" namespace="CohortTest" name="D" />
+    </contextInfo>
+    
+    <contextInfo name="Patient" keyElement="pat_id" birthDateElement="NA">
+        <contextType modelName="CohortTest" namespace="CohortTest" name="A" />
+    </contextInfo>
+</modelInfo>

@@ -6,7 +6,7 @@ Context groupings are described using a context-defintions.json file and the CQL
 
 ## Building
 
-This project is built by the main IBM Cloud Toolchain which produces a docker image for each Dockerfile in the repository.
+This project is built by the main IBM Cloud Toolchain which produces a docker image for each Dockerfile in the repository. If you wish to build the code locally, you will need a functional installation of Spark installed and available either via SPARK_HOME or directly in your path. If you are on Windows, you will need to make sure you have the Windows hadoop binaries installed (see https://github.com/cdarlint/winutils/tree/master/hadoop-3.2.1/bin).
 
 ## Running
 

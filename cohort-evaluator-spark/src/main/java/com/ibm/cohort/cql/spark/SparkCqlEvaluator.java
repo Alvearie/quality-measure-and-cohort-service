@@ -7,7 +7,9 @@
 package com.ibm.cohort.cql.spark;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Serializable;
@@ -23,10 +25,14 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.sql.DataFrameReader;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.functions;
+import org.apache.spark.util.LongAccumulator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.JCommander;
@@ -38,8 +44,10 @@ import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
 import com.ibm.cohort.cql.evaluation.CqlEvaluator;
+import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
-import com.ibm.cohort.cql.library.fs.DirectoryBasedCqlLibraryProvider;
+import com.ibm.cohort.cql.library.DirectoryBasedCqlLibraryProvider;
+import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.aggregation.Join;
@@ -50,6 +58,7 @@ import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import com.ibm.cohort.cql.terminology.UnsupportedTerminologyProvider;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
+import com.ibm.cohort.cql.util.MapUtils;
 import com.ibm.cohort.datarow.engine.DataRowDataProvider;
 import com.ibm.cohort.datarow.engine.DataRowRetrieveProvider;
 import com.ibm.cohort.datarow.model.DataRow;
@@ -57,11 +66,12 @@ import com.ibm.cohort.datarow.model.DataRow;
 import scala.Tuple2;
 
 /**
- * Given knowledge and clinical data artifacts provided in an Amazon S3
- * compatible storage bucket, evaluate clinical queries defined in the HL7
- * clinical quality language (CQL).
+ * Given knowledge and configuration artifacts available under local storage and
+ * data artifacts accessible via Hadoop (Local filesystem, Amazon S3, etc.),
+ * evaluate clinical queries and write out the results.
  */
 public class SparkCqlEvaluator implements Serializable {
+    private static final Logger LOG = LoggerFactory.getLogger(SparkCqlEvaluator.class);
     private static final long serialVersionUID = 1L;
 
     public static final String SOURCE_FACT_IDX = "__SOURCE_FACT";
@@ -73,10 +83,16 @@ public class SparkCqlEvaluator implements Serializable {
             "--context-definitions" }, description = "Filesystem path to the context-definitions file.", required = false)
     public String contextDefinitionPath;
 
+    @Parameter(names = { "--input-format" }, description = "Spark SQL format identifier for input files. If not provided, the value of spark.sql.datasources.default is used.", required = false)
+    public String inputFormat;
+    
     @DynamicParameter(names = { "-i",
             "--input-path" }, description = "Key-value pair of resource=URI controlling where Spark should read resources referenced in the context definitions file will be read from. Specify multiple files by providing a separate option for each input.", required = true)
     public Map<String, String> inputPaths = new HashMap<>();
 
+    @Parameter(names = { "--output-format" }, description = "Spark SQL format identifier for output files. If not provided, the value of spark.sql.datasources.default is used.", required = false)
+    public String outputFormat;
+    
     @DynamicParameter(names = { "-o",
             "--output-path" }, description = "Key-value pair of context=URI controlling where Spark should write the results of CQL evaluation requests. Specify multiple files by providing a separate option for each output.", required = true)
     public Map<String, String> outputPaths = new HashMap<>();
@@ -98,16 +114,43 @@ public class SparkCqlEvaluator implements Serializable {
 
     @DynamicParameter(names = { "-l",
             "--library" }, description = "One or more library=version key-value pair(s), as defined in the jobs file, that describe the libraries that should be run in this evaluation. Defaults to all libraries. Specify multiple libraries by providing a separate option for each library.", required = false)
-    Map<String, String> libraries = new HashMap<>();
+    public Map<String, String> libraries = new HashMap<>();
 
     @Parameter(names = { "-e",
             "--expression" }, description = "One or more expression names, as defined in the context-definitions file, that should be run in this evaluation. Defaults to all expressions.", required = false)
-    Set<String> expressions = new HashSet<>();
+    public Set<String> expressions = new HashSet<>();
+
+    @Parameter(names = { "-n",
+            "--output-partitions" }, description = "Number of partitions to use when storing data", required = false)
+    public Integer outputPartitions = null;
 
     @Parameter(names = { "--debug" }, description = "Enables CQL debug logging")
     public boolean debug = false;
 
-    public SparkTypeConverter typeConverter;
+    protected SparkTypeConverter typeConverter;
+
+    /**
+     * Store a single copy of the job specification data per thread. This allows the data
+     * to be read once from underlying storage and reused across each context
+     * evaluation (of which there are many).
+     */
+    protected static ThreadLocal<CqlEvaluationRequests> jobSpecification = new ThreadLocal<>();
+    
+    /**
+     * Store a single configured copy of the library provider per thread. This allows the
+     * library provider to be reused which impacts the ability of the CQL context objects to
+     * be reused. CQL context object reuse is important for performance reasons. Context
+     * objects are inherently slow to initialize. It is important that this and the 
+     * terminologyProvider instances remain the same from one run to the next or unnecessary
+     * Context initializations will occur.
+     */
+    protected static ThreadLocal<CqlLibraryProvider> libraryProvider = new ThreadLocal<>();
+    
+    /**
+     * Store a single configured copy of the terminology provider per thread. See the 
+     * discussion in the libraryProvider documentation for complete reasoning.
+     */
+    protected static ThreadLocal<CqlTerminologyProvider> terminologyProvider = new ThreadLocal<>();
 
     public void run(PrintStream out) throws Exception {
 
@@ -129,20 +172,37 @@ public class SparkCqlEvaluator implements Serializable {
                         "At least one context definition is required (after filtering if enabled).");
             }
 
+            final LongAccumulator contextAccum = spark.sparkContext().longAccumulator("Context");
+            final LongAccumulator perContextAccum = spark.sparkContext().longAccumulator("PerContext");
             for (ContextDefinition context : filteredContexts) {
+                final String contextName = context.getName();
+                LOG.info("Evaluating context " + contextName);
+
+                final String outputPath = MapUtils.getRequiredKey(outputPaths, context.getName(), "outputPath");
+
                 JavaPairRDD<Object, Row> allData = readAllInputData(spark, context, inputPaths);
 
                 JavaPairRDD<Object, List<Row>> rowsByContextId = aggregateByContext(allData, context);
 
-                JavaPairRDD<Object, Map<String, Object>> resultsByContext = rowsByContextId.mapToPair(this::evaluate);
+                JavaPairRDD<Object, Map<String, Object>> resultsByContext = rowsByContextId
+                        .mapToPair(x -> evaluate(contextName, x, perContextAccum));
 
-                String outputPath = outputPaths.get(context.getName());
                 writeResults(spark, resultsByContext, outputPath);
-                out.println(String.format("Wrote results for context %s to %s", context.getName(), outputPath));
+                LOG.info(String.format("Wrote results for context %s to %s", contextName, outputPath));
+
+                contextAccum.add(1);
+                perContextAccum.reset();
             }
         }
     }
 
+    /**
+     * Deserialize ContextDefinitions from JSON file.
+     * 
+     * @param path Path to the JSON file.
+     * @return Deserialzied object
+     * @throws Exception if any deserialization error occurs
+     */
     protected ContextDefinitions readContextDefinitions(String path) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         ContextDefinitions contexts = mapper.readValue(new File(path), ContextDefinitions.class);
@@ -166,7 +226,7 @@ public class SparkCqlEvaluator implements Serializable {
         JavaPairRDD<Object, Row> allData = null;
 
         String dataType = contextDefinition.getPrimaryDataType();
-        String path = getRequiredPath(inputPaths, dataType);
+        String path = MapUtils.getRequiredKey(inputPaths, dataType, "inputPath");
 
         allData = readDataset(spark, path, dataType, contextDefinition.getPrimaryKeyColumn());
 
@@ -176,9 +236,9 @@ public class SparkCqlEvaluator implements Serializable {
                     OneToMany oneToManyJoin = (OneToMany) join;
 
                     dataType = oneToManyJoin.getRelatedDataType();
-                    path = getRequiredPath(inputPaths, dataType);
+                    path = MapUtils.getRequiredKey(inputPaths, dataType, "inputPath");
 
-                    allData.union(readDataset(spark, path, dataType, oneToManyJoin.getRelatedKeyColumn()));
+                    allData = allData.union(readDataset(spark, path, dataType, oneToManyJoin.getRelatedKeyColumn()));
                 } else {
                     throw new UnsupportedOperationException(
                             String.format("No support for join type %s at this time", join.getClass().getSimpleName()));
@@ -189,20 +249,12 @@ public class SparkCqlEvaluator implements Serializable {
         return allData;
     }
 
-    protected String getRequiredPath(Map<String, String> paths, String dataType) {
-        String path = paths.get(dataType);
-        if (path == null) {
-            throw new IllegalArgumentException(String.format("No path mapping found for datatype %s", dataType));
-        }
-        return path;
-    }
-
     /**
-     * Read a single datatype's dataset. This assumes that data resides in an Amazon
-     * compatible endpoint and is in parquet format.
+     * Read a single datatype's dataset. Data is assumed to be in whatever format is
+     * configured for spark.sql.datasources.default (default parquet).
      * 
      * @param spark         Active Spark Session
-     * @param fileURI       The S3 URI pointing at the parquet file
+     * @param fileURI       HDFS compatible URI pointing at the data file
      * @param dataType      The DataType string corresponding to the data being read
      * @param contextColumn The column name in the input data that corresponds to
      *                      the evaluation context
@@ -210,7 +262,11 @@ public class SparkCqlEvaluator implements Serializable {
      */
     protected JavaPairRDD<Object, Row> readDataset(SparkSession spark, String fileURI, String dataType,
             String contextColumn) {
-        Dataset<Row> dataset = spark.read().load(fileURI).withColumn(SOURCE_FACT_IDX, functions.lit(dataType));
+        DataFrameReader reader = spark.read();
+        if( inputFormat != null ) {
+            reader = reader.format(inputFormat);
+        }
+        Dataset<Row> dataset = reader.load(fileURI).withColumn(SOURCE_FACT_IDX, functions.lit(dataType));
 
         return dataset.javaRDD().mapToPair(row -> {
             Object joinValue = row.getAs(contextColumn);
@@ -266,42 +322,55 @@ public class SparkCqlEvaluator implements Serializable {
     /**
      * Evaluate the input CQL for a single context + data pair.
      *
-     * @param rowsByContext Data for a single evaluation context
-     * @return result of the evaluation of each specified expression mapped by
-     *         context ID
+     * @param contextName     Context name corresponding to the library context key
+     *                        currently under evaluation.
+     * @param rowsByContext   Data for a single evaluation context
+     * @param perContextAccum Spark accumulator that tracks each individual context
+     *                        evaluation
+     * @return Evaluation results for all expressions evaluated keyed by the context
+     *         ID. Expression names are automatically namespaced according to the
+     *         library name to avoid issues arising for expression names matching
+     *         between libraries (e.g. LibraryName.ExpressionName).
      * @throws Exception if the model info or CQL libraries cannot be loaded for any
      *                   reason
      */
-    protected Tuple2<Object, Map<String, Object>> evaluate(Tuple2<Object, List<Row>> rowsByContext) throws Exception {
-        CqlLibraryProvider libraryProvider = new DirectoryBasedCqlLibraryProvider(new File(cqlPath));
-
-        // TODO - replace with cohort shared translation component
-        final CqlToElmTranslator translator = new CqlToElmTranslator();
-        if (modelInfoPaths != null && modelInfoPaths.size() > 0) {
-            for (String path : modelInfoPaths) {
-                try (Reader r = new FileReader(path)) {
-                    translator.registerModelInfo(r);
-                }
-            }
+    protected Tuple2<Object, Map<String, Object>> evaluate(String contextName, Tuple2<Object, List<Row>> rowsByContext,
+            LongAccumulator perContextAccum) throws Exception {
+        CqlLibraryProvider provider = libraryProvider.get();
+        if (provider == null) {
+            provider = createLibraryProvider();
+            libraryProvider.set(provider);
         }
-        TranslatingCqlLibraryProvider translatingLibraryProvider = new TranslatingCqlLibraryProvider(libraryProvider,
-                translator);
-
-        return evaluate(translatingLibraryProvider, rowsByContext);
+        
+        CqlTerminologyProvider termProvider = terminologyProvider.get();
+        if( termProvider == null ) {
+            termProvider = createTerminologyProvider();
+            terminologyProvider.set(termProvider);
+        }
+        
+        return evaluate(provider, termProvider, contextName, rowsByContext, perContextAccum);
     }
+
 
     /**
      * Evaluate the input CQL for a single context + data pair.
      * 
      * @param libraryProvider Library provider providing CQL/ELM content
+     * @param termProvider    Terminology provider providing terminology resources
+     * @param contextName     Context name corresponding to the library context key
+     *                        currently under evaluation.
      * @param rowsByContext   Data for a single evaluation context
-     * @return result of the evaluation of each specified expression mapped by
-     *         context ID
+     * @param perContextAccum Spark accumulator that tracks each individual context
+     *                        evaluation
+     * @return Evaluation results for all expressions evaluated keyed by the context
+     *         ID. Expression names are automatically namespaced according to the
+     *         library name to avoid issues arising for expression names matching
+     *         between libraries (e.g. LibraryName.ExpressionName).
      * @throws Exception on general failure including CQL library loading issues
      */
     protected Tuple2<Object, Map<String, Object>> evaluate(CqlLibraryProvider libraryProvider,
-            Tuple2<Object, List<Row>> rowsByContext) throws Exception {
-        CqlTerminologyProvider termProvider = new UnsupportedTerminologyProvider();
+            CqlTerminologyProvider termProvider, String contextName, Tuple2<Object, List<Row>> rowsByContext,
+            LongAccumulator perContextAccum) throws Exception {
 
         // Convert the Spark objects to the cohort Java model
         List<DataRow> datarows = rowsByContext._2().stream().map(getDataRowFactory()).collect(Collectors.toList());
@@ -319,19 +388,43 @@ public class SparkCqlEvaluator implements Serializable {
         CqlEvaluator evaluator = new CqlEvaluator().setLibraryProvider(libraryProvider).setDataProvider(dataProvider)
                 .setTerminologyProvider(termProvider);
 
-        CqlEvaluationRequests requests = readJobSpecification(jobSpecPath);
+        CqlEvaluationRequests requests = jobSpecification.get();
+        if (requests == null) {
+            requests = readJobSpecification(jobSpecPath);
+            jobSpecification.set(requests);
+        }
 
-        List<CqlEvaluationRequest> filteredRequests = requests.getEvaluations();
+        List<CqlEvaluationRequest> filteredRequests = requests.getEvaluations().stream()
+                .filter(r -> r.getContextKey().equals(contextName)).collect(Collectors.toList());
+
         if (libraries != null && libraries.size() > 0) {
             filteredRequests = filteredRequests.stream()
                     .filter(r -> libraries.keySet().contains(r.getDescriptor().getLibraryId()))
                     .collect(Collectors.toList());
         }
-        return evaluate(rowsByContext, evaluator, requests);
+        return evaluate(rowsByContext, evaluator, requests, perContextAccum);
     }
 
+    /**
+     * Evaluate the input CQL for a single context + data pair.
+     * 
+     * @param rowsByContext   In-memory data for all datatypes related to a single
+     *                        context
+     * @param evaluator       configured CQLEvaluator (data provider, term provider,
+     *                        library provider all previously setup)
+     * @param requests        CqlEvaluationRequests containing lists of libraries,
+     *                        expressions, and parameters to evaluate
+     * @param perContextAccum Spark accumulator that tracks each individual context
+     *                        evaluation
+     * @return Evaluation results for all expressions evaluated keyed by the context
+     *         ID. Expression names are automatically namespaced according to the
+     *         library name to avoid issues arising for expression names matching
+     *         between libraries (e.g. LibraryName.ExpressionName).
+     */
     protected Tuple2<Object, Map<String, Object>> evaluate(Tuple2<Object, List<Row>> rowsByContext,
-            CqlEvaluator evaluator, CqlEvaluationRequests requests) {
+            CqlEvaluator evaluator, CqlEvaluationRequests requests, LongAccumulator perContextAccum) {
+        perContextAccum.add(1);
+        
         Map<String, Object> expressionResults = new HashMap<>();
         for (CqlEvaluationRequest request : requests.getEvaluations()) {
             if (expressions != null && expressions.size() > 0) {
@@ -339,7 +432,7 @@ public class SparkCqlEvaluator implements Serializable {
             }
 
             // add any global parameters that have not been overridden locally
-            if( requests.getGlobalParameters() != null ) {
+            if (requests.getGlobalParameters() != null) {
                 for (Map.Entry<String, Object> globalParameter : requests.getGlobalParameters().entrySet()) {
                     request.getParameters().putIfAbsent(globalParameter.getKey(), globalParameter.getValue());
                 }
@@ -354,7 +447,52 @@ public class SparkCqlEvaluator implements Serializable {
 
         return new Tuple2<>(rowsByContext._1(), expressionResults);
     }
+    
+    /**
+     * Initialize a library provider that will load resources from the configured path
+     * in local storage or from the well-known classpath locations. The library provider
+     * comes configured with CQL translation enabled and will use custom modelinfo
+     * definitions if provided in the configuration.
+     * 
+     * @return configured library provider
+     * @throws IOException when model info cannot be read
+     * @throws FileNotFoundException when a specified model info file cannot be found
+     */
+    protected CqlLibraryProvider createLibraryProvider() throws IOException, FileNotFoundException {
+        
+        CqlLibraryProvider fsBasedLp = new DirectoryBasedCqlLibraryProvider(new File(cqlPath));
+        CqlLibraryProvider cpBasedLp = new ClasspathCqlLibraryProvider("org.hl7.fhir");
+        CqlLibraryProvider priorityLp = new PriorityCqlLibraryProvider( fsBasedLp, cpBasedLp );
 
+        // TODO - replace with cohort shared translation component
+        final CqlToElmTranslator translator = new CqlToElmTranslator();
+        if (modelInfoPaths != null && modelInfoPaths.size() > 0) {
+            for (String path : modelInfoPaths) {
+                try (Reader r = new FileReader(path)) {
+                    translator.registerModelInfo(r);
+                }
+            }
+        }
+        
+        return new TranslatingCqlLibraryProvider(priorityLp, translator);
+    }
+    
+    /**
+     * Initialize a terminology provider.
+     * 
+     * @return configured terminology provider.
+     */
+    protected CqlTerminologyProvider createTerminologyProvider() {
+        return new UnsupportedTerminologyProvider();
+    }
+
+    /**
+     * Deserialize CQL Job requests.
+     * 
+     * @param path Path to CQL jobs file in JSON format
+     * @return deserialized jobs object
+     * @throws Exception when deserialization fails for any reason
+     */
     protected CqlEvaluationRequests readJobSpecification(String path) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         CqlEvaluationRequests requests = mapper.readValue(new File(path), CqlEvaluationRequests.class);
@@ -383,8 +521,16 @@ public class SparkCqlEvaluator implements Serializable {
 //            
 //            RowFactory.create(tuple._1(), )
 //        })
+        
+        // TODO - use the outputFormat parameter if it isn't null
+        
 
-        resultsByContext.saveAsTextFile(outputURI + UUID.randomUUID().toString());
+        if (outputPartitions != null) {
+            resultsByContext = resultsByContext.repartition(outputPartitions.intValue());
+        }
+        String uuid = UUID.randomUUID().toString();
+        LOG.info("Batch UUID " + uuid);
+        resultsByContext.saveAsTextFile(outputURI + uuid);
     }
 
     /**
