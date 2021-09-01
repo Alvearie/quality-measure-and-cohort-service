@@ -1,0 +1,47 @@
+{
+	"evaluations": [{
+		"descriptor": {
+			"libraryId": "MeasureA",
+			"version": "1.0.0"
+		},
+		"expressions": ["cohort"],
+		"contextKey": "A",
+		"contextValue": "NA"
+	},
+	{
+		"descriptor": {
+			"libraryId": "MeasureAB",
+			"version": "1.0.0"
+		},
+		"expressions": ["cohort"],
+		"contextKey": "Patient",
+		"contextValue": "NA"
+	},
+	{
+		"descriptor": {
+			"libraryId": "MeasureB",
+			"version": "1.0.0"
+		},
+		"expressions": ["cohort"],
+		"contextKey": "B",
+		"contextValue": "NA"
+	},
+	{
+		"descriptor": {
+			"libraryId": "MeasureC",
+			"version": "1.0.0"
+		},
+		"expressions": ["cohort"],
+		"contextKey": "Patient",
+		"contextValue": "NA"
+	},
+	{
+		"descriptor": {
+			"libraryId": "MeasureD",
+			"version": "1.0.0"
+		},
+		"expressions": ["cohort"],
+		"contextKey": "Patient",
+		"contextValue": "NA"
+	}]
+}

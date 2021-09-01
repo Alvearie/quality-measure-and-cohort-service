@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.ibm.cohort.cql.library.fs;
+package com.ibm.cohort.cql.library;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,14 +16,9 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 
-import com.ibm.cohort.cql.library.CqlLibrary;
-import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
-import com.ibm.cohort.cql.library.CqlLibraryHelpers;
-import com.ibm.cohort.cql.library.CqlLibraryProvider;
-
 public class DirectoryBasedCqlLibraryProvider implements CqlLibraryProvider {
     
-    File directory;
+    private File directory;
     
     public DirectoryBasedCqlLibraryProvider(File directory) {
         this.directory = directory;

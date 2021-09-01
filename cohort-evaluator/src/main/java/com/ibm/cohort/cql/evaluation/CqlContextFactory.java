@@ -6,10 +6,18 @@
 
 package com.ibm.cohort.cql.evaluation;
 
+import java.lang.reflect.Field;
 import java.time.ZonedDateTime;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.Pair;
+import org.cqframework.cql.elm.execution.IncludeDef;
 import org.cqframework.cql.elm.execution.Library;
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
 import org.opencds.cqf.cql.engine.debug.DebugMap;
@@ -26,70 +34,208 @@ import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 public class CqlContextFactory {
 
     /**
-     * Stores the timezone relative datetime that represents "now" during CQL engine
-     * execution. Defaults to ZonedDateTime.now() when not provided.
+     * This class captures all of the data that is included in a CQL context 
+     * object that either must remain the same between use of the context 
+     * because it cannot be changed once set or generally does remain the 
+     * same between evaluations (libraryProvider, terminologyProvider).
      */
-    private ZonedDateTime evaluationDateTime = null;
+    protected static class ContextCacheKey {
+        final public CqlLibraryProvider libraryProvider;
+        final public CqlTerminologyProvider terminologyProvider;
+        final public CqlLibraryDescriptor topLevelLibrary;
+        final public ZonedDateTime evaluationDateTime;
+        final public Map<String,Object> parameters;
 
-    /**
-     * Controls whether CQL engine trace logging is enabled. Defaults to false.
-     */
-    private CqlDebug debug = CqlDebug.NONE;
-
+        public ContextCacheKey(CqlLibraryProvider libraryProvider, CqlLibraryDescriptor topLevelLibrary,
+                CqlTerminologyProvider terminologyProvider,ZonedDateTime evaluationDateTime,
+                Map<String, Object> parameters ) {
+            this.libraryProvider = libraryProvider;
+            this.topLevelLibrary = topLevelLibrary;
+            this.terminologyProvider = terminologyProvider;
+            this.evaluationDateTime = evaluationDateTime;
+            this.parameters = parameters;
+        }
+        
+        @Override
+        public boolean equals(Object o2) {
+            boolean isEqual = o2 != null && o2 instanceof ContextCacheKey;
+            if( isEqual ) {
+                ContextCacheKey k2 = (ContextCacheKey) o2;
+                isEqual = Objects.equals(topLevelLibrary, k2.topLevelLibrary) &&
+                        Objects.equals( libraryProvider, k2.libraryProvider ) &&
+                        Objects.equals( terminologyProvider, k2.terminologyProvider ) &&
+                        Objects.equals( evaluationDateTime, k2.evaluationDateTime ) &&
+                        Objects.equals( parameters, k2.parameters );
+            }
+            return isEqual;
+        }
+        
+        @Override
+        public int hashCode() {
+            return Objects.hash(topLevelLibrary, libraryProvider, terminologyProvider, evaluationDateTime, parameters);
+        }
+    }
+    
+    public static boolean DEFAULT_CACHE_EXPRESSIONS = true;
+    
+    private static ConcurrentMap<ContextCacheKey, Context> CONTEXT_CACHE = new ConcurrentHashMap<>();
+    
     /**
      * Controls whether or not the CQL engine caches the result of each expression.
      * This is a trade off of memory vs. runtime performance. The default is true
      * and this is the recommended setting for most applications.
      */
-    private boolean cacheExpressions = true;
+    private boolean cacheExpressions = DEFAULT_CACHE_EXPRESSIONS;
 
     public CqlContextFactory() {
 
     }
-
-    public CqlDebug getDebug() {
-        return debug;
+    
+    public boolean isCacheExpressions() {
+        return cacheExpressions;
     }
 
-    public CqlContextFactory setDebug(CqlDebug debug) {
-        this.debug = debug;
-        return this;
+    public void setCacheExpressions(boolean cacheExpressions) {
+        this.cacheExpressions = cacheExpressions;
     }
 
-    public ZonedDateTime getEvaluationDateTime() {
-        return this.evaluationDateTime;
-    }
-
-    public CqlContextFactory setEvaluationDateTime(ZonedDateTime now) {
-        this.evaluationDateTime = now;
-        return this;
-    }
-
+    /**
+     * Initialize a CQL Engine Context object with the provided settings.
+     * 
+     * @param libraryProvider     Provider for CQL library resources
+     * @param topLevelLibrary     Library descriptor for the top level library
+     * @param terminologyProvider Provider for CQL terminology resources
+     * @param dataProvider        Provider for data that underlies the evaluation
+     * @param evaluationDateTime  Date and time that will be considered "now" during
+     *                            CQL evaluation. If null, then ZonedDateTime.now()
+     *                            will be used each time a context object is
+     *                            initialized.
+     * @param contextData         Name-Value pair of context name + context value
+     *                            corresponding to the unique ID of an individual
+     *                            context that is being evaluated. In a Patient
+     *                            context, this would be the Patient ID, etc.
+     * @param parameters          Optional input parameters for the CQL evaluation
+     * @param debug               Debug configuration.
+     * @return initialized Context object
+     * @throws CqlLibraryDeserializationException if the specified library cannot be
+     *                                            loaded
+     */
     public Context createContext(CqlLibraryProvider libraryProvider, CqlLibraryDescriptor topLevelLibrary,
-            CqlTerminologyProvider terminologyProvider, CqlDataProvider dataProvider)
+            CqlTerminologyProvider terminologyProvider, CqlDataProvider dataProvider, ZonedDateTime evaluationDateTime,
+            Pair<String, String> contextData, Map<String, Object> parameters, CqlDebug debug)
             throws CqlLibraryDeserializationException {
-        LibraryLoader libraryLoader = new ProviderBasedLibraryLoader(libraryProvider);
+        
+        ContextCacheKey key = new ContextCacheKey( libraryProvider, topLevelLibrary, terminologyProvider, evaluationDateTime, parameters );
+        Context cqlContext = CONTEXT_CACHE.computeIfAbsent( key, k -> {
+            return this.createContext(k);
+        } );
+        
+        // The following data elements need to be reset on every evaluation...
+        
+        Set<String> uris = getModelUrisForLibrary(cqlContext.getCurrentLibrary());
+        for (String modelUri : uris) {
+            cqlContext.registerDataProvider(modelUri, dataProvider);
+        }
+        
+        resetContextValues(cqlContext);
+        if( contextData != null ) {
+            cqlContext.setContextValue(contextData.getKey(), contextData.getValue());
+        }
+        
+        DebugMap debugMap = createDebugMap(debug);
+        cqlContext.setDebugMap(debugMap);
 
-        VersionedIdentifier vid = new VersionedIdentifier().withId(topLevelLibrary.getLibraryId())
-                .withVersion(topLevelLibrary.getVersion());
+        clearExpressionCache(cqlContext);
+        cqlContext.setExpressionCaching(this.cacheExpressions);
+        
+        cqlContext.clearEvaluatedResources();
+        
+        return cqlContext;
+    }
+
+    /**
+     * Initialize a CQL context from the values associated with the provided
+     * CQL Context Key. This encapsulates the set of initializations that are
+     * static from run to run.
+     * 
+     * @param contextKey container for stable context settings
+     * @return initialized CQL Context object
+     * @throws CqlLibraryDeserializationException if the specified library cannot be loaded
+     */
+    protected Context createContext(ContextCacheKey contextKey) throws CqlLibraryDeserializationException {
+        LibraryLoader libraryLoader = new ProviderBasedLibraryLoader(contextKey.libraryProvider);
+
+        VersionedIdentifier vid = new VersionedIdentifier().withId(contextKey.topLevelLibrary.getLibraryId())
+                .withVersion(contextKey.topLevelLibrary.getVersion());
 
         Library entryPoint = libraryLoader.load(vid);
         Context cqlContext = null;
-        if (evaluationDateTime != null) {
-            cqlContext = new Context(entryPoint, evaluationDateTime);
+        if (contextKey.evaluationDateTime != null) {
+            cqlContext = new Context(entryPoint, contextKey.evaluationDateTime);
         } else {
             cqlContext = new Context(entryPoint);
         }
 
         cqlContext.registerLibraryLoader(libraryLoader);
 
-        cqlContext.registerTerminologyProvider(terminologyProvider);
-
-        Set<String> uris = getModelUrisForLibrary(entryPoint);
-        for (String modelUri : uris) {
-            cqlContext.registerDataProvider(modelUri, dataProvider);
+        cqlContext.registerTerminologyProvider(contextKey.terminologyProvider);
+        
+        if( contextKey.parameters != null ) {
+            Library library = cqlContext.getCurrentLibrary();
+            
+            for( Map.Entry<String,Object> entry : contextKey.parameters.entrySet() ) {
+                cqlContext.setParameter(library.getLocalId(), entry.getKey(), entry.getValue());
+            }
+            
+            if (library.getIncludes() != null && library.getIncludes().getDef() != null) {
+                for (IncludeDef def : library.getIncludes().getDef()) {
+                    String name = def.getLocalIdentifier();
+                    for (Map.Entry<String, Object> parameterValue : contextKey.parameters.entrySet()) {
+                        cqlContext.setParameter(name, parameterValue.getKey(), parameterValue.getValue());
+                    }
+                }
+            }
         }
 
+        return cqlContext;
+    }
+
+    /**
+     * Given the context names in the configured library, clear
+     * any previously set values.
+     * 
+     * @param cqlContext configured CQL context object
+     */
+    protected static void resetContextValues(Context cqlContext) {
+        Set<String> contexts = getContextNames(cqlContext);
+        
+        // To be completely thorough, we would want to do the same as above to collect
+        // contexts from the included libraries, but that is a potentially expensive
+        // graph walk. Trusting for now that this is enough.
+        
+        contexts.stream().forEach(ctx -> cqlContext.setContextValue(ctx, null));
+    }
+
+    /**
+     * Retrieve the set of non-null context names associated with 
+     * defines in the library configured with the provided context. 
+     * 
+     * @param cqlContext configured CQL context object
+     * @return set of non-null context names
+     */
+    protected static Set<String> getContextNames(Context cqlContext) {
+        return cqlContext.getCurrentLibrary().getStatements().getDef().stream().map(d -> d.getContext())
+                .filter( Objects::nonNull ).collect(Collectors.toSet());
+    }    
+    
+    /**
+     * Helper method for initializing a debug map based on the provided CqlDebug
+     * enum.
+     * 
+     * @param debug Debug configuration
+     * @return DebugMap
+     */
+    protected DebugMap createDebugMap(CqlDebug debug) {
         DebugMap debugMap = new DebugMap();
         if( debug == CqlDebug.DEBUG ) {
             debugMap.setIsLoggingEnabled(true);
@@ -99,14 +245,7 @@ public class CqlContextFactory {
             debugMap.setIsLoggingEnabled(false);
             debugMap.setIsCoverageEnabled(false);
         }
-        cqlContext.setDebugMap(debugMap);
-
-        cqlContext.setExpressionCaching(this.cacheExpressions);
-
-        // TODO - Input parameters
-        // cqlContext.setParameter(null, name, value);
-
-        return cqlContext;
+        return debugMap;
     }
 
     /**
@@ -119,5 +258,28 @@ public class CqlContextFactory {
     protected Set<String> getModelUrisForLibrary(Library library) {
         return library.getUsings().getDef().stream().filter(d -> !d.getLocalIdentifier().equals("System"))
                 .map(d -> d.getUri()).collect(Collectors.toSet());
+    }
+    
+    /**
+     * Remove cached CQL evaluation results. This is necessary whenever the "context"
+     * changes. The approach uses some squirrely scope modification that will not work
+     * in JVMs newer than Java 11. The CQL engine has addressed the issue in newer
+     * code, so we should revisit that issue and consider updating when there is time.
+     * 
+     * @param context CQL Context object
+     */
+    @SuppressWarnings("rawtypes")
+    protected void clearExpressionCache(Context context) {
+        // Hack to clear expression cache
+        // See cqf-ruler github issue #153
+        try {
+            Field privateField = context.getClass().getDeclaredField("expressions");
+            privateField.setAccessible(true);
+            LinkedHashMap expressions = (LinkedHashMap) privateField.get(context);
+            expressions.clear();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error resetting expression cache", e);
+        }
     }
 }

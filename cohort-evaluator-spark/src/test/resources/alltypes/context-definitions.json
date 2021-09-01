@@ -1,0 +1,42 @@
+{
+	"contextDefinitions": [{
+		"name": "Patient",
+		"primaryDataType": "A",
+		"primaryKeyColumn": "pat_id",
+		"relationships": [{
+			"type": "OneToMany",
+			"relatedDataType": "B",
+			"relatedKeyColumn": "pat_id"
+		},
+		{
+			"type": "OneToMany",
+			"relatedDataType": "C",
+			"relatedKeyColumn": "pat_id"
+		},
+		{
+			"type": "OneToMany",
+			"relatedDataType": "D",
+			"relatedKeyColumn": "pat_id"
+		}]
+	},
+	{
+		"name": "A",
+		"primaryDataType": "A",
+		"primaryKeyColumn": "id_col"
+	},
+	{
+		"name": "B",
+		"primaryDataType": "B",
+		"primaryKeyColumn": "id"
+	},
+	{
+		"name": "C",
+		"primaryDataType": "C",
+		"primaryKeyColumn": "id"
+	},
+	{
+		"name": "D",
+		"primaryDataType": "D",
+		"primaryKeyColumn": "id"
+	}]
+}
