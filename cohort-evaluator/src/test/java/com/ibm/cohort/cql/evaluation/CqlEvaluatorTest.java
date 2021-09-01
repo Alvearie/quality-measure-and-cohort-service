@@ -7,8 +7,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 
 import com.ibm.cohort.cql.data.CqlDataProvider;
@@ -62,7 +65,12 @@ public class CqlEvaluatorTest {
                 .setDataProvider(dataProvider)
                 .setLibraryProvider(translatingProvider);
         
-        CqlEvaluationResult result = evaluator.evaluate(libraryDescriptor);
+        Map<String,Object> parameters = new HashMap<>();
+        parameters.put("MinimumAge", 17);
+        
+        Pair<String,String> context = Pair.of("Patient", "123");
+        
+        CqlEvaluationResult result = evaluator.evaluate(libraryDescriptor, parameters, context);
         assertNotNull(result);
         assertEquals(2, result.getExpressionResults().size());
         assertEquals(true, result.getExpressionResults().get("Something"));
