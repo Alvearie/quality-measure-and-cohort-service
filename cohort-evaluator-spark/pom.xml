@@ -20,7 +20,7 @@
 	</scm>
 
     <properties>
-        <image.tag>us.icr.io/vpc-dev-cohort-rns/cohort-evaluator-spark:a-p3.4.3-tekton-20210831191041-5b74a7ab8f76f0e3c3f2273f49177128051e4e05</image.tag>
+        <image.tag>us.icr.io/vpc-dev-cohort-rns/cohort-evaluator-spark:a-p3.4.3-tekton-20210907202747-a57c643820323a5c76ddb8392aa64c3eab27ba45</image.tag>
         <config.volume>cohort-config</config.volume>
         <data.bucket>kwasny-test</data.bucket>
         <data.secret>spark-cos-secret</data.secret>
@@ -84,6 +84,11 @@
 		<dependency>
 			<groupId>com.beust</groupId>
 			<artifactId>jcommander</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
 		</dependency>
 
 		<dependency>

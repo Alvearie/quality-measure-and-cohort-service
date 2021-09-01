@@ -6,6 +6,7 @@
 
 package com.ibm.cohort.cql.library;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -16,7 +17,9 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-public class CqlLibraryDescriptor {
+public class CqlLibraryDescriptor implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     public static enum Format {
         CQL("cql", "text/cql", "application/cql"),
         ELM("XML", "xml", "application/elm+xml");

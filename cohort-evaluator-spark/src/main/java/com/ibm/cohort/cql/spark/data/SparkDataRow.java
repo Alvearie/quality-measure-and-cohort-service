@@ -41,7 +41,8 @@ public class SparkDataRow implements DataRow {
 
     public static final String IS_CODE_COL = "isCodeCol";
     public static final String SYSTEM_COL = "systemCol";
-    public static final String DISPLAY_COL = "dispalyCol";
+    public static final String DISPLAY_COL = "displayCol";
+    public static final String SYSTEM = "system";
 
     private final SparkTypeConverter typeConverter;
     private final Row sparkRow;
@@ -73,7 +74,11 @@ public class SparkDataRow implements DataRow {
                 isCode = metadata.getBoolean(IS_CODE_COL);
                 if (isCode) {
                     Code code = new Code().withCode((String) sparkVal);
-
+                    
+                    if( metadata.contains(SYSTEM) ) {
+                        code.withSystem( metadata.getString(SYSTEM) );
+                    }
+ 
                     if (metadata.contains(SYSTEM_COL)) {
                         String systemField = metadata.getString(SYSTEM_COL);
                         if (systemField != null) {

@@ -273,7 +273,7 @@ public class SparkTypeConverter implements Serializable {
                 map.put(SYSTEM_TYPE_PROPERTY, "Code");
                 map.put("code", code.getCode());
                 map.put("system", code.getSystem());
-                map.put("diasplay", code.getDisplay());
+                map.put("display", code.getDisplay());
                 result = JavaConverters.mapAsScalaMap(map);
             }
         }

@@ -70,8 +70,11 @@ public class CqlEvaluator {
     }
 
     
-    public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary, Map<String,Object> parameters, Pair<String,String> context, Set<String> expressions, CqlDebug debug) throws CqlLibraryDeserializationException {
-        Context cqlContext = new CqlContextFactory().setDebug(debug).createContext(libraryProvider, topLevelLibrary, terminologyProvider, dataProvider);
+    public CqlEvaluationResult evaluate(CqlLibraryDescriptor topLevelLibrary, Map<String, Object> parameters,
+            Pair<String, String> context, Set<String> expressions, CqlDebug debug)
+            throws CqlLibraryDeserializationException {
+        Context cqlContext = new CqlContextFactory().createContext(libraryProvider, topLevelLibrary,
+                terminologyProvider, dataProvider, null, context, parameters, debug);
         
         if( expressions == null ) {
             expressions = cqlContext.getCurrentLibrary().getStatements().getDef().stream().map( d -> d.getName() ).collect(Collectors.toSet());
