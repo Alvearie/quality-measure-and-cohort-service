@@ -14,7 +14,6 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -25,11 +24,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.sql.DataFrameReader;
-import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.functions;
 import org.apache.spark.util.LongAccumulator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,8 +46,6 @@ import com.ibm.cohort.cql.library.DirectoryBasedCqlLibraryProvider;
 import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
-import com.ibm.cohort.cql.spark.aggregation.Join;
-import com.ibm.cohort.cql.spark.aggregation.OneToMany;
 import com.ibm.cohort.cql.spark.data.SparkDataRow;
 import com.ibm.cohort.cql.spark.data.SparkTypeConverter;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
@@ -174,15 +168,15 @@ public class SparkCqlEvaluator implements Serializable {
 
             final LongAccumulator contextAccum = spark.sparkContext().longAccumulator("Context");
             final LongAccumulator perContextAccum = spark.sparkContext().longAccumulator("PerContext");
+            DatasetRetriever datasetRetriever = new ParquetDatasetRetriever(spark);
+            ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever);
             for (ContextDefinition context : filteredContexts) {
                 final String contextName = context.getName();
                 LOG.info("Evaluating context " + contextName);
 
                 final String outputPath = MapUtils.getRequiredKey(outputPaths, context.getName(), "outputPath");
 
-                JavaPairRDD<Object, Row> allData = readAllInputData(spark, context, inputPaths);
-
-                JavaPairRDD<Object, List<Row>> rowsByContextId = aggregateByContext(allData, context);
+                JavaPairRDD<Object, List<Row>> rowsByContextId = contextRetriever.retrieveContext(context);
 
                 JavaPairRDD<Object, Map<String, Object>> resultsByContext = rowsByContextId
                         .mapToPair(x -> evaluate(contextName, x, perContextAccum));
@@ -207,116 +201,6 @@ public class SparkCqlEvaluator implements Serializable {
         ObjectMapper mapper = new ObjectMapper();
         ContextDefinitions contexts = mapper.readValue(new File(path), ContextDefinitions.class);
         return contexts;
-    }
-
-    /**
-     * Input data is expected to be divided into separate files per datatype. For
-     * each datatype to be used in evaluations, read in the data, extract the
-     * context ID from whatever column in the data contains the primary/foreign key
-     * for the evaluation context, and then create a pair of context to row data.
-     * This pair will subsequently be used to reorganize the data by context.
-     * 
-     * @param spark             Active Spark Session
-     * @param contextDefinition ContextDefinition describing the input data to read
-     * @param inputPaths        Map of logical resource name to input data path
-     * @return pairs of context value to data row for each datatype in the input
-     */
-    protected JavaPairRDD<Object, Row> readAllInputData(SparkSession spark, ContextDefinition contextDefinition,
-            Map<String, String> inputPaths) {
-        JavaPairRDD<Object, Row> allData = null;
-
-        String dataType = contextDefinition.getPrimaryDataType();
-        String path = MapUtils.getRequiredKey(inputPaths, dataType, "inputPath");
-
-        allData = readDataset(spark, path, dataType, contextDefinition.getPrimaryKeyColumn());
-
-        if (contextDefinition.getRelationships() != null) {
-            for (Join join : contextDefinition.getRelationships()) {
-                if (join instanceof OneToMany) {
-                    OneToMany oneToManyJoin = (OneToMany) join;
-
-                    dataType = oneToManyJoin.getRelatedDataType();
-                    path = MapUtils.getRequiredKey(inputPaths, dataType, "inputPath");
-
-                    allData = allData.union(readDataset(spark, path, dataType, oneToManyJoin.getRelatedKeyColumn()));
-                } else {
-                    throw new UnsupportedOperationException(
-                            String.format("No support for join type %s at this time", join.getClass().getSimpleName()));
-                }
-            }
-        }
-
-        return allData;
-    }
-
-    /**
-     * Read a single datatype's dataset. Data is assumed to be in whatever format is
-     * configured for spark.sql.datasources.default (default parquet).
-     * 
-     * @param spark         Active Spark Session
-     * @param fileURI       HDFS compatible URI pointing at the data file
-     * @param dataType      The DataType string corresponding to the data being read
-     * @param contextColumn The column name in the input data that corresponds to
-     *                      the evaluation context
-     * @return data mapped from context value to row content
-     */
-    protected JavaPairRDD<Object, Row> readDataset(SparkSession spark, String fileURI, String dataType,
-            String contextColumn) {
-        DataFrameReader reader = spark.read();
-        if( inputFormat != null ) {
-            reader = reader.format(inputFormat);
-        }
-        Dataset<Row> dataset = reader.load(fileURI).withColumn(SOURCE_FACT_IDX, functions.lit(dataType));
-
-        return dataset.javaRDD().mapToPair(row -> {
-            Object joinValue = row.getAs(contextColumn);
-            return new Tuple2<>(joinValue, row);
-        });
-    }
-
-    /**
-     * Given a set of rows that are indexed by context value, reorganize the data so
-     * that all rows related to the same context are grouped into a single pair.
-     * 
-     * @param allData           rows mapped from context value to a single data row
-     * @param contextDefinition ContextDefinition that contains the relationship
-     *                          metadata that describes the needed aggregations
-     * @return rows grouped mapped from context value to a list of all data for that
-     *         context
-     */
-    protected JavaPairRDD<Object, List<Row>> aggregateByContext(JavaPairRDD<Object, Row> allData,
-            ContextDefinition contextDefinition) {
-        // Regroup data by context ID so that all input data for the same
-        // context is represented as a single key mapped to a list of rows
-
-        boolean aggregateOnContext = contextDefinition.getRelationships() != null
-                && contextDefinition.getRelationships().size() > 0;
-
-        JavaPairRDD<Object, List<Row>> combinedData = null;
-        if (aggregateOnContext) {
-            combinedData = allData.combineByKey(create -> {
-                List<Row> dataRowList = new ArrayList<>();
-                dataRowList.add(create);
-                return dataRowList;
-            }, (list, val) -> {
-                list.add(val);
-                return list;
-            }, (list1, list2) -> {
-                List<Row> dataRowList = new ArrayList<>(list1);
-                dataRowList.addAll(list2);
-                return dataRowList;
-            });
-        } else {
-            // TODO: Not sure how much extra time is spent doing this needless work
-            // that only serves to keep the "multirow" and "single row" usecases on the same
-            // "java type".
-            // If there's a big enough time sink here, then we may want to change
-            // `combinedData` to be something super generic.
-            combinedData = allData
-                    .mapToPair((tuple2) -> new Tuple2<>(tuple2._1(), Collections.singletonList(tuple2._2())));
-        }
-
-        return combinedData;
     }
 
     /**

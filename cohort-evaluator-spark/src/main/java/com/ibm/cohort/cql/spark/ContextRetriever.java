@@ -22,12 +22,16 @@ import scala.Tuple2;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-public class ContextFactory {
+// TODO: Javadoc all the things
+public class ContextRetriever {
 
+    // TODO: Remove once unit tests are spun up
     public static void main(String[] args) throws Exception {
         Map<String, String> inputPaths = new HashMap<>();
         inputPaths.put("Primary", "/Users/dkwasny/ScratchSpace/joinstuff/test-inputs/primary.csv");
@@ -41,25 +45,53 @@ public class ContextFactory {
                 .master("local[1]")
                 .config("spark.sql.shuffle.partitions", 10)
                 .getOrCreate();
-        ContextFactory factory = new ContextFactory(spark, inputPaths);
+        DatasetRetriever datasetRetriever = new CsvDatasetRetriever(spark);
+        ContextRetriever factory = new ContextRetriever(inputPaths, datasetRetriever);
 
         ObjectMapper mapper = new ObjectMapper();
         File contextFile = new File("/Users/dkwasny/ScratchSpace/joinstuff/test-inputs/contexts.json");
         ContextDefinition contextDefinition = mapper.readValue(contextFile, ContextDefinition.class);
 
-        JavaPairRDD<Object, Row> allData = factory.readContext(contextDefinition);
+        JavaPairRDD<Object, List<Row>> allData = factory.retrieveContext(contextDefinition);
         allData.collect().forEach(System.out::println);
     }
 
-    private final SparkSession spark;
     private final Map<String, String> inputPaths;
+    private final DatasetRetriever datasetRetriever;
 
-    public ContextFactory(SparkSession spark, Map<String, String> inputPaths) {
-        this.spark = spark;
+    public ContextRetriever(Map<String, String> inputPaths, DatasetRetriever datasetRetriever) {
         this.inputPaths = inputPaths;
+        this.datasetRetriever = datasetRetriever;
     }
 
-    public JavaPairRDD<Object, Row> readContext(ContextDefinition contextDefinition) {
+    public JavaPairRDD<Object, List<Row>> retrieveContext(ContextDefinition contextDefinition) {
+        List<Dataset<Row>> datasets = gatherDatasets(contextDefinition);
+
+        String primaryKeyColumn = contextDefinition.getPrimaryKeyColumn();
+        List<JavaPairRDD<Object, Row>> rddList = datasets.stream()
+                .map(x -> toPairRDD(x, primaryKeyColumn))
+                .collect(Collectors.toList());
+
+        JavaPairRDD<Object, Row> allData = unionRDDs(rddList);
+
+        JavaPairRDD<Object, List<Row>> retVal;
+        boolean groupContext = contextDefinition.getRelationships() != null
+                && contextDefinition.getRelationships().size() > 0;
+        if (groupContext) {
+            retVal = groupContext(allData);
+        }
+        else {
+            // If no actual relationships are defined, then create a
+            // single record context for the primary row.
+            retVal = allData.mapToPair(
+                    (tuple2) -> new Tuple2<>(tuple2._1(), Collections.singletonList(tuple2._2()))
+            );
+        }
+
+        return retVal;
+    }
+
+    private List<Dataset<Row>> gatherDatasets(ContextDefinition contextDefinition) {
         List<Dataset<Row>> datasets = new ArrayList<>();
 
         String primaryKeyColumn = contextDefinition.getPrimaryKeyColumn();
@@ -113,12 +145,32 @@ public class ContextFactory {
             datasets.add(joinedDataset);
         }
 
-        JavaPairRDD<Object, Row> retVal = toPairRDD(primaryDataset, primaryKeyColumn);
-        for (Dataset<Row> dataset : datasets) {
-            retVal = retVal.union(toPairRDD(dataset, primaryKeyColumn));
-        }
+        return datasets;
+    }
 
-        return retVal;
+    /**
+     * Given a set of rows that are indexed by context value, reorganize the data so
+     * that all rows related to the same context are grouped into a single pair.
+     *
+     * @param allData           rows mapped from context value to a single data row
+     * @return rows grouped mapped from context value to a list of all data for that
+     *         context
+     */
+    private JavaPairRDD<Object, List<Row>> groupContext(JavaPairRDD<Object, Row> allData) {
+        // Regroup data by context ID so that all input data for the same
+        // context is represented as a single key mapped to a list of rows
+        return allData.combineByKey(create -> {
+            List<Row> dataRowList = new ArrayList<>();
+            dataRowList.add(create);
+            return dataRowList;
+        }, (list, val) -> {
+            list.add(val);
+            return list;
+        }, (list1, list2) -> {
+            List<Row> dataRowList = new ArrayList<>(list1);
+            dataRowList.addAll(list2);
+            return dataRowList;
+        });
     }
 
     private JavaPairRDD<Object, Row> toPairRDD(Dataset<Row> dataset, String contextColumn) {
@@ -128,14 +180,25 @@ public class ContextFactory {
         });
     }
 
+    private JavaPairRDD<Object, Row> unionRDDs(List<JavaPairRDD<Object, Row>> rddList) {
+        JavaPairRDD<Object, Row> retVal = null;
+        for (JavaPairRDD<Object, Row> rdd : rddList) {
+            if (retVal == null) {
+                retVal = rdd;
+            }
+            else {
+                retVal = retVal.union(rdd);
+            }
+        }
+        return retVal;
+    }
+
     private Dataset<Row> readDataset(String dataType) {
-        // TODO: Fail on missing path
         String path = inputPaths.get(dataType);
-        return spark.read()
-                // TODO: Parquet
-                .option("header", true)
-                .option("inferSchema", true)
-                .csv(path)
+        if (path == null) {
+            throw new IllegalArgumentException(String.format("No path mapping found for datatype %s", dataType));
+        }
+        return datasetRetriever.readDataset(path)
                 .withColumn(SparkCqlEvaluator.SOURCE_FACT_IDX, functions.lit(dataType));
     }
 
