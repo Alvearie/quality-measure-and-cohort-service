@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.ibm.cohort.cql.spark;
+package com.ibm.cohort.cql.spark.data;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;

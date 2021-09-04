@@ -4,13 +4,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.ibm.cohort.cql.spark;
+package com.ibm.cohort.cql.spark.aggregation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
-import com.ibm.cohort.cql.spark.aggregation.Join;
-import com.ibm.cohort.cql.spark.aggregation.ManyToMany;
-import com.ibm.cohort.cql.spark.aggregation.OneToMany;
+import com.ibm.cohort.cql.spark.data.CsvDatasetRetriever;
+import com.ibm.cohort.cql.spark.data.DatasetRetriever;
+import com.ibm.cohort.cql.spark.SparkCqlEvaluator;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
@@ -30,6 +29,8 @@ import java.util.stream.Collectors;
 
 // TODO: Javadoc all the things
 public class ContextRetriever {
+
+    public static final String SOURCE_FACT_IDX = "__SOURCE_FACT";
 
     // TODO: Remove once unit tests are spun up
     public static void main(String[] args) throws Exception {
@@ -72,13 +73,13 @@ public class ContextRetriever {
                 .map(x -> toPairRDD(x, primaryKeyColumn))
                 .collect(Collectors.toList());
 
-        JavaPairRDD<Object, Row> allData = unionRDDs(rddList);
+        JavaPairRDD<Object, Row> allData = unionPairRDDs(rddList);
 
         JavaPairRDD<Object, List<Row>> retVal;
         boolean groupContext = contextDefinition.getRelationships() != null
                 && contextDefinition.getRelationships().size() > 0;
         if (groupContext) {
-            retVal = groupContext(allData);
+            retVal = groupPairRDDs(allData);
         }
         else {
             // If no actual relationships are defined, then create a
@@ -97,6 +98,7 @@ public class ContextRetriever {
         String primaryKeyColumn = contextDefinition.getPrimaryKeyColumn();
         String primaryDataType = contextDefinition.getPrimaryDataType();
         Dataset<Row> primaryDataset = readDataset(primaryDataType);
+        datasets.add(primaryDataset);
 
         for (Join join : contextDefinition.getRelationships()) {
             String primaryJoinColumn = join.getPrimaryDataTypeColumn() == null
@@ -116,6 +118,9 @@ public class ContextRetriever {
                 ManyToMany manyToMany = (ManyToMany)join;
                 String assocDataType = manyToMany.getAssociationDataType();
                 Dataset<Row> assocDataset = readDataset(assocDataType);
+                // TODO: Address naming.
+                // I think something simple like "left" and "right" would be easier
+                // to understand.
                 String assocPrimaryColumnName = manyToMany.getAssociationOneKeyColumn();
                 String assocRelatedColumnName = manyToMany.getAssociationManyKeyColumn();
 
@@ -156,7 +161,7 @@ public class ContextRetriever {
      * @return rows grouped mapped from context value to a list of all data for that
      *         context
      */
-    private JavaPairRDD<Object, List<Row>> groupContext(JavaPairRDD<Object, Row> allData) {
+    private JavaPairRDD<Object, List<Row>> groupPairRDDs(JavaPairRDD<Object, Row> allData) {
         // Regroup data by context ID so that all input data for the same
         // context is represented as a single key mapped to a list of rows
         return allData.combineByKey(create -> {
@@ -180,7 +185,7 @@ public class ContextRetriever {
         });
     }
 
-    private JavaPairRDD<Object, Row> unionRDDs(List<JavaPairRDD<Object, Row>> rddList) {
+    private JavaPairRDD<Object, Row> unionPairRDDs(List<JavaPairRDD<Object, Row>> rddList) {
         JavaPairRDD<Object, Row> retVal = null;
         for (JavaPairRDD<Object, Row> rdd : rddList) {
             if (retVal == null) {
@@ -199,7 +204,7 @@ public class ContextRetriever {
             throw new IllegalArgumentException(String.format("No path mapping found for datatype %s", dataType));
         }
         return datasetRetriever.readDataset(path)
-                .withColumn(SparkCqlEvaluator.SOURCE_FACT_IDX, functions.lit(dataType));
+                .withColumn(SOURCE_FACT_IDX, functions.lit(dataType));
     }
 
 }
