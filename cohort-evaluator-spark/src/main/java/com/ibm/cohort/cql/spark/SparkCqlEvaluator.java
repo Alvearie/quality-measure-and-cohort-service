@@ -23,6 +23,9 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.ibm.cohort.cql.spark.aggregation.ContextRetriever;
+import com.ibm.cohort.cql.spark.data.DatasetRetriever;
+import com.ibm.cohort.cql.spark.data.ParquetDatasetRetriever;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -68,7 +71,7 @@ public class SparkCqlEvaluator implements Serializable {
     private static final Logger LOG = LoggerFactory.getLogger(SparkCqlEvaluator.class);
     private static final long serialVersionUID = 1L;
 
-    public static final String SOURCE_FACT_IDX = "__SOURCE_FACT";
+
 
     @Parameter(names = { "-h", "--help" }, description = "Print help text", help = true)
     public boolean help;
@@ -261,7 +264,7 @@ public class SparkCqlEvaluator implements Serializable {
 
         Map<String, List<Object>> dataByDataType = new HashMap<>();
         for (DataRow datarow : datarows) {
-            String dataType = (String) datarow.getValue(SOURCE_FACT_IDX);
+            String dataType = (String) datarow.getValue(ContextRetriever.SOURCE_FACT_IDX);
             List<Object> mappedRows = dataByDataType.computeIfAbsent(dataType, x -> new ArrayList<>());
             mappedRows.add(datarow);
         }
