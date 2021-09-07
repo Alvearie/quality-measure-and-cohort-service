@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 public class ContextRetriever {
 
     public static final String SOURCE_FACT_IDX = "__SOURCE_FACT";
+    public static final String CONTEXT_VALUE_IDX = "__CONTEXT_VALUE";
 
     private final Map<String, String> inputPaths;
     private final DatasetRetriever datasetRetriever;
@@ -37,10 +38,10 @@ public class ContextRetriever {
     public JavaPairRDD<Object, List<Row>> retrieveContext(ContextDefinition contextDefinition) {
         List<Dataset<Row>> datasets = gatherDatasets(contextDefinition);
 
-        String primaryKeyColumn = contextDefinition.getPrimaryKeyColumn();
+//        String primaryKeyColumn = contextDefinition.getPrimaryKeyColumn();
 //        String primaryKeyColumn = "__KWAS";
         List<JavaPairRDD<Object, Row>> rddList = datasets.stream()
-                .map(x -> toPairRDD(x, primaryKeyColumn))
+                .map(x -> toPairRDD(x, CONTEXT_VALUE_IDX))
                 .collect(Collectors.toList());
 
         JavaPairRDD<Object, Row> allData = unionPairRDDs(rddList);
@@ -68,7 +69,7 @@ public class ContextRetriever {
         String primaryKeyColumn = contextDefinition.getPrimaryKeyColumn();
         String primaryDataType = contextDefinition.getPrimaryDataType();
         Dataset<Row> primaryDataset = readDataset(primaryDataType);
-//        primaryDataset = primaryDataset.withColumn("__KWAS", primaryDataset.col(primaryKeyColumn));
+        primaryDataset = primaryDataset.withColumn(CONTEXT_VALUE_IDX, primaryDataset.col(primaryKeyColumn));
         // TODO: Select the primary column into a new standardized join column name??
         datasets.add(primaryDataset);
 
@@ -115,9 +116,9 @@ public class ContextRetriever {
             List<Column> allColumns = new ArrayList<>();
             // TODO: Rename column to something internal via `.as()`
             // This doesn't handle the primary data type though.
-            allColumns.add(primaryDataset.col(primaryJoinColumn));
-//            allColumns.add(primaryDataset.col(primaryJoinColumn).as("__KWAS"));
+//            allColumns.add(primaryDataset.col(primaryJoinColumn));
             allColumns.addAll(Arrays.asList(relatedColumns));
+            allColumns.add(primaryDataset.col(primaryJoinColumn).as(CONTEXT_VALUE_IDX));
             Column[] selectColumns = allColumns.toArray(new Column[0]);
 
             joinedDataset = joinedDataset.select(selectColumns);
