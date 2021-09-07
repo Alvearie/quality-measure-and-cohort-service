@@ -43,13 +43,11 @@ public class ContextRetrieverTest {
     private static final String ASSOC_PATH = "assocPath";
 
     private static final String INDIRECT_RELATED_DATA_TYPE = "indirectRelatedDataType";
-//    private static final String INDIRECT_RELATED_KEY_COLUMN = "primaryKeyColumn";
     private static final String INDIRECT_RELATED_KEY_COLUMN = "indirectRelatedKeyColumn";
     private static final String INDIRECT_RELATED_DATA_COLUMN = "indirectRelatedDataColumn";
     private static final String INDIRECT_RELATED_PATH = "indirectRelatedPath";
 
     private static final String DIRECT_RELATED_DATA_TYPE = "directRelatedDataType";
-//    private static final String DIRECT_RELATED_KEY_COLUMN = "primaryKeyColumn";
     private static final String DIRECT_RELATED_KEY_COLUMN = "directRelatedKeyColumn";
     private static final String DIRECT_RELATED_DATA_COLUMN = "directRelatedDataColumn";
     private static final String DIRECT_RELATED_PATH = "directRelatedPath";
@@ -84,8 +82,17 @@ public class ContextRetrieverTest {
     private final StructType primaryOutputSchema = DataTypes.createStructType(Arrays.asList(
             DataTypes.createStructField(PRIMARY_KEY_COLUMN, DataTypes.IntegerType, false),
             DataTypes.createStructField(PRIMARY_DATA_COLUMN, DataTypes.StringType, false),
-            DataTypes.createStructField(ContextRetriever.SOURCE_FACT_IDX, DataTypes.StringType, false),
-            DataTypes.createStructField(ContextRetriever.CONTEXT_VALUE_IDX, DataTypes.IntegerType, false)
+            DataTypes.createStructField(ContextRetriever.SOURCE_FACT_IDX, DataTypes.StringType, false)
+    ));
+
+    private final StructType directRelatedInputSchema = DataTypes.createStructType(Arrays.asList(
+            DataTypes.createStructField(DIRECT_RELATED_KEY_COLUMN, DataTypes.IntegerType, false),
+            DataTypes.createStructField(DIRECT_RELATED_DATA_COLUMN, DataTypes.StringType, false)
+    ));
+    private final StructType directRelatedOutputSchema = DataTypes.createStructType(Arrays.asList(
+            DataTypes.createStructField(DIRECT_RELATED_KEY_COLUMN, DataTypes.IntegerType, false),
+            DataTypes.createStructField(DIRECT_RELATED_DATA_COLUMN, DataTypes.StringType, false),
+            DataTypes.createStructField(ContextRetriever.SOURCE_FACT_IDX, DataTypes.StringType, false)
     ));
 
     private final StructType assocInputSchema = DataTypes.createStructType(Arrays.asList(
@@ -101,18 +108,7 @@ public class ContextRetrieverTest {
             DataTypes.createStructField(INDIRECT_RELATED_KEY_COLUMN, DataTypes.IntegerType, false),
             DataTypes.createStructField(INDIRECT_RELATED_DATA_COLUMN, DataTypes.StringType, false),
             DataTypes.createStructField(ContextRetriever.SOURCE_FACT_IDX, DataTypes.StringType, false),
-            DataTypes.createStructField(ContextRetriever.CONTEXT_VALUE_IDX, DataTypes.IntegerType, false)
-    ));
-
-    private final StructType directRelatedInputSchema = DataTypes.createStructType(Arrays.asList(
-            DataTypes.createStructField(DIRECT_RELATED_KEY_COLUMN, DataTypes.IntegerType, false),
-            DataTypes.createStructField(DIRECT_RELATED_DATA_COLUMN, DataTypes.StringType, false)
-    ));
-    private final StructType directRelatedOutputSchema = DataTypes.createStructType(Arrays.asList(
-            DataTypes.createStructField(DIRECT_RELATED_KEY_COLUMN, DataTypes.IntegerType, false),
-            DataTypes.createStructField(DIRECT_RELATED_DATA_COLUMN, DataTypes.StringType, false),
-            DataTypes.createStructField(ContextRetriever.SOURCE_FACT_IDX, DataTypes.StringType, false),
-            DataTypes.createStructField(ContextRetriever.CONTEXT_VALUE_IDX, DataTypes.IntegerType, false)
+            DataTypes.createStructField(ContextRetriever.INDIRECT_CONTEXT_VALUE_IDX, DataTypes.IntegerType, false)
     ));
 
     private final Join directJoin = newOneToMany(
@@ -156,10 +152,10 @@ public class ContextRetrieverTest {
 
         // TODO: Does the primary _really_ need the context value twice...can we be smarter?
         List<Tuple2<Object, List<Row>>> expected = Arrays.asList(
-                new Tuple2<>(1, Arrays.asList(newRow(primaryOutputSchema, 1, "primary1", PRIMARY_DATA_TYPE, 1))),
-                new Tuple2<>(2, Arrays.asList(newRow(primaryOutputSchema, 2, "primary2", PRIMARY_DATA_TYPE, 2))),
-                new Tuple2<>(3, Arrays.asList(newRow(primaryOutputSchema, 3, "primary3", PRIMARY_DATA_TYPE, 3))),
-                new Tuple2<>(4, Arrays.asList(newRow(primaryOutputSchema, 4, "primary4", PRIMARY_DATA_TYPE, 4)))
+                new Tuple2<>(1, Arrays.asList(newRow(primaryOutputSchema, 1, "primary1", PRIMARY_DATA_TYPE))),
+                new Tuple2<>(2, Arrays.asList(newRow(primaryOutputSchema, 2, "primary2", PRIMARY_DATA_TYPE))),
+                new Tuple2<>(3, Arrays.asList(newRow(primaryOutputSchema, 3, "primary3", PRIMARY_DATA_TYPE))),
+                new Tuple2<>(4, Arrays.asList(newRow(primaryOutputSchema, 4, "primary4", PRIMARY_DATA_TYPE)))
         );
 
         assertOutput(expected, actual);
@@ -205,22 +201,22 @@ public class ContextRetrieverTest {
 
         List<Tuple2<Object, List<Row>>> expected = Arrays.asList(
                 new Tuple2<>(1, Arrays.asList(
-                        newRow(primaryOutputSchema, 1, "primary1", PRIMARY_DATA_TYPE, 1),
-                        newRow(directRelatedOutputSchema, 1, "direct11", DIRECT_RELATED_DATA_TYPE, 1),
-                        newRow(directRelatedOutputSchema, 1, "direct12", DIRECT_RELATED_DATA_TYPE, 1),
-                        newRow(directRelatedOutputSchema, 1, "direct13", DIRECT_RELATED_DATA_TYPE, 1)
+                        newRow(primaryOutputSchema, 1, "primary1", PRIMARY_DATA_TYPE),
+                        newRow(directRelatedOutputSchema, 1, "direct11", DIRECT_RELATED_DATA_TYPE),
+                        newRow(directRelatedOutputSchema, 1, "direct12", DIRECT_RELATED_DATA_TYPE),
+                        newRow(directRelatedOutputSchema, 1, "direct13", DIRECT_RELATED_DATA_TYPE)
                 )),
                 new Tuple2<>(2, Arrays.asList(
-                        newRow(primaryOutputSchema, 2, "primary2", PRIMARY_DATA_TYPE, 2),
-                        newRow(directRelatedOutputSchema, 2, "direct21", DIRECT_RELATED_DATA_TYPE, 2),
-                        newRow(directRelatedOutputSchema, 2, "direct22", DIRECT_RELATED_DATA_TYPE, 2)
+                        newRow(primaryOutputSchema, 2, "primary2", PRIMARY_DATA_TYPE),
+                        newRow(directRelatedOutputSchema, 2, "direct21", DIRECT_RELATED_DATA_TYPE),
+                        newRow(directRelatedOutputSchema, 2, "direct22", DIRECT_RELATED_DATA_TYPE)
                 )),
                 new Tuple2<>(3, Arrays.asList(
-                        newRow(primaryOutputSchema, 3, "primary3", PRIMARY_DATA_TYPE, 3),
-                        newRow(directRelatedOutputSchema, 3, "direct31", DIRECT_RELATED_DATA_TYPE, 3)
+                        newRow(primaryOutputSchema, 3, "primary3", PRIMARY_DATA_TYPE),
+                        newRow(directRelatedOutputSchema, 3, "direct31", DIRECT_RELATED_DATA_TYPE)
                 )),
                 new Tuple2<>(4, Arrays.asList(
-                        newRow(primaryOutputSchema, 4, "primary4", PRIMARY_DATA_TYPE, 4)
+                        newRow(primaryOutputSchema, 4, "primary4", PRIMARY_DATA_TYPE)
                 ))
         );
 
@@ -280,19 +276,19 @@ public class ContextRetrieverTest {
 
         List<Tuple2<Object, List<Row>>> expected = Arrays.asList(
                 new Tuple2<>(1, Arrays.asList(
-                        newRow(primaryOutputSchema, 1, "primary1", PRIMARY_DATA_TYPE, 1)
+                        newRow(primaryOutputSchema, 1, "primary1", PRIMARY_DATA_TYPE)
                 )),
                 new Tuple2<>(2, Arrays.asList(
-                        newRow(primaryOutputSchema, 2, "primary2", PRIMARY_DATA_TYPE, 2),
+                        newRow(primaryOutputSchema, 2, "primary2", PRIMARY_DATA_TYPE),
                         newRow(indirectRelatedOutputSchema, 21, "indirect21", INDIRECT_RELATED_DATA_TYPE, 2)
                 )),
                 new Tuple2<>(3, Arrays.asList(
-                        newRow(primaryOutputSchema, 3, "primary3", PRIMARY_DATA_TYPE, 3),
+                        newRow(primaryOutputSchema, 3, "primary3", PRIMARY_DATA_TYPE),
                         newRow(indirectRelatedOutputSchema, 31, "indirect31", INDIRECT_RELATED_DATA_TYPE, 3),
                         newRow(indirectRelatedOutputSchema, 32, "indirect32", INDIRECT_RELATED_DATA_TYPE, 3)
                 )),
                 new Tuple2<>(4, Arrays.asList(
-                        newRow(primaryOutputSchema, 4, "primary4", PRIMARY_DATA_TYPE, 4),
+                        newRow(primaryOutputSchema, 4, "primary4", PRIMARY_DATA_TYPE),
                         newRow(indirectRelatedOutputSchema, 41, "indirect41", INDIRECT_RELATED_DATA_TYPE, 4),
                         newRow(indirectRelatedOutputSchema, 42, "indirect42", INDIRECT_RELATED_DATA_TYPE, 4),
                         newRow(indirectRelatedOutputSchema, 43, "indirect43", INDIRECT_RELATED_DATA_TYPE, 4)
@@ -369,31 +365,31 @@ public class ContextRetrieverTest {
 
         List<Tuple2<Object, List<Row>>> expected = Arrays.asList(
                 new Tuple2<>(1, Arrays.asList(
-                        newRow(primaryOutputSchema, 1, "primary1", PRIMARY_DATA_TYPE, 1),
-                        newRow(directRelatedOutputSchema, 1, "direct11", DIRECT_RELATED_DATA_TYPE, 1),
-                        newRow(directRelatedOutputSchema, 1, "direct12", DIRECT_RELATED_DATA_TYPE, 1),
-                        newRow(directRelatedOutputSchema, 1, "direct13", DIRECT_RELATED_DATA_TYPE, 1)
+                        newRow(primaryOutputSchema, 1, "primary1", PRIMARY_DATA_TYPE),
+                        newRow(directRelatedOutputSchema, 1, "direct11", DIRECT_RELATED_DATA_TYPE),
+                        newRow(directRelatedOutputSchema, 1, "direct12", DIRECT_RELATED_DATA_TYPE),
+                        newRow(directRelatedOutputSchema, 1, "direct13", DIRECT_RELATED_DATA_TYPE)
                 )),
                 new Tuple2<>(2, Arrays.asList(
-                        newRow(primaryOutputSchema, 2, "primary2", PRIMARY_DATA_TYPE, 2),
-                        newRow(directRelatedOutputSchema, 2, "direct21", DIRECT_RELATED_DATA_TYPE, 2),
-                        newRow(directRelatedOutputSchema, 2, "direct22", DIRECT_RELATED_DATA_TYPE, 2),
+                        newRow(primaryOutputSchema, 2, "primary2", PRIMARY_DATA_TYPE),
+                        newRow(directRelatedOutputSchema, 2, "direct21", DIRECT_RELATED_DATA_TYPE),
+                        newRow(directRelatedOutputSchema, 2, "direct22", DIRECT_RELATED_DATA_TYPE),
                         newRow(indirectRelatedOutputSchema, 21, "indirect21", INDIRECT_RELATED_DATA_TYPE, 2)
                 )),
                 new Tuple2<>(3, Arrays.asList(
-                        newRow(primaryOutputSchema, 3, "primary3", PRIMARY_DATA_TYPE, 3),
-                        newRow(directRelatedOutputSchema, 3, "direct31", DIRECT_RELATED_DATA_TYPE, 3),
+                        newRow(primaryOutputSchema, 3, "primary3", PRIMARY_DATA_TYPE),
+                        newRow(directRelatedOutputSchema, 3, "direct31", DIRECT_RELATED_DATA_TYPE),
                         newRow(indirectRelatedOutputSchema, 31, "indirect31", INDIRECT_RELATED_DATA_TYPE, 3),
                         newRow(indirectRelatedOutputSchema, 32, "indirect32", INDIRECT_RELATED_DATA_TYPE, 3)
                 )),
                 new Tuple2<>(4, Arrays.asList(
-                        newRow(primaryOutputSchema, 4, "primary4", PRIMARY_DATA_TYPE, 4),
+                        newRow(primaryOutputSchema, 4, "primary4", PRIMARY_DATA_TYPE),
                         newRow(indirectRelatedOutputSchema, 41, "indirect41", INDIRECT_RELATED_DATA_TYPE, 4),
                         newRow(indirectRelatedOutputSchema, 42, "indirect42", INDIRECT_RELATED_DATA_TYPE, 4),
                         newRow(indirectRelatedOutputSchema, 43, "indirect43", INDIRECT_RELATED_DATA_TYPE, 4)
                 )),
                 new Tuple2<>(5, Arrays.asList(
-                        newRow(primaryOutputSchema, 5, "primary5", PRIMARY_DATA_TYPE, 5)
+                        newRow(primaryOutputSchema, 5, "primary5", PRIMARY_DATA_TYPE)
                 ))
         );
 
