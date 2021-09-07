@@ -150,7 +150,6 @@ public class ContextRetrieverTest {
 
         List<Tuple2<Object, List<Row>>> actual = contextRetriever.retrieveContext(contextDefinition).collect();
 
-        // TODO: Does the primary _really_ need the context value twice...can we be smarter?
         List<Tuple2<Object, List<Row>>> expected = Arrays.asList(
                 new Tuple2<>(1, Arrays.asList(newRow(primaryOutputSchema, 1, "primary1", PRIMARY_DATA_TYPE))),
                 new Tuple2<>(2, Arrays.asList(newRow(primaryOutputSchema, 2, "primary2", PRIMARY_DATA_TYPE))),
