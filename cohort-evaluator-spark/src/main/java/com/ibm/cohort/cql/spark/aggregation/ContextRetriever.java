@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 public class ContextRetriever {
 
     public static final String SOURCE_FACT_IDX = "__SOURCE_FACT";
-    public static final String CONTEXT_VALUE_IDX = "__CONTEXT_VALUE";
+    public static final String INDIRECT_CONTEXT_VALUE_IDX = "__INDIRECT_CONTEXT_VALUE";
 
     private final Map<String, String> inputPaths;
     private final DatasetRetriever datasetRetriever;
@@ -36,13 +36,7 @@ public class ContextRetriever {
     }
 
     public JavaPairRDD<Object, List<Row>> retrieveContext(ContextDefinition contextDefinition) {
-        List<Dataset<Row>> datasets = gatherDatasets(contextDefinition);
-
-//        String primaryKeyColumn = contextDefinition.getPrimaryKeyColumn();
-//        String primaryKeyColumn = "__KWAS";
-        List<JavaPairRDD<Object, Row>> rddList = datasets.stream()
-                .map(x -> toPairRDD(x, CONTEXT_VALUE_IDX))
-                .collect(Collectors.toList());
+        List<JavaPairRDD<Object, Row>> rddList = gatherRDDs(contextDefinition);
 
         JavaPairRDD<Object, Row> allData = unionPairRDDs(rddList);
 
@@ -63,15 +57,13 @@ public class ContextRetriever {
         return retVal;
     }
 
-    private List<Dataset<Row>> gatherDatasets(ContextDefinition contextDefinition) {
-        List<Dataset<Row>> datasets = new ArrayList<>();
+    private List<JavaPairRDD<Object, Row>> gatherRDDs(ContextDefinition contextDefinition) {
+        List<JavaPairRDD<Object, Row>> datasets = new ArrayList<>();
 
         String primaryKeyColumn = contextDefinition.getPrimaryKeyColumn();
         String primaryDataType = contextDefinition.getPrimaryDataType();
         Dataset<Row> primaryDataset = readDataset(primaryDataType);
-        primaryDataset = primaryDataset.withColumn(CONTEXT_VALUE_IDX, primaryDataset.col(primaryKeyColumn));
-        // TODO: Select the primary column into a new standardized join column name??
-        datasets.add(primaryDataset);
+        datasets.add(toPairRDD(primaryDataset, primaryKeyColumn));
 
         for (Join join : contextDefinition.getRelationships()) {
             String primaryJoinColumn = join.getPrimaryDataTypeColumn() == null
@@ -82,10 +74,16 @@ public class ContextRetriever {
             Dataset<Row> relatedDataset = readDataset(relatedDataType);
             Dataset<Row> joinedDataset;
 
+            List<Column> retainedColumns = Arrays.stream(relatedDataset.columns())
+                    .map(relatedDataset::col)
+                    .collect(Collectors.toCollection(ArrayList::new));
+
+            String contextColumn;
             if (join.getClass() == OneToMany.class) {
                 Column joinCriteria = primaryDataset.col(primaryJoinColumn)
                         .equalTo(relatedDataset.col(relatedColumnName));
                 joinedDataset = primaryDataset.join(relatedDataset, joinCriteria);
+                contextColumn = relatedColumnName;
             }
             else if (join.getClass() == ManyToMany.class) {
                 ManyToMany manyToMany = (ManyToMany)join;
@@ -104,26 +102,22 @@ public class ContextRetriever {
                 Column relatedJoinCriteria = joinedDataset.col(assocRelatedColumnName)
                         .equalTo(relatedDataset.col(relatedColumnName));
                 joinedDataset = joinedDataset.join(relatedDataset, relatedJoinCriteria);
+
+                // We need to retain the original context value from the primary datatype.
+                // This is done by adding a "placeholder column" that selects the context value.
+                // This is needed when we retain only the columns from the related dataset.
+                retainedColumns.add(primaryDataset.col(primaryJoinColumn).as(INDIRECT_CONTEXT_VALUE_IDX));
+
+                contextColumn = INDIRECT_CONTEXT_VALUE_IDX;
             }
             else {
                 throw new RuntimeException("Unexpected Join Type: " + join.getClass().getName());
             }
 
-            // Somewhat chunky due to Spark expecting Arrays instead of Collections
-            Column[] relatedColumns = Arrays.stream(relatedDataset.columns())
-                    .map(relatedDataset::col)
-                    .toArray(Column[]::new);
-            List<Column> allColumns = new ArrayList<>();
-            // TODO: Rename column to something internal via `.as()`
-            // This doesn't handle the primary data type though.
-//            allColumns.add(primaryDataset.col(primaryJoinColumn));
-            allColumns.addAll(Arrays.asList(relatedColumns));
-            allColumns.add(primaryDataset.col(primaryJoinColumn).as(CONTEXT_VALUE_IDX));
-            Column[] selectColumns = allColumns.toArray(new Column[0]);
+            Column[] columnArray = retainedColumns.toArray(new Column[0]);
+            joinedDataset = joinedDataset.select(columnArray);
 
-            joinedDataset = joinedDataset.select(selectColumns);
-
-            datasets.add(joinedDataset);
+            datasets.add(toPairRDD(joinedDataset, contextColumn));
         }
 
         return datasets;
@@ -155,7 +149,6 @@ public class ContextRetriever {
     }
 
     private JavaPairRDD<Object, Row> toPairRDD(Dataset<Row> dataset, String contextColumn) {
-        // TODO: I'm pretty sure columns cannot be duplicate past this point
         return dataset.javaRDD().mapToPair(row -> {
             Object joinValue = row.getAs(contextColumn);
             return new Tuple2<>(joinValue, row);
