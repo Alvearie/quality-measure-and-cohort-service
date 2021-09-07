@@ -6,23 +6,17 @@
 
 package com.ibm.cohort.cql.spark.aggregation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.cql.spark.data.CsvDatasetRetriever;
 import com.ibm.cohort.cql.spark.data.DatasetRetriever;
-import com.ibm.cohort.cql.spark.SparkCqlEvaluator;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.functions;
 import scala.Tuple2;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -31,31 +25,6 @@ import java.util.stream.Collectors;
 public class ContextRetriever {
 
     public static final String SOURCE_FACT_IDX = "__SOURCE_FACT";
-
-    // TODO: Remove once unit tests are spun up
-    public static void main(String[] args) throws Exception {
-        Map<String, String> inputPaths = new HashMap<>();
-        inputPaths.put("Primary", "/Users/dkwasny/ScratchSpace/joinstuff/test-inputs/primary.csv");
-        inputPaths.put("Related", "/Users/dkwasny/ScratchSpace/joinstuff/test-inputs/related.csv");
-        inputPaths.put("Assoc", "/Users/dkwasny/ScratchSpace/joinstuff/test-inputs/assoc.csv");
-        inputPaths.put("AssocOther", "/Users/dkwasny/ScratchSpace/joinstuff/test-inputs/assoc-other.csv");
-        inputPaths.put("AssocRelated", "/Users/dkwasny/ScratchSpace/joinstuff/test-inputs/assoc-related.csv");
-
-        SparkSession spark = SparkSession.builder()
-                .appName("Local Application")
-                .master("local[1]")
-                .config("spark.sql.shuffle.partitions", 10)
-                .getOrCreate();
-        DatasetRetriever datasetRetriever = new CsvDatasetRetriever(spark);
-        ContextRetriever factory = new ContextRetriever(inputPaths, datasetRetriever);
-
-        ObjectMapper mapper = new ObjectMapper();
-        File contextFile = new File("/Users/dkwasny/ScratchSpace/joinstuff/test-inputs/contexts.json");
-        ContextDefinition contextDefinition = mapper.readValue(contextFile, ContextDefinition.class);
-
-        JavaPairRDD<Object, List<Row>> allData = factory.retrieveContext(contextDefinition);
-        allData.collect().forEach(System.out::println);
-    }
 
     private final Map<String, String> inputPaths;
     private final DatasetRetriever datasetRetriever;
@@ -69,6 +38,7 @@ public class ContextRetriever {
         List<Dataset<Row>> datasets = gatherDatasets(contextDefinition);
 
         String primaryKeyColumn = contextDefinition.getPrimaryKeyColumn();
+//        String primaryKeyColumn = "__KWAS";
         List<JavaPairRDD<Object, Row>> rddList = datasets.stream()
                 .map(x -> toPairRDD(x, primaryKeyColumn))
                 .collect(Collectors.toList());
@@ -98,6 +68,8 @@ public class ContextRetriever {
         String primaryKeyColumn = contextDefinition.getPrimaryKeyColumn();
         String primaryDataType = contextDefinition.getPrimaryDataType();
         Dataset<Row> primaryDataset = readDataset(primaryDataType);
+//        primaryDataset = primaryDataset.withColumn("__KWAS", primaryDataset.col(primaryKeyColumn));
+        // TODO: Select the primary column into a new standardized join column name??
         datasets.add(primaryDataset);
 
         for (Join join : contextDefinition.getRelationships()) {
@@ -141,7 +113,10 @@ public class ContextRetriever {
                     .map(relatedDataset::col)
                     .toArray(Column[]::new);
             List<Column> allColumns = new ArrayList<>();
+            // TODO: Rename column to something internal via `.as()`
+            // This doesn't handle the primary data type though.
             allColumns.add(primaryDataset.col(primaryJoinColumn));
+//            allColumns.add(primaryDataset.col(primaryJoinColumn).as("__KWAS"));
             allColumns.addAll(Arrays.asList(relatedColumns));
             Column[] selectColumns = allColumns.toArray(new Column[0]);
 
@@ -179,6 +154,7 @@ public class ContextRetriever {
     }
 
     private JavaPairRDD<Object, Row> toPairRDD(Dataset<Row> dataset, String contextColumn) {
+        // TODO: I'm pretty sure columns cannot be duplicate past this point
         return dataset.javaRDD().mapToPair(row -> {
             Object joinValue = row.getAs(contextColumn);
             return new Tuple2<>(joinValue, row);
