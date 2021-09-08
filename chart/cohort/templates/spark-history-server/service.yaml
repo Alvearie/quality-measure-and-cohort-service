@@ -9,7 +9,7 @@ kind: Service
 metadata:
   name: {{ template "name" . }}-spark-history-service
   labels:
-    app: {{ template "name" . }}
+    app: {{ template "name" . }}-spark-history-server
     chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
@@ -21,6 +21,6 @@ spec:
     protocol: TCP
     name: {{ .Values.sparkHistoryServer.service.port.name }}
   selector:
-    app: {{ template "name" . }}
+    app: {{ template "name" . }}-spark-history-server
     release: {{ .Release.Name }}
 {{- end }}

@@ -24,12 +24,12 @@ spec:
   replicas: {{ .Values.sparkHistoryServer.replicaCount }}
   selector:
     matchLabels:
-      app: {{ template "name" . }}
+      app: {{ template "name" . }}-spark-history-server
       release: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ template "name" . }}
+        app: {{ template "name" . }}-spark-history-server
         release: {{ .Release.Name }}
     spec:
       nodeSelector:
