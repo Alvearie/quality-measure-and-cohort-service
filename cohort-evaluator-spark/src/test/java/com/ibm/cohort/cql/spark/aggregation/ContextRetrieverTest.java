@@ -29,6 +29,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// TODO: new cases
+// Multiple indirect joins?
+// Both direct and indirect that use
 public class ContextRetrieverTest {
 
     private static final String PRIMARY_NAME = "primaryName";
@@ -92,7 +95,8 @@ public class ContextRetrieverTest {
     private final StructType directRelatedOutputSchema = DataTypes.createStructType(Arrays.asList(
             DataTypes.createStructField(DIRECT_RELATED_KEY_COLUMN, DataTypes.IntegerType, false),
             DataTypes.createStructField(DIRECT_RELATED_DATA_COLUMN, DataTypes.StringType, false),
-            DataTypes.createStructField(ContextRetriever.SOURCE_FACT_IDX, DataTypes.StringType, false)
+            DataTypes.createStructField(ContextRetriever.SOURCE_FACT_IDX, DataTypes.StringType, false),
+            DataTypes.createStructField(ContextRetriever.JOIN_CONTEXT_VALUE_IDX, DataTypes.IntegerType, false)
     ));
 
     private final StructType assocInputSchema = DataTypes.createStructType(Arrays.asList(
@@ -108,7 +112,7 @@ public class ContextRetrieverTest {
             DataTypes.createStructField(INDIRECT_RELATED_KEY_COLUMN, DataTypes.IntegerType, false),
             DataTypes.createStructField(INDIRECT_RELATED_DATA_COLUMN, DataTypes.StringType, false),
             DataTypes.createStructField(ContextRetriever.SOURCE_FACT_IDX, DataTypes.StringType, false),
-            DataTypes.createStructField(ContextRetriever.INDIRECT_CONTEXT_VALUE_IDX, DataTypes.IntegerType, false)
+            DataTypes.createStructField(ContextRetriever.JOIN_CONTEXT_VALUE_IDX, DataTypes.IntegerType, false)
     ));
 
     private final Join directJoin = newOneToMany(
@@ -201,18 +205,18 @@ public class ContextRetrieverTest {
         List<Tuple2<Object, List<Row>>> expected = Arrays.asList(
                 new Tuple2<>(1, Arrays.asList(
                         newRow(primaryOutputSchema, 1, "primary1", PRIMARY_DATA_TYPE),
-                        newRow(directRelatedOutputSchema, 1, "direct11", DIRECT_RELATED_DATA_TYPE),
-                        newRow(directRelatedOutputSchema, 1, "direct12", DIRECT_RELATED_DATA_TYPE),
-                        newRow(directRelatedOutputSchema, 1, "direct13", DIRECT_RELATED_DATA_TYPE)
+                        newRow(directRelatedOutputSchema, 1, "direct11", DIRECT_RELATED_DATA_TYPE, 1),
+                        newRow(directRelatedOutputSchema, 1, "direct12", DIRECT_RELATED_DATA_TYPE, 1),
+                        newRow(directRelatedOutputSchema, 1, "direct13", DIRECT_RELATED_DATA_TYPE, 1)
                 )),
                 new Tuple2<>(2, Arrays.asList(
                         newRow(primaryOutputSchema, 2, "primary2", PRIMARY_DATA_TYPE),
-                        newRow(directRelatedOutputSchema, 2, "direct21", DIRECT_RELATED_DATA_TYPE),
-                        newRow(directRelatedOutputSchema, 2, "direct22", DIRECT_RELATED_DATA_TYPE)
+                        newRow(directRelatedOutputSchema, 2, "direct21", DIRECT_RELATED_DATA_TYPE, 2),
+                        newRow(directRelatedOutputSchema, 2, "direct22", DIRECT_RELATED_DATA_TYPE, 2)
                 )),
                 new Tuple2<>(3, Arrays.asList(
                         newRow(primaryOutputSchema, 3, "primary3", PRIMARY_DATA_TYPE),
-                        newRow(directRelatedOutputSchema, 3, "direct31", DIRECT_RELATED_DATA_TYPE)
+                        newRow(directRelatedOutputSchema, 3, "direct31", DIRECT_RELATED_DATA_TYPE, 3)
                 )),
                 new Tuple2<>(4, Arrays.asList(
                         newRow(primaryOutputSchema, 4, "primary4", PRIMARY_DATA_TYPE)
@@ -365,19 +369,19 @@ public class ContextRetrieverTest {
         List<Tuple2<Object, List<Row>>> expected = Arrays.asList(
                 new Tuple2<>(1, Arrays.asList(
                         newRow(primaryOutputSchema, 1, "primary1", PRIMARY_DATA_TYPE),
-                        newRow(directRelatedOutputSchema, 1, "direct11", DIRECT_RELATED_DATA_TYPE),
-                        newRow(directRelatedOutputSchema, 1, "direct12", DIRECT_RELATED_DATA_TYPE),
-                        newRow(directRelatedOutputSchema, 1, "direct13", DIRECT_RELATED_DATA_TYPE)
+                        newRow(directRelatedOutputSchema, 1, "direct11", DIRECT_RELATED_DATA_TYPE, 1),
+                        newRow(directRelatedOutputSchema, 1, "direct12", DIRECT_RELATED_DATA_TYPE, 1),
+                        newRow(directRelatedOutputSchema, 1, "direct13", DIRECT_RELATED_DATA_TYPE, 1)
                 )),
                 new Tuple2<>(2, Arrays.asList(
                         newRow(primaryOutputSchema, 2, "primary2", PRIMARY_DATA_TYPE),
-                        newRow(directRelatedOutputSchema, 2, "direct21", DIRECT_RELATED_DATA_TYPE),
-                        newRow(directRelatedOutputSchema, 2, "direct22", DIRECT_RELATED_DATA_TYPE),
+                        newRow(directRelatedOutputSchema, 2, "direct21", DIRECT_RELATED_DATA_TYPE, 2),
+                        newRow(directRelatedOutputSchema, 2, "direct22", DIRECT_RELATED_DATA_TYPE, 2),
                         newRow(indirectRelatedOutputSchema, 21, "indirect21", INDIRECT_RELATED_DATA_TYPE, 2)
                 )),
                 new Tuple2<>(3, Arrays.asList(
                         newRow(primaryOutputSchema, 3, "primary3", PRIMARY_DATA_TYPE),
-                        newRow(directRelatedOutputSchema, 3, "direct31", DIRECT_RELATED_DATA_TYPE),
+                        newRow(directRelatedOutputSchema, 3, "direct31", DIRECT_RELATED_DATA_TYPE, 3),
                         newRow(indirectRelatedOutputSchema, 31, "indirect31", INDIRECT_RELATED_DATA_TYPE, 3),
                         newRow(indirectRelatedOutputSchema, 32, "indirect32", INDIRECT_RELATED_DATA_TYPE, 3)
                 )),
