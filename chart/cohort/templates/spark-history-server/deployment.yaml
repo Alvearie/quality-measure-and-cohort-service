@@ -1,0 +1,84 @@
+{{- if .Values.sparkHistoryServer.enabled -}}
+#
+# (C) Copyright IBM Corp. 2021, 2021
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "name" . }}-spark-history-deployment
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+  annotations:
+    TOOLCHAIN_ID: {{ .Values.annotations.TOOLCHAIN_ID }}
+    GIT_URL: {{ .Values.annotations.GIT_URL }}
+    GIT_BRANCH: {{ .Values.annotations.GIT_BRANCH }}
+    GIT_COMMIT: {{ .Values.annotations.GIT_COMMIT }}
+    USER_NAME: {{ .Values.annotations.USER_NAME }}
+    APPLICATION_VERSION: {{ .Values.annotations.APPLICATION_VERSION }}
+spec:
+  replicas: {{ .Values.sparkHistoryServer.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "name" . }}-spark-history-server
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "name" . }}-spark-history-server
+        release: {{ .Release.Name }}
+    spec:
+      nodeSelector:
+        worker-type: application
+      imagePullSecrets:
+      - name: {{ .Values.image.pullSecret }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ template "baseRepository" . }}/{{ .Values.sparkHistoryServer.image.name }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: SPARK_NO_DAEMONIZE
+          value: "true"
+        - name: AWS_BUCKET
+          value: {{ .Values.sparkHistoryServer.s3.bucket }}
+        - name: AWS_LOG_PATH
+          value: {{ .Values.sparkHistoryServer.s3.eventsDir }}
+        - name: AWS_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.sparkHistoryServer.s3.secret.name }}
+              key: {{ .Values.sparkHistoryServer.s3.secret.accessKeyId }}
+        - name: AWS_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.sparkHistoryServer.s3.secret.name }}
+              key: {{ .Values.sparkHistoryServer.s3.secret.secretKeyId }}
+        - name: AWS_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.sparkHistoryServer.s3.secret.name }}
+              key: {{ .Values.sparkHistoryServer.s3.secret.endpointId }}
+        ports:
+        - name: historyport
+          containerPort: 18080
+          protocol: TCP
+        resources:
+          requests:
+              cpu: {{ .Values.sparkHistoryServer.resources.requests.cpu }}
+              memory: {{ .Values.sparkHistoryServer.resources.requests.memory }}
+          limits:
+              cpu: {{ .Values.sparkHistoryServer.resources.limits.cpu }}
+              memory: {{ .Values.sparkHistoryServer.resources.limits.memory }}
+        livenessProbe:
+          httpGet:
+            path: /
+            port: historyport
+        readinessProbe:
+          httpGet:
+            path: /
+            port: historyport
+{{- end }}
