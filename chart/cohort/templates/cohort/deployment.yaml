@@ -20,7 +20,7 @@ metadata:
     USER_NAME: {{ .Values.annotations.USER_NAME }}
     APPLICATION_VERSION: {{ .Values.annotations.APPLICATION_VERSION }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.cohort.replicaCount }}
   selector:
     matchLabels:
       app: {{ template "name" . }}
@@ -36,20 +36,20 @@ spec:
       volumes:
         - name: secret-tls
           secret:
-            secretName: {{ .Values.internalTlsCertSecretName }}
+            secretName: {{ .Values.cohort.internalTlsCertSecretName }}
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: "{{ template "baseRepository" . }}/{{ .Values.cohort.image.name }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.cohort.image.pullPolicy }}
           env:
             - name: ENABLE_DARK_FEATURES
-              value: {{ .Values.enableDarkFeatures }}
+              value: {{ .Values.cohort.enableDarkFeatures }}
             - name: LIBERTY_INITIAL_HEAP_SIZE
-              value: {{ .Values.libertyInitialHeapSize }}
+              value: {{ .Values.cohort.libertyInitialHeapSize }}
             - name: LIBERTY_MAX_HEAP_SIZE
-              value: {{ .Values.libertyMaxHeapSize }}
+              value: {{ .Values.cohort.libertyMaxHeapSize }}
           ports:
-          {{- range .Values.service.ports }}
+          {{- range .Values.cohort.service.ports }}
           - containerPort: {{ . }}
           {{- end }}
           volumeMounts:
@@ -75,4 +75,3 @@ spec:
             periodSeconds: 10
       nodeSelector:
         worker-type: application
-

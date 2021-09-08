@@ -5,10 +5,9 @@
 #
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
-# Should have at least 3 replicas so that they can be spread to different
-# zones and so that during upgrades, k8s can ensure at least 1 replica is running
-# while the others are being upgraded
-replicaCount: 3
+
+# common  #
+# ------- #
 annotations:
   TOOLCHAIN_ID: null
   GIT_URL: null
@@ -25,24 +24,64 @@ image:
   #didn't hardcode it in deployment.yaml, because it caused an error/warning in the toolchain insights console
   pullsecret: ibmcloud-toolchain-common-services-registry
   pullPolicy: IfNotPresent
-  imageName: cohort-app
 
-service:
-  type: ClusterIP
-  externalPort: 9443
-  ports:
-    - 9080
-    - 9443
+# cohort service  #
+# --------------- #
+cohort:
+  # Should have at least 3 replicas so that they can be spread to different
+  # zones and so that during upgrades, k8s can ensure at least 1 replica is running
+  # while the others are being upgraded
+  replicaCount: 3
+  image:
+    name: cohorting-app
 
-#overriden in config repo
-internalTlsCertSecretName: cohort-services-cohort-cohort-tls
+  service:
+    type: ClusterIP
+    externalPort: 9443
+    ports:
+      - 9080
+      - 9443
 
-# enableDarkFeatures is used to enable or disable REST endpoints depending on the env. we are deploying to
-# there are some REST endpoints we only want enabled in a development environment. The value ends up
-# in the jvm.options file the liberty server. Set to "all" "none" (no quotes) 
-# or the specific feature value you want to enable
-#overriden in config repo
-enableDarkFeatures: none
+  #overriden in config repo
+  internalTlsCertSecretName: cohort-services-cohort-cohort-tls
 
-libertyInitialHeapSize: 1G
-libertyMaxHeapSize: 2G
+  # enableDarkFeatures is used to enable or disable REST endpoints depending on the env. we are deploying to
+  # there are some REST endpoints we only want enabled in a development environment. The value ends up
+  # in the jvm.options file the liberty server. Set to "all" "none" (no quotes) 
+  # or the specific feature value you want to enable
+  enableDarkFeatures: none
+  
+  libertyInitialHeapSize: 1G
+  libertyMaxHeapSize: 2G
+
+# spark history server  #
+# --------------------- #
+sparkHistoryServer:
+  enabled: true
+  replicaCount: 1
+  
+  image:
+    name: spark-history-server
+  
+  service:
+    type: ClusterIP
+    port:
+      number: 18080
+      name: http-historyport
+  
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+  
+  s3:
+    secret:
+      name: spark-cos-secret
+      accessKeyId: AWS_ACCESS_KEY
+      secretKeyId: AWS_SECRET_KEY
+      endpointId: AWS_ENDPOINT
+    bucket: cohort-spark-history
+    eventsDir: "/"

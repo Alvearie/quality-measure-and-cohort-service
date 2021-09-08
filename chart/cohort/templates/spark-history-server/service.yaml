@@ -1,0 +1,26 @@
+{{- if .Values.sparkHistoryServer.enabled -}}
+#
+# (C) Copyright IBM Corp. 2021, 2021
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "name" . }}-spark-history-service
+  labels:
+    app: {{ template "name" . }}-spark-history-server
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.sparkHistoryServer.service.type }}
+  ports:
+  - port: {{ .Values.sparkHistoryServer.service.port.number }}
+    targetPort: historyport
+    protocol: TCP
+    name: {{ .Values.sparkHistoryServer.service.port.name }}
+  selector:
+    app: {{ template "name" . }}-spark-history-server
+    release: {{ .Release.Name }}
+{{- end }}
