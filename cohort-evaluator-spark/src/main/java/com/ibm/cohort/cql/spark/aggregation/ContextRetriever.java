@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 public class ContextRetriever {
 
     public static final String SOURCE_FACT_IDX = "__SOURCE_FACT";
-    public static final String INDIRECT_CONTEXT_VALUE_IDX = "__INDIRECT_CONTEXT_VALUE";
+    public static final String JOIN_CONTEXT_VALUE_IDX = "__JOIN_CONTEXT_VALUE";
 
     private final Map<String, String> inputPaths;
     private final DatasetRetriever datasetRetriever;
@@ -65,6 +65,11 @@ public class ContextRetriever {
         Dataset<Row> primaryDataset = readDataset(primaryDataType);
         datasets.add(toPairRDD(primaryDataset, primaryKeyColumn));
 
+        // We need to retain the original context value from the primary datatype.
+        // This is done by adding a "placeholder column" that selects the context value.
+        // This is needed when we retain only the columns from the related dataset.
+        Column joinContextColumn = primaryDataset.col(primaryKeyColumn).as(JOIN_CONTEXT_VALUE_IDX);
+
         for (Join join : contextDefinition.getRelationships()) {
             String primaryJoinColumn = join.getPrimaryDataTypeColumn() == null
                     ? primaryKeyColumn
@@ -74,16 +79,10 @@ public class ContextRetriever {
             Dataset<Row> relatedDataset = readDataset(relatedDataType);
             Dataset<Row> joinedDataset;
 
-            List<Column> retainedColumns = Arrays.stream(relatedDataset.columns())
-                    .map(relatedDataset::col)
-                    .collect(Collectors.toCollection(ArrayList::new));
-
-            String contextColumn;
             if (join.getClass() == OneToMany.class) {
                 Column joinCriteria = primaryDataset.col(primaryJoinColumn)
                         .equalTo(relatedDataset.col(relatedColumnName));
                 joinedDataset = primaryDataset.join(relatedDataset, joinCriteria);
-                contextColumn = relatedColumnName;
             }
             else if (join.getClass() == ManyToMany.class) {
                 ManyToMany manyToMany = (ManyToMany)join;
@@ -102,22 +101,19 @@ public class ContextRetriever {
                 Column relatedJoinCriteria = joinedDataset.col(assocRelatedColumnName)
                         .equalTo(relatedDataset.col(relatedColumnName));
                 joinedDataset = joinedDataset.join(relatedDataset, relatedJoinCriteria);
-
-                // We need to retain the original context value from the primary datatype.
-                // This is done by adding a "placeholder column" that selects the context value.
-                // This is needed when we retain only the columns from the related dataset.
-                retainedColumns.add(primaryDataset.col(primaryJoinColumn).as(INDIRECT_CONTEXT_VALUE_IDX));
-
-                contextColumn = INDIRECT_CONTEXT_VALUE_IDX;
             }
             else {
                 throw new RuntimeException("Unexpected Join Type: " + join.getClass().getName());
             }
 
+            List<Column> retainedColumns = Arrays.stream(relatedDataset.columns())
+                    .map(relatedDataset::col)
+                    .collect(Collectors.toCollection(ArrayList::new));
+            retainedColumns.add(joinContextColumn);
             Column[] columnArray = retainedColumns.toArray(new Column[0]);
             joinedDataset = joinedDataset.select(columnArray);
 
-            datasets.add(toPairRDD(joinedDataset, contextColumn));
+            datasets.add(toPairRDD(joinedDataset, JOIN_CONTEXT_VALUE_IDX));
         }
 
         return datasets;
