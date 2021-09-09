@@ -36,6 +36,8 @@ public class ContextRetriever {
     }
 
     public JavaPairRDD<Object, List<Row>> retrieveContext(ContextDefinition contextDefinition) {
+        // TODO: What about grouping first and then joining the rdds together?
+        // That might cause less serialization.
         List<JavaPairRDD<Object, Row>> rddList = gatherRDDs(contextDefinition);
 
         JavaPairRDD<Object, Row> allData = unionPairRDDs(rddList);
@@ -58,12 +60,12 @@ public class ContextRetriever {
     }
 
     private List<JavaPairRDD<Object, Row>> gatherRDDs(ContextDefinition contextDefinition) {
-        List<JavaPairRDD<Object, Row>> datasets = new ArrayList<>();
+        List<JavaPairRDD<Object, Row>> retVal = new ArrayList<>();
 
         String primaryKeyColumn = contextDefinition.getPrimaryKeyColumn();
         String primaryDataType = contextDefinition.getPrimaryDataType();
         Dataset<Row> primaryDataset = readDataset(primaryDataType);
-        datasets.add(toPairRDD(primaryDataset, primaryKeyColumn));
+        retVal.add(toPairRDD(primaryDataset, primaryKeyColumn));
 
         // We need to retain the original context value from the primary datatype.
         // This is done by adding a "placeholder column" that selects the context value.
@@ -113,10 +115,10 @@ public class ContextRetriever {
             Column[] columnArray = retainedColumns.toArray(new Column[0]);
             joinedDataset = joinedDataset.select(columnArray);
 
-            datasets.add(toPairRDD(joinedDataset, JOIN_CONTEXT_VALUE_IDX));
+            retVal.add(toPairRDD(joinedDataset, JOIN_CONTEXT_VALUE_IDX));
         }
 
-        return datasets;
+        return retVal;
     }
 
     /**
