@@ -72,50 +72,51 @@ public class ContextRetriever {
         // This is needed when we retain only the columns from the related dataset.
         Column joinContextColumn = primaryDataset.col(primaryKeyColumn).as(JOIN_CONTEXT_VALUE_IDX);
 
-        if (contextDefinition.getRelationships() != null) {
-            for (Join join : contextDefinition.getRelationships()) {
-                String primaryJoinColumn = join.getPrimaryDataTypeColumn() == null
-                        ? primaryKeyColumn
-                        : join.getPrimaryDataTypeColumn();
-                String relatedDataType = join.getRelatedDataType();
-                String relatedColumnName = join.getRelatedKeyColumn();
-                Dataset<Row> relatedDataset = readDataset(relatedDataType);
-                Dataset<Row> joinedDataset;
+        List<Join> joins = contextDefinition.getRelationships() == null
+                ? Collections.emptyList()
+                : contextDefinition.getRelationships();
+        for (Join join : joins) {
+            String primaryJoinColumn = join.getPrimaryDataTypeColumn() == null
+                    ? primaryKeyColumn
+                    : join.getPrimaryDataTypeColumn();
+            String relatedDataType = join.getRelatedDataType();
+            String relatedColumnName = join.getRelatedKeyColumn();
+            Dataset<Row> relatedDataset = readDataset(relatedDataType);
+            Dataset<Row> joinedDataset;
 
-                if (join.getClass() == OneToMany.class) {
-                    Column joinCriteria = primaryDataset.col(primaryJoinColumn)
-                            .equalTo(relatedDataset.col(relatedColumnName));
-                    joinedDataset = primaryDataset.join(relatedDataset, joinCriteria);
-                } else if (join.getClass() == ManyToMany.class) {
-                    ManyToMany manyToMany = (ManyToMany) join;
-                    String assocDataType = manyToMany.getAssociationDataType();
-                    Dataset<Row> assocDataset = readDataset(assocDataType);
-                    // TODO: Address naming.
-                    // I think something simple like "left" and "right" would be easier
-                    // to understand.
-                    String assocPrimaryColumnName = manyToMany.getAssociationOneKeyColumn();
-                    String assocRelatedColumnName = manyToMany.getAssociationManyKeyColumn();
+            if (join.getClass() == OneToMany.class) {
+                Column joinCriteria = primaryDataset.col(primaryJoinColumn)
+                        .equalTo(relatedDataset.col(relatedColumnName));
+                joinedDataset = primaryDataset.join(relatedDataset, joinCriteria);
+            } else if (join.getClass() == ManyToMany.class) {
+                ManyToMany manyToMany = (ManyToMany) join;
+                String assocDataType = manyToMany.getAssociationDataType();
+                Dataset<Row> assocDataset = readDataset(assocDataType);
+                // TODO: Address naming.
+                // I think something simple like "left" and "right" would be easier
+                // to understand.
+                String assocPrimaryColumnName = manyToMany.getAssociationOneKeyColumn();
+                String assocRelatedColumnName = manyToMany.getAssociationManyKeyColumn();
 
-                    Column primaryJoinCriteria = primaryDataset.col(primaryJoinColumn)
-                            .equalTo(assocDataset.col(assocPrimaryColumnName));
-                    joinedDataset = primaryDataset.join(assocDataset, primaryJoinCriteria);
+                Column primaryJoinCriteria = primaryDataset.col(primaryJoinColumn)
+                        .equalTo(assocDataset.col(assocPrimaryColumnName));
+                joinedDataset = primaryDataset.join(assocDataset, primaryJoinCriteria);
 
-                    Column relatedJoinCriteria = joinedDataset.col(assocRelatedColumnName)
-                            .equalTo(relatedDataset.col(relatedColumnName));
-                    joinedDataset = joinedDataset.join(relatedDataset, relatedJoinCriteria);
-                } else {
-                    throw new RuntimeException("Unexpected Join Type: " + join.getClass().getName());
-                }
-
-                List<Column> retainedColumns = Arrays.stream(relatedDataset.columns())
-                        .map(relatedDataset::col)
-                        .collect(Collectors.toCollection(ArrayList::new));
-                retainedColumns.add(joinContextColumn);
-                Column[] columnArray = retainedColumns.toArray(new Column[0]);
-                joinedDataset = joinedDataset.select(columnArray);
-
-                retVal.add(toPairRDD(joinedDataset, JOIN_CONTEXT_VALUE_IDX));
+                Column relatedJoinCriteria = joinedDataset.col(assocRelatedColumnName)
+                        .equalTo(relatedDataset.col(relatedColumnName));
+                joinedDataset = joinedDataset.join(relatedDataset, relatedJoinCriteria);
+            } else {
+                throw new RuntimeException("Unexpected Join Type: " + join.getClass().getName());
             }
+
+            List<Column> retainedColumns = Arrays.stream(relatedDataset.columns())
+                    .map(relatedDataset::col)
+                    .collect(Collectors.toCollection(ArrayList::new));
+            retainedColumns.add(joinContextColumn);
+            Column[] columnArray = retainedColumns.toArray(new Column[0]);
+            joinedDataset = joinedDataset.select(columnArray);
+
+            retVal.add(toPairRDD(joinedDataset, JOIN_CONTEXT_VALUE_IDX));
         }
 
         return retVal;
@@ -132,18 +133,24 @@ public class ContextRetriever {
     private JavaPairRDD<Object, List<Row>> groupPairRDDs(JavaPairRDD<Object, Row> allData) {
         // Regroup data by context ID so that all input data for the same
         // context is represented as a single key mapped to a list of rows
-        return allData.combineByKey(create -> {
-            List<Row> dataRowList = new ArrayList<>();
-            dataRowList.add(create);
-            return dataRowList;
-        }, (list, val) -> {
-            list.add(val);
-            return list;
-        }, (list1, list2) -> {
-            List<Row> dataRowList = new ArrayList<>(list1);
-            dataRowList.addAll(list2);
-            return dataRowList;
-        });
+        return allData.combineByKey(
+                (val) -> {
+                    List<Row> retVal = new ArrayList<>();
+                    retVal.add(val);
+                    return retVal;
+                },
+                (list, val) -> {
+                    list.add(val);
+                    return list;
+                },
+                (list1, list2) -> {
+                    int numRows = list1.size() + list2.size();
+                    List<Row> retVal = new ArrayList<>(numRows);
+                    retVal.addAll(list1);
+                    retVal.addAll(list2);
+                    return retVal;
+                }
+        );
     }
 
     private JavaPairRDD<Object, Row> toPairRDD(Dataset<Row> dataset, String contextColumn) {
