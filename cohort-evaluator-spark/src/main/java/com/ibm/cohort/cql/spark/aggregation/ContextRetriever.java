@@ -72,50 +72,50 @@ public class ContextRetriever {
         // This is needed when we retain only the columns from the related dataset.
         Column joinContextColumn = primaryDataset.col(primaryKeyColumn).as(JOIN_CONTEXT_VALUE_IDX);
 
-        for (Join join : contextDefinition.getRelationships()) {
-            String primaryJoinColumn = join.getPrimaryDataTypeColumn() == null
-                    ? primaryKeyColumn
-                    : join.getPrimaryDataTypeColumn();
-            String relatedDataType = join.getRelatedDataType();
-            String relatedColumnName = join.getRelatedKeyColumn();
-            Dataset<Row> relatedDataset = readDataset(relatedDataType);
-            Dataset<Row> joinedDataset;
+        if (contextDefinition.getRelationships() != null) {
+            for (Join join : contextDefinition.getRelationships()) {
+                String primaryJoinColumn = join.getPrimaryDataTypeColumn() == null
+                        ? primaryKeyColumn
+                        : join.getPrimaryDataTypeColumn();
+                String relatedDataType = join.getRelatedDataType();
+                String relatedColumnName = join.getRelatedKeyColumn();
+                Dataset<Row> relatedDataset = readDataset(relatedDataType);
+                Dataset<Row> joinedDataset;
 
-            if (join.getClass() == OneToMany.class) {
-                Column joinCriteria = primaryDataset.col(primaryJoinColumn)
-                        .equalTo(relatedDataset.col(relatedColumnName));
-                joinedDataset = primaryDataset.join(relatedDataset, joinCriteria);
+                if (join.getClass() == OneToMany.class) {
+                    Column joinCriteria = primaryDataset.col(primaryJoinColumn)
+                            .equalTo(relatedDataset.col(relatedColumnName));
+                    joinedDataset = primaryDataset.join(relatedDataset, joinCriteria);
+                } else if (join.getClass() == ManyToMany.class) {
+                    ManyToMany manyToMany = (ManyToMany) join;
+                    String assocDataType = manyToMany.getAssociationDataType();
+                    Dataset<Row> assocDataset = readDataset(assocDataType);
+                    // TODO: Address naming.
+                    // I think something simple like "left" and "right" would be easier
+                    // to understand.
+                    String assocPrimaryColumnName = manyToMany.getAssociationOneKeyColumn();
+                    String assocRelatedColumnName = manyToMany.getAssociationManyKeyColumn();
+
+                    Column primaryJoinCriteria = primaryDataset.col(primaryJoinColumn)
+                            .equalTo(assocDataset.col(assocPrimaryColumnName));
+                    joinedDataset = primaryDataset.join(assocDataset, primaryJoinCriteria);
+
+                    Column relatedJoinCriteria = joinedDataset.col(assocRelatedColumnName)
+                            .equalTo(relatedDataset.col(relatedColumnName));
+                    joinedDataset = joinedDataset.join(relatedDataset, relatedJoinCriteria);
+                } else {
+                    throw new RuntimeException("Unexpected Join Type: " + join.getClass().getName());
+                }
+
+                List<Column> retainedColumns = Arrays.stream(relatedDataset.columns())
+                        .map(relatedDataset::col)
+                        .collect(Collectors.toCollection(ArrayList::new));
+                retainedColumns.add(joinContextColumn);
+                Column[] columnArray = retainedColumns.toArray(new Column[0]);
+                joinedDataset = joinedDataset.select(columnArray);
+
+                retVal.add(toPairRDD(joinedDataset, JOIN_CONTEXT_VALUE_IDX));
             }
-            else if (join.getClass() == ManyToMany.class) {
-                ManyToMany manyToMany = (ManyToMany)join;
-                String assocDataType = manyToMany.getAssociationDataType();
-                Dataset<Row> assocDataset = readDataset(assocDataType);
-                // TODO: Address naming.
-                // I think something simple like "left" and "right" would be easier
-                // to understand.
-                String assocPrimaryColumnName = manyToMany.getAssociationOneKeyColumn();
-                String assocRelatedColumnName = manyToMany.getAssociationManyKeyColumn();
-
-                Column primaryJoinCriteria = primaryDataset.col(primaryJoinColumn)
-                        .equalTo(assocDataset.col(assocPrimaryColumnName));
-                joinedDataset = primaryDataset.join(assocDataset, primaryJoinCriteria);
-
-                Column relatedJoinCriteria = joinedDataset.col(assocRelatedColumnName)
-                        .equalTo(relatedDataset.col(relatedColumnName));
-                joinedDataset = joinedDataset.join(relatedDataset, relatedJoinCriteria);
-            }
-            else {
-                throw new RuntimeException("Unexpected Join Type: " + join.getClass().getName());
-            }
-
-            List<Column> retainedColumns = Arrays.stream(relatedDataset.columns())
-                    .map(relatedDataset::col)
-                    .collect(Collectors.toCollection(ArrayList::new));
-            retainedColumns.add(joinContextColumn);
-            Column[] columnArray = retainedColumns.toArray(new Column[0]);
-            joinedDataset = joinedDataset.select(columnArray);
-
-            retVal.add(toPairRDD(joinedDataset, JOIN_CONTEXT_VALUE_IDX));
         }
 
         return retVal;
