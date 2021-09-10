@@ -89,8 +89,8 @@ COPY --chown=root:root target/lib/*.jar $SPARK_HOME/jars/
 # Copy the main jar into the jars directory of spark home
 COPY --chown=root:root target/cohort-evaluator-spark-*.jar $SPARK_HOME/jars/
 
-# Copy metrics propertie to enable sending monitoring metrics to Prometheus
-COPY --chown=root:root $SPARK_HOME/conf/metrics.properties.template $SPARK_HOME/conf/metrics.properties
+# Copy metrics properties to enable sending monitoring metrics to Prometheus
+RUN mv $SPARK_HOME/conf/metrics.properties.template $SPARK_HOME/conf/metrics.properties
 # Add spark metrics properties. These properties are commented out in the metrics.properties file
 # if the spark version changes, we should ensure that these are the same properties required
 RUN echo "*.sink.prometheusServlet.class=org.apache.spark.metrics.sink.PrometheusServlet" >> "$SPARK_HOME/conf/metrics.properties" &&\
