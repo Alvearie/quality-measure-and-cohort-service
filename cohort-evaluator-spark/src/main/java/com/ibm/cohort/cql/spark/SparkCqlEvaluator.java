@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 import com.ibm.cohort.cql.spark.aggregation.ContextRetriever;
 import com.ibm.cohort.cql.spark.data.DatasetRetriever;
-import com.ibm.cohort.cql.spark.data.ParquetDatasetRetriever;
+import com.ibm.cohort.cql.spark.data.DefaultDatasetRetriever;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -171,7 +171,7 @@ public class SparkCqlEvaluator implements Serializable {
 
             final LongAccumulator contextAccum = spark.sparkContext().longAccumulator("Context");
             final LongAccumulator perContextAccum = spark.sparkContext().longAccumulator("PerContext");
-            DatasetRetriever datasetRetriever = new ParquetDatasetRetriever(spark);
+            DatasetRetriever datasetRetriever = new DefaultDatasetRetriever(spark, inputFormat);
             ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever);
             for (ContextDefinition context : filteredContexts) {
                 final String contextName = context.getName();
