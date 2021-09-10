@@ -16,6 +16,10 @@ public class DefaultDatasetRetriever implements DatasetRetriever {
     private final SparkSession spark;
     private final String inputFormat;
 
+    public DefaultDatasetRetriever(SparkSession spark) {
+        this(spark, null);
+    }
+
     public DefaultDatasetRetriever(SparkSession spark, String inputFormat) {
         this.spark = spark;
         this.inputFormat = inputFormat;
