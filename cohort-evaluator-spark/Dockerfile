@@ -93,10 +93,10 @@ COPY --chown=root:root target/cohort-evaluator-spark-*.jar $SPARK_HOME/jars/
 COPY --chown=root:root $SPARK_HOME/conf/metrics.properties.template $SPARK_HOME/conf/metrics.properties
 # Add spark metrics properties. These properties are commented out in the metrics.properties file
 # if the spark version changes, we should ensure that these are the same properties required
-RUN echo '*.sink.prometheusServlet.class=org.apache.spark.metrics.sink.PrometheusServlet' >> $SPARK_HOME/conf/metrics.properties &&\
-    echo '*.sink.prometheusServlet.path=/metrics/prometheus' >> $SPARK_HOME/conf/metrics.properties &&\
-    echo 'master.sink.prometheusServlet.path=/metrics/master/prometheus' >> $SPARK_HOME/conf/metrics.properties &&\
-    echo 'applications.sink.prometheusServlet.path=/metrics/applications/prometheus' >> $SPARK_HOME/conf/metrics.properties
+RUN echo "*.sink.prometheusServlet.class=org.apache.spark.metrics.sink.PrometheusServlet" >> $SPARK_HOME/conf/metrics.properties &&\
+    echo "*.sink.prometheusServlet.path=/metrics/prometheus" >> $SPARK_HOME/conf/metrics.properties &&\
+    echo "master.sink.prometheusServlet.path=/metrics/master/prometheus" >> $SPARK_HOME/conf/metrics.properties &&\
+    echo "applications.sink.prometheusServlet.path=/metrics/applications/prometheus" >> $SPARK_HOME/conf/metrics.properties
 
 # Go back to the spark user for when a container is created
 USER spark
