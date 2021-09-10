@@ -8,6 +8,9 @@
 ARG BASE_IMAGE=registry.access.redhat.com/ubi8
 ARG BASE_IMAGE_VERSION=8.4-206.1626828523
 
+# If the spark version changes. be sure to double check that the metrics.properties entries
+# That are added below are still the same ones needed. They should be provided in the
+# metrics.properties.template file, but are commented out
 ARG SPARK_VERSION=spark-3.1.2
 ARG SPARK_DIST=bin-hadoop3.2
 ARG SPARK_UID=185
@@ -85,6 +88,15 @@ COPY --chown=root:root target/lib/*.jar $SPARK_HOME/jars/
 
 # Copy the main jar into the jars directory of spark home
 COPY --chown=root:root target/cohort-evaluator-spark-*.jar $SPARK_HOME/jars/
+
+# Copy metrics propertie to enable sending monitoring metrics to Prometheus
+COPY --chown=root:root $SPARK_HOME/conf/metrics.properties.template $SPARK_HOME/conf/metrics.properties
+# Add spark metrics properties. These properties are commented out in the metrics.properties file
+# if the spark version changes, we should ensure that these are the same properties required
+RUN echo '*.sink.prometheusServlet.class=org.apache.spark.metrics.sink.PrometheusServlet' >> $SPARK_HOME/conf/metrics.properties &&\
+    echo '*.sink.prometheusServlet.path=/metrics/prometheus' >> $SPARK_HOME/conf/metrics.properties &&\
+    echo 'master.sink.prometheusServlet.path=/metrics/master/prometheus' >> $SPARK_HOME/conf/metrics.properties &&\
+    echo 'applications.sink.prometheusServlet.path=/metrics/applications/prometheus' >> $SPARK_HOME/conf/metrics.properties
 
 # Go back to the spark user for when a container is created
 USER spark
