@@ -312,6 +312,7 @@ public class ContextRetrieverTest {
                 RowFactory.create(2, 21),
                 RowFactory.create(3, 31),
                 RowFactory.create(3, 32),
+                RowFactory.create(4, 32),
                 RowFactory.create(4, 41),
                 RowFactory.create(4, 42),
                 RowFactory.create(4, 43),
@@ -363,6 +364,7 @@ public class ContextRetrieverTest {
                 )),
                 new Tuple2<>(4, Arrays.asList(
                         newRow(primaryOutputSchema, 4, 4, "primary4", PRIMARY_DATA_TYPE),
+                        newRow(indirectRelatedOutputSchema, 32, "indirect32", INDIRECT_RELATED_DATA_TYPE, 4),
                         newRow(indirectRelatedOutputSchema, 41, "indirect41", INDIRECT_RELATED_DATA_TYPE, 4),
                         newRow(indirectRelatedOutputSchema, 42, "indirect42", INDIRECT_RELATED_DATA_TYPE, 4),
                         newRow(indirectRelatedOutputSchema, 43, "indirect43", INDIRECT_RELATED_DATA_TYPE, 4)
