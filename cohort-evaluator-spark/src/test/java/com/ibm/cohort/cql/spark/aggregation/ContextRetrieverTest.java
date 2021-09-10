@@ -154,7 +154,7 @@ public class ContextRetrieverTest {
                 PRIMARY_NAME,
                 PRIMARY_DATA_TYPE,
                 PRIMARY_KEY_COLUMN,
-                Collections.emptyList()
+                null
         );
 
         List<Tuple2<Object, List<Row>>> actual = contextRetriever.retrieveContext(contextDefinition).collect();
