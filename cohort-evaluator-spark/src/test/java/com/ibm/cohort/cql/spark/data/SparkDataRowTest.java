@@ -37,194 +37,189 @@ public class SparkDataRowTest extends BaseSparkTest {
     @Test
     public void testConvertAllDatatypes() {
         Java8API useJava8API = Java8API.ENABLED;
-        
-        try( SparkSession session = initializeSession(useJava8API) ) {
-            SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
-            
-            int rowCount = 1000;
-            List<AllTypesJava8DatesPOJO> data = new ArrayList<>();
-            for(int i=0; i<rowCount; i++) {
-                data.add( AllTypesJava8DatesPOJO.randomInstance() );
-            }
-            Dataset<Row> df = session.createDataFrame(data, AllTypesJava8DatesPOJO.class);
-            assertEquals(rowCount, df.count());
-            
-            df.foreach( row -> {
-                final SparkDataRow sdr = new SparkDataRow(typeConverter, row);
-                sdr.getFieldNames().forEach( fn -> {
-                    sdr.getValue(fn);
-                });
-            });
+        SparkSession session = initializeSession(useJava8API);
+
+        SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
+
+        int rowCount = 1000;
+        List<AllTypesJava8DatesPOJO> data = new ArrayList<>();
+        for(int i=0; i<rowCount; i++) {
+            data.add( AllTypesJava8DatesPOJO.randomInstance() );
         }
+        Dataset<Row> df = session.createDataFrame(data, AllTypesJava8DatesPOJO.class);
+        assertEquals(rowCount, df.count());
+
+        df.foreach( row -> {
+            final SparkDataRow sdr = new SparkDataRow(typeConverter, row);
+            sdr.getFieldNames().forEach( fn -> {
+                sdr.getValue(fn);
+            });
+        });
     }
     
     @Test
     public void testConversionSemantics() {
         Java8API useJava8API = Java8API.ENABLED;
+        SparkSession session = initializeSession(useJava8API);
 
-        try( SparkSession session = initializeSession(useJava8API) ) {
-            SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
+        SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
 
-            List<AllTypesJava8DatesPOJO> data = new ArrayList<>();
-    
-            AllTypesJava8DatesPOJO pojo = new AllTypesJava8DatesPOJO();
-            pojo.setBooleanField(true);
-            pojo.setStringField("test");
-            pojo.setByteField((byte)1);
-            pojo.setShortField((short)2);
-            pojo.setIntegerField(3);
-            pojo.setLongField(4L);
-            pojo.setFloatField(5.5f);
-            pojo.setDoubleField((double)6.6);
-            pojo.setDecimalField(BigDecimal.TEN);
-            pojo.setLocalDateField(LocalDate.of(2001, 06, 15));
-            pojo.setInstantField(Instant.ofEpochMilli(1111000000));
-            //pojo.setListField(Arrays.asList(10));
-            //pojo.setMapField(Collections.singletonMap("hello", "world"));
-            
-            data.add( pojo );
-    
-            Dataset<Row> df = session.createDataFrame(data, AllTypesJava8DatesPOJO.class);
-            assertEquals(1, df.count());
-            
-            df.foreach( row -> {
-                SparkDataRow sdr = new SparkDataRow(typeConverter, row);
-                assertTrue( sdr.getValue( "stringField" ) instanceof String );
-                assertEquals( pojo.getStringField(), (String) sdr.getValue("stringField") );
-    
-                assertTrue( sdr.getValue( "booleanField" ) instanceof Boolean );
-                assertEquals( pojo.getBooleanField(), (Boolean) sdr.getValue("booleanField") );
-                
-                assertTrue( sdr.getValue( "byteField" ) instanceof Integer );
-                assertEquals( Integer.valueOf(1), (Integer) sdr.getValue("byteField") );
-                
-                assertTrue( sdr.getValue( "shortField" ) instanceof Integer );
-                assertEquals( Integer.valueOf(2), (Integer) sdr.getValue("shortField") );
-                
-                assertTrue( sdr.getValue( "integerField" ) instanceof Integer );
-                assertEquals( pojo.getIntegerField(), (Integer) sdr.getValue("integerField") );
-                
-                assertTrue( sdr.getValue( "longField" ) instanceof Integer );
-                assertEquals( Integer.valueOf(4), (Integer) sdr.getValue("longField") );
-                
-                assertTrue( sdr.getValue( "floatField" ) instanceof BigDecimal );
-                assertEquals( BigDecimal.valueOf(5.5f), (BigDecimal) sdr.getValue("floatField") );
-                
-                assertTrue( sdr.getValue( "doubleField" ) instanceof BigDecimal );
-                assertEquals( BigDecimal.valueOf(6.6), (BigDecimal) sdr.getValue("doubleField") );
-                
-                assertTrue( sdr.getValue( "decimalField" ) instanceof BigDecimal );
-                BigDecimal decimal = (BigDecimal) sdr.getValue("decimalField");
-                assertEquals( pojo.getDecimalField().longValue(), decimal.longValue() );
-                
-                assertTrue( sdr.getValue( "instantField" ) instanceof org.opencds.cqf.cql.engine.runtime.DateTime );
-                org.opencds.cqf.cql.engine.runtime.DateTime dt = (org.opencds.cqf.cql.engine.runtime.DateTime) sdr.getValue( "instantField" );
-                assertEquals( pojo.getInstantField().atZone(ZoneId.systemDefault()).toOffsetDateTime(), dt.getDateTime() );
-                
-                assertTrue( sdr.getValue( "localDateField" ) instanceof org.opencds.cqf.cql.engine.runtime.Date );
-                org.opencds.cqf.cql.engine.runtime.Date date = (org.opencds.cqf.cql.engine.runtime.Date) sdr.getValue( "localDateField" );
-                assertEquals( pojo.getLocalDateField(), date.getDate() );
-                
-                //assertTrue( sdr.getValue( "listField") instanceof java.util.List );
-                //assertTrue( sdr.getValue( "mapField") instanceof java.util.Map );
-            });
-        }
+        List<AllTypesJava8DatesPOJO> data = new ArrayList<>();
+
+        AllTypesJava8DatesPOJO pojo = new AllTypesJava8DatesPOJO();
+        pojo.setBooleanField(true);
+        pojo.setStringField("test");
+        pojo.setByteField((byte)1);
+        pojo.setShortField((short)2);
+        pojo.setIntegerField(3);
+        pojo.setLongField(4L);
+        pojo.setFloatField(5.5f);
+        pojo.setDoubleField((double)6.6);
+        pojo.setDecimalField(BigDecimal.TEN);
+        pojo.setLocalDateField(LocalDate.of(2001, 06, 15));
+        pojo.setInstantField(Instant.ofEpochMilli(1111000000));
+        //pojo.setListField(Arrays.asList(10));
+        //pojo.setMapField(Collections.singletonMap("hello", "world"));
+
+        data.add( pojo );
+
+        Dataset<Row> df = session.createDataFrame(data, AllTypesJava8DatesPOJO.class);
+        assertEquals(1, df.count());
+
+        df.foreach( row -> {
+            SparkDataRow sdr = new SparkDataRow(typeConverter, row);
+            assertTrue( sdr.getValue( "stringField" ) instanceof String );
+            assertEquals( pojo.getStringField(), (String) sdr.getValue("stringField") );
+
+            assertTrue( sdr.getValue( "booleanField" ) instanceof Boolean );
+            assertEquals( pojo.getBooleanField(), (Boolean) sdr.getValue("booleanField") );
+
+            assertTrue( sdr.getValue( "byteField" ) instanceof Integer );
+            assertEquals( Integer.valueOf(1), (Integer) sdr.getValue("byteField") );
+
+            assertTrue( sdr.getValue( "shortField" ) instanceof Integer );
+            assertEquals( Integer.valueOf(2), (Integer) sdr.getValue("shortField") );
+
+            assertTrue( sdr.getValue( "integerField" ) instanceof Integer );
+            assertEquals( pojo.getIntegerField(), (Integer) sdr.getValue("integerField") );
+
+            assertTrue( sdr.getValue( "longField" ) instanceof Integer );
+            assertEquals( Integer.valueOf(4), (Integer) sdr.getValue("longField") );
+
+            assertTrue( sdr.getValue( "floatField" ) instanceof BigDecimal );
+            assertEquals( BigDecimal.valueOf(5.5f), (BigDecimal) sdr.getValue("floatField") );
+
+            assertTrue( sdr.getValue( "doubleField" ) instanceof BigDecimal );
+            assertEquals( BigDecimal.valueOf(6.6), (BigDecimal) sdr.getValue("doubleField") );
+
+            assertTrue( sdr.getValue( "decimalField" ) instanceof BigDecimal );
+            BigDecimal decimal = (BigDecimal) sdr.getValue("decimalField");
+            assertEquals( pojo.getDecimalField().longValue(), decimal.longValue() );
+
+            assertTrue( sdr.getValue( "instantField" ) instanceof org.opencds.cqf.cql.engine.runtime.DateTime );
+            org.opencds.cqf.cql.engine.runtime.DateTime dt = (org.opencds.cqf.cql.engine.runtime.DateTime) sdr.getValue( "instantField" );
+            assertEquals( pojo.getInstantField().atZone(ZoneId.systemDefault()).toOffsetDateTime(), dt.getDateTime() );
+
+            assertTrue( sdr.getValue( "localDateField" ) instanceof org.opencds.cqf.cql.engine.runtime.Date );
+            org.opencds.cqf.cql.engine.runtime.Date date = (org.opencds.cqf.cql.engine.runtime.Date) sdr.getValue( "localDateField" );
+            assertEquals( pojo.getLocalDateField(), date.getDate() );
+
+            //assertTrue( sdr.getValue( "listField") instanceof java.util.List );
+            //assertTrue( sdr.getValue( "mapField") instanceof java.util.Map );
+        });
     }
     
     @Test
     public void testConversionSemanticsNullValues() {
         Java8API useJava8API = Java8API.ENABLED;
+        SparkSession session = initializeSession(useJava8API);
 
-        try( SparkSession session = initializeSession(useJava8API) ) {
-            SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
+        SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
 
-            List<AllTypesJava8DatesPOJO> data = new ArrayList<>();
-    
-            AllTypesJava8DatesPOJO pojo = new AllTypesJava8DatesPOJO();
-            data.add( pojo );
-    
-            Dataset<Row> df = session.createDataFrame(data, AllTypesJava8DatesPOJO.class);
-            assertEquals(1, df.count());
-            
-            df.foreach( row -> {
-                SparkDataRow sdr = new SparkDataRow(typeConverter, row);
-                assertEquals( pojo.getStringField(), sdr.getValue("stringField") );
-                assertEquals( pojo.getBooleanField(), sdr.getValue("booleanField") );
-                assertEquals( pojo.getByteField(), sdr.getValue("byteField") );
-                assertEquals( pojo.getShortField(), sdr.getValue("shortField") );
-                assertEquals( pojo.getIntegerField(), sdr.getValue("integerField") );
-                assertEquals( pojo.getLongField(), sdr.getValue("longField") );
-                assertEquals( pojo.getFloatField(), (BigDecimal) sdr.getValue("floatField") );
-                assertEquals( pojo.getDoubleField(), (BigDecimal) sdr.getValue("doubleField") );
-                assertEquals( pojo.getDecimalField(), sdr.getValue("decimalField") );
-                assertEquals( pojo.getInstantField(), sdr.getValue( "instantField" ));                
-                assertEquals( pojo.getLocalDateField(), sdr.getValue( "localDateField" ) );
-                assertEquals( pojo.getListField(), sdr.getValue( "listField" ) );
-                assertEquals( pojo.getMapField(), sdr.getValue( "mapField" ) );
-            });
-        }
+        List<AllTypesJava8DatesPOJO> data = new ArrayList<>();
+
+        AllTypesJava8DatesPOJO pojo = new AllTypesJava8DatesPOJO();
+        data.add( pojo );
+
+        Dataset<Row> df = session.createDataFrame(data, AllTypesJava8DatesPOJO.class);
+        assertEquals(1, df.count());
+
+        df.foreach( row -> {
+            SparkDataRow sdr = new SparkDataRow(typeConverter, row);
+            assertEquals( pojo.getStringField(), sdr.getValue("stringField") );
+            assertEquals( pojo.getBooleanField(), sdr.getValue("booleanField") );
+            assertEquals( pojo.getByteField(), sdr.getValue("byteField") );
+            assertEquals( pojo.getShortField(), sdr.getValue("shortField") );
+            assertEquals( pojo.getIntegerField(), sdr.getValue("integerField") );
+            assertEquals( pojo.getLongField(), sdr.getValue("longField") );
+            assertEquals( pojo.getFloatField(), (BigDecimal) sdr.getValue("floatField") );
+            assertEquals( pojo.getDoubleField(), (BigDecimal) sdr.getValue("doubleField") );
+            assertEquals( pojo.getDecimalField(), sdr.getValue("decimalField") );
+            assertEquals( pojo.getInstantField(), sdr.getValue( "instantField" ));
+            assertEquals( pojo.getLocalDateField(), sdr.getValue( "localDateField" ) );
+            assertEquals( pojo.getListField(), sdr.getValue( "listField" ) );
+            assertEquals( pojo.getMapField(), sdr.getValue( "mapField" ) );
+        });
     }
     
     @Test
     public void testDateTimeConversionSemanticsWithoutJava8Enabled() {
         Java8API useJava8API = Java8API.DISABLED;
-        
-        try( SparkSession session = initializeSession(useJava8API) ) {
-            SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
-            
-            List<PreJava8DateTypesPOJO> data = new ArrayList<>();
-    
-            Date expectedDate = new Date(1111000000);
-            Timestamp expectedTimestamp = new Timestamp(1111000000);
-            
-            PreJava8DateTypesPOJO pojo = new PreJava8DateTypesPOJO();
-            pojo.setDateField(expectedDate);
-            pojo.setTimestampField(expectedTimestamp);
-            
-            data.add( pojo );
-    
-            Dataset<Row> df = session.createDataFrame(data, PreJava8DateTypesPOJO.class);
-            assertEquals(1, df.count());
-            
-            df.show();
-            
-            df.foreach( row -> {
-                SparkDataRow sdr = new SparkDataRow(typeConverter, row);
-                
-                assertTrue( sdr.getValue( "timestampField" ) instanceof org.opencds.cqf.cql.engine.runtime.DateTime );
-                org.opencds.cqf.cql.engine.runtime.DateTime dt = (org.opencds.cqf.cql.engine.runtime.DateTime) sdr.getValue( "timestampField" );
-                assertEquals( expectedTimestamp.toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime(), dt.getDateTime() );
-                
-                assertTrue( sdr.getValue( "dateField" ) instanceof org.opencds.cqf.cql.engine.runtime.Date );
-                org.opencds.cqf.cql.engine.runtime.Date date = (org.opencds.cqf.cql.engine.runtime.Date) sdr.getValue( "dateField" );
-                assertEquals( expectedDate.toLocalDate(), date.getDate() );
-            });
-        }
+        SparkSession session = initializeSession(useJava8API);
+
+        SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
+
+        List<PreJava8DateTypesPOJO> data = new ArrayList<>();
+
+        Date expectedDate = new Date(1111000000);
+        Timestamp expectedTimestamp = new Timestamp(1111000000);
+
+        PreJava8DateTypesPOJO pojo = new PreJava8DateTypesPOJO();
+        pojo.setDateField(expectedDate);
+        pojo.setTimestampField(expectedTimestamp);
+
+        data.add( pojo );
+
+        Dataset<Row> df = session.createDataFrame(data, PreJava8DateTypesPOJO.class);
+        assertEquals(1, df.count());
+
+        df.show();
+
+        df.foreach( row -> {
+            SparkDataRow sdr = new SparkDataRow(typeConverter, row);
+
+            assertTrue( sdr.getValue( "timestampField" ) instanceof org.opencds.cqf.cql.engine.runtime.DateTime );
+            org.opencds.cqf.cql.engine.runtime.DateTime dt = (org.opencds.cqf.cql.engine.runtime.DateTime) sdr.getValue( "timestampField" );
+            assertEquals( expectedTimestamp.toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime(), dt.getDateTime() );
+
+            assertTrue( sdr.getValue( "dateField" ) instanceof org.opencds.cqf.cql.engine.runtime.Date );
+            org.opencds.cqf.cql.engine.runtime.Date date = (org.opencds.cqf.cql.engine.runtime.Date) sdr.getValue( "dateField" );
+            assertEquals( expectedDate.toLocalDate(), date.getDate() );
+        });
     }
     
     @Test
     public void testUnhandledTypeConversionSemantics() {
         Java8API useJava8API = Java8API.ENABLED;
+        SparkSession session = initializeSession(useJava8API);
 
-        try( SparkSession session = initializeSession(useJava8API) ) {
-            SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
+        SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
 
-            List<UnhandledTypesPOJO> data = new ArrayList<>();
-    
-            int expectedFieldCount = 4;
-            UnhandledTypesPOJO pojo = new UnhandledTypesPOJO();
-            data.add( pojo );
-    
-            Dataset<Row> df = session.createDataFrame(data, UnhandledTypesPOJO.class);
-            assertEquals(1, df.count());
-            assertEquals(expectedFieldCount, df.schema().names().length);
+        List<UnhandledTypesPOJO> data = new ArrayList<>();
 
-            SparkDataRow sdr = new SparkDataRow(typeConverter, df.head());
-            assertEquals(expectedFieldCount, sdr.getFieldNames().size());
-            sdr.getFieldNames().forEach( fn -> {
-                assertThrows(UnsupportedConversionException.class, () -> sdr.getValue(fn) );
-            });
-        }
+        int expectedFieldCount = 4;
+        UnhandledTypesPOJO pojo = new UnhandledTypesPOJO();
+        data.add( pojo );
+
+        Dataset<Row> df = session.createDataFrame(data, UnhandledTypesPOJO.class);
+        assertEquals(1, df.count());
+        assertEquals(expectedFieldCount, df.schema().names().length);
+
+        SparkDataRow sdr = new SparkDataRow(typeConverter, df.head());
+        assertEquals(expectedFieldCount, sdr.getFieldNames().size());
+        sdr.getFieldNames().forEach( fn -> {
+            assertThrows(UnsupportedConversionException.class, () -> sdr.getValue(fn) );
+        });
     }
     
     @Test
@@ -282,21 +277,20 @@ public class SparkDataRowTest extends BaseSparkTest {
     
     public SparkDataRow runMetadataTest(CodeWithMetadataPOJO pojo, Metadata codeMetadata) {
         Java8API useJava8API = Java8API.ENABLED;
-        
-        try( SparkSession session = initializeSession(useJava8API) ) {
-            SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
+        SparkSession session = initializeSession(useJava8API);
 
-            int expectedFieldCount = 4;
+        SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
 
-            List<CodeWithMetadataPOJO> data = new ArrayList<>();
-            data.add(pojo);
-            
-            Dataset<Row> df = session.createDataFrame(data, CodeWithMetadataPOJO.class);
-            df = df.withColumn("code", df.col("codeStr"), codeMetadata);
-            assertEquals(1, df.count());
-            assertEquals(expectedFieldCount, df.schema().names().length);
-            
-            return new SparkDataRow(typeConverter, df.head());
-        }
+        int expectedFieldCount = 4;
+
+        List<CodeWithMetadataPOJO> data = new ArrayList<>();
+        data.add(pojo);
+
+        Dataset<Row> df = session.createDataFrame(data, CodeWithMetadataPOJO.class);
+        df = df.withColumn("code", df.col("codeStr"), codeMetadata);
+        assertEquals(1, df.count());
+        assertEquals(expectedFieldCount, df.schema().names().length);
+
+        return new SparkDataRow(typeConverter, df.head());
     }
 }

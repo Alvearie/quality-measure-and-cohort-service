@@ -30,7 +30,9 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.catalyst.JavaTypeInference;
 import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.StructType;
+import org.apache.spark.sql.delta.DeltaLog;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -49,12 +51,14 @@ import scala.Tuple2;
 
 public class SparkCqlEvaluatorTest extends BaseSparkTest {
     private static final long serialVersionUID = 1L;
-    
+
     private SparkCqlEvaluator evaluator;
+    private SparkSession spark;
     
     @Before
     public void setUp() {
         this.evaluator = new SparkCqlEvaluator();
+        this.spark = initializeSession(Java8API.ENABLED);
     }
 
     /**
@@ -73,19 +77,15 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
             pojo.setId( String.valueOf(i % groups) );
             sourceData.add( pojo );
         }
-        
-        Java8API useJava8API = Java8API.ENABLED;
-        try( SparkSession spark = initializeSession(useJava8API) ) {
-            Dataset<Row> dataset = spark.createDataFrame(sourceData, Patient.class);
-            
-            Path tempFile = Paths.get("src/test/resources/simple-job/testdata", "patient" );
-            dataset.write().format("delta").save(tempFile.toString());
-        }
+
+        Dataset<Row> dataset = spark.createDataFrame(sourceData, Patient.class);
+
+        Path tempFile = Paths.get("src/test/resources/simple-job/testdata", "patient" );
+        dataset.write().format("delta").save(tempFile.toString());
     }
     
     @Test
     public void testReadAggregateSuccess() throws Exception {
-
         String [] args = new String[] {
           "-d", "src/test/resources/simple-job/context-definitions.json",
           "-j", "src/test/resources/simple-job/cql-jobs.json",
@@ -94,27 +94,21 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
           "-i", "Patient=" + new File("src/test/resources/simple-job/testdata/patient").toURI().toString(),
           "-o", "Patient=" + new File("target/output/simple-job/patient_cohort").toURI().toString()
         };
-        
-        Java8API useJava8API = Java8API.ENABLED;
-        try( SparkSession spark = initializeSession(useJava8API) ) {
-            evaluator.typeConverter = new SparkTypeConverter(useJava8API.getValue());
-            
-            SparkCqlEvaluator.main(args);
-        }
+
+        SparkCqlEvaluator.main(args);
     }
-    
+
     @Test
     public void testAllTypesEvaluationSuccess() throws Exception {
-
         File inputDir = new File("src/test/resources/alltypes/");
         File outputDir = new File("target/output/alltypes/");
-        
+
         File patientFile = new File(outputDir, "Patient_cohort");
         File aFile = new File(outputDir, "A_cohort");
         File bFile = new File(outputDir, "B_cohort");
         File cFile = new File(outputDir, "C_cohort");
         File dFile = new File(outputDir, "D_cohort");
-        
+
         String [] args = new String[] {
           "-d", "src/test/resources/alltypes/context-definitions.json",
           "-j", "src/test/resources/alltypes/cql-jobs.json",
@@ -132,13 +126,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
           "-o", "D=" + dFile.toURI().toString(),
           "-n", "10"
         };
-        
-        Java8API useJava8API = Java8API.ENABLED;
-        try( SparkSession spark = initializeSession(useJava8API) ) {
-            evaluator.typeConverter = new SparkTypeConverter(useJava8API.getValue());
-            
-            SparkCqlEvaluator.main(args);
-        }
+
+        SparkCqlEvaluator.main(args);
     }
 
     private CqlEvaluationRequest makeEvaluationRequest(String contextName) {
@@ -261,17 +250,6 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         assertNotNull(contextDefinitions);
         assertEquals(5, contextDefinitions.getContextDefinitions().size());
         assertEquals(3, contextDefinitions.getContextDefinitions().get(0).getRelationships().size());
-    }
-    
-    protected CqlLibraryProvider getTestLibraryProvider() throws IOException, FileNotFoundException {
-        CqlToElmTranslator translator = new CqlToElmTranslator();
-        try( Reader r = new FileReader(new File("src/test/resources/alltypes/modelinfo/mock-modelinfo-1.0.0.xml") ) ) {
-            translator.registerModelInfo(r);
-        }
-        
-        CqlLibraryProvider libraryProvider = new DirectoryBasedCqlLibraryProvider(new File("src/test/resources/alltypes/cql"));
-        CqlLibraryProvider translatingProvider = new TranslatingCqlLibraryProvider(libraryProvider, translator);
-        return translatingProvider;
     }
     
     @Test
