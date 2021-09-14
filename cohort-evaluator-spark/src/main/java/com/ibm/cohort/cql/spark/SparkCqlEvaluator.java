@@ -152,7 +152,6 @@ public class SparkCqlEvaluator implements Serializable {
     public void run(PrintStream out) throws Exception {
 
         SparkSession.Builder sparkBuilder = SparkSession.builder();
-
         try (SparkSession spark = sparkBuilder.getOrCreate()) {
             boolean useJava8API = Boolean.valueOf(spark.conf().get("spark.sql.datetime.java8API.enabled"));
             this.typeConverter = new SparkTypeConverter(useJava8API);
