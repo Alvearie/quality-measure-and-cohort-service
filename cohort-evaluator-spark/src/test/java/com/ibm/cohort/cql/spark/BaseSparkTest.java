@@ -9,7 +9,12 @@ import org.junit.Before;
 
 /**
  * A base class that provides common functions for unit testing with Spark.
+ *
  * All test classes using a {@link SparkSession} should extend and use this class.
+ *
+ * Unless required, you should _not_ close a {@link SparkSession} provided by this class.
+ * We're trying to leverage Spark's session caching to limit how much time is spent
+ * spinning up sessions throughout our test suite.
  */
 public abstract class BaseSparkTest implements Serializable {
     private static final long serialVersionUID = 1L;
