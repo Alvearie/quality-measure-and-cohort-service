@@ -11,6 +11,10 @@ import org.apache.spark.sql.Row;
 
 import java.util.Map;
 
+/**
+ * A simple {@link DatasetRetriever} that stores precomputed mappings from
+ * {@link String} to {@link Dataset}.
+ */
 public class TestDatasetRetriever implements DatasetRetriever {
 
     private final Map<String, Dataset<Row>> datasets;

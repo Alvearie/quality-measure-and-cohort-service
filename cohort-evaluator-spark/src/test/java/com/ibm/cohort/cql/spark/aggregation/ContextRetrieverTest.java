@@ -31,6 +31,7 @@ import java.util.Map;
 
 public class ContextRetrieverTest extends BaseSparkTest {
 
+    // The primary data
     private static final String PRIMARY_NAME = "primaryName";
     private static final String PRIMARY_DATA_TYPE = "primaryDataType";
     private static final String PRIMARY_KEY_COLUMN = "primaryKeyColumn";
@@ -38,16 +39,19 @@ public class ContextRetrieverTest extends BaseSparkTest {
     private static final String PRIMARY_DATA_COLUMN = "primaryDataColumn";
     private static final String PRIMARY_PATH = "primaryPath";
 
+    // The association table used in a many to many join
     private static final String ASSOC_DATA_TYPE = "assocDataType";
     private static final String ASSOC_LEFT_COLUMN = "assocLeftColumn";
     private static final String ASSOC_RIGHT_COLUMN = "assocRightColumn";
     private static final String ASSOC_PATH = "assocPath";
 
+    // The related table in a many to many join
     private static final String INDIRECT_RELATED_DATA_TYPE = "indirectRelatedDataType";
     private static final String INDIRECT_RELATED_KEY_COLUMN = "indirectRelatedKeyColumn";
     private static final String INDIRECT_RELATED_DATA_COLUMN = "indirectRelatedDataColumn";
     private static final String INDIRECT_RELATED_PATH = "indirectRelatedPath";
 
+    // The related table in a one to many join
     private static final String DIRECT_RELATED_DATA_TYPE = "directRelatedDataType";
     private static final String DIRECT_RELATED_KEY_COLUMN = "directRelatedKeyColumn";
     private static final String DIRECT_RELATED_DATA_COLUMN = "directRelatedDataColumn";

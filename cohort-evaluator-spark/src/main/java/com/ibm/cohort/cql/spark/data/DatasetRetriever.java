@@ -9,9 +9,17 @@ package com.ibm.cohort.cql.spark.data;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 
-// TODO: Javadoc
+/**
+ * Retrieves {@link Dataset}s
+ */
 public interface DatasetRetriever {
 
+    /**
+     * Reads a {@link Dataset} for a provided path.
+     *
+     * @param path A Hadoop compatible path/URI.
+     * @return The data in {@link Dataset} form.
+     */
     Dataset<Row> readDataset(String path);
 
 }

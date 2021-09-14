@@ -7,7 +7,11 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.delta.DeltaLog;
 import org.junit.Before;
 
-public class BaseSparkTest implements Serializable {
+/**
+ * A base class that provides common functions for unit testing with Spark.
+ * All test classes using a {@link SparkSession} should extend and use this class.
+ */
+public abstract class BaseSparkTest implements Serializable {
     private static final long serialVersionUID = 1L;
 
     public enum Java8API {
