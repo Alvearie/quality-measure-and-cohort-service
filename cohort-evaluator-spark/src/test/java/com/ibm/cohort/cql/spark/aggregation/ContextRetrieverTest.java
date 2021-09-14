@@ -6,6 +6,7 @@
 
 package com.ibm.cohort.cql.spark.aggregation;
 
+import com.ibm.cohort.cql.spark.BaseSparkTest;
 import com.ibm.cohort.cql.spark.data.DatasetRetriever;
 import com.ibm.cohort.cql.spark.data.TestDatasetRetriever;
 import org.apache.spark.sql.Dataset;
@@ -15,7 +16,6 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ContextRetrieverTest {
+public class ContextRetrieverTest extends BaseSparkTest {
 
     private static final String PRIMARY_NAME = "primaryName";
     private static final String PRIMARY_DATA_TYPE = "primaryDataType";
@@ -57,16 +57,7 @@ public class ContextRetrieverTest {
 
     @BeforeClass
     public static void initialize() {
-        spark = SparkSession.builder()
-                .master("local[1]")
-                .config("spark.sql.shuffle.partitions", 1)
-                .getOrCreate();
-    }
-
-    @AfterClass
-    public static void shutdown() {
-        spark.stop();
-        spark = null;
+        spark = initializeSession();
     }
 
     private final Map<String, String> inputPaths = new HashMap<String, String>(){{
