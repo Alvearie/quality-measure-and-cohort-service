@@ -29,7 +29,14 @@ import java.util.stream.Collectors;
  */
 public class ContextRetriever {
 
+    /**
+     * A column that tracks the source datatype for each data row.
+     */
     public static final String SOURCE_FACT_IDX = "__SOURCE_FACT";
+
+    /**
+     * A column that tracks the context value for each data row.
+     */
     public static final String JOIN_CONTEXT_VALUE_IDX = "__JOIN_CONTEXT_VALUE";
 
     private final Map<String, String> inputPaths;
@@ -125,7 +132,7 @@ public class ContextRetriever {
                         .equalTo(relatedDataset.col(relatedColumnName));
                 joinedDataset = joinedDataset.join(relatedDataset, relatedJoinCriteria);
             } else {
-                throw new RuntimeException("Unexpected Join Type: " + join.getClass().getName());
+                throw new IllegalArgumentException("Unexpected Join Type: " + join.getClass().getName());
             }
 
             List<Column> retainedColumns = Arrays.stream(relatedDataset.columns())
@@ -210,8 +217,8 @@ public class ContextRetriever {
 
     /**
      * Reads the data for the specified datatype into a {@link Dataset}.
-     * Adds the special {@value SOURCE_FACT_IDX} to keep track of what datatype
-     * a particular {@link Row} came from.
+     * Adds the special {@value SOURCE_FACT_IDX} column to track what
+     * datatype a particular {@link Row} came from.
      * @param dataType The datatype to read.
      * @return A {@link Dataset} containing the data for the specified datatype.
      */
