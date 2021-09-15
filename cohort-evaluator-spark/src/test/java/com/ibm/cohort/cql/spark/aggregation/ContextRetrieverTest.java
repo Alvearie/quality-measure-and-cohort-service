@@ -397,6 +397,7 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 RowFactory.create(2, 21),
                 RowFactory.create(3, 31),
                 RowFactory.create(3, 32),
+                RowFactory.create(4, 32),
                 RowFactory.create(4, 41),
                 RowFactory.create(4, 42),
                 RowFactory.create(4, 43),
@@ -455,6 +456,7 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 )),
                 new Tuple2<>(4, Arrays.asList(
                         newRow(primaryOutputSchema, 4, 4, "primary4", PRIMARY_DATA_TYPE),
+                        newRow(indirectRelatedOutputSchema, 32, "indirect32", INDIRECT_RELATED_DATA_TYPE, 4),
                         newRow(indirectRelatedOutputSchema, 41, "indirect41", INDIRECT_RELATED_DATA_TYPE, 4),
                         newRow(indirectRelatedOutputSchema, 42, "indirect42", INDIRECT_RELATED_DATA_TYPE, 4),
                         newRow(indirectRelatedOutputSchema, 43, "indirect43", INDIRECT_RELATED_DATA_TYPE, 4)
@@ -495,7 +497,11 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 PRIMARY_KEY_COLUMN,
                 Collections.singletonList(customJoin)
         );
-        expectException("Unexpected Join Type", () -> contextRetriever.retrieveContext(contextDefinition));
+
+        IllegalArgumentException e = Assert.assertThrows(
+                IllegalArgumentException.class,
+                () -> contextRetriever.retrieveContext(contextDefinition));
+        Assert.assertTrue(e.getMessage().contains("Unexpected Join Type"));
     }
 
     @Test
@@ -512,7 +518,11 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 PRIMARY_KEY_COLUMN,
                 Collections.emptyList()
         );
-        expectException("No path mapping found for datatype", () -> contextRetriever.retrieveContext(contextDefinition));
+
+        IllegalArgumentException e = Assert.assertThrows(
+                IllegalArgumentException.class,
+                () -> contextRetriever.retrieveContext(contextDefinition));
+        Assert.assertTrue(e.getMessage().contains("No path mapping found for datatype"));
     }
 
     private void assertOutput(List<Tuple2<Object, List<Row>>> expected, List<Tuple2<Object, List<Row>>> actual) {
@@ -537,23 +547,6 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 Assert.assertEquals("Schema mismatch", expectedSchema, actualSchema);
             }
         }
-    }
-
-    private void expectException(String exceptionPrefix, Runnable task) {
-        boolean passed = false;
-        try {
-            task.run();
-        }
-        catch (RuntimeException e) {
-            if (e.getMessage() != null && e.getMessage().startsWith(exceptionPrefix)) {
-                passed = true;
-            }
-            else {
-                throw e;
-            }
-        }
-
-        Assert.assertTrue("Exception not encountered", passed);
     }
 
     private Row newRow(StructType schema, Object... values) {
