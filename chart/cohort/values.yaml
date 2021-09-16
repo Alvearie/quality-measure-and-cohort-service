@@ -80,8 +80,8 @@ sparkHistoryServer:
   s3:
     secret:
       name: spark-cos-secret
-      accessKeyId: AWS_ACCESS_KEY
-      secretKeyId: AWS_SECRET_KEY
-      endpointId: AWS_ENDPOINT
+      accessKeyId: access-key
+      secretKeyId: secret-key
+    endpointId: "https://s3.us.cloud-object-storage.appdomain.cloud"
     bucket: cohort-spark-history
     eventsDir: "/"
