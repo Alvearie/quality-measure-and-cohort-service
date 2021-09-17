@@ -26,7 +26,8 @@ public class CodeKey extends Code {
 
     @Override
     public boolean equals(Object o2) {
-        return super.equal(o2);
+        Boolean codeEquals = super.equal(o2);
+        return codeEquals != null && codeEquals;
     }
 
     @Override

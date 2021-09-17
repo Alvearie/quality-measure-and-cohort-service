@@ -3,6 +3,7 @@ package com.ibm.cohort.cql.spark;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -14,8 +15,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -31,7 +34,9 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
+import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.library.DirectoryBasedCqlLibraryProvider;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
@@ -134,6 +139,112 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
             
             SparkCqlEvaluator.main(args);
         }
+    }
+
+    private CqlEvaluationRequest makeEvaluationRequest(String contextName) {
+        return makeEvaluationRequest(contextName, null, null);
+    }
+    
+    private CqlEvaluationRequest makeEvaluationRequest(String contextName, String libraryName, String libraryVersion) {
+        CqlEvaluationRequest cqlEvaluationRequest = new CqlEvaluationRequest();
+        cqlEvaluationRequest.setContextKey(contextName);
+        cqlEvaluationRequest.setContextValue("NA");
+
+        CqlLibraryDescriptor descriptor = new CqlLibraryDescriptor();
+        descriptor.setLibraryId(libraryName);
+        descriptor.setVersion(libraryVersion);
+        
+        cqlEvaluationRequest.setDescriptor(descriptor);
+        
+        return cqlEvaluationRequest;
+    }
+
+    @Test
+    public void testFilterRequestsNoEvaluationRequests() {
+        CqlEvaluationRequests requests = new CqlEvaluationRequests();
+
+        List<CqlEvaluationRequest> cqlEvaluationRequests = evaluator.filterRequests(requests, "A");
+
+        assertTrue(cqlEvaluationRequests.isEmpty());
+    }
+    
+    @Test
+    public void testFilterRequestsNoEvaluationRequestsForContext() {
+        CqlEvaluationRequests requests = new CqlEvaluationRequests();
+
+        List<CqlEvaluationRequest> evaluations = Arrays.asList(
+                makeEvaluationRequest("B"),
+                makeEvaluationRequest("C"),
+                makeEvaluationRequest("D")
+        );
+        
+        requests.setEvaluations(evaluations);
+        
+        List<CqlEvaluationRequest> cqlEvaluationRequests = evaluator.filterRequests(requests, "A");
+        
+        assertTrue(cqlEvaluationRequests.isEmpty());
+    }
+
+    @Test
+    public void testFilterRequestsFilterToRequestsForContext() {
+        CqlEvaluationRequests requests = new CqlEvaluationRequests();
+
+        List<CqlEvaluationRequest> evaluations = Arrays.asList(
+                makeEvaluationRequest("A"),
+                makeEvaluationRequest("A"),
+                makeEvaluationRequest("B")
+        );
+
+        requests.setEvaluations(evaluations);
+
+        List<CqlEvaluationRequest> cqlEvaluationRequests = evaluator.filterRequests(requests, "A");
+
+        assertEquals(2, cqlEvaluationRequests.size());
+        for (CqlEvaluationRequest cqlEvaluationRequest : cqlEvaluationRequests) {
+            assertTrue(cqlEvaluationRequest.getContextKey().equals("A"));
+        }
+    }
+
+    @Test
+    public void testFilterByLibraryNameNoMatches() {
+        CqlEvaluationRequests requests = new CqlEvaluationRequests();
+
+        List<CqlEvaluationRequest> evaluations = Arrays.asList(
+                makeEvaluationRequest("A", "lib4", "1.0.0"),
+                makeEvaluationRequest("A", "lib3", "3.0.0"),
+                makeEvaluationRequest("B", "lib2", "1.0.0")
+        );
+
+        requests.setEvaluations(evaluations);
+
+        evaluator.libraries.put("lib1", "1.0.0");
+        evaluator.libraries.put("lib2", "1.0.0");
+
+        List<CqlEvaluationRequest> cqlEvaluationRequests = evaluator.filterRequests(requests, "A");
+
+        assertTrue(cqlEvaluationRequests.isEmpty());
+    }
+
+    @Test
+    public void testFilterByLibraryNameMatchesIgnoresVersion() {
+        CqlEvaluationRequests requests = new CqlEvaluationRequests();
+
+        Set<CqlEvaluationRequest> expectedRequests = new HashSet<>();
+        expectedRequests.add(makeEvaluationRequest("A", "lib1", "4.0.0"));
+        expectedRequests.add(makeEvaluationRequest("A", "lib2", "7.0.0"));
+
+        List<CqlEvaluationRequest> evaluations = new ArrayList<>(expectedRequests);
+        evaluations.add(makeEvaluationRequest("B", "lib2", "1.0.0"));
+
+        requests.setEvaluations(evaluations);
+
+        evaluator.libraries.put("lib1", "1.0.0");
+        evaluator.libraries.put("lib2", "1.0.0");
+
+        List<CqlEvaluationRequest> cqlEvaluationRequests = evaluator.filterRequests(requests, "A");
+
+        assertEquals(2, cqlEvaluationRequests.size());
+        assertTrue(expectedRequests.containsAll(cqlEvaluationRequests));
     }
 
     @Test
