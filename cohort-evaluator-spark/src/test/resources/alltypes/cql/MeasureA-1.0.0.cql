@@ -16,7 +16,7 @@ define "cohort":
   exists("Passes all checks")
 
 define "Passes all checks":
-  [A: code_col in "MyConcept"] typeA where
+  [A: code_col in "MyConcept".codes ] typeA where
     typeA.boolean_col is not null and typeA.boolean_col = true
     and typeA.integer_col is not null and typeA.integer_col < 21
     and typeA.decimal_col is not null and typeA.decimal_col > 0.5

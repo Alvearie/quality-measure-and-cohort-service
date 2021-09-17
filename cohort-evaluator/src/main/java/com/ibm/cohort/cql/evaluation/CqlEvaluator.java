@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.cqframework.cql.elm.execution.ExpressionDef;
 import org.opencds.cqf.cql.engine.execution.Context;
 
 import com.ibm.cohort.cql.data.CqlDataProvider;
@@ -93,7 +94,9 @@ public class CqlEvaluator {
         
         Map<String,Object> results = new HashMap<>();
         for( String expression : expressions ) {
-            Object result = cqlContext.resolveExpressionRef(expression).evaluate(cqlContext);
+            ExpressionDef expressionDef = cqlContext.resolveExpressionRef(expression);
+            Object result = expressionDef.evaluate(cqlContext);
+
             results.put(expression, result);
         }
         

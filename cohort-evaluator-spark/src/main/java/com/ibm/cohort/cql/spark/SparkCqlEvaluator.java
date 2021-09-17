@@ -14,6 +14,7 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,12 +28,12 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
-import com.ibm.cohort.cql.spark.aggregation.ContextRetriever;
-import com.ibm.cohort.cql.spark.data.DatasetRetriever;
-import com.ibm.cohort.cql.spark.data.DefaultDatasetRetriever;
 import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.types.StructType;
 import org.apache.spark.util.LongAccumulator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +53,11 @@ import com.ibm.cohort.cql.library.DirectoryBasedCqlLibraryProvider;
 import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
+import com.ibm.cohort.cql.spark.aggregation.ContextRetriever;
+import com.ibm.cohort.cql.spark.data.DatasetRetriever;
+import com.ibm.cohort.cql.spark.data.DefaultDatasetRetriever;
 import com.ibm.cohort.cql.spark.data.SparkDataRow;
+import com.ibm.cohort.cql.spark.data.SparkSchemaCreator;
 import com.ibm.cohort.cql.spark.data.SparkTypeConverter;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import com.ibm.cohort.cql.terminology.UnsupportedTerminologyProvider;
@@ -102,6 +107,24 @@ public class SparkCqlEvaluator implements Serializable {
      * discussion in the libraryProvider documentation for complete reasoning.
      */
     protected static ThreadLocal<CqlTerminologyProvider> terminologyProvider = new ThreadLocal<>();
+    
+    protected Map<String, StructType> calculateSparkSchema(List<String> contextNames, ContextDefinitions contextDefinitions) throws Exception{
+        CqlLibraryProvider libProvider = SparkCqlEvaluator.libraryProvider.get();
+        if (libProvider == null) {
+            libProvider = createLibraryProvider();
+            SparkCqlEvaluator.libraryProvider.set(libProvider);
+        }
+
+
+        CqlEvaluationRequests cqlEvaluationRequests = jobSpecification.get();
+        if (cqlEvaluationRequests == null) {
+            cqlEvaluationRequests = readJobSpecification(args.jobSpecPath);
+            jobSpecification.set(cqlEvaluationRequests);
+        }
+
+        SparkSchemaCreator sparkSchemaCreator = new SparkSchemaCreator(libProvider, cqlEvaluationRequests, contextDefinitions);
+        return sparkSchemaCreator.calculateSchemasForContexts(contextNames);
+    }
 
     public SparkCqlEvaluator(SparkCqlEvaluatorArgs args) {
         this.args = args;
@@ -115,6 +138,11 @@ public class SparkCqlEvaluator implements Serializable {
             this.typeConverter = new SparkTypeConverter(useJava8API);
 
             ContextDefinitions contexts = readContextDefinitions(args.contextDefinitionPath);
+
+            Map<String, StructType> resultSchemas = calculateSparkSchema(
+                    contexts.getContextDefinitions().stream().map(ContextDefinition::getName).collect(Collectors.toList()),
+                    contexts
+            );
 
             List<ContextDefinition> filteredContexts = contexts.getContextDefinitions();
             if (args.aggregations != null && args.aggregations.size() > 0) {
@@ -132,22 +160,31 @@ public class SparkCqlEvaluator implements Serializable {
             ContextRetriever contextRetriever = new ContextRetriever(args.inputPaths, datasetRetriever);
             for (ContextDefinition context : filteredContexts) {
                 final String contextName = context.getName();
-                LOG.info("Evaluating context " + contextName);
 
-                final String outputPath = MapUtils.getRequiredKey(args.outputPaths, context.getName(), "outputPath");
+                StructType resultsSchema = resultSchemas.get(contextName);
+                
+                if (resultsSchema == null || resultsSchema.fields().length == 0) {
+                    LOG.warn("Context " + contextName + " has no defines configured. Skipping.");
+                }
+                else {
+                    LOG.info("Evaluating context " + contextName);
 
-                JavaPairRDD<Object, List<Row>> rowsByContextId = contextRetriever.retrieveContext(context);
+                    final String outputPath = MapUtils.getRequiredKey(args.outputPaths, context.getName(), "outputPath");
 
-                JavaPairRDD<Object, Map<String, Object>> resultsByContext = rowsByContextId
-                        .mapToPair(x -> evaluate(contextName, x, perContextAccum));
+                    JavaPairRDD<Object, List<Row>> rowsByContextId = contextRetriever.retrieveContext(context);
 
-                writeResults(spark, resultsByContext, outputPath);
-                LOG.info(String.format("Wrote results for context %s to %s", contextName, outputPath));
+                    JavaPairRDD<Object, Map<String, Object>> resultsByContext = rowsByContextId
+                            .mapToPair(x -> evaluate(contextName, x, perContextAccum));
+                    
+                    writeResults(spark, resultsSchema, resultsByContext, outputPath);
 
-                contextAccum.add(1);
-                perContextAccum.reset();
+                    LOG.info(String.format("Wrote results for context %s to %s", contextName, outputPath));
+
+                    contextAccum.add(1);
+                    perContextAccum.reset();
+                }
             }
-        }
+		}
     }
 
     /**
@@ -359,7 +396,7 @@ public class SparkCqlEvaluator implements Serializable {
      * @return deserialized jobs object
      * @throws Exception when deserialization fails for any reason
      */
-    protected CqlEvaluationRequests readJobSpecification(String path) throws Exception {
+    protected static CqlEvaluationRequests readJobSpecification(String path) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         CqlEvaluationRequests requests = mapper.readValue(new File(path), CqlEvaluationRequests.class);
         
@@ -386,34 +423,39 @@ public class SparkCqlEvaluator implements Serializable {
      * Write the results of CQL evaluation to a given storage location.
      *
      * @param spark            Active Spark session
+     * @param schema           Schema of the output rows being output.
      * @param resultsByContext CQL evaluation results mapped from context value to a
      *                         map of define to define result.
      * @param outputURI        URI pointing at the location where output data should
      *                         be written.
      */
-    protected void writeResults(SparkSession spark, JavaPairRDD<Object, Map<String, Object>> resultsByContext,
+    protected void writeResults(SparkSession spark, StructType schema, JavaPairRDD<Object, Map<String, Object>> resultsByContext,
             String outputURI) {
-
-//        TODO - output the data in delta lake format.
-//        Map<String,Object> columnData = resultsByContext.take(1).get(0)._2();
-//        StructType schema = new StructType();
-//        schema.add(name, DataTypes.cre)
-//        
-//        JavaRDD<Row> rows = resultsByContext.map( tuple -> {
-//            List<Object> columns = 
-//            
-//            RowFactory.create(tuple._1(), )
-//        })
-        
-        // TODO - use the outputFormat parameter if it isn't null
-        
-
         if (args.outputPartitions != null) {
             resultsByContext = resultsByContext.repartition(args.outputPartitions.intValue());
         }
+
+        Dataset<Row> dataFrame = spark.createDataFrame(
+                resultsByContext
+                        .map(t -> {
+                            Object contextKey = t._1();
+                            Map<String, Object> results = t._2();
+
+                            List<Object> data = new ArrayList<>();
+                            data.add(contextKey);
+                            for (String field : Arrays.copyOfRange(schema.fieldNames(), 1, schema.fieldNames().length)) {
+                                data.add(results.get(field));
+                            }
+                            return data.toArray();
+                        })
+                        .map(RowFactory::create),
+                schema
+        );
+
         String uuid = UUID.randomUUID().toString();
         LOG.info("Batch UUID " + uuid);
-        resultsByContext.saveAsTextFile(outputURI + uuid);
+
+        dataFrame.write().format("parquet").save(outputURI + "/" + uuid);
     }
 
     /**
