@@ -3,6 +3,9 @@ package com.ibm.cohort.cql.evaluation;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 
 public class CqlEvaluationRequest {
@@ -42,4 +45,32 @@ public class CqlEvaluationRequest {
     public void setContextValue(String contextValue) {
         this.contextValue = contextValue;
     }
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+
+		if (o == null || getClass() != o.getClass()) return false;
+
+		CqlEvaluationRequest that = (CqlEvaluationRequest) o;
+
+		return new EqualsBuilder()
+				.append(descriptor, that.descriptor)
+				.append(expressions, that.expressions)
+				.append(parameters, that.parameters)
+				.append(contextKey, that.contextKey)
+				.append(contextValue, that.contextValue)
+				.isEquals();
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder(17, 37)
+				.append(descriptor)
+				.append(expressions)
+				.append(parameters)
+				.append(contextKey)
+				.append(contextValue)
+				.toHashCode();
+	}
 }

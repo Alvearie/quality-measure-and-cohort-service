@@ -436,15 +436,34 @@ public class SparkCqlEvaluator implements Serializable {
             jobSpecification.set(requests);
         }
 
-        List<CqlEvaluationRequest> filteredRequests = requests.getEvaluations().stream()
-                .filter(r -> r.getContextKey().equals(contextName)).collect(Collectors.toList());
+        return evaluate(rowsByContext, contextName, evaluator, requests, perContextAccum);
+    }
+
+    /**
+     * Evaluate the input CQL for a single context + data pair.
+     *
+     * @param contextName     Name of the context used to select measure evaluations.
+     *                        
+     * @param requests        CqlEvaluationRequests containing lists of libraries,
+     *                        expressions, and parameters to evaluate
+     * @return Filtered list of CqlEvaluationResult. 
+     */
+    protected List<CqlEvaluationRequest> filterRequests(CqlEvaluationRequests requests, String contextName) {
+        List<CqlEvaluationRequest> requestsForContext = new ArrayList<>();
+        
+        List<CqlEvaluationRequest> evaluations = requests.getEvaluations();
+        if (evaluations != null) {
+            requestsForContext = requests.getEvaluations().stream()
+                    .filter(r -> r.getContextKey().equals(contextName)).collect(Collectors.toList());
+        }
 
         if (libraries != null && libraries.size() > 0) {
-            filteredRequests = filteredRequests.stream()
+            requestsForContext = requestsForContext.stream()
                     .filter(r -> libraries.keySet().contains(r.getDescriptor().getLibraryId()))
                     .collect(Collectors.toList());
         }
-        return evaluate(rowsByContext, evaluator, requests, perContextAccum);
+        
+        return requestsForContext;
     }
 
     /**
@@ -452,6 +471,7 @@ public class SparkCqlEvaluator implements Serializable {
      * 
      * @param rowsByContext   In-memory data for all datatypes related to a single
      *                        context
+     * @param contextName     Name of the context used to select measure evaluations.
      * @param evaluator       configured CQLEvaluator (data provider, term provider,
      *                        library provider all previously setup)
      * @param requests        CqlEvaluationRequests containing lists of libraries,
@@ -464,11 +484,13 @@ public class SparkCqlEvaluator implements Serializable {
      *         between libraries (e.g. LibraryName.ExpressionName).
      */
     protected Tuple2<Object, Map<String, Object>> evaluate(Tuple2<Object, List<Row>> rowsByContext,
-            CqlEvaluator evaluator, CqlEvaluationRequests requests, LongAccumulator perContextAccum) {
+            String contextName, CqlEvaluator evaluator, CqlEvaluationRequests requests, LongAccumulator perContextAccum) {
         perContextAccum.add(1);
         
+        List<CqlEvaluationRequest> requestsForContext = filterRequests(requests, contextName);
+        
         Map<String, Object> expressionResults = new HashMap<>();
-        for (CqlEvaluationRequest request : requests.getEvaluations()) {
+        for (CqlEvaluationRequest request : requestsForContext) {
             if (expressions != null && expressions.size() > 0) {
                 request.setExpressions(expressions);
             }
