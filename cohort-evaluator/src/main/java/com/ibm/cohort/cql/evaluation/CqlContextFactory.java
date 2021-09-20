@@ -25,6 +25,7 @@ import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 
 import com.ibm.cohort.cql.data.CqlDataProvider;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryDeserializationException;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
@@ -44,11 +45,11 @@ public class CqlContextFactory {
         final public CqlTerminologyProvider terminologyProvider;
         final public CqlLibraryDescriptor topLevelLibrary;
         final public ZonedDateTime evaluationDateTime;
-        final public Map<String,Object> parameters;
+        final public Map<String,Parameter> parameters;
 
         public ContextCacheKey(CqlLibraryProvider libraryProvider, CqlLibraryDescriptor topLevelLibrary,
                 CqlTerminologyProvider terminologyProvider,ZonedDateTime evaluationDateTime,
-                Map<String, Object> parameters ) {
+                Map<String, Parameter> parameters ) {
             this.libraryProvider = libraryProvider;
             this.topLevelLibrary = topLevelLibrary;
             this.terminologyProvider = terminologyProvider;
@@ -122,7 +123,7 @@ public class CqlContextFactory {
      */
     public Context createContext(CqlLibraryProvider libraryProvider, CqlLibraryDescriptor topLevelLibrary,
             CqlTerminologyProvider terminologyProvider, CqlDataProvider dataProvider, ZonedDateTime evaluationDateTime,
-            Pair<String, String> contextData, Map<String, Object> parameters, CqlDebug debug)
+            Pair<String, String> contextData, Map<String, Parameter> parameters, CqlDebug debug)
             throws CqlLibraryDeserializationException {
         
         ContextCacheKey key = new ContextCacheKey( libraryProvider, topLevelLibrary, terminologyProvider, evaluationDateTime, parameters );
@@ -183,15 +184,17 @@ public class CqlContextFactory {
         if( contextKey.parameters != null ) {
             Library library = cqlContext.getCurrentLibrary();
             
-            for( Map.Entry<String,Object> entry : contextKey.parameters.entrySet() ) {
-                cqlContext.setParameter(library.getLocalId(), entry.getKey(), entry.getValue());
+            for( Map.Entry<String,Parameter> entry : contextKey.parameters.entrySet() ) {
+                Object cqlValue = entry.getValue().toCqlType();
+                cqlContext.setParameter(library.getLocalId(), entry.getKey(), cqlValue);
             }
             
             if (library.getIncludes() != null && library.getIncludes().getDef() != null) {
                 for (IncludeDef def : library.getIncludes().getDef()) {
                     String name = def.getLocalIdentifier();
-                    for (Map.Entry<String, Object> parameterValue : contextKey.parameters.entrySet()) {
-                        cqlContext.setParameter(name, parameterValue.getKey(), parameterValue.getValue());
+                    for (Map.Entry<String, Parameter> parameterValue : contextKey.parameters.entrySet()) {
+                        Object cqlValue = parameterValue.getValue().toCqlType();
+                        cqlContext.setParameter(name, parameterValue.getKey(), cqlValue);
                     }
                 }
             }

@@ -20,6 +20,9 @@ import org.opencds.cqf.cql.engine.execution.Context;
 
 import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.evaluation.CqlContextFactory.ContextCacheKey;
+import com.ibm.cohort.cql.evaluation.parameters.IntegerParameter;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
+import com.ibm.cohort.cql.evaluation.parameters.StringParameter;
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
@@ -53,9 +56,9 @@ public class CqlContextFactoryTest {
         
         Pair<String,String> contextData = Pair.of("Patient", "123");
         
-        Map<String,Object> expectedParams = new HashMap<>();
-        expectedParams.put("P1", "MyString");
-        expectedParams.put("P2", 10);
+        Map<String,Parameter> expectedParams = new HashMap<>();
+        expectedParams.put("P1", new StringParameter("MyString"));
+        expectedParams.put("P2", new IntegerParameter(10));
         
         CqlContextFactory cqlContextFactory = spy(CqlContextFactory.class);
         
@@ -70,9 +73,9 @@ public class CqlContextFactoryTest {
         assertEquals(topLevelLibrary.getLibraryId(), context.getCurrentLibrary().getIdentifier().getId());
         assertEquals(topLevelLibrary.getVersion(), context.getCurrentLibrary().getIdentifier().getVersion());
         
-        for( Map.Entry<String, Object> entry : expectedParams.entrySet() ) {
+        for( Map.Entry<String, Parameter> entry : expectedParams.entrySet() ) {
             Object actualValue = context.resolveParameterRef(null, entry.getKey());
-            assertEquals( entry.getValue(), actualValue );
+            assertEquals( entry.getValue().toCqlType(), actualValue );
         }
         
         // Once more just to check that caching is working. Using a different data provider because that is
@@ -92,7 +95,7 @@ public class CqlContextFactoryTest {
         
         CqlLibraryDescriptor topLevelLibrary = new CqlLibraryDescriptor().setLibraryId("Test").setVersion("1.0.0").setFormat(Format.ELM);
         
-        Map<String,Object> parameters = new HashMap<>();
+        Map<String,Parameter> parameters = new HashMap<>();
         ZonedDateTime evaluationDateTime = ZonedDateTime.now();
         
         

@@ -32,7 +32,7 @@
 			"version": "1.0.0"
 		},
 		"expressions": ["cohort"],
-		"contextKey": "Patient",
+		"contextKey": "C",
 		"contextValue": "NA"
 	},
 	{
@@ -41,7 +41,7 @@
 			"version": "1.0.0"
 		},
 		"expressions": ["cohort"],
-		"contextKey": "Patient",
+		"contextKey": "D",
 		"contextValue": "NA"
 	}]
 }
