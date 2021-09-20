@@ -7,6 +7,7 @@
 package com.ibm.cohort.datarow.model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -67,5 +68,16 @@ public class CodeKeyTest {
         CodeKey right = new CodeKey(data);
 
         assertEquals(left, right);
+    }
+
+    @Test
+    public void testCodeKeysNotEqualMissingSystem() {
+        Code data = new Code().withCode("123").withSystem("http://snomed.info/sct").withDisplay("display")
+                .withVersion("20200809");
+        CodeKey codeKeyWithSystem = new CodeKey(data);
+        
+        CodeKey codeKeyWithoutSystem = new CodeKey(data.withSystem(null));
+
+        assertNotEquals(codeKeyWithSystem, codeKeyWithoutSystem);
     }
 }
