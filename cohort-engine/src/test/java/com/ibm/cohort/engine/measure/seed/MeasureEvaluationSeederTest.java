@@ -1,10 +1,13 @@
+/*
+ * (C) Copyright IBM Corp. 2020, 2021
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.ibm.cohort.engine.measure.seed;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
