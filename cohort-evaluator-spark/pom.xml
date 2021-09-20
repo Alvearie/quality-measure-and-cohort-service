@@ -44,6 +44,23 @@
 			<groupId>org.opencds.cqf.cql</groupId>
 			<artifactId>engine</artifactId>
 		</dependency>
+		
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+		</dependency>
+
+		<!-- This needs to be before Spark because spark pulls in JSP 2.1 and JSP 
+			2.1 has an embedded version of the javax.el API -->
+		<dependency>
+			<groupId>org.glassfish</groupId>
+			<artifactId>javax.el</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>org.apache.spark</groupId>
