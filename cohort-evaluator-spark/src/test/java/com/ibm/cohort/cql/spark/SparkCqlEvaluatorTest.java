@@ -60,6 +60,10 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         this.args = new SparkCqlEvaluatorArgs();
         this.evaluator = new SparkCqlEvaluator(args);
         this.spark = initializeSession(Java8API.ENABLED);
+
+        SparkCqlEvaluator.jobSpecification.remove();
+        SparkCqlEvaluator.libraryProvider.remove();
+        SparkCqlEvaluator.terminologyProvider.remove();
     }
 
     /**
