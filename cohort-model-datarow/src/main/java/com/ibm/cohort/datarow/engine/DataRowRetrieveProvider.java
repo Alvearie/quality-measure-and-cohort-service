@@ -23,10 +23,11 @@ import com.ibm.cohort.datarow.model.DataRow;
 
 /**
  * This is an implementation of the CQL RetrieveProvider interface for input
- * data that is a Map of <code>dataType</code> strings to lists of <code>DataRow<code>
- * objects. Retrieval is optionally filtered by the <code>codePath</code> when
- * provided. Codes are indexed on first use for faster retrieval on subsequent
- * data operations. Date range filtering is not supported.
+ * data that is a Map of <code>dataType</code> strings to lists of
+ * <code>DataRow</code> objects. Retrieval is optionally filtered by the
+ * <code>codePath</code> when provided. Codes are indexed on first use for
+ * faster retrieval on subsequent data operations. Date range filtering is not
+ * supported.
  */
 public class DataRowRetrieveProvider implements RetrieveProvider {
 
