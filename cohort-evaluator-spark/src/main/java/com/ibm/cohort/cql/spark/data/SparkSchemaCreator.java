@@ -94,7 +94,6 @@ public class SparkSchemaCreator {
 
 	}
 	
-	// TODO: See if we can fill in this logic
 	public Tuple2<String, DataType> getKeyInformationForContext(String contextName, Set<Tuple2<String, String>> usingInfos) {
 		List<ContextDefinition> definitions = contextDefinitions.getContextDefinitions().stream()
 				.filter(x -> x.getName().equals(contextName))
