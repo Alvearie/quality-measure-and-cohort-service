@@ -61,12 +61,20 @@ public class SparkSchemaCreator {
 					Library library = CqlLibraryReader.read(
 							libraryProvider.getLibrary(new CqlLibraryDescriptor().setLibraryId(measureName).setVersion(descriptor.getVersion())).getContentAsStream()
 					);
-					usingInfo.addAll(getCustomUsings(library));
 					
-					ExpressionDef expressionDef = library.getStatements().getDef().stream()
+					// Track the set of non-system using statements across measures.
+					// Information is used later to access ModelInfos when searching
+					// for context key column type information.
+					usingInfo.addAll(library.getUsings().getDef().stream()
+											 .filter(x -> !x.getLocalIdentifier().equals("System"))
+											 .map(x -> new Tuple2<>(x.getLocalIdentifier(), x.getVersion()))
+											 .collect(Collectors.toList()));
+					
+					QName resultTypeName = library.getStatements().getDef().stream()
 							.filter(x -> x.getName().equals(expression))
-							.collect(Collectors.toList()).get(0);
-					QName resultTypeName = expressionDef.getResultTypeName();
+							.collect(Collectors.toList()).get(0)
+							.getResultTypeName();
+					
 					resultsSchema = resultsSchema.add(measureName + "." + expression, QNameToDataTypeConverter.getFieldType(resultTypeName), true);
 				}
 			}
@@ -86,59 +94,56 @@ public class SparkSchemaCreator {
 		return contextResultSchemas;
 	}
 	
-	public List<Tuple2<String, String>> getCustomUsings(Library library) {
-		return library.getUsings().getDef().stream()
-				.filter(x -> !x.getLocalIdentifier().equals("System"))
-				.map(x -> new Tuple2<>(x.getLocalIdentifier(), x.getVersion()))
-				.collect(Collectors.toList());
-
-	}
 	
-	public Tuple2<String, DataType> getKeyInformationForContext(String contextName, Set<Tuple2<String, String>> usingInfos) {
-		List<ContextDefinition> definitions = contextDefinitions.getContextDefinitions().stream()
-				.filter(x -> x.getName().equals(contextName))
-				.collect(Collectors.toList());
+	// TODO: Try to simplify or split out logic. This is a mess
+	protected Tuple2<String, DataType> getKeyInformationForContext(String contextName, Set<Tuple2<String, String>> usingInfos) {
+		ContextDefinition contextDefinition = getContextDefinition(contextName);
 		
-		if (definitions.size() != 1) {
-			throw new IllegalArgumentException("A context must be defined exactly once in the context definitions file. Found "
-													   + definitions.size() + " definitions for context: " + contextName);
-		}
-		ContextDefinition contextDefinition = definitions.get(0);
 		String primaryDataType = contextDefinition.getPrimaryDataType();
 		String primaryKeyColumn = contextDefinition.getPrimaryKeyColumn();
 
 		DataType keyType = null;
 
+		// Check the model info for each non-system using statement from the measures run for this context.
+		// Try to find the key column's type information from a single model info.
 		for (Tuple2<String, String> usingInfo : usingInfos) {
-			ModelInfo modelInfo = ModelInfoLoader.getModelInfoProvider(
-					new VersionedIdentifier()
-							.withId(usingInfo._1())
-							.withVersion(usingInfo._2())
-			).load();
+			VersionedIdentifier modelInfoIdentifier = new VersionedIdentifier().withId(usingInfo._1()).withVersion(usingInfo._2());
+			ModelInfo modelInfo = ModelInfoLoader.getModelInfoProvider(modelInfoIdentifier).load();
 
+			// Look for a ClassInfo element matching primaryDataType for the context
 			List<ClassInfo> classInfos = modelInfo.getTypeInfo().stream()
 					.map(x -> (ClassInfo) x)
 					.filter(x -> x.getName().equals(primaryDataType))
 					.collect(Collectors.toList());
 
 			if (!classInfos.isEmpty()) {
-				ClassInfo primaryElementInfo = classInfos.get(0);
-				List<ClassInfoElement> elements = primaryElementInfo.getElement().stream()
-						.filter(x -> x.getName().equals(primaryKeyColumn))
-						.collect(Collectors.toList());
-				
-				if (elements.size() == 1) {
-					String elementType = elements.get(0).getElementType();
-					
-					// store it
-					if (keyType == null) {
-						keyType = getSparkTypeForSystemValue(elementType);
+				if (classInfos.size() == 1) {
+					List<ClassInfoElement> elements = classInfos.get(0).getElement().stream()
+							.filter(x -> x.getName().equals(primaryKeyColumn))
+							.collect(Collectors.toList());
+
+					// A future ModelInfo file may contain the information
+					if (elements.isEmpty()) {
+						continue;
 					}
-					else {
-						throw new IllegalArgumentException(
-								"Multiple definitions found for " + primaryDataType + "." + primaryKeyColumn 
-										+ " in the provided ModelInfo files. Cannot infer key type for context: " + contextName);
+					else if (elements.size() == 1) {
+						String elementType = elements.get(0).getElementType();
+
+						// store it
+						if (keyType == null) {
+							keyType = getSparkTypeForSystemValue(elementType);
+						} else {
+							throw new IllegalArgumentException(
+									"Multiple definitions found for " + primaryDataType + "." + primaryKeyColumn
+											+ " in the provided ModelInfo files. Cannot infer key type for context: " + contextName);
+						}
 					}
+					else if (elements.size() > 1) {
+						throw new IllegalArgumentException("ModelInfo " + modelInfoIdentifier + " contains multiple element definitions for " + primaryKeyColumn + " for type " + primaryDataType);
+					}
+				}
+				else {
+					throw new IllegalArgumentException("ModelInfo " + modelInfoIdentifier + " contains multiple definitions for type " + primaryDataType);
 				}
 			}
 
@@ -150,6 +155,19 @@ public class SparkSchemaCreator {
 							+ " in the provided ModelInfo files. Cannot infer key type for context: " + contextName);			
 		}
 		return new Tuple2<>(contextDefinition.getPrimaryKeyColumn(), keyType);
+	}
+	
+	private ContextDefinition getContextDefinition(String contextName) {
+		List<ContextDefinition> definitions = contextDefinitions.getContextDefinitions().stream()
+				.filter(x -> x.getName().equals(contextName))
+				.collect(Collectors.toList());
+
+		if (definitions.size() != 1) {
+			throw new IllegalArgumentException("A context must be defined exactly once in the context definitions file. Found "
+													   + definitions.size() + " definitions for context: " + contextName);
+		}
+		
+		return definitions.get(0);
 	}
 	
 	private DataType getSparkTypeForSystemValue(String elementType) {
