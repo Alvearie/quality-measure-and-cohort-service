@@ -54,6 +54,8 @@ import com.ibm.cohort.datarow.engine.DataRowDataProvider;
 import com.ibm.cohort.datarow.engine.DataRowRetrieveProvider;
 import com.ibm.cohort.datarow.model.DataRow;
 
+import io.prometheus.client.Counter;
+import io.prometheus.client.Gauge;
 import scala.Tuple2;
 
 /**
@@ -108,6 +110,12 @@ public class SparkCqlEvaluator implements Serializable {
     public boolean debug = false;
 
     public SparkTypeConverter typeConverter;
+    
+    //TABISHOP metrics spike
+    static final Counter dataRowsProcessed = Counter.build()
+    	     .name("dataRowsProcessed_total").help("Total number of data rows processed.").register();
+    static final Gauge inProgressEvaluations = Gauge.build()
+    	     .name("inprogress_evaluations").help("Inprogress CQL Evaluations.").register();
 
     public void run(PrintStream out) throws Exception {
 
@@ -308,6 +316,7 @@ public class SparkCqlEvaluator implements Serializable {
 
         Map<String, List<Object>> dataByDataType = new HashMap<>();
         for (DataRow datarow : datarows) {
+        	dataRowsProcessed.inc();
             String dataType = (String) datarow.getValue(SOURCE_FACT_IDX);
             List<Object> mappedRows = dataByDataType.computeIfAbsent(dataType, x -> new ArrayList<>());
             mappedRows.add(datarow);
@@ -345,12 +354,16 @@ public class SparkCqlEvaluator implements Serializable {
                 }
             }
 
+            inProgressEvaluations.inc();
             CqlEvaluationResult result = evaluator.evaluate(request, debug ? CqlDebug.DEBUG : CqlDebug.NONE);
+            inProgressEvaluations.dec();
             for (Map.Entry<String, Object> entry : result.getExpressionResults().entrySet()) {
                 String outputColumnKey = request.getDescriptor().getLibraryId() + "." + entry.getKey();
                 expressionResults.put(outputColumnKey, typeConverter.toSparkType(entry.getValue()));
             }
         }
+        
+
 
         return new Tuple2<>(rowsByContext._1(), expressionResults);
     }

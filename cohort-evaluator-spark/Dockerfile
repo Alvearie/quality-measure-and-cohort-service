@@ -56,7 +56,7 @@ USER root
 # Perform a full update of all packages to minimize vulnerabilities
 RUN dnf update -y &&\
     # Install Java 11
-    dnf install -y java-11-openjdk &&\
+    dnf install -y java-11-openjdk pgrep &&\
     # Clean dnf
     dnf clean all
     

@@ -20,7 +20,8 @@
 	</scm>
 
     <properties>
-        <image.tag>us.icr.io/vpc-dev-cohort-rns/cohort-evaluator-spark:a-p3.4.3-tekton-20210831191041-5b74a7ab8f76f0e3c3f2273f49177128051e4e05</image.tag>
+        <!-- image.tag>us.icr.io/vpc-dev-cohort-rns/cohort-evaluator-spark:a-p3.4.3-tekton-20210831191041-5b74a7ab8f76f0e3c3f2273f49177128051e4e05</image.tag -->
+        <image.tag>us.icr.io/vpc-dev-cohort-rns/cohort-evaluator-spark:a-p3.4.3-tekton-20210910191400-4f2a530822f62bf0fa178a66ab73cba1dfab8e67</image.tag>
         <config.volume>cohort-config</config.volume>
         <data.bucket>kwasny-test</data.bucket>
         <data.secret>spark-cos-secret</data.secret>
@@ -97,6 +98,32 @@
 			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
 		</dependency>
+		
+		<!-- TABISHOP spark metrics, todo, move versions to parent pom -->
+		<!-- The client -->
+		<dependency>
+			<groupId>io.prometheus</groupId>
+			<artifactId>simpleclient</artifactId>
+			<version>0.12.0</version>
+		</dependency>
+		<!-- Hotspot JVM metrics -->
+		<dependency>
+			<groupId>io.prometheus</groupId>
+			<artifactId>simpleclient_hotspot</artifactId>
+			<version>0.12.0</version>
+		</dependency>
+		<!-- Exposition HTTPServer -->
+		<dependency>
+			<groupId>io.prometheus</groupId>
+			<artifactId>simpleclient_httpserver</artifactId>
+			<version>0.12.0</version>
+		</dependency>
+		<!-- Pushgateway exposition -->
+		<dependency>
+			<groupId>io.prometheus</groupId>
+			<artifactId>simpleclient_pushgateway</artifactId>
+			<version>0.12.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -168,6 +195,28 @@
 						<argument>spark.kubernetes.executor.volumes.persistentVolumeClaim.${config.volume}.options.claimName=${config.volume}</argument>
 						<argument>--conf</argument>
 						<argument>spark.kubernetes.executor.volumes.persistentVolumeClaim.${config.volume}.mount.path=/${config.volume}</argument>
+						
+						<!-- Add properties for exposing embedded spark metrics endpoints for prometheus-->
+						<argument>--conf</argument>
+						<argument>spark.ui.prometheus.enabled=true</argument>
+						<argument>--conf</argument>
+						<argument>spark.executor.processTreeMetrics.enabled=true</argument>
+						
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.driver.annotation.prometheus.io/scrape=true</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.driver.annotation.prometheus.io/path=/metrics/executors/prometheus/</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.driver.annotation.prometheus.io/port=4040</argument>
+						
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.driver.service.annotation.prometheus.io/scrape=true</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.driver.service.annotation.prometheus.io/path=/metrics/executors/prometheus/</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.driver.service.annotation.prometheus.io/port=4040</argument>
+						
+						
 						<argument>--deploy-mode</argument>
 						<argument>cluster</argument>
 						<argument>--name</argument>
