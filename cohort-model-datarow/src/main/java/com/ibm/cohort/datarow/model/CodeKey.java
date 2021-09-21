@@ -9,9 +9,12 @@ package com.ibm.cohort.datarow.model;
 import org.opencds.cqf.cql.engine.runtime.Code;
 
 /**
- * The CQL Code type doesn't implement equals, so those objects don't make a
- * good index key. We provide an adapter here that implements the standard
- * equals and hashCode methods so that we can use codes as Map keys.
+ * This class is used as the map key for a cache in the retrieve provider that indexes
+ * data rows based on the codings contained in that data. Code equivalence checks
+ * are used for lookup per the CQL specification on filtered retrieves.
+ * 
+ * @see <a href="https://cql.hl7.org/02-authorsguide.html#filtering-with-terminology">Filtering with Terminology</a>
+ * @see <a href="https://cql.hl7.org/02-authorsguide.html#terminology-operators">Terminology Operations</a>
  */
 public class CodeKey extends Code {
 
@@ -26,7 +29,7 @@ public class CodeKey extends Code {
 
     @Override
     public boolean equals(Object o2) {
-        Boolean codeEquals = super.equal(o2);
+        Boolean codeEquals = super.equivalent(o2);
         return codeEquals != null && codeEquals;
     }
 
@@ -35,7 +38,6 @@ public class CodeKey extends Code {
         int hash = 7;
         hash = 31 * hash + (getCode() == null ? 0 : getCode().hashCode());
         hash = 31 * hash + (getSystem() == null ? 0 : getSystem().hashCode());
-        hash = 31 * hash + (getDisplay() == null ? 0 : getDisplay().hashCode());
         return hash;
     }
 }
