@@ -2,14 +2,10 @@ package com.ibm.cohort.cql.spark;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -30,34 +26,33 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.catalyst.JavaTypeInference;
 import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.StructType;
-import org.apache.spark.sql.delta.DeltaLog;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
+import com.ibm.cohort.cql.evaluation.parameters.DateParameter;
+import com.ibm.cohort.cql.evaluation.parameters.IntegerParameter;
+import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
-import com.ibm.cohort.cql.library.CqlLibraryProvider;
-import com.ibm.cohort.cql.library.DirectoryBasedCqlLibraryProvider;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.data.Patient;
-import com.ibm.cohort.cql.spark.data.SparkTypeConverter;
-import com.ibm.cohort.cql.translation.CqlToElmTranslator;
-import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
+
 
 import scala.Tuple2;
 
 public class SparkCqlEvaluatorTest extends BaseSparkTest {
     private static final long serialVersionUID = 1L;
 
+    private SparkCqlEvaluatorArgs args;
     private SparkCqlEvaluator evaluator;
     private SparkSession spark;
     
     @Before
     public void setUp() {
-        this.evaluator = new SparkCqlEvaluator();
+        this.args = new SparkCqlEvaluatorArgs();
+        this.evaluator = new SparkCqlEvaluator(args);
         this.spark = initializeSession(Java8API.ENABLED);
     }
 
@@ -206,8 +201,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         requests.setEvaluations(evaluations);
 
-        evaluator.libraries.put("lib1", "1.0.0");
-        evaluator.libraries.put("lib2", "1.0.0");
+        args.libraries.put("lib1", "1.0.0");
+        args.libraries.put("lib2", "1.0.0");
 
         List<CqlEvaluationRequest> cqlEvaluationRequests = evaluator.filterRequests(requests, "A");
 
@@ -227,8 +222,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         requests.setEvaluations(evaluations);
 
-        evaluator.libraries.put("lib1", "1.0.0");
-        evaluator.libraries.put("lib2", "1.0.0");
+        args.libraries.put("lib1", "1.0.0");
+        args.libraries.put("lib2", "1.0.0");
 
         List<CqlEvaluationRequest> cqlEvaluationRequests = evaluator.filterRequests(requests, "A");
 
@@ -237,11 +232,23 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
     }
 
     @Test
-    public void testReadCqlJobs() throws Exception {
-        CqlEvaluationRequests requests = evaluator.readJobSpecification("src/test/resources/alltypes/cql-jobs.json");
+    public void testReadCqlJobsSuccess() throws Exception {
+        IntervalParameter measurementPeriod = new IntervalParameter();
+        measurementPeriod.setStart(new DateParameter("2020-01-01")).setEnd(new DateParameter("2021-01-01"));
+        
+        IntegerParameter minimumAge = new IntegerParameter(17);
+        
+        CqlEvaluationRequests requests = evaluator.readJobSpecification("src/test/resources/simple-job/cql-jobs.json");
         assertNotNull(requests);
-        assertEquals(5, requests.getEvaluations().size());
-        assertNull(requests.getGlobalParameters());
+        assertEquals(measurementPeriod, requests.getGlobalParameters().get("Measurement Period"));
+        assertEquals(1, requests.getEvaluations().size());
+        assertEquals(minimumAge, requests.getEvaluations().get(0).getParameters().get("MinimumAge"));
+    }
+    
+    @Test
+    public void testReadCqlJobsInvalid() throws Exception {
+        assertThrows(IllegalArgumentException.class,
+                () -> evaluator.readJobSpecification("src/test/resources/invalid/cql-jobs-invalid-global.json"));
     }
     
     @Test

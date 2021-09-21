@@ -17,6 +17,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.opencds.cqf.cql.engine.execution.Context;
 
 import com.ibm.cohort.cql.data.CqlDataProvider;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryDeserializationException;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
@@ -37,10 +38,20 @@ public class CqlEvaluator {
     public List<Pair<CqlEvaluationRequest,CqlEvaluationResult>> evaluate( CqlEvaluationRequests requests, CqlDebug debug ) {
         List<Pair<CqlEvaluationRequest,CqlEvaluationResult>> results = new ArrayList<>(requests.getEvaluations().size());
         for( CqlEvaluationRequest request : requests.getEvaluations() ) { 
-            Map<String,Object> parameters = new HashMap<>( requests.getGlobalParameters() );
-            parameters.putAll( request.getParameters() );
             
-            results.add( Pair.of(request, evaluate( request, debug )) );
+            
+            Map<String,Parameter> parameters = new HashMap<>();
+            if( requests.getGlobalParameters() != null ) {
+                parameters.putAll(requests.getGlobalParameters());
+            }
+            if( request.getParameters() != null ) {
+                parameters.putAll(request.getParameters());
+            }
+            
+            CqlEvaluationRequest withGlobals = new CqlEvaluationRequest(request);
+            withGlobals.setParameters(parameters);
+            
+            results.add( Pair.of(request, evaluate( withGlobals, debug )) );
         }
         return results;
     }
@@ -65,12 +76,12 @@ public class CqlEvaluator {
         return evaluate(topLevelLibrary, null, context, expressions, DEFAULT_CQL_DEBUG);
     }
     
-    public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary, Map<String,Object> parameters, Pair<String,String> context) throws CqlLibraryDeserializationException {
+    public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary, Map<String,Parameter> parameters, Pair<String,String> context) throws CqlLibraryDeserializationException {
         return evaluate(topLevelLibrary, parameters, context, null, DEFAULT_CQL_DEBUG);
     }
 
     
-    public CqlEvaluationResult evaluate(CqlLibraryDescriptor topLevelLibrary, Map<String, Object> parameters,
+    public CqlEvaluationResult evaluate(CqlLibraryDescriptor topLevelLibrary, Map<String, Parameter> parameters,
             Pair<String, String> context, Set<String> expressions, CqlDebug debug)
             throws CqlLibraryDeserializationException {
         Context cqlContext = new CqlContextFactory().createContext(libraryProvider, topLevelLibrary,

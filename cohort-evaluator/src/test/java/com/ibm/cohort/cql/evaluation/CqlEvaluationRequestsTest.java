@@ -9,18 +9,22 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import com.ibm.cohort.cql.evaluation.parameters.DecimalParameter;
+import com.ibm.cohort.cql.evaluation.parameters.IntegerParameter;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
+import com.ibm.cohort.cql.evaluation.parameters.StringParameter;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 
 public class CqlEvaluationRequestsTest {
     @Test
     public void testSetGet() {
-        Map<String,Object> globalParameters = new HashMap<>();
-        globalParameters.put("String", "Hello,World");
-        globalParameters.put("Integer", 10);
+        Map<String,Parameter> globalParameters = new HashMap<>();
+        globalParameters.put("String", new StringParameter("Hello,World"));
+        globalParameters.put("Integer", new IntegerParameter(10));
         
-        Map<String,Object> localParameters = new HashMap<>();
-        localParameters.put("String", "Goodbye, Cruel World");
-        localParameters.put("Float", 1.29f);
+        Map<String,Parameter> localParameters = new HashMap<>();
+        localParameters.put("String", new StringParameter("Goodbye, Cruel World"));
+        localParameters.put("Float", new DecimalParameter("1.29f"));
         
         CqlLibraryDescriptor desc = new CqlLibraryDescriptor().setLibraryId("SampleLibrary").setVersion("1.0.0");
         
