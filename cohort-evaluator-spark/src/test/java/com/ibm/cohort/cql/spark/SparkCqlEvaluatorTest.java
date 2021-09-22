@@ -105,8 +105,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         File dFile = new File(outputDir, "D_cohort");
 
         String [] args = new String[] {
-          "-d", "src/test/resources/alltypes/metadata/basic/context-definitions.json",
-          "-j", "src/test/resources/alltypes/metadata/basic/cql-jobs.json",
+          "-d", "src/test/resources/alltypes/metadata/context-definitions.json",
+          "-j", "src/test/resources/alltypes/metadata/cql-jobs.json",
           "-m", "src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml",
           "-c", "src/test/resources/alltypes/cql",
           "--input-format", "parquet",
@@ -125,24 +125,58 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         SparkCqlEvaluator.main(args);
     }
+    
+    @Test
+    public void testValidateOutput() throws Exception {
+        File inputDir = new File("src/test/resources/output-validation/");
+        File outputDir = new File("target/output/output-validation/");
+
+        File context1IdFile = new File(outputDir, "context-1-id");
+        File context2IdFile = new File(outputDir, "context-2-id");
+
+        String [] args = new String[] {
+                "-d", "src/test/resources/output-validation/metadata/context-definitions.json",
+                "-j", "src/test/resources/output-validation/metadata/cql-jobs.json",
+                "-m", "src/test/resources/output-validation/modelinfo/simple-all-types-model-info.xml",
+                "-c", "src/test/resources/output-validation/cql",
+                "--input-format", "parquet",
+                "-i", "Type1=" + new File(inputDir, "testdata/Type1").toURI().toString(),
+                "-i", "Type2=" + new File(inputDir, "testdata/Type2").toURI().toString(),
+                "-o", "Context1Id=" + context1IdFile.toURI().toString(),
+                "-o", "Context2Id=" + context2IdFile.toURI().toString(),
+                "--overwrite-output-for-contexts"
+        };
+
+        SparkCqlEvaluator.main(args);
+
+        validateOutputCountsAndColumns(
+                context1IdFile.toURI().toString(),
+                new HashSet<>(Arrays.asList("id", "Context1Id.define_integer", "Context1Id.define_decimal", "Context1Id.define_string", "Context1Id.define_boolean")),
+                5
+        );
+
+        validateOutputCountsAndColumns(
+                context2IdFile.toURI().toString(),
+                new HashSet<>(Arrays.asList("id", "Context2Id.define_date", "Context2Id.define_datetime")),
+                5
+        );
+    }
 
     @Test(expected = IllegalArgumentException.class)
     public void testUnknownDefineThrowsException() throws Exception {
         File inputDir = new File("src/test/resources/alltypes/");
         File outputDir = new File("target/output/alltypes/");
 
-        File patientFile = new File(outputDir, "Patient_cohort");
         File aFile = new File(outputDir, "A_cohort");
 
         String [] args = new String[] {
-                "-d", "src/test/resources/alltypes/metadata/output-validation/context-definitions.json",
-                "-j", "src/test/resources/alltypes/metadata/unknown-define/cql-jobs.json",
+                "-d", "src/test/resources/alltypes/metadata/context-definitions.json",
+                // cql-jobs file references an unknown define in its evaluation request
+                "-j", "src/test/resources/unknown-define/metadata/cql-jobs.json",
                 "-m", "src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml",
                 "-c", "src/test/resources/alltypes/cql",
                 "--input-format", "parquet",
                 "-i", "A=" + new File(inputDir, "testdata/test-A.parquet").toURI().toString(),
-                "-i", "B=" + new File(inputDir, "testdata/test-B.parquet").toURI().toString(),
-                "-o", "Patient=" + patientFile.toURI().toString(),
                 "-o", "A=" + aFile.toURI().toString(),
                 "-n", "10",
                 "--overwrite-output-for-contexts"
@@ -151,34 +185,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         SparkCqlEvaluator.main(args);
     }
     
-    @Test
-    public void testExpectedColumnsOutput() throws Exception {
-        File inputDir = new File("src/test/resources/alltypes/");
-        File outputDir = new File("target/output/alltypes/");
-
-        File patientFile = new File(outputDir, "Patient_cohort");
-        File aFile = new File(outputDir, "A_cohort");
-
-        String [] args = new String[] {
-                "-d", "src/test/resources/alltypes/metadata/output-validation/context-definitions.json",
-                "-j", "src/test/resources/alltypes/metadata/output-validation/cql-jobs.json",
-                "-m", "src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml",
-                "-c", "src/test/resources/alltypes/cql",
-                "--input-format", "parquet",
-                "-i", "A=" + new File(inputDir, "testdata/test-A.parquet").toURI().toString(),
-                "-i", "B=" + new File(inputDir, "testdata/test-B.parquet").toURI().toString(),
-                "-o", "Patient=" + patientFile.toURI().toString(),
-                "-o", "A=" + aFile.toURI().toString(),
-                "-n", "10",
-                "--overwrite-output-for-contexts"
-        };
-
-        SparkCqlEvaluator.main(args);
-
-        validateOutputCountsAndColumns(aFile.toURI().toString(), new HashSet<>(Arrays.asList("id_col", "MeasureSupportedTypes.intDefine", "MeasureSupportedTypes.decimalDefine", "MeasureSupportedTypes.stringDefine", "MeasureSupportedTypes.booleanDefine")), 572);
-        validateOutputCountsAndColumns(patientFile.toURI().toString(), new HashSet<>(Arrays.asList("pat_id", "MeasureSupportedTypes.dateDefine", "MeasureSupportedTypes.datetimeDefine")), 100);
-    }
-    
+    // TODO RIP
     private void validateOutputCountsAndColumns(String filename, Set<String> columnNames, int numExpectedRows) {
         SparkSession sparkSession = initializeSession(Java8API.ENABLED);
         Dataset<Row> results = sparkSession.read().parquet(filename);
@@ -187,6 +194,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         assertEquals(numExpectedRows, results.count());
     }
     
+    // TODO RIP
     private void validateColumnNames(StructType schema, Set<String> columnNames) {
         for (String field : schema.fieldNames()) {
             assertTrue(columnNames.contains(field));
@@ -322,7 +330,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
     
     @Test
     public void testReadContextDefinitions() throws Exception {
-        ContextDefinitions contextDefinitions = evaluator.readContextDefinitions("src/test/resources/alltypes/basic/context-definitions.json");
+        ContextDefinitions contextDefinitions = evaluator.readContextDefinitions("src/test/resources/alltypes/metadata/context-definitions.json");
         assertNotNull(contextDefinitions);
         assertEquals(5, contextDefinitions.getContextDefinitions().size());
         assertEquals(3, contextDefinitions.getContextDefinitions().get(0).getRelationships().size());
