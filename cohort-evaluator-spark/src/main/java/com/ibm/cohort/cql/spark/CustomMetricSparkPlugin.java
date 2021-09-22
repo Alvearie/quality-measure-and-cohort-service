@@ -13,7 +13,7 @@ import com.codahale.metrics.MetricRegistry;
 public class CustomMetricSparkPlugin implements SparkPlugin{
 
 //	public static final Gauge inProgressEvaluations;
-	public static Counter dataRowsProcessed;
+	public static Counter dataRowsProcessed = new MetricRegistry().counter("metrics_dataRowsProcessed");
 	
 	@Override
 	public DriverPlugin driverPlugin() {
@@ -30,7 +30,7 @@ public class CustomMetricSparkPlugin implements SparkPlugin{
 		return new ExecutorPlugin() {
 			public void init(PluginContext ctx, Map<String, String> extraConf) {
 				MetricRegistry metReg = ctx.metricRegistry();
-				dataRowsProcessed = metReg.counter("metrics_dataRowsProcessed");
+				metReg.register("metrics_dataRowsProcessed", dataRowsProcessed);
 				
 			}
 		};
