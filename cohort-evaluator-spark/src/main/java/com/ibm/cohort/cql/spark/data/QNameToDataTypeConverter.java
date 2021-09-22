@@ -14,6 +14,10 @@ import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 
 public class QNameToDataTypeConverter {
+	
+	private QNameToDataTypeConverter() {
+		
+	}
 
 	public static final String ELM_NAMESPACE_URI = "urn:hl7-org:elm-types:r1";
 	
@@ -44,5 +48,9 @@ public class QNameToDataTypeConverter {
 		}
 		
 		return dataType;
+	}
+	
+	public static QName createQNameForElmNamespace(String localType) {
+		return new QName(ELM_NAMESPACE_URI, localType);
 	}
 }

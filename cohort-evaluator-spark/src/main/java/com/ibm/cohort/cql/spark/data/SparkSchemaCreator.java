@@ -175,18 +175,20 @@ public class SparkSchemaCreator {
 	}
 	
 	private DataType getSparkTypeForSystemValue(String elementType) {
-		if (elementType == null) {
-			return DataTypes.NullType;
+		DataType dataType = null;
+
+		// Assuming system types are of format "System.TYPE"
+		if (elementType != null){
+			String[] split = elementType.split("\\.");
+			if (split.length == 2) {
+				dataType = QNameToDataTypeConverter.getFieldType(QNameToDataTypeConverter.createQNameForElmNamespace(split[1]));
+			}
 		}
-		else if (elementType.equals("System.String")) {
-			return DataTypes.StringType;
+
+		if (dataType == null) {
+			throw new IllegalArgumentException("Context key column of type " + elementType + " is not supported.");
 		}
-		else if (elementType.equals("System.Integer")) {
-			return DataTypes.IntegerType;
-		}
-		else if (elementType.equals("System.Long")) {
-			return DataTypes.LongType;
-		}
-		throw new IllegalArgumentException("Context key column of type " + elementType + " is not supported.");
+		
+		return dataType;
 	}
 }
