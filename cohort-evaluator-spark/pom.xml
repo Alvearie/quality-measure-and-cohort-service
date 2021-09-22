@@ -100,6 +100,11 @@
 		</dependency>
 		
 		<!-- TABISHOP spark metrics, todo, move versions to parent pom -->
+		<dependency>
+		    <groupId>io.dropwizard.metrics</groupId>
+		    <artifactId>metrics-core</artifactId>
+		    <version>4.1.1</version>
+		</dependency>
 		<!-- The client -->
 		<dependency>
 			<groupId>io.prometheus</groupId>
@@ -160,7 +165,8 @@
 						<argument>--conf</argument>
 						<argument>spark.driver-memory=1g</argument>
 						<argument>--conf</argument>
-						<argument>spark.master=k8s://https://c105.us-east.containers.cloud.ibm.com:32327</argument>
+						<!-- argument>spark.master=k8s://https://c105.us-east.containers.cloud.ibm.com:32327</argument -->
+						<argument>spark.master=local[4]</argument>
 						<argument>--conf</argument>
                         <argument>spark.eventLog.dir=s3a://${data.bucket}/z-spark-history</argument>
 						<argument>--conf</argument>
@@ -217,8 +223,8 @@
 						<argument>spark.kubernetes.driver.service.annotation.prometheus.io/port=4040</argument>
 						
 						
-						<argument>--deploy-mode</argument>
-						<argument>cluster</argument>
+						<!-- argument>deploy-mode</argument>
+						<argument>cluster</argument -->
 						<argument>--name</argument>
 						<argument>cohort-evaluator-spark</argument>
 						<argument>--class</argument>
