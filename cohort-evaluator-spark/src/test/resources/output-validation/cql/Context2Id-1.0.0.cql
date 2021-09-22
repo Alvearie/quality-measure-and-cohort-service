@@ -4,7 +4,7 @@ using "CohortTest" version '0.0.1'
 context Context2Id
   
 define "define_date":
-  @2020-01-01
+  if Context2Id.boolean then Context2Id.date else null
   
 define "define_datetime":
-  @2020-01-01T12:00:00.0Z
+  if Context2Id.boolean then Context2Id.datetime else null

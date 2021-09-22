@@ -4,13 +4,13 @@ using "CohortTest" version '0.0.1'
 context Context1Id
 
 define "define_integer":
-  if exists([Type1] t where t.boolean) then 1 else 0
+  if Context1Id.boolean then Context1Id.integer else null
   
 define "define_decimal":
-  if exists([Type1] t where t.boolean) then 1.0 else 0.0
-  
+  if Context1Id.boolean then Context1Id.decimal else null  
+
 define "define_string":
-  if exists([Type1] t where t.boolean) then '1' else '0'
+  if Context1Id.boolean then Context1Id.string else null
 
 define "define_boolean":
-  exists([Type1] t where t.boolean)
+  Context1Id.boolean

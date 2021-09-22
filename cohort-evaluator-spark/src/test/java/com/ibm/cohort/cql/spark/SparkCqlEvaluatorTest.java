@@ -15,6 +15,7 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -42,6 +43,7 @@ import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.data.Patient;
 import com.ibm.cohort.cql.spark.data.QNameToDataTypeConverter;
+import com.ibm.cohort.cql.spark.data.SparkTypeConverter;
 
 public class SparkCqlEvaluatorTest extends BaseSparkTest {
     private static final long serialVersionUID = 1L;
@@ -155,25 +157,45 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         SparkCqlEvaluator.main(args);
         
-        StructType context1IdSchema = new StructType()
-                .add("id", DataTypes.IntegerType, false)
-                .add("Context1Id.define_integer", DataTypes.IntegerType, true)
-                .add("Context1Id.define_string", DataTypes.StringType, true)
-                // Decimal precision currently hardcoded in QNameToDataTypeConverter
-                .add("Context1Id.define_decimal", DataTypes.createDecimalType(28, 8), true)
-                .add("Context1Id.define_boolean", DataTypes.BooleanType, true);
-
-        List<Row> context1IdRows = Arrays.asList(
-                RowFactory.create(0, 0, "0", new BigDecimal(0.0), false),
-                RowFactory.create(1, 0, "0", new BigDecimal(0.0), false),
-                RowFactory.create(2, 1, "1", new BigDecimal(1.0), true),
-                RowFactory.create(3, 1, "1", new BigDecimal(1.0), true),
-                RowFactory.create(4, 1, "1", new BigDecimal(1.0), true)
+        
+        validateOutput(
+                context1IdFile.toURI().toString(),
+                Arrays.asList(
+                        RowFactory.create(0, null, null, null, false),
+                        RowFactory.create(1, null, null, null, false),
+                        RowFactory.create(2, 33, "string1", new BigDecimal(9.989), true),
+                        RowFactory.create(3, 22, "string2", new BigDecimal(-2.816), true),
+                        RowFactory.create(4, 22, "string1", new BigDecimal(-4.926), true)
+                ),
+                new StructType()
+                        .add("id", DataTypes.IntegerType, false)
+                        .add("Context1Id.define_integer", DataTypes.IntegerType, true)
+                        .add("Context1Id.define_string", DataTypes.StringType, true)
+                        // Decimal precision currently hardcoded in QNameToDataTypeConverter
+                        .add("Context1Id.define_decimal", DataTypes.createDecimalType(28, 8), true)
+                        .add("Context1Id.define_boolean", DataTypes.BooleanType, true)
         );
 
+        validateOutput(
+                context2IdFile.toURI().toString(),
+                Arrays.asList(
+                        RowFactory.create(0, LocalDate.of(2002, 9, 27)),
+                        RowFactory.create(1, LocalDate.of(2002, 3, 10)),
+                        RowFactory.create(2, LocalDate.of(2002, 5, 29)),
+                        RowFactory.create(3, null),
+                        RowFactory.create(4, LocalDate.of(2002, 5, 21))
+                ),
+                new StructType()
+                        .add("id", DataTypes.IntegerType, false)
+                        .add("Context1Id.define_date", DataTypes.DateType, true)
+//                        .add("Context1Id.define_datetime", DataTypes.TimestampType, true)
+        );
+    }
+    
+    private void validateOutput(String filename, List<Row> expectedRows, StructType schema) {
         spark = initializeSession(Java8API.ENABLED);
-        Dataset<Row> expectedContext1DataFrame = spark.createDataFrame(context1IdRows, context1IdSchema);
-        Dataset<Row> actualConext1DataFrame = spark.read().parquet(context1IdFile.toURI().toString());
+        Dataset<Row> expectedContext1DataFrame = spark.createDataFrame(expectedRows, schema);
+        Dataset<Row> actualConext1DataFrame = spark.read().parquet(filename);
 
         assertEquals(0, expectedContext1DataFrame.except(actualConext1DataFrame).count());
         assertEquals(0, actualConext1DataFrame.except(expectedContext1DataFrame).count());
