@@ -221,7 +221,7 @@ public class DataRowRetrieveProviderTest {
         List<Object> people = new ArrayList<>();
         people.add(person("123", GENDER_FEMALE, 65));
         people.add(person("456", GENDER_FEMALE, 42));
-        people.add(person("789", GENDER_MALE, 43));
+        people.add(person(maleId, GENDER_MALE, 43));
         people.add(person("012", GENDER_FEMALE, 8));
         return people;
     }

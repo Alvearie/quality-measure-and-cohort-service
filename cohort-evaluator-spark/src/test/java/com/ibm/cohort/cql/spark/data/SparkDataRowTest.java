@@ -259,8 +259,8 @@ public class SparkDataRowTest extends BaseSparkTest {
         Code code = (Code) converted;
         assertEquals( pojo.getCodeStr(), code.getCode() );
         assertEquals( SNOMED, code.getSystem() );
-        assertEquals( null, code.getDisplay() );
-        assertEquals( null, code.getVersion() );
+        assertNull( code.getDisplay() );
+        assertNull( code.getVersion() );
     }
     
     @Test
