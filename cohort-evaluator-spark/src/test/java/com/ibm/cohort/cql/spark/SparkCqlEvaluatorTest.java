@@ -12,6 +12,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -20,9 +21,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.namespace.QName;
+
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -36,6 +41,7 @@ import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.data.Patient;
+import com.ibm.cohort.cql.spark.data.QNameToDataTypeConverter;
 
 public class SparkCqlEvaluatorTest extends BaseSparkTest {
     private static final long serialVersionUID = 1L;
@@ -148,18 +154,29 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         };
 
         SparkCqlEvaluator.main(args);
+        
+        StructType context1IdSchema = new StructType()
+                .add("id", DataTypes.IntegerType, false)
+                .add("Context1Id.define_integer", DataTypes.IntegerType, true)
+                .add("Context1Id.define_string", DataTypes.StringType, true)
+                // Decimal precision currently hardcoded in QNameToDataTypeConverter
+                .add("Context1Id.define_decimal", DataTypes.createDecimalType(28, 8), true)
+                .add("Context1Id.define_boolean", DataTypes.BooleanType, true);
 
-        validateOutputCountsAndColumns(
-                context1IdFile.toURI().toString(),
-                new HashSet<>(Arrays.asList("id", "Context1Id.define_integer", "Context1Id.define_decimal", "Context1Id.define_string", "Context1Id.define_boolean")),
-                5
+        List<Row> context1IdRows = Arrays.asList(
+                RowFactory.create(0, 0, "0", new BigDecimal(0.0), false),
+                RowFactory.create(1, 0, "0", new BigDecimal(0.0), false),
+                RowFactory.create(2, 1, "1", new BigDecimal(1.0), true),
+                RowFactory.create(3, 1, "1", new BigDecimal(1.0), true),
+                RowFactory.create(4, 1, "1", new BigDecimal(1.0), true)
         );
 
-        validateOutputCountsAndColumns(
-                context2IdFile.toURI().toString(),
-                new HashSet<>(Arrays.asList("id", "Context2Id.define_date", "Context2Id.define_datetime")),
-                5
-        );
+        spark = initializeSession(Java8API.ENABLED);
+        Dataset<Row> expectedContext1DataFrame = spark.createDataFrame(context1IdRows, context1IdSchema);
+        Dataset<Row> actualConext1DataFrame = spark.read().parquet(context1IdFile.toURI().toString());
+
+        assertEquals(0, expectedContext1DataFrame.except(actualConext1DataFrame).count());
+        assertEquals(0, actualConext1DataFrame.except(expectedContext1DataFrame).count());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -183,23 +200,6 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         };
 
         SparkCqlEvaluator.main(args);
-    }
-    
-    // TODO RIP
-    private void validateOutputCountsAndColumns(String filename, Set<String> columnNames, int numExpectedRows) {
-        SparkSession sparkSession = initializeSession(Java8API.ENABLED);
-        Dataset<Row> results = sparkSession.read().parquet(filename);
-        validateColumnNames(results.schema(), columnNames);
-        
-        assertEquals(numExpectedRows, results.count());
-    }
-    
-    // TODO RIP
-    private void validateColumnNames(StructType schema, Set<String> columnNames) {
-        for (String field : schema.fieldNames()) {
-            assertTrue(columnNames.contains(field));
-        }
-        assertEquals(columnNames.size(), schema.fields().length);
     }
 
     private CqlEvaluationRequest makeEvaluationRequest(String contextName) {
