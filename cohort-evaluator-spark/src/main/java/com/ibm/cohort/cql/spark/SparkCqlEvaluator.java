@@ -451,7 +451,7 @@ public class SparkCqlEvaluator implements Serializable {
                 schema
         );
 
-        dataFrame.write().format("parquet").save(outputURI);
+        dataFrame.write().mode(args.overwriteResults ? "overwrite" : "errorifexists").format("parquet").save(outputURI);
     }
 
     /**

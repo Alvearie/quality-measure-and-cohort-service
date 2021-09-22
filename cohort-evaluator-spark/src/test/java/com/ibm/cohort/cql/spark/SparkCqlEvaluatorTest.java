@@ -97,7 +97,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
           "-m", "src/test/resources/simple-job/modelinfo/simple-modelinfo-1.0.0.xml",
           "-c", "src/test/resources/simple-job/cql",
           "-i", "Patient=" + new File("src/test/resources/simple-job/testdata/patient").toURI().toString(),
-          "-o", "Patient=" + new File("target/output/simple-job/patient_cohort").toURI().toString()
+          "-o", "Patient=" + new File("target/output/simple-job/patient_cohort").toURI().toString(),
+          "--overwrite-output-for-contexts"
         };
 
         SparkCqlEvaluator.main(args);
@@ -129,7 +130,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
           "-o", "B=" + bFile.toURI().toString(),
           "-o", "C=" + cFile.toURI().toString(),
           "-o", "D=" + dFile.toURI().toString(),
-          "-n", "10"
+          "-n", "10",
+          "--overwrite-output-for-contexts"
         };
 
         SparkCqlEvaluator.main(args);
@@ -195,7 +197,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         assertEquals(2, cqlEvaluationRequests.size());
         for (CqlEvaluationRequest cqlEvaluationRequest : cqlEvaluationRequests) {
-            assertTrue(cqlEvaluationRequest.getContextKey().equals("A"));
+            assertEquals("A", cqlEvaluationRequest.getContextKey());
         }
     }
 
