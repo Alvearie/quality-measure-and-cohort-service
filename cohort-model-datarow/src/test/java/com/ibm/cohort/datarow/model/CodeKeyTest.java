@@ -42,7 +42,8 @@ public class CodeKeyTest {
         map.put(new CodeKey().withCode("123").withSystem("http://snomed.info/sct"), "SNOMED");
         map.put(new CodeKey().withCode("123").withSystem("http://snomed.info/sct").withDisplay("display"), "Display");
 
-        assertEquals(6, map.size());
+        // We did 6 puts, but one only differed by display value which is not part of the key
+        assertEquals(5, map.size());
         String value = map.get(new CodeKey().withCode("123"));
         assertNotNull("Lookup by CodeKey failed", value);
         assertEquals("123", value);
@@ -79,5 +80,41 @@ public class CodeKeyTest {
         CodeKey codeKeyWithoutSystem = new CodeKey(data.withSystem(null));
 
         assertNotEquals(codeKeyWithSystem, codeKeyWithoutSystem);
+    }
+    
+    @Test
+    public void testCodeKeysEqualDifferentDisplay() {
+        Code baseline = new Code().withCode("123").withSystem("http://snomed.info/sct").withDisplay("display")
+                .withVersion("20200809");
+        
+        CodeKey left = new CodeKey(baseline);
+        
+        CodeKey right = new CodeKey(baseline);
+        right.withDisplay( right.getDisplay() + " does not match");
+
+        assertEquals(left, right);
+    }
+    
+    @Test
+    public void testCodeKeysEqualDifferentVersion() {
+        Code baseline = new Code().withCode("123").withSystem("http://snomed.info/sct").withDisplay("display")
+                .withVersion("20200809");
+        
+        CodeKey left = new CodeKey(baseline);
+        
+        CodeKey right = new CodeKey(baseline);
+        right.withVersion( right.getVersion() + ".rc1");
+
+        assertEquals(left, right);
+    }
+    
+    @Test
+    public void testCodeKeysEqualCodeOnly() {
+        Code baseline = new Code().withCode("123");
+        
+        CodeKey left = new CodeKey(baseline);
+        CodeKey right = new CodeKey(baseline);
+
+        assertEquals(left, right);
     }
 }
