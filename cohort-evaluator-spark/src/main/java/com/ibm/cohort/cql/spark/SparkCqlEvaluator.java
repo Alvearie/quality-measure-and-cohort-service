@@ -23,14 +23,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.metrics.sink.MetricsServlet;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.functions;
-import org.sparkproject.jetty.server.Server;
-import org.sparkproject.jetty.servlet.ServletContextHandler;
-import org.sparkproject.jetty.servlet.ServletHolder;
 
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.JCommander;

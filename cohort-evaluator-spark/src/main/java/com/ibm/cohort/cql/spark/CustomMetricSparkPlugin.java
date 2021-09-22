@@ -18,8 +18,9 @@ public class CustomMetricSparkPlugin implements SparkPlugin{
 	@Override
 	public DriverPlugin driverPlugin() {
 		return new DriverPlugin() {
+			@Override
 			public void registerMetrics(String appId, PluginContext pluginContext) {
-				MetricRegistry metReg = pluginContext.metricRegistry();
+				//MetricRegistry metReg = pluginContext.metricRegistry();
 				
 			}
 		};
@@ -28,6 +29,7 @@ public class CustomMetricSparkPlugin implements SparkPlugin{
 	@Override
 	public ExecutorPlugin executorPlugin() {
 		return new ExecutorPlugin() {
+			@Override
 			public void init(PluginContext ctx, Map<String, String> extraConf) {
 				MetricRegistry metReg = ctx.metricRegistry();
 				metReg.register("metrics_dataRowsProcessed", dataRowsProcessed);
