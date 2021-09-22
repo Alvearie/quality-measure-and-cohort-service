@@ -16,22 +16,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.catalyst.JavaTypeInference;
-import org.apache.spark.sql.types.DataType;
-import org.apache.spark.sql.types.StructType;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -44,9 +35,6 @@ import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.data.Patient;
-
-
-import scala.Tuple2;
 
 public class SparkCqlEvaluatorTest extends BaseSparkTest {
     private static final long serialVersionUID = 1L;
