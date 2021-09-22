@@ -127,6 +127,8 @@ public class SparkCqlEvaluator implements Serializable {
 //    	context.addServlet(new ServletHolder(new MetricsServlet()), "/metrics");
     	
         SparkSession.Builder sparkBuilder = SparkSession.builder();
+        CustomMetricSparkPlugin.dataRowsProcessed.inc();
+    	CustomMetricSparkPlugin.driverDataRowsProcessed.inc();
 
         try (SparkSession spark = sparkBuilder.getOrCreate()) {
             boolean useJava8API = Boolean.valueOf(spark.conf().get("spark.sql.datetime.java8API.enabled"));
@@ -325,6 +327,7 @@ public class SparkCqlEvaluator implements Serializable {
         for (DataRow datarow : datarows) {
         	dataRowsProcessed.inc();
         	CustomMetricSparkPlugin.dataRowsProcessed.inc();
+        	CustomMetricSparkPlugin.driverDataRowsProcessed.inc();
             String dataType = (String) datarow.getValue(SOURCE_FACT_IDX);
             List<Object> mappedRows = dataByDataType.computeIfAbsent(dataType, x -> new ArrayList<>());
             mappedRows.add(datarow);

@@ -14,13 +14,15 @@ public class CustomMetricSparkPlugin implements SparkPlugin{
 
 //	public static final Gauge inProgressEvaluations;
 	public static Counter dataRowsProcessed = new MetricRegistry().counter("metrics_dataRowsProcessed");
+	public static Counter driverDataRowsProcessed = new MetricRegistry().counter("metrics_driverDataRowsProcessed");
 	
 	@Override
 	public DriverPlugin driverPlugin() {
 		return new DriverPlugin() {
 			@Override
 			public void registerMetrics(String appId, PluginContext pluginContext) {
-				//MetricRegistry metReg = pluginContext.metricRegistry();
+				MetricRegistry metReg = pluginContext.metricRegistry();
+				metReg.register("metrics_driverDataRowsProcessed", driverDataRowsProcessed);
 				
 			}
 		};
