@@ -32,6 +32,7 @@ import com.ibm.cohort.cql.spark.BaseSparkTest;
 import com.ibm.cohort.datarow.exception.UnsupportedConversionException;
 
 public class SparkDataRowTest extends BaseSparkTest {
+    private static final String SNOMED = "http://snomed.info/sct";
     private static final long serialVersionUID = 1L;
 
     @Test
@@ -230,7 +231,7 @@ public class SparkDataRowTest extends BaseSparkTest {
                 .putString(SparkDataRow.DISPLAY_COL, "display")
                 .build();
 
-        CodeWithMetadataPOJO pojo = new CodeWithMetadataPOJO("123", "http://snomed.info/sct", "A Code");
+        CodeWithMetadataPOJO pojo = new CodeWithMetadataPOJO("123", SNOMED, "A Code");
         
         SparkDataRow sdr = runMetadataTest(pojo, codeMetadata);
         
@@ -242,9 +243,30 @@ public class SparkDataRowTest extends BaseSparkTest {
     }
     
     @Test
+    public void testConversionSemanticsAsCodeCodeAndDefaultSystem() {
+        Metadata codeMetadata = new MetadataBuilder()
+                .putBoolean(SparkDataRow.IS_CODE_COL, Boolean.TRUE)
+                .putString(SparkDataRow.SYSTEM, SNOMED)
+                .putString(SparkDataRow.SYSTEM_COL, null)
+                .putString(SparkDataRow.DISPLAY_COL, null)
+                .build();
+
+        CodeWithMetadataPOJO pojo = new CodeWithMetadataPOJO("123", null, null);
+        
+        SparkDataRow sdr = runMetadataTest(pojo, codeMetadata);
+        
+        Object converted = sdr.getValue("code");
+        Code code = (Code) converted;
+        assertEquals( pojo.getCodeStr(), code.getCode() );
+        assertEquals( SNOMED, code.getSystem() );
+        assertNull( code.getDisplay() );
+        assertNull( code.getVersion() );
+    }
+    
+    @Test
     public void testConversionSemanticsAsCodeOnlyCode() {
 
-        CodeWithMetadataPOJO pojo = new CodeWithMetadataPOJO("123", "http://snomed.info/sct", "A Code");
+        CodeWithMetadataPOJO pojo = new CodeWithMetadataPOJO("123", SNOMED, "A Code");
 
         Metadata codeMetadata = new MetadataBuilder()
                 .putBoolean(SparkDataRow.IS_CODE_COL, Boolean.TRUE)
@@ -263,7 +285,7 @@ public class SparkDataRowTest extends BaseSparkTest {
     @Test
     public void testConversionSemanticsAsCodeFalse() {
         
-        CodeWithMetadataPOJO pojo = new CodeWithMetadataPOJO("123", "http://snomed.info/sct", "A Code");
+        CodeWithMetadataPOJO pojo = new CodeWithMetadataPOJO("123", SNOMED, "A Code");
 
         Metadata codeMetadata = new MetadataBuilder()
                 .putBoolean(SparkDataRow.IS_CODE_COL, Boolean.FALSE)

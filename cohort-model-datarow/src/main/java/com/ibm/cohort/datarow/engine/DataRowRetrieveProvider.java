@@ -23,10 +23,11 @@ import com.ibm.cohort.datarow.model.DataRow;
 
 /**
  * This is an implementation of the CQL RetrieveProvider interface for input
- * data that is a Map of <code>dataType</code> strings to lists of DataRow
- * objects. Retrieval is optionally filtered by the <code>codePath</code> when
- * provided. Codes are indexed on first use for faster retrieval on subsequent
- * data operations. Date range filtering is not supported.
+ * data that is a Map of <code>dataType</code> strings to lists of
+ * <code>DataRow</code> objects. Retrieval is optionally filtered by the
+ * <code>codePath</code> when provided. Codes are indexed on first use for
+ * faster retrieval on subsequent data operations. Date range filtering is not
+ * supported.
  */
 public class DataRowRetrieveProvider implements RetrieveProvider {
 
@@ -70,14 +71,16 @@ public class DataRowRetrieveProvider implements RetrieveProvider {
                     for (Object obj : allRows) {
                         DataRow row = (DataRow) obj;
                         Object code = row.getValue(codePath);
-                        if (code instanceof String) {
-                            code = new CodeKey().withCode((String) code);
-                        } else if (code instanceof Code) {
-                            code = new CodeKey((Code) code);
+                        if( code != null ) {
+                            if (code instanceof Code) {
+                                code = new CodeKey((Code) code);
+                            } else {
+                                code = new CodeKey().withCode(String.valueOf(code));
+                            }
+    
+                            List<Object> list = codeMap.computeIfAbsent(code, codeKey -> new ArrayList<>());
+                            list.add(row);
                         }
-
-                        List<Object> list = codeMap.computeIfAbsent(code, codeKey -> new ArrayList<>());
-                        list.add(row);
                     }
                 }
                 return codeMap;
