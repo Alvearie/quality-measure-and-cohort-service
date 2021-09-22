@@ -1,5 +1,8 @@
 package com.ibm.cohort.cql.spark.data;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.xml.namespace.QName;
 
 import org.apache.spark.sql.types.DataType;
@@ -9,34 +12,32 @@ public class QNameToDataTypeConverter {
 
 	public static final String ELM_NAMESPACE_URI = "urn:hl7-org:elm-types:r1";
 	
+	private static Map<QName, DataType> qNameToDataType = new HashMap<>();
+	
+	static {
+		qNameToDataType.put(new QName(ELM_NAMESPACE_URI, "Boolean"), DataTypes.BooleanType);
+		qNameToDataType.put(new QName(ELM_NAMESPACE_URI, "Integer"), DataTypes.IntegerType);
+		// TODO: Revisit decimal precision. Possibly force configuration.
+		qNameToDataType.put(new QName(ELM_NAMESPACE_URI, "Decimal"), DataTypes.createDecimalType(28, 8));
+		qNameToDataType.put(new QName(ELM_NAMESPACE_URI, "String"), DataTypes.StringType);
+		qNameToDataType.put(new QName(ELM_NAMESPACE_URI, "Long"), DataTypes.LongType);
+		qNameToDataType.put(new QName(ELM_NAMESPACE_URI, "Date"), DataTypes.DateType);
+		qNameToDataType.put(new QName(ELM_NAMESPACE_URI, "DateTime"), DataTypes.TimestampType);
+	}
+	
 	// TODO static map for qname lookups
 	
 	public static DataType getFieldType(QName qName) {
-		if (qName.equals(new QName(ELM_NAMESPACE_URI, "Boolean"))) {
-			return DataTypes.BooleanType;
+		DataType dataType = null;
+		
+		if (qName != null) {
+			dataType = qNameToDataType.get(qName);
 		}
-		else if (qName.equals(new QName(ELM_NAMESPACE_URI, "Integer"))) {
-			return DataTypes.IntegerType;
-		}
-		// TODO: Force user config for Decimal?
-		else if (qName.equals(new QName(ELM_NAMESPACE_URI, "Decimal"))) {
-			return DataTypes.createDecimalType(28, 8);
-		}
-		else if (qName.equals(new QName(ELM_NAMESPACE_URI, "String"))) {
-			return DataTypes.StringType;
-		}
-		else if (qName.equals(new QName(ELM_NAMESPACE_URI, "Long"))) {
-			return DataTypes.LongType;
-		}
-		else if(qName.equals(new QName(ELM_NAMESPACE_URI, "Date"))) {
-			return DataTypes.DateType;
-		}
-		else if(qName.equals(new QName(ELM_NAMESPACE_URI, "DateTime"))) {
-			return DataTypes.TimestampType;
-		}
-		// TODO: How to bubble up failures
-		else {
+
+		if (dataType == null) {
 			throw new UnsupportedOperationException("Writing out results of type " + qName + " is not currently supported.");
 		}
+		
+		return dataType;
 	}
 }
