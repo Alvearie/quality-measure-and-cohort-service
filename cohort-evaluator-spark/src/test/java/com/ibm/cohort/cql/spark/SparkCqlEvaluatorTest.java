@@ -271,42 +271,4 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         assertEquals(3, contextDefinitions.getContextDefinitions().get(0).getRelationships().size());
     }
     
-    @Test
-    public void testManualSchemaCreation() {
-        try( SparkSession spark = initializeSession(Java8API.ENABLED) ) {
-          SortedMap<String,Object> columnData = new TreeMap<>();
-          columnData.put("Greeting", "Hello,World");
-          columnData.put("Age", 40);
-          columnData.put("Weight", 145.97);
-          
-          Map<String,Object> nested = new HashMap<>();
-          nested.put("_type", "time");
-          nested.put("value", "10:11:12");
-          //columnData.put("NestedMap", JavaConverters.mapAsScalaMap(nested));
-          //columnData.put("NestedMap", nested);
-          
-          List<Object> rowData = new ArrayList<>();
-          
-          StructType schema = new StructType();
-          for( Map.Entry<String,Object> entry : columnData.entrySet() ) {
-              String key = entry.getKey();
-              Object value = entry.getValue();
-                         
-              Tuple2<DataType, Object> tuple2 = JavaTypeInference.inferDataType(value.getClass());
-              schema = schema.add( key, tuple2._1() );
-              rowData.add(value);
-          }
-          
-          Row row = RowFactory.create(rowData.toArray(new Object[rowData.size()]));
-          
-          Dataset<Row> dataset = spark.createDataFrame(Arrays.asList(row), schema);
-          assertEquals(1, dataset.count());
-          assertEquals(columnData.keySet(), Arrays.stream(dataset.schema().fieldNames()).collect(Collectors.toSet()));
-          
-          Row first = ((Row[])dataset.take(1))[0];
-          for( int i=0; i<dataset.schema().fieldNames().length; i++ ) {
-              assertEquals( columnData.get(dataset.schema().fieldNames()[i]), first.getAs(i) );
-          }
-        }
-    }
 }
