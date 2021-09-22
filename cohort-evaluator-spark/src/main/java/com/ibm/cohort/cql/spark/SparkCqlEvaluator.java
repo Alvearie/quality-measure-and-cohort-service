@@ -23,10 +23,14 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.metrics.sink.MetricsServlet;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.functions;
+import org.sparkproject.jetty.server.Server;
+import org.sparkproject.jetty.servlet.ServletContextHandler;
+import org.sparkproject.jetty.servlet.ServletHolder;
 
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.JCommander;
@@ -119,6 +123,13 @@ public class SparkCqlEvaluator implements Serializable {
 
     public void run(PrintStream out) throws Exception {
 
+//    	Server server = new Server(4040);
+//    	ServletContextHandler context = new ServletContextHandler();
+//    	context.setContextPath("/");
+//    	server.setHandler(context);
+//
+//    	context.addServlet(new ServletHolder(new MetricsServlet()), "/metrics");
+    	
         SparkSession.Builder sparkBuilder = SparkSession.builder();
 
         try (SparkSession spark = sparkBuilder.getOrCreate()) {
@@ -317,6 +328,7 @@ public class SparkCqlEvaluator implements Serializable {
         Map<String, List<Object>> dataByDataType = new HashMap<>();
         for (DataRow datarow : datarows) {
         	dataRowsProcessed.inc();
+        	CustomMetricSparkPlugin.dataRowsProcessed.inc();
             String dataType = (String) datarow.getValue(SOURCE_FACT_IDX);
             List<Object> mappedRows = dataByDataType.computeIfAbsent(dataType, x -> new ArrayList<>());
             mappedRows.add(datarow);
