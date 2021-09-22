@@ -1,0 +1,11 @@
+{
+	"evaluations": [{
+		"descriptor": {
+			"libraryId": "MeasureSupportedTypes",
+			"version": "1.0.0"
+		},
+		"expressions": ["other"],
+		"contextKey": "A",
+		"contextValue": "NA"
+	}]
+}

@@ -18,6 +18,7 @@ import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.cqframework.cql.cql2elm.ModelInfoLoader;
+import org.cqframework.cql.elm.execution.ExpressionDef;
 import org.cqframework.cql.elm.execution.Library;
 import org.hl7.elm.r1.VersionedIdentifier;
 import org.hl7.elm_modelinfo.r1.ClassInfo;
@@ -72,12 +73,17 @@ public class SparkSchemaCreator {
 											 .filter(x -> !x.getLocalIdentifier().equals("System"))
 											 .map(x -> new Tuple2<>(x.getLocalIdentifier(), x.getVersion()))
 											 .collect(Collectors.toList()));
-					
-					QName resultTypeName = library.getStatements().getDef().stream()
+
+					List<ExpressionDef> expressionDefs = library.getStatements().getDef().stream()
 							.filter(x -> x.getName().equals(expression))
-							.collect(Collectors.toList()).get(0)
-							.getResultTypeName();
+							.collect(Collectors.toList());
 					
+					if (expressionDefs.isEmpty()) {
+						throw new IllegalArgumentException("Expression " + expression + " is configured in the CQL jobs file, but not found in "
+																   + descriptor.getLibraryId() + "." + descriptor.getVersion());
+					}
+
+					QName resultTypeName = expressionDefs.get(0).getExpression().getResultTypeName();
 					resultsSchema = resultsSchema.add(measureName + "." + expression, QNameToDataTypeConverter.getFieldType(resultTypeName), true);
 				}
 			}
