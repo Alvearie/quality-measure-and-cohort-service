@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -396,7 +395,7 @@ public class SparkCqlEvaluator implements Serializable {
      * @return deserialized jobs object
      * @throws Exception when deserialization fails for any reason
      */
-    protected static CqlEvaluationRequests readJobSpecification(String path) throws Exception {
+    protected CqlEvaluationRequests readJobSpecification(String path) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         CqlEvaluationRequests requests = mapper.readValue(new File(path), CqlEvaluationRequests.class);
         
@@ -452,10 +451,7 @@ public class SparkCqlEvaluator implements Serializable {
                 schema
         );
 
-        String uuid = UUID.randomUUID().toString();
-        LOG.info("Batch UUID " + uuid);
-
-        dataFrame.write().format("parquet").save(outputURI + "/" + uuid);
+        dataFrame.write().format("parquet").save(outputURI);
     }
 
     /**

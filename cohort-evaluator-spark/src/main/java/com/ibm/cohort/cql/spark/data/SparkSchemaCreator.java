@@ -179,6 +179,9 @@ public class SparkSchemaCreator {
 		else if (elementType.equals("System.Integer")) {
 			return DataTypes.IntegerType;
 		}
+		else if (elementType.equals("System.Long")) {
+			return DataTypes.LongType;
+		}
 		throw new IllegalArgumentException("Context key column of type " + elementType + " is not supported.");
 	}
 }

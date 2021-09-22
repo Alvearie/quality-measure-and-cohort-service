@@ -9,6 +9,8 @@ public class QNameToDataTypeConverter {
 
 	public static final String ELM_NAMESPACE_URI = "urn:hl7-org:elm-types:r1";
 	
+	// TODO static map for qname lookups
+	
 	public static DataType getFieldType(QName qName) {
 		if (qName.equals(new QName(ELM_NAMESPACE_URI, "Boolean"))) {
 			return DataTypes.BooleanType;
@@ -16,9 +18,9 @@ public class QNameToDataTypeConverter {
 		else if (qName.equals(new QName(ELM_NAMESPACE_URI, "Integer"))) {
 			return DataTypes.IntegerType;
 		}
+		// TODO: Force user config for Decimal?
 		else if (qName.equals(new QName(ELM_NAMESPACE_URI, "Decimal"))) {
-			// TODO: How do we actually want to handle this? We won't know anything about precision
-			return DataTypes.createDecimalType(20, 5);
+			return DataTypes.createDecimalType(28, 8);
 		}
 		else if (qName.equals(new QName(ELM_NAMESPACE_URI, "String"))) {
 			return DataTypes.StringType;
@@ -32,9 +34,7 @@ public class QNameToDataTypeConverter {
 		else if(qName.equals(new QName(ELM_NAMESPACE_URI, "DateTime"))) {
 			return DataTypes.TimestampType;
 		}
-		else if (qName.equals(new QName(ELM_NAMESPACE_URI, "Any"))) {
-			return DataTypes.ByteType;
-		}
+		// TODO: How to bubble up failures
 		else {
 			throw new UnsupportedOperationException("Writing out results of type " + qName + " is not currently supported.");
 		}
