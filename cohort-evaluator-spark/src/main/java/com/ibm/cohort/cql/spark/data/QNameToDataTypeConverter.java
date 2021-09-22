@@ -34,8 +34,6 @@ public class QNameToDataTypeConverter {
 		qNameToDataType.put(new QName(ELM_NAMESPACE_URI, "DateTime"), DataTypes.TimestampType);
 	}
 	
-	// TODO static map for qname lookups
-	
 	public static DataType getFieldType(QName qName) {
 		DataType dataType = null;
 		
@@ -51,6 +49,9 @@ public class QNameToDataTypeConverter {
 	}
 	
 	public static QName createQNameForElmNamespace(String localType) {
+		if (localType == null) {
+			throw new IllegalArgumentException("Cannot create QName from a null String.");
+		}
 		return new QName(ELM_NAMESPACE_URI, localType);
 	}
 }

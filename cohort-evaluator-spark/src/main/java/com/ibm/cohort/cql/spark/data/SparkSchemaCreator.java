@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.apache.spark.sql.types.DataType;
-import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.cqframework.cql.cql2elm.ModelInfoLoader;
@@ -174,7 +173,7 @@ public class SparkSchemaCreator {
 		return definitions.get(0);
 	}
 	
-	private DataType getSparkTypeForSystemValue(String elementType) {
+	protected DataType getSparkTypeForSystemValue(String elementType) {
 		DataType dataType = null;
 
 		// Assuming system types are of format "System.TYPE"
