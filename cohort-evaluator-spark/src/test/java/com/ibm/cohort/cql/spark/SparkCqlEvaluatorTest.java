@@ -15,14 +15,14 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import javax.xml.namespace.QName;
+import java.util.stream.Collectors;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -42,8 +42,6 @@ import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.data.Patient;
-import com.ibm.cohort.cql.spark.data.QNameToDataTypeConverter;
-import com.ibm.cohort.cql.spark.data.SparkTypeConverter;
 
 public class SparkCqlEvaluatorTest extends BaseSparkTest {
     private static final long serialVersionUID = 1L;
@@ -179,26 +177,35 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         validateOutput(
                 context2IdFile.toURI().toString(),
                 Arrays.asList(
-                        RowFactory.create(0, LocalDate.of(2002, 9, 27)),
-                        RowFactory.create(1, LocalDate.of(2002, 3, 10)),
-                        RowFactory.create(2, LocalDate.of(2002, 5, 29)),
-                        RowFactory.create(3, null),
-                        RowFactory.create(4, LocalDate.of(2002, 5, 21))
+                        RowFactory.create(0, LocalDate.of(2002, 9, 27), Instant.parse("2002-05-31T13:19:08.512Z")),
+                        RowFactory.create(1, LocalDate.of(2002, 3, 10), Instant.parse("2002-05-07T09:19:19.31Z")),
+                        RowFactory.create(2, LocalDate.of(2002, 5, 29), Instant.parse("2002-03-13T13:00:52.859Z")),
+                        RowFactory.create(3, null, null),
+                        RowFactory.create(4, LocalDate.of(2002, 5, 21), Instant.parse("2002-02-17T08:59:43.793Z"))
                 ),
                 new StructType()
                         .add("id", DataTypes.IntegerType, false)
-                        .add("Context1Id.define_date", DataTypes.DateType, true)
-//                        .add("Context1Id.define_datetime", DataTypes.TimestampType, true)
+                        .add("Context2Id.define_date", DataTypes.DateType, true)
+                        .add("Context2Id.define_datetime", DataTypes.TimestampType, true)
         );
     }
     
     private void validateOutput(String filename, List<Row> expectedRows, StructType schema) {
         spark = initializeSession(Java8API.ENABLED);
-        Dataset<Row> expectedContext1DataFrame = spark.createDataFrame(expectedRows, schema);
-        Dataset<Row> actualConext1DataFrame = spark.read().parquet(filename);
+        Dataset<Row> actualDataFrame = spark.read().parquet(filename);
+        // Column names with a dot in them need escaped with backticks
+        List<String> columnList = Arrays.asList(actualDataFrame.columns()).stream()
+                .map(x -> "`" + x + "`")
+                .collect(Collectors.toList());
+        String[] actualColumns = columnList.toArray(new String[columnList.size()]);
 
-        assertEquals(0, expectedContext1DataFrame.except(actualConext1DataFrame).count());
-        assertEquals(0, actualConext1DataFrame.except(expectedContext1DataFrame).count());
+        // Make sure columns are in the same order in both dataframes
+        Dataset<Row> expectedDataFrame = spark.createDataFrame(expectedRows, schema)
+                .select(actualColumns[0], Arrays.copyOfRange(actualColumns, 1, actualColumns.length));
+
+        assertEquals(schema.fields().length, actualColumns.length);
+        assertEquals(0, expectedDataFrame.except(actualDataFrame).count());
+        assertEquals(0, actualDataFrame.except(expectedDataFrame).count());
     }
 
     @Test(expected = IllegalArgumentException.class)

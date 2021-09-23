@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <modelInfo xmlns="urn:hl7-org:elm-modelinfo:r1"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	name="MOCK" version="1.0.0" url="http://dummy.io/mockmodel" targetQualifier="mockmodel"
-	patientClassName="MOCK.Patient"
-	patientBirthDatePropertyName="birthDate.value">
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           name="MOCK" version="1.0.0" url="http://dummy.io/mockmodel" targetQualifier="mockmodel"
+           patientClassName="MOCK.Patient"
+           patientBirthDatePropertyName="birthDate.value">
 	<requiredModelInfo name="System" version="1.0.0" />
 	<typeInfo namespace="MOCK"
 		name="Patient"

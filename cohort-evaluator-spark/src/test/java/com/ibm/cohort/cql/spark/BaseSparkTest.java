@@ -7,7 +7,6 @@
 package com.ibm.cohort.cql.spark;
 
 import java.io.Serializable;
-import java.util.Map;
 
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.delta.DeltaLog;

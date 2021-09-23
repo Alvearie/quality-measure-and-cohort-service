@@ -6,13 +6,14 @@
 
 package com.ibm.cohort.cql.spark.data;
 
-import com.ibm.cohort.cql.spark.BaseSparkTest;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.ibm.cohort.cql.spark.BaseSparkTest;
 
 public class DefaultDatasetRetrieverTest extends BaseSparkTest {
 

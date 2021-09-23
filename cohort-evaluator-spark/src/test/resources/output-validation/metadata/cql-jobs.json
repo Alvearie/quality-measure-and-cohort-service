@@ -40,7 +40,8 @@
         "version": "1.0.0"
       },
       "expressions": [
-        "define_date"
+        "define_date",
+        "define_datetime"
       ],
       "contextKey": "Context2Id",
       "contextValue": "NA"
