@@ -177,6 +177,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         validateOutput(
                 context2IdFile.toURI().toString(),
                 Arrays.asList(
+                        // Expected Instants derived from reading the input files and printing out
+                        // the datetime column using UTC
                         RowFactory.create(0, LocalDate.of(2002, 9, 27), Instant.parse("2002-05-31T13:19:08.512Z")),
                         RowFactory.create(1, LocalDate.of(2002, 3, 10), Instant.parse("2002-05-07T09:19:19.31Z")),
                         RowFactory.create(2, LocalDate.of(2002, 5, 29), Instant.parse("2002-03-13T13:00:52.859Z")),
