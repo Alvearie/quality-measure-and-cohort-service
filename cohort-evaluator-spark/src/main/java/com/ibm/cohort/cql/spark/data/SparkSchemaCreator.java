@@ -51,61 +51,69 @@ public class SparkSchemaCreator {
 		HashMap<String, StructType> contextResultSchemas = new HashMap<>();
 
 		for (String contextName : contextNames) {
-			List<CqlEvaluationRequest> filteredRequests = requests.getEvaluations().stream().filter(r -> r.getContextKey().equals(contextName)).collect(Collectors.toList());
-			
-			StructType resultsSchema = new StructType();
-
-			Set<Tuple2<String, String>> usingInfo = new HashSet<>();
-
-			for (CqlEvaluationRequest filteredRequest : filteredRequests) {
-				CqlLibraryDescriptor descriptor = filteredRequest.getDescriptor();
-				String measureName = descriptor.getLibraryId();
-
-				for (String expression : filteredRequest.getExpressions()) {
-					Library library = CqlLibraryReader.read(
-							libraryProvider.getLibrary(new CqlLibraryDescriptor().setLibraryId(measureName).setVersion(descriptor.getVersion())).getContentAsStream()
-					);
-					
-					// Track the set of non-system using statements across measures.
-					// Information is used later to access ModelInfos when searching
-					// for context key column type information.
-					usingInfo.addAll(library.getUsings().getDef().stream()
-											 .filter(x -> !x.getLocalIdentifier().equals("System"))
-											 .map(x -> new Tuple2<>(x.getLocalIdentifier(), x.getVersion()))
-											 .collect(Collectors.toList()));
-
-					List<ExpressionDef> expressionDefs = library.getStatements().getDef().stream()
-							.filter(x -> x.getName().equals(expression))
-							.collect(Collectors.toList());
-					
-					if (expressionDefs.isEmpty()) {
-						throw new IllegalArgumentException("Expression " + expression + " is configured in the CQL jobs file, but not found in "
-																   + descriptor.getLibraryId() + "." + descriptor.getVersion());
-					}
-
-					QName resultTypeName = expressionDefs.get(0).getExpression().getResultTypeName();
-					resultsSchema = resultsSchema.add(measureName + "." + expression, QNameToDataTypeConverter.getFieldType(resultTypeName), true);
-				}
+			StructType schema = calculateSchemaForContext(contextName);
+			if (schema != null) {
+				contextResultSchemas.put(contextName, schema);
 			}
+		}
+		
+		return contextResultSchemas;
+	}
 
-			if (!filteredRequests.isEmpty()) {
-				Tuple2<String, DataType> keyInformation = getKeyInformationForContext(contextName, usingInfo);
-				StructType fullSchema = new StructType()
-						.add(keyInformation._1(), keyInformation._2(), false);
+	public StructType calculateSchemaForContext(String contextName) throws Exception {
+		List<CqlEvaluationRequest> filteredRequests = requests.getEvaluations().stream().filter(r -> r.getContextKey().equals(contextName)).collect(Collectors.toList());
 
-				for (StructField field : resultsSchema.fields()) {
-					fullSchema = fullSchema.add(field);
+		StructType resultsSchema = new StructType();
+
+		Set<Tuple2<String, String>> usingInfo = new HashSet<>();
+
+		for (CqlEvaluationRequest filteredRequest : filteredRequests) {
+			CqlLibraryDescriptor descriptor = filteredRequest.getDescriptor();
+			String measureName = descriptor.getLibraryId();
+
+			for (String expression : filteredRequest.getExpressions()) {
+				Library library = CqlLibraryReader.read(
+						libraryProvider.getLibrary(new CqlLibraryDescriptor().setLibraryId(measureName).setVersion(descriptor.getVersion())).getContentAsStream()
+				);
+
+				// Track the set of non-system using statements across measures.
+				// Information is used later to access ModelInfos when searching
+				// for context key column type information.
+				usingInfo.addAll(library.getUsings().getDef().stream()
+										 .filter(x -> !x.getLocalIdentifier().equals("System"))
+										 .map(x -> new Tuple2<>(x.getLocalIdentifier(), x.getVersion()))
+										 .collect(Collectors.toList()));
+
+				List<ExpressionDef> expressionDefs = library.getStatements().getDef().stream()
+						.filter(x -> x.getName().equals(expression))
+						.collect(Collectors.toList());
+
+				if (expressionDefs.isEmpty()) {
+					throw new IllegalArgumentException("Expression " + expression + " is configured in the CQL jobs file, but not found in "
+															   + descriptor.getLibraryId() + "." + descriptor.getVersion());
 				}
-				contextResultSchemas.put(contextName, fullSchema);
+
+				QName resultTypeName = expressionDefs.get(0).getExpression().getResultTypeName();
+				resultsSchema = resultsSchema.add(measureName + "." + expression, QNameToDataTypeConverter.getFieldType(resultTypeName), true);
 			}
 		}
 
-		return contextResultSchemas;
+		if (resultsSchema.fields().length > 0) {
+			Tuple2<String, DataType> keyInformation = getKeyInformationForContext(contextName, usingInfo);
+			StructType fullSchema = new StructType()
+					.add(keyInformation._1(), keyInformation._2(), false);
+
+			for (StructField field : resultsSchema.fields()) {
+				fullSchema = fullSchema.add(field);
+			}
+			return fullSchema;
+		}
+		else {
+			throw new IllegalArgumentException("Context " + contextName + " does not have any define statements configured.");
+		}
 	}
-	
-	
-	// TODO: Try to simplify or split out logic. This is a mess
-	protected Tuple2<String, DataType> getKeyInformationForContext(String contextName, Set<Tuple2<String, String>> usingInfos) {
+
+	private Tuple2<String, DataType> getKeyInformationForContext(String contextName, Set<Tuple2<String, String>> usingInfos) {
 		ContextDefinition contextDefinition = getContextDefinition(contextName);
 		
 		String primaryDataType = contextDefinition.getPrimaryDataType();
@@ -179,7 +187,7 @@ public class SparkSchemaCreator {
 		return definitions.get(0);
 	}
 	
-	protected DataType getSparkTypeForSystemValue(String elementType) {
+	private DataType getSparkTypeForSystemValue(String elementType) {
 		DataType dataType = null;
 
 		// Assuming system types are of format "System.TYPE"
@@ -188,10 +196,6 @@ public class SparkSchemaCreator {
 			if (split.length == 2) {
 				dataType = QNameToDataTypeConverter.getFieldType(QNameToDataTypeConverter.createQNameForElmNamespace(split[1]));
 			}
-		}
-
-		if (dataType == null) {
-			throw new IllegalArgumentException("Context key column of type " + elementType + " is not supported.");
 		}
 		
 		return dataType;
