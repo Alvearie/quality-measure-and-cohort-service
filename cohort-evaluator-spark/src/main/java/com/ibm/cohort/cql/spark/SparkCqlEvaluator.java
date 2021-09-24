@@ -430,10 +430,6 @@ public class SparkCqlEvaluator implements Serializable {
      */
     protected void writeResults(SparkSession spark, StructType schema, JavaPairRDD<Object, Map<String, Object>> resultsByContext,
             String outputURI) {
-        if (args.outputPartitions != null) {
-            resultsByContext = resultsByContext.repartition(args.outputPartitions.intValue());
-        }
-
         Dataset<Row> dataFrame = spark.createDataFrame(
                 resultsByContext
                         .map(t -> {
@@ -450,6 +446,10 @@ public class SparkCqlEvaluator implements Serializable {
                         .map(RowFactory::create),
                 schema
         );
+
+		if (args.outputPartitions != null) {
+			dataFrame = dataFrame.repartition(args.outputPartitions.intValue());
+		}
 
         dataFrame.write().mode(args.overwriteResults ? "overwrite" : "errorifexists").format("parquet").save(outputURI);
     }
