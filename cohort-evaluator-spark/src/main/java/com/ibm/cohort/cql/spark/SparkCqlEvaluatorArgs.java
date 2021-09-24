@@ -70,7 +70,7 @@ public class SparkCqlEvaluatorArgs implements Serializable {
             "--output-partitions" }, description = "Number of partitions to use when storing data", required = false)
     public Integer outputPartitions = null;
     
-    @Parameter(names = {"--overwrite-output-for-contexts"}, description = "WARNING: NOT RECOMMENDED FOR PRODUCTION USE. If option is set, program overwrite existing output when writing result data.")
+    @Parameter(names = {"--overwrite-output-for-contexts"}, description = "WARNING: NOT RECOMMENDED FOR PRODUCTION USE. If option is set, program overwrites existing output when writing result data.")
     public Boolean overwriteResults = false;
 
     @Parameter(names = { "--debug" }, description = "Enables CQL debug logging")
