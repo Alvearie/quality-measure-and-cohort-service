@@ -54,8 +54,6 @@ import com.ibm.cohort.datarow.engine.DataRowDataProvider;
 import com.ibm.cohort.datarow.engine.DataRowRetrieveProvider;
 import com.ibm.cohort.datarow.model.DataRow;
 
-import io.prometheus.client.Counter;
-import io.prometheus.client.Gauge;
 import scala.Tuple2;
 
 /**
@@ -111,11 +109,11 @@ public class SparkCqlEvaluator implements Serializable {
 
     public SparkTypeConverter typeConverter;
     
-    //TABISHOP metrics spike
-    static final Counter dataRowsProcessed = Counter.build()
-    	     .name("dataRowsProcessed_total").help("Total number of data rows processed.").register();
-    static final Gauge inProgressEvaluations = Gauge.build()
-    	     .name("inprogress_evaluations").help("Inprogress CQL Evaluations.").register();
+//    //TABISHOP metrics spike
+//    static final Counter dataRowsProcessed = Counter.build()
+//    	     .name("dataRowsProcessed_total").help("Total number of data rows processed.").register();
+//    static final Gauge inProgressEvaluations = Gauge.build()
+//    	     .name("inprogress_evaluations").help("Inprogress CQL Evaluations.").register();
 
     public void run(PrintStream out) throws Exception {
 
@@ -127,7 +125,6 @@ public class SparkCqlEvaluator implements Serializable {
 //    	context.addServlet(new ServletHolder(new MetricsServlet()), "/metrics");
     	
         SparkSession.Builder sparkBuilder = SparkSession.builder();
-        CustomMetricSparkPlugin.dataRowsProcessed.inc();
     	CustomMetricSparkPlugin.driverDataRowsProcessed.inc();
 
         try (SparkSession spark = sparkBuilder.getOrCreate()) {
@@ -147,6 +144,7 @@ public class SparkCqlEvaluator implements Serializable {
             }
 
             for (ContextDefinition context : filteredContexts) {
+            	CustomMetricSparkPlugin.driverDataRowsProcessed.inc();
                 JavaPairRDD<Object, Row> allData = readAllInputData(spark, context, inputPaths);
 
                 JavaPairRDD<Object, List<Row>> rowsByContextId = aggregateByContext(allData, context);
@@ -292,6 +290,9 @@ public class SparkCqlEvaluator implements Serializable {
     protected Tuple2<Object, Map<String, Object>> evaluate(Tuple2<Object, List<Row>> rowsByContext) throws Exception {
         CqlLibraryProvider libraryProvider = new DirectoryBasedCqlLibraryProvider(new File(cqlPath));
 
+        CustomMetricSparkPlugin.dataRowsProcessed.inc();
+        CustomMetricSparkSource.cohortSourceMetric.inc();
+        
         // TODO - replace with cohort shared translation component
         final CqlToElmTranslator translator = new CqlToElmTranslator();
         if (modelInfoPaths != null && modelInfoPaths.size() > 0) {
@@ -325,9 +326,9 @@ public class SparkCqlEvaluator implements Serializable {
 
         Map<String, List<Object>> dataByDataType = new HashMap<>();
         for (DataRow datarow : datarows) {
-        	dataRowsProcessed.inc();
+        	//dataRowsProcessed.inc();
         	CustomMetricSparkPlugin.dataRowsProcessed.inc();
-        	CustomMetricSparkPlugin.driverDataRowsProcessed.inc();
+        	//CustomMetricSparkPlugin.driverDataRowsProcessed.inc();
             String dataType = (String) datarow.getValue(SOURCE_FACT_IDX);
             List<Object> mappedRows = dataByDataType.computeIfAbsent(dataType, x -> new ArrayList<>());
             mappedRows.add(datarow);
@@ -365,9 +366,9 @@ public class SparkCqlEvaluator implements Serializable {
                 }
             }
 
-            inProgressEvaluations.inc();
+            //inProgressEvaluations.inc();
             CqlEvaluationResult result = evaluator.evaluate(request, debug ? CqlDebug.DEBUG : CqlDebug.NONE);
-            inProgressEvaluations.dec();
+            //inProgressEvaluations.dec();
             for (Map.Entry<String, Object> entry : result.getExpressionResults().entrySet()) {
                 String outputColumnKey = request.getDescriptor().getLibraryId() + "." + entry.getKey();
                 expressionResults.put(outputColumnKey, typeConverter.toSparkType(entry.getValue()));

@@ -106,11 +106,11 @@
 		    <version>4.1.1</version>
 		</dependency>
 		<!-- The client -->
-		<dependency>
+		<!-- <dependency>
 			<groupId>io.prometheus</groupId>
 			<artifactId>simpleclient</artifactId>
 			<version>0.12.0</version>
-		</dependency>
+		</dependency> -->
 		<!-- Hotspot JVM metrics 
 		<dependency>
 			<groupId>io.prometheus</groupId>

@@ -13,8 +13,11 @@ import com.codahale.metrics.MetricRegistry;
 public class CustomMetricSparkPlugin implements SparkPlugin{
 
 //	public static final Gauge inProgressEvaluations;
-	public static Counter dataRowsProcessed = new MetricRegistry().counter("metrics_dataRowsProcessed");
-	public static Counter driverDataRowsProcessed = new MetricRegistry().counter("metrics_driverDataRowsProcessed");
+	//public static Counter dataRowsProcessed = new MetricRegistry().counter("metrics_dataRowsProcessed");
+	//public static Counter driverDataRowsProcessed = new MetricRegistry().counter("metrics_driverDataRowsProcessed");
+	
+	public static Counter dataRowsProcessed = new Counter();
+	public static Counter driverDataRowsProcessed = new Counter();
 	
 	@Override
 	public DriverPlugin driverPlugin() {
@@ -22,7 +25,7 @@ public class CustomMetricSparkPlugin implements SparkPlugin{
 			@Override
 			public void registerMetrics(String appId, PluginContext pluginContext) {
 				MetricRegistry metReg = pluginContext.metricRegistry();
-				metReg.register("metrics_driverDataRowsProcessed", driverDataRowsProcessed);
+				metReg.register(MetricRegistry.name("metrics_driverDataRowsProcessed"), driverDataRowsProcessed);
 				
 			}
 		};
@@ -34,23 +37,9 @@ public class CustomMetricSparkPlugin implements SparkPlugin{
 			@Override
 			public void init(PluginContext ctx, Map<String, String> extraConf) {
 				MetricRegistry metReg = ctx.metricRegistry();
-				metReg.register("metrics_dataRowsProcessed", dataRowsProcessed);
+				metReg.register(MetricRegistry.name("metrics_dataRowsProcessed"), dataRowsProcessed);
 				
 			}
 		};
-//		return ExecutorPlugin{
-//			void init(init(ctx, extraConf){
-//				
-//			}
-//		}
 	}
-
-//  driverPlugin():
-//	  \DriverPlugin = null
-//  override def executorPlugin(): ExecutorPlugin = new ExecutorPlugin {
-//   override def init(ctx: PluginContext, extraConf: util.Map[String, String]): Unit = {
-//      val metricRegistry = ctx.metricRegistry()
-//      metricRegistry.register("evenMetrics",CustomMetricSparkPlugin.value)
-//    }
-//  }
 }
