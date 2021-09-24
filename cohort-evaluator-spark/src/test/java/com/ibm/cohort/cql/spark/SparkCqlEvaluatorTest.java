@@ -143,27 +143,6 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         validateOutputCountsAndColumns(cFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureC.cohort")), 600);
         validateOutputCountsAndColumns(dFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureD.cohort")), 567);
     }
-    
-    @Test
-    public void makeData() {
-        spark = initializeSession(Java8API.ENABLED);
-        StructType schema = new StructType()
-                .add("id", DataTypes.IntegerType, false);
-
-        Dataset<Row> dataFrame = spark.createDataFrame(
-                Arrays.asList(
-                        RowFactory.create(0),
-                        RowFactory.create(1),
-                        RowFactory.create(2),
-                        RowFactory.create(3),
-                        RowFactory.create(4)
-                        ),
-                schema
-        );
-        
-        dataFrame.repartition(1).write().parquet("src/test/resources/output-validation/testdata/Patient");
-
-    }
 
     private void validateOutputCountsAndColumns(String filename, Set<String> columnNames, int numExpectedRows) {
         SparkSession sparkSession = initializeSession(Java8API.ENABLED);
