@@ -45,6 +45,17 @@
       ],
       "contextKey": "Context2Id",
       "contextValue": "NA"
+    },
+    {
+      "descriptor": {
+        "libraryId": "PatientMeasure",
+        "version": "1.0.0"
+      },
+      "expressions": [
+        "cohort"
+      ],
+      "contextKey": "Patient",
+      "contextValue": "NA"
     }
   ]
 }

@@ -143,6 +143,27 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         validateOutputCountsAndColumns(cFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureC.cohort")), 600);
         validateOutputCountsAndColumns(dFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureD.cohort")), 567);
     }
+    
+    @Test
+    public void makeData() {
+        spark = initializeSession(Java8API.ENABLED);
+        StructType schema = new StructType()
+                .add("id", DataTypes.IntegerType, false);
+
+        Dataset<Row> dataFrame = spark.createDataFrame(
+                Arrays.asList(
+                        RowFactory.create(0),
+                        RowFactory.create(1),
+                        RowFactory.create(2),
+                        RowFactory.create(3),
+                        RowFactory.create(4)
+                        ),
+                schema
+        );
+        
+        dataFrame.repartition(1).write().parquet("src/test/resources/output-validation/testdata/Patient");
+
+    }
 
     private void validateOutputCountsAndColumns(String filename, Set<String> columnNames, int numExpectedRows) {
         SparkSession sparkSession = initializeSession(Java8API.ENABLED);
@@ -166,6 +187,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         File context1IdFile = new File(outputDir, "context-1-id");
         File context2IdFile = new File(outputDir, "context-2-id");
+        File patientFile = new File(outputDir, "patient-context");
 
         String [] args = new String[] {
                 "-d", "src/test/resources/output-validation/metadata/context-definitions.json",
@@ -175,8 +197,10 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 "--input-format", "parquet",
                 "-i", "Type1=" + new File(inputDir, "testdata/Type1").toURI().toString(),
                 "-i", "Type2=" + new File(inputDir, "testdata/Type2").toURI().toString(),
+                "-i", "Patient=" + new File(inputDir, "testdata/Patient").toURI().toString(),
                 "-o", "Context1Id=" + context1IdFile.toURI().toString(),
                 "-o", "Context2Id=" + context2IdFile.toURI().toString(),
+                "-o", "Patient=" + patientFile.toURI().toString(),
                 "--overwrite-output-for-contexts"
         };
 
@@ -216,6 +240,22 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                         .add("id", DataTypes.IntegerType, false)
                         .add("Context2Id.define_date", DataTypes.DateType, true)
                         .add("Context2Id.define_datetime", DataTypes.TimestampType, true)
+        );
+
+        validateOutput(
+                patientFile.toURI().toString(),
+                Arrays.asList(
+                        // Expected Instants derived from reading the input files and printing out
+                        // the datetime column using UTC
+                        RowFactory.create(0, false),
+                        RowFactory.create(1, false),
+                        RowFactory.create(2, true),
+                        RowFactory.create(3, false),
+                        RowFactory.create(4, true)
+                ),
+                new StructType()
+                        .add("id", DataTypes.IntegerType, false)
+                        .add("PatientMeasure.cohort", DataTypes.BooleanType, true)
         );
     }
     
