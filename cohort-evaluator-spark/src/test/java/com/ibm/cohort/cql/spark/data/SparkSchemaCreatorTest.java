@@ -46,27 +46,6 @@ public class SparkSchemaCreatorTest {
 
 		CqlTranslator.loadModelInfo(new File("src/test/resources/output-validation/modelinfo/simple-all-types-model-info.xml"));
 	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void singleContextNoDefinesBadConfiguration() throws Exception {
-		ContextDefinitions contextDefinitions = makeContextDefinitions(
-				Collections.singletonList(makeContextDefinition("Context1Id", "Type1", "id"))
-		);
-
-
-		CqlEvaluationRequests cqlEvaluationRequests = makeEvaluationRequests(
-				Collections.singletonList(
-						makeEvaluationRequest(
-								new CqlLibraryDescriptor().setLibraryId("Context1Id").setVersion("1.0.0"),
-								new HashSet<>(),
-								"Context1Id"
-						)
-				)
-		);
-
-		SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions);
-		assertEquals(0, schemaCreator.calculateSchemasForContexts(Arrays.asList("Context1Id")).size());
-	}
 	
 	@Test
 	public void singleContextSupportedDefineTypes() throws Exception {

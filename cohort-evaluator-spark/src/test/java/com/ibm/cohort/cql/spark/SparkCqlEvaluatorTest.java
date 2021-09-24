@@ -86,17 +86,21 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
     
     @Test
     public void testReadAggregateSuccess() throws Exception {
+        String outputLocation = "target/output/aggregate-success/patient_cohort";
+        
         String [] args = new String[] {
           "-d", "src/test/resources/simple-job/context-definitions.json",
           "-j", "src/test/resources/simple-job/cql-jobs.json",
           "-m", "src/test/resources/simple-job/modelinfo/simple-modelinfo-1.0.0.xml",
           "-c", "src/test/resources/simple-job/cql",
           "-i", "Patient=" + new File("src/test/resources/simple-job/testdata/patient").toURI().toString(),
-          "-o", "Patient=" + new File("target/output/simple-job/patient_cohort").toURI().toString(),
+          "-o", "Patient=" + new File(outputLocation).toURI().toString(),
           "--overwrite-output-for-contexts"
         };
 
         SparkCqlEvaluator.main(args);
+        
+        validateOutputCountsAndColumns(outputLocation, new HashSet<>(Arrays.asList("id", "SampleLibrary.IsFemale")), 10);
     }
 
     @Test
@@ -130,6 +134,29 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         };
 
         SparkCqlEvaluator.main(args);
+
+        // Expected rows per context were derived from inspecting the input data
+        // by hand and counting the unique values for each context's key column.
+        validateOutputCountsAndColumns(patientFile.toURI().toString(), new HashSet<>(Arrays.asList("pat_id", "MeasureAB.cohort")), 100);
+        validateOutputCountsAndColumns(aFile.toURI().toString(), new HashSet<>(Arrays.asList("id_col", "MeasureA.cohort")), 572);
+        validateOutputCountsAndColumns(bFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureB.cohort")), 575);
+        validateOutputCountsAndColumns(cFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureC.cohort")), 600);
+        validateOutputCountsAndColumns(dFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureD.cohort")), 567);
+    }
+
+    private void validateOutputCountsAndColumns(String filename, Set<String> columnNames, int numExpectedRows) {
+        SparkSession sparkSession = initializeSession(Java8API.ENABLED);
+        Dataset<Row> results = sparkSession.read().parquet(filename);
+        validateColumnNames(results.schema(), columnNames);
+
+        assertEquals(numExpectedRows, results.count());
+    }
+
+    private void validateColumnNames(StructType schema, Set<String> columnNames) {
+        for (String field : schema.fieldNames()) {
+            assertTrue(columnNames.contains(field));
+        }
+        assertEquals(columnNames.size(), schema.fields().length);
     }
     
     @Test

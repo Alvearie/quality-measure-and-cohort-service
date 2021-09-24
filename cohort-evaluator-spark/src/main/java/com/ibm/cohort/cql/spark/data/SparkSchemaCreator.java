@@ -106,11 +106,10 @@ public class SparkSchemaCreator {
 			for (StructField field : resultsSchema.fields()) {
 				fullSchema = fullSchema.add(field);
 			}
-			return fullSchema;
+			resultsSchema = fullSchema;
 		}
-		else {
-			throw new IllegalArgumentException("Context " + contextName + " does not have any define statements configured.");
-		}
+		
+		return resultsSchema;
 	}
 
 	private Tuple2<String, DataType> getKeyInformationForContext(String contextName, Set<Tuple2<String, String>> usingInfos) {
