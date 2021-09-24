@@ -183,7 +183,7 @@ public class SparkCqlEvaluator implements Serializable {
                     perContextAccum.reset();
                 }
             }
-		}
+        }
     }
 
     /**
