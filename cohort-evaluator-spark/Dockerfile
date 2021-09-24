@@ -54,7 +54,7 @@ ENV SPARK_HOME=${SPARK_HOME}
 USER root
 # Perform a full update of all packages to minimize vulnerabilities
 RUN dnf update -y &&\
-    # Install Java 11
+    # Install Java 11 with dev tools (jmap, jar, etc.) and procps-ng tooling (top, ps, free, etc.)
     dnf install -y java-11-openjdk procps-ng &&\
     # Clean dnf
     dnf clean all
