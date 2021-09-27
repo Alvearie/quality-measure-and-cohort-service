@@ -35,18 +35,48 @@ import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 
 import scala.Tuple2;
 
-
+/**
+ *  This class contains logic used to auto-detect result schemas used to write output
+ *  files in the SparkCqlEvaluator class. Rather than asking users to configure the
+ *  result type of each define in their cql-jobs file, we use the information already
+ *  provided to that job to infer the type for each column of data that program outputs.
+ *  
+ *  When creating a schema for a context, the first column contains the context key used
+ *  when generating the engine evaluation results and the remaining columns each contain
+ *  a single result for a particular define configured in the CqlEvaluationRequests
+ *  for that context. Ex:
+ *    context-key, Library1-Define1, Library1-Define2, Library2-Define1, ...
+ *  
+ *  The context key column is currently named based on the configured primaryKeyColumn
+ *  in the context's ContextDefinition. Its type information is inferred by inspecting the
+ *  ModelInfo objects referenced in the libraries being executed for that context.
+ *  ModelInfos inspected in this way must be registered ahead of time and be
+ *  retrievable through a call to:
+ *    ModelInfoLoader.getModelInfoProvider(VersionedIdentifier modelIdentifier)
+ *  
+ *  We search the ModelInfo(s) for a single definition of type `primaryKeyType`
+ *  and column `primaryKeyColumn` from the context's ContextDefinition. If searching
+ *  through the provided ModelInfo(s) does not resolve to a single definition, then
+ *  an error is thrown.
+ *  
+ *  Each result column has its name generated using a SparkOutputColumnEncoder. We rely on type
+ *  information being included in the ELM libraries provided by the CqlLibraryProvider when
+ *  inferring the output type to use for a result column. This information is only present if 
+ *  CQL-to-ELM translation was performed using the `EnableResultTypes` option. If we process ELM
+ *  that does not include result types, then this code will fail with a message about not supporting
+ *  null result types.
+ */
 public class SparkSchemaCreator {
 	private CqlLibraryProvider libraryProvider;
 	private CqlEvaluationRequests requests;
 	private ContextDefinitions contextDefinitions;
-	private SparkOutputColumnNameFactory outputColumnNameFactory;
+	private SparkOutputColumnEncoder sparkOutputColumnEncoder;
 
-	public SparkSchemaCreator(CqlLibraryProvider libraryProvider, CqlEvaluationRequests requests, ContextDefinitions contextDefinitions, SparkOutputColumnNameFactory outputColumnNameFactory) {
+	public SparkSchemaCreator(CqlLibraryProvider libraryProvider, CqlEvaluationRequests requests, ContextDefinitions contextDefinitions, SparkOutputColumnEncoder sparkOutputColumnEncoder) {
 		this.libraryProvider = libraryProvider;
 		this.requests = requests;
 		this.contextDefinitions = contextDefinitions;
-		this.outputColumnNameFactory = outputColumnNameFactory;
+		this.sparkOutputColumnEncoder = sparkOutputColumnEncoder;
 	}
 
 	public Map<String, StructType> calculateSchemasForContexts(List<String> contextNames) throws Exception {
@@ -96,7 +126,7 @@ public class SparkSchemaCreator {
 				}
 
 				QName resultTypeName = expressionDefs.get(0).getExpression().getResultTypeName();
-				resultsSchema = resultsSchema.add(outputColumnNameFactory.getColumnName(libraryId, expression), QNameToDataTypeConverter.getFieldType(resultTypeName), true);
+				resultsSchema = resultsSchema.add(sparkOutputColumnEncoder.getColumnName(libraryId, expression), QNameToDataTypeConverter.getFieldType(resultTypeName), true);
 			}
 		}
 

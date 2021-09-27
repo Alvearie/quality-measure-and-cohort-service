@@ -36,7 +36,7 @@ public class SparkSchemaCreatorTest {
 	// can hand build request / context definitions if needed
 	
 	private CqlLibraryProvider cqlLibraryProvider;
-	private SparkOutputColumnNameFactory outputColumnNameFactory;
+	private DefaultSparkOutputColumnEncoder outputColumnNameFactory;
 	
 	@Before
 	public void setup() {
@@ -47,7 +47,7 @@ public class SparkSchemaCreatorTest {
 
 		CqlTranslator.loadModelInfo(new File("src/test/resources/output-validation/modelinfo/simple-all-types-model-info.xml"));
 		
-		outputColumnNameFactory = new SparkOutputColumnNameFactory(".");
+		outputColumnNameFactory = new DefaultSparkOutputColumnEncoder(".");
 	}
 	
 	@Test

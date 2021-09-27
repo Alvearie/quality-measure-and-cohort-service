@@ -71,9 +71,9 @@ public class SparkCqlEvaluatorArgs implements Serializable {
     public Integer outputPartitions = null;
     
     @Parameter(names = {"--overwrite-output-for-contexts"}, description = "WARNING: NOT RECOMMENDED FOR PRODUCTION USE. If option is set, program overwrites existing output when writing result data.")
-    public Boolean overwriteResults = false;
+    public boolean overwriteResults = false;
 
-    @Parameter(names = {"--default-output-column-delimiter"}, description = "Delimiter to use when a result column is named using the default naming rule of `LIBRARY_ID + delimiter + DEFINE_NAME`. Default is \"|\"")
+    @Parameter(names = {"--default-output-column-delimiter"}, description = "Delimiter to use when a result column is named using the default naming rule of `LIBRARY_ID + delimiter + DEFINE_NAME`.")
     public String defaultOutputColumnDelimiter = "|";
 
 

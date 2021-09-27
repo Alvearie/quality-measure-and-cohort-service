@@ -14,7 +14,6 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,8 +54,9 @@ import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.aggregation.ContextRetriever;
 import com.ibm.cohort.cql.spark.data.DatasetRetriever;
 import com.ibm.cohort.cql.spark.data.DefaultDatasetRetriever;
+import com.ibm.cohort.cql.spark.data.DefaultSparkOutputColumnEncoder;
 import com.ibm.cohort.cql.spark.data.SparkDataRow;
-import com.ibm.cohort.cql.spark.data.SparkOutputColumnNameFactory;
+import com.ibm.cohort.cql.spark.data.SparkOutputColumnEncoder;
 import com.ibm.cohort.cql.spark.data.SparkSchemaCreator;
 import com.ibm.cohort.cql.spark.data.SparkTypeConverter;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
@@ -83,7 +83,7 @@ public class SparkCqlEvaluator implements Serializable {
 
     protected SparkTypeConverter typeConverter;
     
-    protected SparkOutputColumnNameFactory outputColumnNameFactory;
+    protected SparkOutputColumnEncoder sparkOutputColumnEncoder;
 
     /**
      * Store a single copy of the job specification data per thread. This allows the data
@@ -122,7 +122,7 @@ public class SparkCqlEvaluator implements Serializable {
             jobSpecification.set(cqlEvaluationRequests);
         }
 
-        SparkSchemaCreator sparkSchemaCreator = new SparkSchemaCreator(libProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory);
+        SparkSchemaCreator sparkSchemaCreator = new SparkSchemaCreator(libProvider, cqlEvaluationRequests, contextDefinitions, sparkOutputColumnEncoder);
         return sparkSchemaCreator.calculateSchemasForContexts(contextNames);
     }
 
@@ -136,7 +136,7 @@ public class SparkCqlEvaluator implements Serializable {
         try (SparkSession spark = sparkBuilder.getOrCreate()) {
             boolean useJava8API = Boolean.valueOf(spark.conf().get("spark.sql.datetime.java8API.enabled"));
             this.typeConverter = new SparkTypeConverter(useJava8API);
-            this.outputColumnNameFactory = new SparkOutputColumnNameFactory(args.defaultOutputColumnDelimiter);
+            this.sparkOutputColumnEncoder = new DefaultSparkOutputColumnEncoder(args.defaultOutputColumnDelimiter);
 
             ContextDefinitions contexts = readContextDefinitions(args.contextDefinitionPath);
 
@@ -343,7 +343,7 @@ public class SparkCqlEvaluator implements Serializable {
 
             CqlEvaluationResult result = evaluator.evaluate(request, args.debug ? CqlDebug.DEBUG : CqlDebug.NONE);
             for (Map.Entry<String, Object> entry : result.getExpressionResults().entrySet()) {
-                String outputColumnKey = outputColumnNameFactory.getColumnName(request.getDescriptor().getLibraryId(), entry.getKey());
+                String outputColumnKey = sparkOutputColumnEncoder.getColumnName(request.getDescriptor().getLibraryId(), entry.getKey());
                 expressionResults.put(outputColumnKey, typeConverter.toSparkType(entry.getValue()));
             }
         }
@@ -437,19 +437,19 @@ public class SparkCqlEvaluator implements Serializable {
                             Object contextKey = t._1();
                             Map<String, Object> results = t._2();
 
-                            List<Object> data = new ArrayList<>();
-                            data.add(contextKey);
-                            for (String field : Arrays.copyOfRange(schema.fieldNames(), 1, schema.fieldNames().length)) {
-                                data.add(results.get(field));
+                            Object[] data = new Object[schema.fields().length];
+                            data[0] = contextKey;
+                            for (int i = 1; i < schema.fieldNames().length; i++) {
+                                data[i] = results.get(schema.fieldNames()[i]);
                             }
-                            return data.toArray();
+                            return data;
                         })
                         .map(RowFactory::create),
                 schema
         );
 
 		if (args.outputPartitions != null) {
-			dataFrame = dataFrame.repartition(args.outputPartitions.intValue());
+			dataFrame = dataFrame.repartition(args.outputPartitions);
 		}
 
         dataFrame.write().mode(args.overwriteResults ? "overwrite" : "errorifexists").format("parquet").save(outputURI);
