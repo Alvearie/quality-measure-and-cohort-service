@@ -136,7 +136,7 @@ public class SparkCqlEvaluator implements Serializable {
         try (SparkSession spark = sparkBuilder.getOrCreate()) {
             boolean useJava8API = Boolean.valueOf(spark.conf().get("spark.sql.datetime.java8API.enabled"));
             this.typeConverter = new SparkTypeConverter(useJava8API);
-            this.outputColumnNameFactory = new SparkOutputColumnNameFactory();
+            this.outputColumnNameFactory = new SparkOutputColumnNameFactory(args.defaultOutputColumnDelimiter);
 
             ContextDefinitions contexts = readContextDefinitions(args.contextDefinitionPath);
 

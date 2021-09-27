@@ -47,7 +47,7 @@ public class SparkSchemaCreatorTest {
 
 		CqlTranslator.loadModelInfo(new File("src/test/resources/output-validation/modelinfo/simple-all-types-model-info.xml"));
 		
-		outputColumnNameFactory = new SparkOutputColumnNameFactory();
+		outputColumnNameFactory = new SparkOutputColumnNameFactory(".");
 	}
 	
 	@Test
