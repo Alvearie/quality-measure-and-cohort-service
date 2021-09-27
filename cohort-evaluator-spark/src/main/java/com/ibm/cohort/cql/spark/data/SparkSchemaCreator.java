@@ -126,7 +126,7 @@ public class SparkSchemaCreator {
 				}
 				else if(expressionDefs.size() > 1) {
 					throw new IllegalArgumentException("Expression " + expression + " was defined multiple times in library: "
-															   +descriptor.getLibraryId() + "-" + descriptor.getVersion())
+															   +descriptor.getLibraryId() + "-" + descriptor.getVersion());
 				}
 
 				QName resultTypeName = expressionDefs.get(0).getExpression().getResultTypeName();
