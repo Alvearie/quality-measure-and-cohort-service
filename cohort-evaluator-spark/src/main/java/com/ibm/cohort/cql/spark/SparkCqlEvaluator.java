@@ -56,6 +56,7 @@ import com.ibm.cohort.cql.spark.aggregation.ContextRetriever;
 import com.ibm.cohort.cql.spark.data.DatasetRetriever;
 import com.ibm.cohort.cql.spark.data.DefaultDatasetRetriever;
 import com.ibm.cohort.cql.spark.data.SparkDataRow;
+import com.ibm.cohort.cql.spark.data.SparkOutputColumnNameFactory;
 import com.ibm.cohort.cql.spark.data.SparkSchemaCreator;
 import com.ibm.cohort.cql.spark.data.SparkTypeConverter;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
@@ -78,11 +79,11 @@ public class SparkCqlEvaluator implements Serializable {
     private static final Logger LOG = LoggerFactory.getLogger(SparkCqlEvaluator.class);
     private static final long serialVersionUID = 1L;
 
-
-
     protected SparkCqlEvaluatorArgs args;
 
     protected SparkTypeConverter typeConverter;
+    
+    protected SparkOutputColumnNameFactory outputColumnNameFactory;
 
     /**
      * Store a single copy of the job specification data per thread. This allows the data
@@ -121,7 +122,7 @@ public class SparkCqlEvaluator implements Serializable {
             jobSpecification.set(cqlEvaluationRequests);
         }
 
-        SparkSchemaCreator sparkSchemaCreator = new SparkSchemaCreator(libProvider, cqlEvaluationRequests, contextDefinitions);
+        SparkSchemaCreator sparkSchemaCreator = new SparkSchemaCreator(libProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory);
         return sparkSchemaCreator.calculateSchemasForContexts(contextNames);
     }
 
@@ -135,6 +136,7 @@ public class SparkCqlEvaluator implements Serializable {
         try (SparkSession spark = sparkBuilder.getOrCreate()) {
             boolean useJava8API = Boolean.valueOf(spark.conf().get("spark.sql.datetime.java8API.enabled"));
             this.typeConverter = new SparkTypeConverter(useJava8API);
+            this.outputColumnNameFactory = new SparkOutputColumnNameFactory();
 
             ContextDefinitions contexts = readContextDefinitions(args.contextDefinitionPath);
 
@@ -341,7 +343,7 @@ public class SparkCqlEvaluator implements Serializable {
 
             CqlEvaluationResult result = evaluator.evaluate(request, args.debug ? CqlDebug.DEBUG : CqlDebug.NONE);
             for (Map.Entry<String, Object> entry : result.getExpressionResults().entrySet()) {
-                String outputColumnKey = request.getDescriptor().getLibraryId() + "." + entry.getKey();
+                String outputColumnKey = outputColumnNameFactory.getColumnName(request.getDescriptor().getLibraryId(), entry.getKey());
                 expressionResults.put(outputColumnKey, typeConverter.toSparkType(entry.getValue()));
             }
         }

@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -100,7 +99,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         SparkCqlEvaluator.main(args);
         
-        validateOutputCountsAndColumns(outputLocation, new HashSet<>(Arrays.asList("id", "SampleLibrary.IsFemale")), 10);
+        validateOutputCountsAndColumns(outputLocation, new HashSet<>(Arrays.asList("id", "SampleLibrary|IsFemale")), 10);
     }
 
     @Test
@@ -137,11 +136,11 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         // Expected rows per context were derived from inspecting the input data
         // by hand and counting the unique values for each context's key column.
-        validateOutputCountsAndColumns(patientFile.toURI().toString(), new HashSet<>(Arrays.asList("pat_id", "MeasureAB.cohort")), 100);
-        validateOutputCountsAndColumns(aFile.toURI().toString(), new HashSet<>(Arrays.asList("id_col", "MeasureA.cohort")), 572);
-        validateOutputCountsAndColumns(bFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureB.cohort")), 575);
-        validateOutputCountsAndColumns(cFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureC.cohort")), 600);
-        validateOutputCountsAndColumns(dFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureD.cohort")), 567);
+        validateOutputCountsAndColumns(patientFile.toURI().toString(), new HashSet<>(Arrays.asList("pat_id", "MeasureAB|cohort")), 100);
+        validateOutputCountsAndColumns(aFile.toURI().toString(), new HashSet<>(Arrays.asList("id_col", "MeasureA|cohort")), 572);
+        validateOutputCountsAndColumns(bFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureB|cohort")), 575);
+        validateOutputCountsAndColumns(cFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureC|cohort")), 600);
+        validateOutputCountsAndColumns(dFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureD|cohort")), 567);
     }
 
     private void validateOutputCountsAndColumns(String filename, Set<String> columnNames, int numExpectedRows) {
@@ -199,11 +198,11 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 ),
                 new StructType()
                         .add("id", DataTypes.IntegerType, false)
-                        .add("Context1Id.define_integer", DataTypes.IntegerType, true)
-                        .add("Context1Id.define_string", DataTypes.StringType, true)
+                        .add("Context1Id|define_integer", DataTypes.IntegerType, true)
+                        .add("Context1Id|define_string", DataTypes.StringType, true)
                         // Decimal precision currently hardcoded in QNameToDataTypeConverter
-                        .add("Context1Id.define_decimal", DataTypes.createDecimalType(28, 8), true)
-                        .add("Context1Id.define_boolean", DataTypes.BooleanType, true)
+                        .add("Context1Id|define_decimal", DataTypes.createDecimalType(28, 8), true)
+                        .add("Context1Id|define_boolean", DataTypes.BooleanType, true)
         );
 
         validateOutput(
@@ -219,8 +218,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 ),
                 new StructType()
                         .add("id", DataTypes.IntegerType, false)
-                        .add("Context2Id.define_date", DataTypes.DateType, true)
-                        .add("Context2Id.define_datetime", DataTypes.TimestampType, true)
+                        .add("Context2Id|define_date", DataTypes.DateType, true)
+                        .add("Context2Id|define_datetime", DataTypes.TimestampType, true)
         );
 
         validateOutput(
@@ -236,7 +235,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 ),
                 new StructType()
                         .add("id", DataTypes.IntegerType, false)
-                        .add("PatientMeasure.cohort", DataTypes.BooleanType, true)
+                        .add("PatientMeasure|cohort", DataTypes.BooleanType, true)
         );
     }
     
@@ -245,9 +244,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         try(SparkSession sparkSession = initializeSession(Java8API.ENABLED)){
             Dataset<Row> actualDataFrame = sparkSession.read().parquet(filename);
             // Column names with a dot in them need escaped with backticks
-            List<String> columnList = Arrays.asList(actualDataFrame.columns()).stream()
-                    .map(x -> "`" + x + "`")
-                    .collect(Collectors.toList());
+            List<String> columnList = Arrays.asList(actualDataFrame.columns());
             String[] actualColumns = columnList.toArray(new String[columnList.size()]);
 
             // Make sure columns are in the same order in both dataframes

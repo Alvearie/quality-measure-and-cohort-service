@@ -40,11 +40,13 @@ public class SparkSchemaCreator {
 	private CqlLibraryProvider libraryProvider;
 	private CqlEvaluationRequests requests;
 	private ContextDefinitions contextDefinitions;
+	private SparkOutputColumnNameFactory outputColumnNameFactory;
 
-	public SparkSchemaCreator(CqlLibraryProvider libraryProvider, CqlEvaluationRequests requests, ContextDefinitions contextDefinitions) {
+	public SparkSchemaCreator(CqlLibraryProvider libraryProvider, CqlEvaluationRequests requests, ContextDefinitions contextDefinitions, SparkOutputColumnNameFactory outputColumnNameFactory) {
 		this.libraryProvider = libraryProvider;
 		this.requests = requests;
 		this.contextDefinitions = contextDefinitions;
+		this.outputColumnNameFactory = outputColumnNameFactory;
 	}
 
 	public Map<String, StructType> calculateSchemasForContexts(List<String> contextNames) throws Exception {
@@ -94,7 +96,7 @@ public class SparkSchemaCreator {
 				}
 
 				QName resultTypeName = expressionDefs.get(0).getExpression().getResultTypeName();
-				resultsSchema = resultsSchema.add(libraryId + "." + expression, QNameToDataTypeConverter.getFieldType(resultTypeName), true);
+				resultsSchema = resultsSchema.add(outputColumnNameFactory.getColumnName(libraryId, expression), QNameToDataTypeConverter.getFieldType(resultTypeName), true);
 			}
 		}
 
