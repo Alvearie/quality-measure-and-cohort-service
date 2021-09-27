@@ -69,14 +69,14 @@ public class SparkSchemaCreator {
 
 		for (CqlEvaluationRequest filteredRequest : filteredRequests) {
 			CqlLibraryDescriptor descriptor = filteredRequest.getDescriptor();
-			String measureName = descriptor.getLibraryId();
+			String libraryId = descriptor.getLibraryId();
 
 			for (String expression : filteredRequest.getExpressions()) {
 				Library library = CqlLibraryReader.read(
-						libraryProvider.getLibrary(new CqlLibraryDescriptor().setLibraryId(measureName).setVersion(descriptor.getVersion())).getContentAsStream()
+						libraryProvider.getLibrary(new CqlLibraryDescriptor().setLibraryId(libraryId).setVersion(descriptor.getVersion())).getContentAsStream()
 				);
 
-				// Track the set of non-system using statements across measures.
+				// Track the set of non-system using statements across libraries.
 				// Information is used later to access ModelInfos when searching
 				// for context key column type information.
 				usingInfo.addAll(library.getUsings().getDef().stream()
@@ -94,7 +94,7 @@ public class SparkSchemaCreator {
 				}
 
 				QName resultTypeName = expressionDefs.get(0).getExpression().getResultTypeName();
-				resultsSchema = resultsSchema.add(measureName + "." + expression, QNameToDataTypeConverter.getFieldType(resultTypeName), true);
+				resultsSchema = resultsSchema.add(libraryId + "." + expression, QNameToDataTypeConverter.getFieldType(resultTypeName), true);
 			}
 		}
 
@@ -120,7 +120,7 @@ public class SparkSchemaCreator {
 
 		DataType keyType = null;
 
-		// Check the model info for each non-system using statement from the measures run for this context.
+		// Check the model info for each non-system using statement from the libraries run for this context.
 		// Try to find the key column's type information from a single model info.
 		for (Tuple2<String, String> usingInfo : usingInfos) {
 			VersionedIdentifier modelInfoIdentifier = new VersionedIdentifier().withId(usingInfo._1()).withVersion(usingInfo._2());
