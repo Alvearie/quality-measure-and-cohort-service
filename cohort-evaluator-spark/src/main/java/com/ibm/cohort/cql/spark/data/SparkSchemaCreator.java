@@ -122,7 +122,11 @@ public class SparkSchemaCreator {
 
 				if (expressionDefs.isEmpty()) {
 					throw new IllegalArgumentException("Expression " + expression + " is configured in the CQL jobs file, but not found in "
-															   + descriptor.getLibraryId() + "." + descriptor.getVersion());
+															   + descriptor.getLibraryId() + "-" + descriptor.getVersion());
+				}
+				else if(expressionDefs.size() > 1) {
+					throw new IllegalArgumentException("Expression " + expression + " was defined multiple times in library: "
+															   +descriptor.getLibraryId() + "-" + descriptor.getVersion())
 				}
 
 				QName resultTypeName = expressionDefs.get(0).getExpression().getResultTypeName();
