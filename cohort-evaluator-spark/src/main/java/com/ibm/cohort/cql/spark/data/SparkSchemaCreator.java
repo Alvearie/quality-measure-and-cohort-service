@@ -61,7 +61,7 @@ public class SparkSchemaCreator {
 	}
 
 	public StructType calculateSchemaForContext(String contextName) throws Exception {
-		List<CqlEvaluationRequest> filteredRequests = requests.getEvaluations().stream().filter(r -> r.getContextKey().equals(contextName)).collect(Collectors.toList());
+		List<CqlEvaluationRequest> filteredRequests = requests.getEvaluationsForContext(contextName);
 
 		StructType resultsSchema = new StructType();
 
@@ -113,7 +113,7 @@ public class SparkSchemaCreator {
 	}
 
 	private Tuple2<String, DataType> getKeyInformationForContext(String contextName, Set<Tuple2<String, String>> usingInfos) {
-		ContextDefinition contextDefinition = getContextDefinition(contextName);
+		ContextDefinition contextDefinition = contextDefinitions.getContextDefinitionByName(contextName);
 		
 		String primaryDataType = contextDefinition.getPrimaryDataType();
 		String primaryKeyColumn = contextDefinition.getPrimaryKeyColumn();
@@ -171,19 +171,6 @@ public class SparkSchemaCreator {
 							+ " in the provided ModelInfo files. Cannot infer key type for context: " + contextName);			
 		}
 		return new Tuple2<>(contextDefinition.getPrimaryKeyColumn(), keyType);
-	}
-	
-	private ContextDefinition getContextDefinition(String contextName) {
-		List<ContextDefinition> definitions = contextDefinitions.getContextDefinitions().stream()
-				.filter(x -> x.getName().equals(contextName))
-				.collect(Collectors.toList());
-
-		if (definitions.size() != 1) {
-			throw new IllegalArgumentException("A context must be defined exactly once in the context definitions file. Found "
-													   + definitions.size() + " definitions for context: " + contextName);
-		}
-		
-		return definitions.get(0);
 	}
 	
 	private DataType getSparkTypeForSystemValue(String elementType) {

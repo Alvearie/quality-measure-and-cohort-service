@@ -8,6 +8,9 @@ package com.ibm.cohort.cql.spark.aggregation;
 
 import java.util.List;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 public class ContextDefinition {
     private String name;
     private String primaryDataType;
@@ -45,5 +48,31 @@ public class ContextDefinition {
 
     public void setRelationships(List<Join> relationships) {
         this.relationships = relationships;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ContextDefinition that = (ContextDefinition) o;
+
+        return new EqualsBuilder()
+                .append(name, that.name)
+                .append(primaryDataType, that.primaryDataType)
+                .append(primaryKeyColumn, that.primaryKeyColumn)
+                .append(relationships, that.relationships)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(name)
+                .append(primaryDataType)
+                .append(primaryKeyColumn)
+                .append(relationships)
+                .toHashCode();
     }
 }

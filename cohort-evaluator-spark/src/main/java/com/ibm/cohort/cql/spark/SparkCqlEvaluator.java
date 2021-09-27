@@ -291,8 +291,7 @@ public class SparkCqlEvaluator implements Serializable {
         
         List<CqlEvaluationRequest> evaluations = requests.getEvaluations();
         if (evaluations != null) {
-            requestsForContext = requests.getEvaluations().stream()
-                    .filter(r -> r.getContextKey().equals(contextName)).collect(Collectors.toList());
+            requestsForContext = requests.getEvaluationsForContext(contextName);
         }
 
         if (args.libraries != null && args.libraries.size() > 0) {
