@@ -99,7 +99,7 @@ public class SparkSchemaCreator {
 		}
 
 		if (resultsSchema.fields().length > 0) {
-			Tuple2<String, DataType> keyInformation = getKeyInformationForContext(contextName, usingInfo);
+			Tuple2<String, DataType> keyInformation = getDataTypeForContextKey(contextName, usingInfo);
 			StructType fullSchema = new StructType()
 					.add(keyInformation._1(), keyInformation._2(), false);
 
@@ -112,7 +112,7 @@ public class SparkSchemaCreator {
 		return resultsSchema;
 	}
 
-	private Tuple2<String, DataType> getKeyInformationForContext(String contextName, Set<Tuple2<String, String>> usingInfos) {
+	private Tuple2<String, DataType> getDataTypeForContextKey(String contextName, Set<Tuple2<String, String>> usingInfos) {
 		ContextDefinition contextDefinition = contextDefinitions.getContextDefinitionByName(contextName);
 		
 		String primaryDataType = contextDefinition.getPrimaryDataType();
