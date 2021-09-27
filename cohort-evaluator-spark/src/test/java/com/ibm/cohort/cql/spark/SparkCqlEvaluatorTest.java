@@ -145,11 +145,13 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
     }
 
     private void validateOutputCountsAndColumns(String filename, Set<String> columnNames, int numExpectedRows) {
-        SparkSession sparkSession = initializeSession(Java8API.ENABLED);
-        Dataset<Row> results = sparkSession.read().parquet(filename);
-        validateColumnNames(results.schema(), columnNames);
+        // SparkCqlEvaluator closes the SparkSession. Make sure we have one opened before any validation. 
+        try(SparkSession sparkSession = initializeSession(Java8API.ENABLED)) {
+            Dataset<Row> results = sparkSession.read().parquet(filename);
+            validateColumnNames(results.schema(), columnNames);
 
-        assertEquals(numExpectedRows, results.count());
+            assertEquals(numExpectedRows, results.count());
+        }
     }
 
     private void validateColumnNames(StructType schema, Set<String> columnNames) {
@@ -239,21 +241,23 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
     }
     
     private void validateOutput(String filename, List<Row> expectedRows, StructType schema) {
-        spark = initializeSession(Java8API.ENABLED);
-        Dataset<Row> actualDataFrame = spark.read().parquet(filename);
-        // Column names with a dot in them need escaped with backticks
-        List<String> columnList = Arrays.asList(actualDataFrame.columns()).stream()
-                .map(x -> "`" + x + "`")
-                .collect(Collectors.toList());
-        String[] actualColumns = columnList.toArray(new String[columnList.size()]);
+        // SparkCqlEvaluator closes the SparkSession. Make sure we have one opened before any validation.
+        try(SparkSession sparkSession = initializeSession(Java8API.ENABLED)){
+            Dataset<Row> actualDataFrame = sparkSession.read().parquet(filename);
+            // Column names with a dot in them need escaped with backticks
+            List<String> columnList = Arrays.asList(actualDataFrame.columns()).stream()
+                    .map(x -> "`" + x + "`")
+                    .collect(Collectors.toList());
+            String[] actualColumns = columnList.toArray(new String[columnList.size()]);
 
-        // Make sure columns are in the same order in both dataframes
-        Dataset<Row> expectedDataFrame = spark.createDataFrame(expectedRows, schema)
-                .select(actualColumns[0], Arrays.copyOfRange(actualColumns, 1, actualColumns.length));
+            // Make sure columns are in the same order in both dataframes
+            Dataset<Row> expectedDataFrame = sparkSession.createDataFrame(expectedRows, schema)
+                    .select(actualColumns[0], Arrays.copyOfRange(actualColumns, 1, actualColumns.length));
 
-        assertEquals(schema.fields().length, actualColumns.length);
-        assertEquals(0, expectedDataFrame.except(actualDataFrame).count());
-        assertEquals(0, actualDataFrame.except(expectedDataFrame).count());
+            assertEquals(schema.fields().length, actualColumns.length);
+            assertEquals(0, expectedDataFrame.except(actualDataFrame).count());
+            assertEquals(0, actualDataFrame.except(expectedDataFrame).count());
+        }
     }
 
     @Test(expected = IllegalArgumentException.class)
