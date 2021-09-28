@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<modelInfo xmlns="urn:hl7-org:elm-modelinfo:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="CohortTest" version="0.0.1" url="http://mock.cohort.model" targetQualifier="IDontKnow" patientClassName="A" patientBirthDatePropertyName="none">
+<modelInfo xmlns="urn:hl7-org:elm-modelinfo:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="CohortTest" version="0.0.1" url="http://mock.cohort.model" targetQualifier="IDontKnow" patientClassName="A" patientBirthDatePropertyName="none">
     <typeInfo namespace="CohortTest" name="A" identifier="http://mock.cohort.model/A" label="A" retrievable="true" xsi:type="ClassInfo">
         <element name="id_col" elementType="System.String"/>
         <element name="boolean_col" elementType="System.Boolean"/>

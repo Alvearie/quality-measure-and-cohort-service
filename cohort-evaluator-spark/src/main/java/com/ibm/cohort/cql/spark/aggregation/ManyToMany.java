@@ -6,6 +6,9 @@
 
 package com.ibm.cohort.cql.spark.aggregation;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 public class ManyToMany extends Join {
     private String associationDataType;
     private String associationOneKeyColumn;
@@ -28,5 +31,31 @@ public class ManyToMany extends Join {
     }
     public void setAssociationManyKeyColumn(String associationManyKeyColumn) {
         this.associationManyKeyColumn = associationManyKeyColumn;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ManyToMany that = (ManyToMany) o;
+
+        return new EqualsBuilder()
+                .appendSuper(super.equals(o))
+                .append(associationDataType, that.associationDataType)
+                .append(associationOneKeyColumn, that.associationOneKeyColumn)
+                .append(associationManyKeyColumn, that.associationManyKeyColumn)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .appendSuper(super.hashCode())
+                .append(associationDataType)
+                .append(associationOneKeyColumn)
+                .append(associationManyKeyColumn)
+                .toHashCode();
     }
 }

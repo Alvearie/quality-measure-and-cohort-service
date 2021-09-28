@@ -8,6 +8,7 @@ package com.ibm.cohort.cql.evaluation;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -35,5 +36,16 @@ public class CqlEvaluationRequests {
     }
     public void setEvaluations(List<CqlEvaluationRequest> evaluations) {
         this.evaluations = evaluations;
+    }
+
+    /**
+     * Retrieves a list of CqlEvaluationRequest objects with the provided contextName.
+     * 
+     * @param contextName   The context name used to retrieve requests.
+     * @return  A list of CqlEvaluationRequests containing the provided contextName.
+     *          An empty list is returned if no such requests are found.
+     */
+    public List<CqlEvaluationRequest> getEvaluationsForContext(String contextName) {
+        return evaluations.stream().filter(r -> r.getContextKey() != null && r.getContextKey().equals(contextName)).collect(Collectors.toList());
     }
 }

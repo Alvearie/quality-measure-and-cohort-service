@@ -7,10 +7,13 @@
 package com.ibm.cohort.cql.evaluation;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
@@ -53,5 +56,38 @@ public class CqlEvaluationRequestsTest {
         
         assertEquals( globalParameters, requests.getGlobalParameters() );
         assertEquals( 1, requests.getEvaluations().size() );
+    }
+    
+    @Test
+    public void testGetEvaluationsForContextNoneFound() {
+        CqlEvaluationRequest request1 = new CqlEvaluationRequest();
+        request1.setContextKey("contextXYZ");
+        CqlEvaluationRequest request2 = new CqlEvaluationRequest();
+        
+        CqlEvaluationRequests requests = new CqlEvaluationRequests();
+        requests.setEvaluations(Arrays.asList(request1, request2));
+        
+        assertTrue(requests.getEvaluationsForContext("context1").isEmpty());
+    }
+
+    @Test
+    public void testGetEvaluationsForContextContextsFound() {
+        CqlEvaluationRequest request1 = new CqlEvaluationRequest();
+        request1.setContextKey("context1");
+        CqlEvaluationRequest request2 = new CqlEvaluationRequest();
+        request2.setContextKey("context1");
+        request2.setContextValue("abcd");
+        CqlEvaluationRequest request3 = new CqlEvaluationRequest();
+        request3.setContextKey("contextXYZ");
+
+
+        CqlEvaluationRequests requests = new CqlEvaluationRequests();
+        requests.setEvaluations(Arrays.asList(request1, request2));
+
+        List<CqlEvaluationRequest> actualRequests = requests.getEvaluationsForContext("context1");
+
+        assertEquals(2, actualRequests.size());
+        assertTrue(actualRequests.contains(request1));
+        assertTrue(actualRequests.contains(request2));
     }
 }

@@ -6,6 +6,9 @@
 
 package com.ibm.cohort.cql.spark.aggregation;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -51,5 +54,33 @@ public abstract class Join {
     }
     public void setMaxRows(int maxRows) {
         this.maxRows = maxRows;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Join join = (Join) o;
+
+        return new EqualsBuilder()
+                .append(minRows, join.minRows)
+                .append(maxRows, join.maxRows)
+                .append(primaryDataTypeColumn, join.primaryDataTypeColumn)
+                .append(relatedDataType, join.relatedDataType)
+                .append(relatedKeyColumn, join.relatedKeyColumn)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(primaryDataTypeColumn)
+                .append(relatedDataType)
+                .append(relatedKeyColumn)
+                .append(minRows)
+                .append(maxRows)
+                .toHashCode();
     }
 }

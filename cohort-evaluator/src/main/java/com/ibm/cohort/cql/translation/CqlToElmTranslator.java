@@ -17,6 +17,7 @@ import javax.xml.bind.JAXBException;
 
 import org.cqframework.cql.cql2elm.CqlTranslator;
 import org.cqframework.cql.cql2elm.CqlTranslatorException;
+import org.cqframework.cql.cql2elm.CqlTranslatorOptions;
 import org.cqframework.cql.cql2elm.LibraryBuilder;
 import org.cqframework.cql.cql2elm.LibraryManager;
 import org.cqframework.cql.cql2elm.ModelInfoLoader;
@@ -54,8 +55,11 @@ public class CqlToElmTranslator {
 
         Collection<CqlLibrary> dependencies = new ArrayList<>();
 
-        CqlTranslator cqlTranslator = CqlTranslator.fromText(primaryLibrary.getContent(), modelManager, libraryManager,
-                /* ucumService= */null, CqlTranslatorException.ErrorSeverity.Info, signatureLevel);
+        CqlTranslator cqlTranslator = CqlTranslator.fromText(primaryLibrary.getContent(), modelManager, libraryManager, /* ucumService= */null,
+                                                             CqlTranslatorException.ErrorSeverity.Info, signatureLevel,
+                                                             CqlTranslatorOptions.defaultOptions()
+                                                                     .withOptions(CqlTranslator.Options.EnableResultTypes)
+                                                                     .getOptions().toArray(new CqlTranslator.Options[0]));
 
         if (cqlTranslator.getErrors().size() > 0) {
             throw new CqlTranslatorException("There were errors during cql translation: " + formatMsg(cqlTranslator.getErrors()));

@@ -6,9 +6,14 @@
 
 package com.ibm.cohort.cql.spark.aggregation;
 
-import com.ibm.cohort.cql.spark.BaseSparkTest;
-import com.ibm.cohort.cql.spark.data.DatasetRetriever;
-import com.ibm.cohort.cql.spark.data.TestDatasetRetriever;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
@@ -19,15 +24,12 @@ import org.apache.spark.sql.types.StructType;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import scala.Tuple2;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.ibm.cohort.cql.spark.BaseSparkTest;
+import com.ibm.cohort.cql.spark.data.DatasetRetriever;
+import com.ibm.cohort.cql.spark.data.TestDatasetRetriever;
+
+import scala.Tuple2;
 
 public class ContextRetrieverTest extends BaseSparkTest {
 

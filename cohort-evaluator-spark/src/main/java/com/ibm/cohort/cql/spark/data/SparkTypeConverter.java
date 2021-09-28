@@ -134,8 +134,11 @@ public class SparkTypeConverter implements Serializable {
     }
     
     public Object toCqlType(Object obj) { 
-        Object result = null;
-        if( obj instanceof Byte ) {
+        Object result;
+        if (obj == null) {
+            result = null;
+        }
+        else if( obj instanceof Byte ) {
             result = toCqlByte(obj);
         } else if( obj instanceof Short ) {
             result = toCqlShort(obj);
@@ -355,8 +358,11 @@ public class SparkTypeConverter implements Serializable {
     }
     
     public Object toSparkType(Object obj) { 
-        Object result = null;
-        if( obj instanceof Integer ) {
+        Object result;
+        if (obj == null) {
+            result = null;
+        }
+        else if( obj instanceof Integer ) {
             result = toSparkInteger(obj);
         } else if( obj instanceof Long ) {
             result = toSparkLong(obj);
