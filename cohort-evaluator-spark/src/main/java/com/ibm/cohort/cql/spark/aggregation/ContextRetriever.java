@@ -210,8 +210,10 @@ public class ContextRetriever {
                 retVal = rdd;
             }
             else {
-            	CustomMetricSparkPlugin.contextUnionsCounter.inc();
+            	CustomMetricSparkPlugin.contextUnionsInProgress.inc();
                 retVal = retVal.union(rdd);
+                CustomMetricSparkPlugin.contextUnionsInProgress.dec();
+                CustomMetricSparkPlugin.contextUnionsCompletedCounter.inc();
             }
         }
         return retVal;

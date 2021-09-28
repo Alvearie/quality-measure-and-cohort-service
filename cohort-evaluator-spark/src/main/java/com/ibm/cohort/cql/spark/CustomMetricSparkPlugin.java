@@ -16,8 +16,8 @@ public class CustomMetricSparkPlugin implements SparkPlugin{
 	
 	public static LongAccumulatorGauge contextAccumMetric = new LongAccumulatorGauge();	
 	public static LongAccumulatorGauge perContextAccumMetric = new LongAccumulatorGauge();
-	public static Counter contextUnionsCounter = new Counter();
-	//public static IntGauge contextUnions = new IntGauge();
+	public static Counter contextUnionsCompletedCounter = new Counter();
+	public static Counter contextUnionsInProgress = new Counter();
 	
 	public static Counter cohortMetricCounter = new Counter();
 
@@ -31,7 +31,8 @@ public class CustomMetricSparkPlugin implements SparkPlugin{
 				metReg.register(MetricRegistry.name("metrics_CohortContextAccum"), contextAccumMetric);
 				metReg.register(MetricRegistry.name("metrics_Cohort_perContextAccum"), perContextAccumMetric);
 				metReg.register(MetricRegistry.name("metrics_CohortMetricCounter"), cohortMetricCounter);
-				metReg.register(MetricRegistry.name("metrics_CohortContextUnionsCounter"), contextUnionsCounter);
+				metReg.register(MetricRegistry.name("metrics_CohortContextUnionsCompletedCounter"), contextUnionsCompletedCounter);
+				metReg.register(MetricRegistry.name("metrics_CohortContextUnionsInProgressCounter"), contextUnionsInProgress);
 				
 			}
 		};
