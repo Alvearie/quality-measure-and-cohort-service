@@ -1,0 +1,31 @@
+{
+  "contextDefinitions": [
+    {
+      "name": "Context1Id",
+      "primaryDataType": "Type1",
+      "primaryKeyColumn": "id"
+    },
+    {
+      "name": "Context2Id",
+      "primaryDataType": "Type2",
+      "primaryKeyColumn": "id"
+    },
+    {
+      "name": "Patient",
+      "primaryDataType": "Patient",
+      "primaryKeyColumn": "id",
+      "relationships": [
+        {
+          "type": "OneToMany",
+          "relatedDataType": "Type1",
+          "relatedKeyColumn": "id"
+        },
+        {
+          "type": "OneToMany",
+          "relatedDataType": "Type2",
+          "relatedKeyColumn": "id"
+        }
+      ]
+    }
+  ]
+}

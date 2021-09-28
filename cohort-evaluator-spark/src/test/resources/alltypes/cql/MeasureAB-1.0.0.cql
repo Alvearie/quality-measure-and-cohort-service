@@ -1,4 +1,4 @@
-library "MeasureA" version '1.0.0'
+library "MeasureAB" version '1.0.0'
 using "CohortTest" version '0.0.1'
 
 codesystem "SNOMED": 'http://snomed.info/sct'
@@ -17,7 +17,7 @@ define "cohort":
   and exists("Passes B checks")
 
 define "Passes A checks":
-  [A: code_col in "MyConcept"] typeA where
+  [A: code_col in "MyConcept".codes] typeA where
     typeA.boolean_col is not null and typeA.boolean_col = true
 
 define "Passes B checks":
