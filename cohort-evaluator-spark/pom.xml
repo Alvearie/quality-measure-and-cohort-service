@@ -27,11 +27,35 @@
         <job.name>simple-job</job.name>
     </properties>
 
+	<dependencyManagement>
+		<dependencies>
+			<!-- We get jsp-api:2.1 transitively from our hadoop-common dependency. 
+				JSP 2.1 includes API classes for an early version of the javax.el unified 
+				expression language. That version conflicts with the newer version that is 
+				needed by recent Hibernate Validator implementations. Rather than backdate 
+				our Hibernate Validator all the way to 4.2.0.Final (which would be necessary 
+				to work with JSP 2.1), I am upgrading the JSP API to 2.2. -->
+			<dependency>
+				<groupId>javax.servlet.jsp</groupId>
+				<artifactId>jsp-api</artifactId>
+				<version>2.2</version>
+			</dependency>	
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
 			<artifactId>cohort-evaluator</artifactId>
 			<version>${project.version}</version>
+			<exclusions>
+				<!-- Spark ships with Jersey and Jersey uses an ever-so-slightly newer 
+					version of the validation API, so we are preferring the Jersey version. -->
+				<exclusion>
+					<groupId>javax.validation</groupId>
+					<artifactId>validation-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -44,22 +68,10 @@
 			<groupId>org.opencds.cqf.cql</groupId>
 			<artifactId>engine</artifactId>
 		</dependency>
-		
-		<dependency>
-			<groupId>javax.validation</groupId>
-			<artifactId>validation-api</artifactId>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-validator</artifactId>
-		</dependency>
 
-		<!-- This needs to be before Spark because spark pulls in JSP 2.1 and JSP 
-			2.1 has an embedded version of the javax.el API -->
 		<dependency>
-			<groupId>org.glassfish</groupId>
-			<artifactId>javax.el</artifactId>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-sql_${spark.scala.version}</artifactId>
 		</dependency>
 		
 		<dependency>
@@ -69,14 +81,9 @@
 
 		<dependency>
 			<groupId>org.apache.spark</groupId>
-			<artifactId>spark-sql_${spark.scala.version}</artifactId>
+			<artifactId>spark-kubernetes_${spark.scala.version}</artifactId>
+			<scope>runtime</scope>
 		</dependency>
-
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-kubernetes_${spark.scala.version}</artifactId>
-            <scope>runtime</scope>
-        </dependency>
 
 		<dependency>
 			<groupId>io.delta</groupId>
@@ -107,6 +114,28 @@
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-aws</artifactId>
 			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>jakarta.validation</groupId>
+			<artifactId>jakarta.validation-api</artifactId>
+			<version>2.0.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.validation</groupId>
+					<artifactId>validation-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.glassfish</groupId>
+			<artifactId>javax.el</artifactId>
 		</dependency>
 
 		<dependency>
