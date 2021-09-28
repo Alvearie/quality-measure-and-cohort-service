@@ -15,6 +15,7 @@ public class CustomMetricSparkPlugin implements SparkPlugin{
 	//public static Counter driverDataRowsProcessed = new MetricRegistry().counter("metrics_driverDataRowsProcessed");
 	
 	public static LongAccumulatorGauge contextAccumMetric = new LongAccumulatorGauge();	
+	public static IntGauge curentlyEvaluatingContext = new IntGauge();	
 	public static LongAccumulatorGauge perContextAccumMetric = new LongAccumulatorGauge();
 	public static Counter contextUnionsCompletedCounter = new Counter();
 	public static Counter contextUnionsInProgress = new Counter();
@@ -33,6 +34,7 @@ public class CustomMetricSparkPlugin implements SparkPlugin{
 				metReg.register(MetricRegistry.name("metrics_CohortMetricCounter"), cohortMetricCounter);
 				metReg.register(MetricRegistry.name("metrics_CohortContextUnionsCompletedCounter"), contextUnionsCompletedCounter);
 				metReg.register(MetricRegistry.name("metrics_CohortContextUnionsInProgressCounter"), contextUnionsInProgress);
+				metReg.register(MetricRegistry.name("metrics_CohortCurentlyEvaluatingContext"), curentlyEvaluatingContext);
 				
 			}
 		};
