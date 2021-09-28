@@ -1,0 +1,61 @@
+{
+  "evaluations": [
+    {
+      "descriptor": {
+        "libraryId": "Context1Id",
+        "version": "1.0.0"
+      },
+      "expressions": [
+        "define_integer"
+      ],
+      "contextKey": "Context1Id",
+      "contextValue": "NA"
+    },
+    {
+      "descriptor": {
+        "libraryId": "Context1Id",
+        "version": "1.0.0"
+      },
+      "expressions": [
+        "define_decimal",
+        "define_string"
+      ],
+      "contextKey": "Context1Id",
+      "contextValue": "NA"
+    },
+    {
+      "descriptor": {
+        "libraryId": "Context1Id",
+        "version": "1.0.0"
+      },
+      "expressions": [
+        "define_boolean"
+      ],
+      "contextKey": "Context1Id",
+      "contextValue": "NA"
+    },
+    {
+      "descriptor": {
+        "libraryId": "Context2Id",
+        "version": "1.0.0"
+      },
+      "expressions": [
+        "define_date",
+        "define_datetime"
+      ],
+      "contextKey": "Context2Id",
+      "contextValue": "NA"
+    },
+    {
+      "descriptor": {
+        "libraryId": "PatientMeasure",
+        "version": "1.0.0"
+      },
+      "expressions": [
+        "cohort"
+      ],
+      "contextKey": "Patient",
+      "contextValue": "NA"
+    }
+  ]
+}

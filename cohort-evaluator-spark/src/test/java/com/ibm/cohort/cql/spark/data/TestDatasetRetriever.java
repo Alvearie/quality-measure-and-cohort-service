@@ -6,10 +6,10 @@
 
 package com.ibm.cohort.cql.spark.data;
 
+import java.util.Map;
+
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-
-import java.util.Map;
 
 /**
  * A simple {@link DatasetRetriever} that stores precomputed mappings from

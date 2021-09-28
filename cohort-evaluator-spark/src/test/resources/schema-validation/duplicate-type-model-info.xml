@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modelInfo xmlns="urn:hl7-org:elm-modelinfo:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="CohortTest" version="0.0.1" url="http://mock.cohort.model" targetQualifier="IDontKnow" patientClassName="Patient" patientBirthDatePropertyName="none">
+    <typeInfo namespace="CohortTest" name="Patient" identifier="http://mock.cohort.model/Patient" label="Patient" retrievable="true" xsi:type="ClassInfo">
+        <element name="id" elementType="System.Integer"/>
+    </typeInfo>
+
+    <!--Purposely duplicating Type1 in this model info-->
+    <typeInfo namespace="CohortTest" name="Type1" identifier="http://mock.cohort.model/Type1" label="Type1" retrievable="true" xsi:type="ClassInfo">
+        <element name="id" elementType="System.Integer"/>
+    
+        <element name="boolean" elementType="System.Boolean"/>
+    
+        <element name="string" elementType="System.String"/>
+        <element name="code" elementType="System.Code"/>
+    
+        <element name="short" elementType="System.Integer"/>
+        <element name="integer" elementType="System.Integer"/>
+        <element name="long" elementType="System.Integer"/>
+        <element name="float" elementType="System.Decimal"/>
+        <element name="double" elementType="System.Decimal"/>
+        <element name="decimal" elementType="System.Decimal"/>
+    
+        <element name="date" elementType="System.Date"/>
+        <element name="datetime" elementType="System.DateTime"/>
+    </typeInfo>
+    
+    <typeInfo namespace="CohortTest" name="Type1" identifier="http://mock.cohort.model/Type1" label="Type1" retrievable="true" xsi:type="ClassInfo">
+        <element name="id" elementType="System.Integer"/>
+        
+        <element name="boolean" elementType="System.Boolean"/>
+        
+        <element name="string" elementType="System.String"/>
+        <element name="code" elementType="System.Code"/>
+        
+        <element name="short" elementType="System.Integer"/>
+        <element name="integer" elementType="System.Integer"/>
+        <element name="long" elementType="System.Integer"/>
+        <element name="float" elementType="System.Decimal"/>
+        <element name="double" elementType="System.Decimal"/>
+        <element name="decimal" elementType="System.Decimal"/>
+        
+        <element name="date" elementType="System.Date"/>
+        <element name="datetime" elementType="System.DateTime"/>
+    </typeInfo>
+
+    <contextInfo name="Patient" keyElement="id" birthDateElement="NA">
+        <contextType modelName="CohortTest" namespace="CohortTest" name="Patient" />
+    </contextInfo>
+
+    <contextInfo name="Context1Id" keyElement="id" birthDateElement="NA">
+        <contextType modelName="CohortTest" namespace="CohortTest" name="Type1" />
+    </contextInfo>
+    
+</modelInfo>
