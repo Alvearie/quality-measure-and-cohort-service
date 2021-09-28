@@ -13,7 +13,11 @@ public class LongAccumulatorGauge implements Gauge<Long> {
 
 	@Override
 	public Long getValue() {
-		return longAc.value();
+		if (longAc != null) {
+			return longAc.value();
+		} else {
+			return new Long(-1);
+		}
 	}
 
 }

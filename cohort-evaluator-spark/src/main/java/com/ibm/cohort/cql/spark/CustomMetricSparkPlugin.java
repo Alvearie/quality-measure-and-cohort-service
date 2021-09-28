@@ -5,6 +5,7 @@ import org.apache.spark.api.plugin.ExecutorPlugin;
 import org.apache.spark.api.plugin.PluginContext;
 import org.apache.spark.api.plugin.SparkPlugin;
 
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.MetricRegistry;
 
 public class CustomMetricSparkPlugin implements SparkPlugin{
@@ -15,6 +16,10 @@ public class CustomMetricSparkPlugin implements SparkPlugin{
 	
 	public static LongAccumulatorGauge contextAccumMetric = new LongAccumulatorGauge();	
 	public static LongAccumulatorGauge perContextAccumMetric = new LongAccumulatorGauge();
+	public static Counter contextUnionsCounter = new Counter();
+	//public static IntGauge contextUnions = new IntGauge();
+	
+	public static Counter cohortMetricCounter = new Counter();
 
 	
 	@Override
@@ -23,8 +28,10 @@ public class CustomMetricSparkPlugin implements SparkPlugin{
 			@Override
 			public void registerMetrics(String appId, PluginContext pluginContext) {
 				MetricRegistry metReg = pluginContext.metricRegistry();
-				metReg.register(MetricRegistry.name("metrics_contextAccum"), contextAccumMetric);
-				metReg.register(MetricRegistry.name("metrics_perContextAccum"), perContextAccumMetric);
+				metReg.register(MetricRegistry.name("metrics_CohortContextAccum"), contextAccumMetric);
+				metReg.register(MetricRegistry.name("metrics_Cohort_perContextAccum"), perContextAccumMetric);
+				metReg.register(MetricRegistry.name("metrics_CohortMetricCounter"), cohortMetricCounter);
+				metReg.register(MetricRegistry.name("metrics_CohortContextUnionsCounter"), contextUnionsCounter);
 				
 			}
 		};

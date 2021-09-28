@@ -6,6 +6,7 @@
 
 package com.ibm.cohort.cql.spark.aggregation;
 
+import com.ibm.cohort.cql.spark.CustomMetricSparkPlugin;
 import com.ibm.cohort.cql.spark.data.DatasetRetriever;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.sql.Column;
@@ -209,6 +210,7 @@ public class ContextRetriever {
                 retVal = rdd;
             }
             else {
+            	CustomMetricSparkPlugin.contextUnionsCounter.inc();
                 retVal = retVal.union(rdd);
             }
         }
