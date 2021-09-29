@@ -143,6 +143,30 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         validateOutputCountsAndColumns(dFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureD|cohort")), 567);
     }
 
+    @Test
+    public void testAnyColumnEvaluation() throws Exception {
+        File inputDir = new File("src/test/resources/alltypes/");
+        File outputDir = new File("target/output/any-column/");
+
+        File aFile = new File(outputDir, "A_cohort");
+
+        String [] args = new String[] {
+            "-d", "src/test/resources/any-column/metadata/context-definitions.json",
+            "-j", "src/test/resources/any-column/metadata/cql-jobs.json",
+            "-m", "src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml",
+            "-c", "src/test/resources/any-column/cql",
+            "--input-format", "parquet",
+            "-i", "A=" + new File(inputDir, "testdata/test-A.parquet").toURI(),
+            "-o", "A=" + aFile.toURI(),
+            "-n", "10",
+            "--overwrite-output-for-contexts"
+        };
+
+        SparkCqlEvaluator.main(args);
+
+        validateOutputCountsAndColumns(aFile.toURI().toString(), new HashSet<>(Arrays.asList("id_col", "MeasureAnyColumn|cohort")), 572);
+    }
+
     private void validateOutputCountsAndColumns(String filename, Set<String> columnNames, int numExpectedRows) {
         // SparkCqlEvaluator closes the SparkSession. Make sure we have one opened before any validation. 
         spark = initializeSession(Java8API.ENABLED);

@@ -1,0 +1,9 @@
+{
+  "contextDefinitions": [
+    {
+      "name": "A",
+      "primaryDataType": "A",
+      "primaryKeyColumn": "id_col"
+    }
+  ]
+}
