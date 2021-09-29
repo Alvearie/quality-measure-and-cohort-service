@@ -27,6 +27,7 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.delta.DeltaLog;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 import org.junit.Before;
@@ -94,6 +95,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
           "-c", "src/test/resources/simple-job/cql",
           "-i", "Patient=" + new File("src/test/resources/simple-job/testdata/patient").toURI().toString(),
           "-o", "Patient=" + new File(outputLocation).toURI().toString(),
+          "--output-format", "delta",
           "--overwrite-output-for-contexts"
         };
 
@@ -146,7 +148,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
     }
 
     private void validateOutputCountsAndColumns(String filename, Set<String> columnNames, int numExpectedRows, String expectedFormat) {
-        // SparkCqlEvaluator closes the SparkSession. Make sure we have one opened before any validation. 
+        // SparkCqlEvaluator closes the SparkSession. Make sure we have one opened before any validation.
+        DeltaLog.clearCache();
         spark = initializeSession(Java8API.ENABLED);
         Dataset<Row> results = spark.read().format(expectedFormat).load(filename);
         validateColumnNames(results.schema(), columnNames);
@@ -183,6 +186,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 "-o", "Context1Id=" + context1IdFile.toURI().toString(),
                 "-o", "Context2Id=" + context2IdFile.toURI().toString(),
                 "-o", "Patient=" + patientFile.toURI().toString(),
+                "--output-format", "delta",
                 "--overwrite-output-for-contexts"
         };
 
@@ -204,7 +208,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                         .add("Context1Id|define_string", DataTypes.StringType, true)
                         // Decimal precision currently hardcoded in QNameToDataTypeConverter
                         .add("Context1Id|define_decimal", DataTypes.createDecimalType(28, 8), true)
-                        .add("Context1Id|define_boolean", DataTypes.BooleanType, true)
+                        .add("Context1Id|define_boolean", DataTypes.BooleanType, true),
+                "delta"
         );
 
         validateOutput(
@@ -221,7 +226,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 new StructType()
                         .add("id", DataTypes.IntegerType, false)
                         .add("Context2Id|define_date", DataTypes.DateType, true)
-                        .add("Context2Id|define_datetime", DataTypes.TimestampType, true)
+                        .add("Context2Id|define_datetime", DataTypes.TimestampType, true),
+                "delta"
         );
 
         validateOutput(
@@ -237,14 +243,16 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 ),
                 new StructType()
                         .add("id", DataTypes.IntegerType, false)
-                        .add("PatientMeasure|cohort", DataTypes.BooleanType, true)
+                        .add("PatientMeasure|cohort", DataTypes.BooleanType, true),
+                "delta"
         );
     }
     
-    private void validateOutput(String filename, List<Row> expectedRows, StructType schema) {
+    private void validateOutput(String filename, List<Row> expectedRows, StructType schema, String expectedFormat) {
         // SparkCqlEvaluator closes the SparkSession. Make sure we have one opened before any validation.
+        DeltaLog.clearCache();
         spark = initializeSession(Java8API.ENABLED);
-        Dataset<Row> actualDataFrame = spark.read().parquet(filename);
+        Dataset<Row> actualDataFrame = spark.read().format(expectedFormat).load(filename);
         // Column names with a dot in them need escaped with backticks
         List<String> columnList = Arrays.asList(actualDataFrame.columns());
         String[] actualColumns = columnList.toArray(new String[columnList.size()]);
