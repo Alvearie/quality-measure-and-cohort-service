@@ -99,7 +99,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         SparkCqlEvaluator.main(args);
         
-        validateOutputCountsAndColumns(outputLocation, new HashSet<>(Arrays.asList("id", "SampleLibrary|IsFemale")), 10);
+        // BaseSparkTest uses .config("spark.sql.sources.default", "delta");
+        validateOutputCountsAndColumns(outputLocation, new HashSet<>(Arrays.asList("id", "SampleLibrary|IsFemale")), 10, "delta");
     }
 
     @Test
@@ -129,6 +130,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
           "-o", "C=" + cFile.toURI().toString(),
           "-o", "D=" + dFile.toURI().toString(),
           "-n", "10",
+          "--output-format", "parquet",
           "--overwrite-output-for-contexts"
         };
 
@@ -136,17 +138,17 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         // Expected rows per context were derived from inspecting the input data
         // by hand and counting the unique values for each context's key column.
-        validateOutputCountsAndColumns(patientFile.toURI().toString(), new HashSet<>(Arrays.asList("pat_id", "MeasureAB|cohort")), 100);
-        validateOutputCountsAndColumns(aFile.toURI().toString(), new HashSet<>(Arrays.asList("id_col", "MeasureA|cohort")), 572);
-        validateOutputCountsAndColumns(bFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureB|cohort")), 575);
-        validateOutputCountsAndColumns(cFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureC|cohort")), 600);
-        validateOutputCountsAndColumns(dFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureD|cohort")), 567);
+        validateOutputCountsAndColumns(patientFile.toURI().toString(), new HashSet<>(Arrays.asList("pat_id", "MeasureAB|cohort")), 100, "parquet");
+        validateOutputCountsAndColumns(aFile.toURI().toString(), new HashSet<>(Arrays.asList("id_col", "MeasureA|cohort")), 572, "parquet");
+        validateOutputCountsAndColumns(bFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureB|cohort")), 575, "parquet");
+        validateOutputCountsAndColumns(cFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureC|cohort")), 600, "parquet");
+        validateOutputCountsAndColumns(dFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureD|cohort")), 567, "parquet");
     }
 
-    private void validateOutputCountsAndColumns(String filename, Set<String> columnNames, int numExpectedRows) {
+    private void validateOutputCountsAndColumns(String filename, Set<String> columnNames, int numExpectedRows, String expectedFormat) {
         // SparkCqlEvaluator closes the SparkSession. Make sure we have one opened before any validation. 
         spark = initializeSession(Java8API.ENABLED);
-        Dataset<Row> results = spark.read().parquet(filename);
+        Dataset<Row> results = spark.read().format(expectedFormat).load(filename);
         validateColumnNames(results.schema(), columnNames);
 
         assertEquals(numExpectedRows, results.count());

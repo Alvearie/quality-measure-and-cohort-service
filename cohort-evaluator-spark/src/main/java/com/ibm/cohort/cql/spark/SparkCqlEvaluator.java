@@ -30,6 +30,7 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
+import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.StructType;
 import org.apache.spark.util.LongAccumulator;
@@ -452,7 +453,10 @@ public class SparkCqlEvaluator implements Serializable {
 			dataFrame = dataFrame.repartition(args.outputPartitions);
 		}
 
-        dataFrame.write().mode(args.overwriteResults ? "overwrite" : "errorifexists").format("parquet").save(outputURI);
+        dataFrame.write()
+                .mode(args.overwriteResults ? SaveMode.Overwrite : SaveMode.ErrorIfExists)
+                .format(args.outputFormat != null ? args.outputFormat : spark.conf().get("spark.sql.sources.default"))
+                .save(outputURI);
     }
 
     /**
