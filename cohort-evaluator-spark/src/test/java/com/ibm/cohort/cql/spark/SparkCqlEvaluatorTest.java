@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.spark.SparkException;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
@@ -256,9 +257,9 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         assertEquals(0, actualDataFrame.except(expectedDataFrame).count());
 
     }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testUnknownDefineThrowsException() throws Exception {
+    
+    @Test
+    public void testUnknownLibraryNameThrowsException() throws Exception {
         File inputDir = new File("src/test/resources/alltypes/");
         File outputDir = new File("target/output/alltypes/");
 
@@ -266,8 +267,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         String [] args = new String[] {
                 "-d", "src/test/resources/alltypes/metadata/context-definitions.json",
-                // cql-jobs file references an unknown define in its evaluation request
-                "-j", "src/test/resources/unknown-define/metadata/cql-jobs.json",
+                // cql-jobs file references an unknown library in its evaluation request
+                "-j", "src/test/resources/alltypes/metadata/unknown-library-cql-jobs.json",
                 "-m", "src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml",
                 "-c", "src/test/resources/alltypes/cql",
                 "--input-format", "parquet",
@@ -277,7 +278,100 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 "--overwrite-output-for-contexts"
         };
 
-        SparkCqlEvaluator.main(args);
+        Exception ex = assertThrows( IllegalArgumentException.class, () -> SparkCqlEvaluator.main(args) );
+        assertTrue( "Unexpected exception message", ex.getMessage().contains("Library not found"));
+    }
+
+    @Test
+    public void testUnknownDefineThrowsException() throws Exception {
+        File inputDir = new File("src/test/resources/alltypes/");
+        File outputDir = new File("target/output/alltypes/");
+
+        File aFile = new File(outputDir, "A_cohort");
+
+        String [] args = new String[] {
+                "-d", "src/test/resources/alltypes/metadata/context-definitions.json",
+                // cql-jobs file references an unknown define in its evaluation request
+                "-j", "src/test/resources/alltypes/metadata/unknown-define-cql-jobs.json",
+                "-m", "src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml",
+                "-c", "src/test/resources/alltypes/cql",
+                "--input-format", "parquet",
+                "-i", "A=" + new File(inputDir, "testdata/test-A.parquet").toURI().toString(),
+                "-o", "A=" + aFile.toURI().toString(),
+                "-n", "10",
+                "--overwrite-output-for-contexts"
+        };
+
+        Exception ex = assertThrows( IllegalArgumentException.class, () -> SparkCqlEvaluator.main(args) );
+        assertTrue( "Unexpected exception message", ex.getMessage().contains("is configured in the CQL jobs file, but not found in"));
+    }
+    
+    @Test
+    public void testListResultThrowsException() throws Exception {
+        File inputDir = new File("src/test/resources/alltypes/");
+        File outputDir = new File("target/output/alltypes/");
+
+        File patientFile = new File(outputDir, "Patient_cohort");
+        File aFile = new File(outputDir, "A_cohort");
+        File bFile = new File(outputDir, "B_cohort");
+        File cFile = new File(outputDir, "C_cohort");
+        File dFile = new File(outputDir, "D_cohort");
+
+        String [] args = new String[] {
+          "-d", "src/test/resources/alltypes/metadata/context-definitions.json",
+          "-j", "src/test/resources/alltypes/metadata/list-result-cql-jobs.json",
+          "-m", "src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml",
+          "-c", "src/test/resources/alltypes/cql",
+          "--input-format", "parquet",
+          "-i", "A=" + new File(inputDir, "testdata/test-A.parquet").toURI().toString(),
+          "-i", "B=" + new File(inputDir, "testdata/test-B.parquet").toURI().toString(),
+          "-i", "C=" + new File(inputDir, "testdata/test-C.parquet").toURI().toString(),
+          "-i", "D=" + new File(inputDir, "testdata/test-D.parquet").toURI().toString(),
+          "-o", "Patient=" + patientFile.toURI().toString(),
+          "-o", "A=" + aFile.toURI().toString(),
+          "-o", "B=" + bFile.toURI().toString(),
+          "-o", "C=" + cFile.toURI().toString(),
+          "-o", "D=" + dFile.toURI().toString(),
+          "-n", "10",
+          "--overwrite-output-for-contexts"
+        };
+
+        Exception ex = assertThrows( IllegalArgumentException.class, () -> SparkCqlEvaluator.main(args) );
+        assertTrue( "Unexpected exception message", ex.getMessage().contains("has a null result type"));
+    }
+    
+    @Test
+    public void testCQLEngineThrowsException() throws Exception {
+        File inputDir = new File("src/test/resources/alltypes/");
+        File outputDir = new File("target/output/alltypes/");
+
+        File patientFile = new File(outputDir, "Patient_cohort");
+        File aFile = new File(outputDir, "A_cohort");
+        File bFile = new File(outputDir, "B_cohort");
+        File cFile = new File(outputDir, "C_cohort");
+        File dFile = new File(outputDir, "D_cohort");
+
+        String [] args = new String[] {
+          "-d", "src/test/resources/alltypes/metadata/context-definitions.json",
+          "-j", "src/test/resources/alltypes/metadata/throws-exception-cql-jobs.json",
+          "-m", "src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml",
+          "-c", "src/test/resources/alltypes/cql",
+          "--input-format", "parquet",
+          "-i", "A=" + new File(inputDir, "testdata/test-A.parquet").toURI().toString(),
+          "-i", "B=" + new File(inputDir, "testdata/test-B.parquet").toURI().toString(),
+          "-i", "C=" + new File(inputDir, "testdata/test-C.parquet").toURI().toString(),
+          "-i", "D=" + new File(inputDir, "testdata/test-D.parquet").toURI().toString(),
+          "-o", "Patient=" + patientFile.toURI().toString(),
+          "-o", "A=" + aFile.toURI().toString(),
+          "-o", "B=" + bFile.toURI().toString(),
+          "-o", "C=" + cFile.toURI().toString(),
+          "-o", "D=" + dFile.toURI().toString(),
+          "-n", "10",
+          "--overwrite-output-for-contexts"
+        };
+
+        Throwable th = assertThrows( SparkException.class, () -> SparkCqlEvaluator.main(args) );
+        assertStackTraceContainsMessage(th, "CQL evaluation failed");
     }
 
     private CqlEvaluationRequest makeEvaluationRequest(String contextName) {
@@ -413,5 +507,18 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         assertEquals(5, contextDefinitions.getContextDefinitions().size());
         assertEquals(3, contextDefinitions.getContextDefinitions().get(0).getRelationships().size());
     }
-    
+
+
+    public static void assertStackTraceContainsMessage(Throwable th, String message) {
+        boolean found = false;
+        while( th != null ) {
+            found = th.getMessage().contains(message);
+            if( found ) {
+                break;
+            } else { 
+                th = th.getCause();
+            }
+        }
+        assertTrue( "Missing expected message", found );
+    }
 }

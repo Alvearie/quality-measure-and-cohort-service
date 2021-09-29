@@ -88,6 +88,27 @@ public class SparkSchemaCreatorTest {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
+    public void testLibraryNotFound() throws Exception {
+        ContextDefinitions contextDefinitions = makeContextDefinitions(
+                Collections.singletonList(makeContextDefinition("Context1Id", "Type1", "id"))
+        );
+
+
+        CqlEvaluationRequests cqlEvaluationRequests = makeEvaluationRequests(
+                Arrays.asList(
+                        makeEvaluationRequest(
+                                new CqlLibraryDescriptor().setLibraryId("NotExists").setVersion("1.0.0"),
+                                new HashSet<>(Collections.singletonList("bad-define")),
+                                "Context1Id"
+                        )
+                )
+        );
+
+        SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory);
+        schemaCreator.calculateSchemasForContexts(Arrays.asList("Context1Id"));
+    }
+	
+	@Test(expected = IllegalArgumentException.class)
 	public void testDefineNotFoundInLibrary() throws Exception {
 		ContextDefinitions contextDefinitions = makeContextDefinitions(
 				Collections.singletonList(makeContextDefinition("Context1Id", "Type1", "id"))

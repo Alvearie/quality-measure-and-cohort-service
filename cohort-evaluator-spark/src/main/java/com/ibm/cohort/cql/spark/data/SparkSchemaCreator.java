@@ -28,6 +28,7 @@ import org.opencds.cqf.cql.engine.execution.CqlLibraryReader;
 
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
+import com.ibm.cohort.cql.library.CqlLibrary;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
@@ -104,9 +105,12 @@ public class SparkSchemaCreator {
 			String libraryId = descriptor.getLibraryId();
 
 			for (String expression : filteredRequest.getExpressions()) {
-				Library library = CqlLibraryReader.read(
-						libraryProvider.getLibrary(new CqlLibraryDescriptor().setLibraryId(libraryId).setVersion(descriptor.getVersion())).getContentAsStream()
-				);
+			    CqlLibrary providedLibrary = libraryProvider.getLibrary(new CqlLibraryDescriptor().setLibraryId(libraryId).setVersion(descriptor.getVersion()));
+			    if( providedLibrary == null ) {
+			        throw new IllegalArgumentException("Library not found: " + descriptor.getLibraryId() + "-" + descriptor.getVersion());
+			    }
+			    
+			    Library library = CqlLibraryReader.read(providedLibrary.getContentAsStream());
 
 				// Track the set of non-system using statements across libraries.
 				// Information is used later to access ModelInfos when searching
@@ -126,10 +130,14 @@ public class SparkSchemaCreator {
 				}
 				else if(expressionDefs.size() > 1) {
 					throw new IllegalArgumentException("Expression " + expression + " was defined multiple times in library: "
-															   +descriptor.getLibraryId() + "-" + descriptor.getVersion());
+															   + descriptor.getLibraryId() + "-" + descriptor.getVersion());
 				}
 
 				QName resultTypeName = expressionDefs.get(0).getExpression().getResultTypeName();
+				if( resultTypeName == null ) {
+				    throw new IllegalArgumentException("Expression " + expression + " has a null result type: "
+				                                               + descriptor.getLibraryId() + "-" + descriptor.getVersion());
+				}
 				resultsSchema = resultsSchema.add(sparkOutputColumnEncoder.getColumnName(libraryId, expression), QNameToDataTypeConverter.getFieldType(resultTypeName), true);
 			}
 		}
