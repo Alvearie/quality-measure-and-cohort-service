@@ -15,6 +15,7 @@ import javax.validation.Valid;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
@@ -72,6 +73,17 @@ public class CqlEvaluationRequest {
     }
     public void setContextValue(String contextValue) {
         this.contextValue = contextValue;
+    }
+    
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("descriptor", descriptor)
+                .append("expressions", expressions)
+                .append("parameters", parameters)
+                .append("contextKey", contextKey)
+                .append("contextValue", contextValue)
+                .toString();
     }
 
 	@Override

@@ -1,0 +1,11 @@
+{
+	"evaluations": [{
+		"descriptor": {
+			"libraryId": "Unknown",
+			"version": "1.0.0"
+		},
+		"expressions": ["bad-define"],
+		"contextKey": "A",
+		"contextValue": "NA"
+	}]
+}

@@ -28,6 +28,7 @@ import org.opencds.cqf.cql.engine.execution.CqlLibraryReader;
 
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
+import com.ibm.cohort.cql.library.CqlLibrary;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
@@ -45,14 +46,14 @@ import scala.Tuple2;
  *  when generating the engine evaluation results and the remaining columns each contain
  *  a single result for a particular define configured in the CqlEvaluationRequests
  *  for that context. Ex:
- *    context-key, Library1-Define1, Library1-Define2, Library2-Define1, ...
+ *	context-key, Library1-Define1, Library1-Define2, Library2-Define1, ...
  *  
  *  The context key column is currently named based on the configured primaryKeyColumn
  *  in the context's ContextDefinition. Its type information is inferred by inspecting the
  *  ModelInfo objects referenced in the libraries being executed for that context.
  *  ModelInfos inspected in this way must be registered ahead of time and be
  *  retrievable through a call to:
- *    ModelInfoLoader.getModelInfoProvider(VersionedIdentifier modelIdentifier)
+ *	ModelInfoLoader.getModelInfoProvider(VersionedIdentifier modelIdentifier)
  *  
  *  We search the ModelInfo(s) for a single definition of type `primaryKeyType`
  *  and column `primaryKeyColumn` from the context's ContextDefinition. If searching
@@ -104,9 +105,12 @@ public class SparkSchemaCreator {
 			String libraryId = descriptor.getLibraryId();
 
 			for (String expression : filteredRequest.getExpressions()) {
-				Library library = CqlLibraryReader.read(
-						libraryProvider.getLibrary(new CqlLibraryDescriptor().setLibraryId(libraryId).setVersion(descriptor.getVersion())).getContentAsStream()
-				);
+				CqlLibrary providedLibrary = libraryProvider.getLibrary(new CqlLibraryDescriptor().setLibraryId(libraryId).setVersion(descriptor.getVersion()));
+				if( providedLibrary == null ) {
+					throw new IllegalArgumentException("Library not found: " + descriptor.getLibraryId() + "-" + descriptor.getVersion());
+				}
+				
+				Library library = CqlLibraryReader.read(providedLibrary.getContentAsStream());
 
 				// Track the set of non-system using statements across libraries.
 				// Information is used later to access ModelInfos when searching
@@ -126,10 +130,14 @@ public class SparkSchemaCreator {
 				}
 				else if(expressionDefs.size() > 1) {
 					throw new IllegalArgumentException("Expression " + expression + " was defined multiple times in library: "
-															   +descriptor.getLibraryId() + "-" + descriptor.getVersion());
+															   + descriptor.getLibraryId() + "-" + descriptor.getVersion());
 				}
 
 				QName resultTypeName = expressionDefs.get(0).getExpression().getResultTypeName();
+				if( resultTypeName == null ) {
+					throw new IllegalArgumentException("Expression " + expression + " has a null result type: "
+															   + descriptor.getLibraryId() + "-" + descriptor.getVersion());
+				}
 				resultsSchema = resultsSchema.add(sparkOutputColumnEncoder.getColumnName(libraryId, expression), QNameToDataTypeConverter.getFieldType(resultTypeName), true);
 			}
 		}
