@@ -341,10 +341,15 @@ public class SparkCqlEvaluator implements Serializable {
                 }
             }
 
-            CqlEvaluationResult result = evaluator.evaluate(request, args.debug ? CqlDebug.DEBUG : CqlDebug.NONE);
-            for (Map.Entry<String, Object> entry : result.getExpressionResults().entrySet()) {
-                String outputColumnKey = sparkOutputColumnEncoder.getColumnName(request.getDescriptor().getLibraryId(), entry.getKey());
-                expressionResults.put(outputColumnKey, typeConverter.toSparkType(entry.getValue()));
+            try {
+                CqlEvaluationResult result = evaluator.evaluate(request, args.debug ? CqlDebug.DEBUG : CqlDebug.NONE);
+                for (Map.Entry<String, Object> entry : result.getExpressionResults().entrySet()) {
+                    String outputColumnKey = sparkOutputColumnEncoder.getColumnName(request.getDescriptor().getLibraryId(), entry.getKey());
+                    expressionResults.put(outputColumnKey, typeConverter.toSparkType(entry.getValue()));
+                }
+            } catch( Throwable th ) {
+                Object contextValue = rowsByContext._1();
+                throw new RuntimeException( String.format("CQL evaluation failed for ContextKey: %s, ContextValue: %s, Request: %s", request.getContextKey(), String.valueOf(contextValue), request.toString()), th );
             }
         }
 
