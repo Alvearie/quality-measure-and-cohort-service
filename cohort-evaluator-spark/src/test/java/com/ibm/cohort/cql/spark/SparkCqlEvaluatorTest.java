@@ -28,6 +28,7 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.delta.DeltaLog;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 import org.junit.Before;
@@ -95,12 +96,14 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
           "-c", "src/test/resources/simple-job/cql",
           "-i", "Patient=" + new File("src/test/resources/simple-job/testdata/patient").toURI().toString(),
           "-o", "Patient=" + new File(outputLocation).toURI().toString(),
+          "--output-format", "delta",
           "--overwrite-output-for-contexts"
         };
 
         SparkCqlEvaluator.main(args);
         
-        validateOutputCountsAndColumns(outputLocation, new HashSet<>(Arrays.asList("id", "SampleLibrary|IsFemale")), 10);
+        // BaseSparkTest uses .config("spark.sql.sources.default", "delta");
+        validateOutputCountsAndColumns(outputLocation, new HashSet<>(Arrays.asList("id", "SampleLibrary|IsFemale")), 10, "delta");
     }
 
     @Test
@@ -130,6 +133,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
           "-o", "C=" + cFile.toURI().toString(),
           "-o", "D=" + dFile.toURI().toString(),
           "-n", "10",
+          "--output-format", "parquet",
           "--overwrite-output-for-contexts"
         };
 
@@ -137,17 +141,18 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         // Expected rows per context were derived from inspecting the input data
         // by hand and counting the unique values for each context's key column.
-        validateOutputCountsAndColumns(patientFile.toURI().toString(), new HashSet<>(Arrays.asList("pat_id", "MeasureAB|cohort")), 100);
-        validateOutputCountsAndColumns(aFile.toURI().toString(), new HashSet<>(Arrays.asList("id_col", "MeasureA|cohort")), 572);
-        validateOutputCountsAndColumns(bFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureB|cohort")), 575);
-        validateOutputCountsAndColumns(cFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureC|cohort")), 600);
-        validateOutputCountsAndColumns(dFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureD|cohort")), 567);
+        validateOutputCountsAndColumns(patientFile.toURI().toString(), new HashSet<>(Arrays.asList("pat_id", "MeasureAB|cohort")), 100, "parquet");
+        validateOutputCountsAndColumns(aFile.toURI().toString(), new HashSet<>(Arrays.asList("id_col", "MeasureA|cohort")), 572, "parquet");
+        validateOutputCountsAndColumns(bFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureB|cohort")), 575, "parquet");
+        validateOutputCountsAndColumns(cFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureC|cohort")), 600, "parquet");
+        validateOutputCountsAndColumns(dFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureD|cohort")), 567, "parquet");
     }
 
-    private void validateOutputCountsAndColumns(String filename, Set<String> columnNames, int numExpectedRows) {
-        // SparkCqlEvaluator closes the SparkSession. Make sure we have one opened before any validation. 
+    private void validateOutputCountsAndColumns(String filename, Set<String> columnNames, int numExpectedRows, String expectedFormat) {
+        // SparkCqlEvaluator closes the SparkSession. Make sure we have one opened before any validation.
+        DeltaLog.clearCache();
         spark = initializeSession(Java8API.ENABLED);
-        Dataset<Row> results = spark.read().parquet(filename);
+        Dataset<Row> results = spark.read().format(expectedFormat).load(filename);
         validateColumnNames(results.schema(), columnNames);
 
         assertEquals(numExpectedRows, results.count());
@@ -182,6 +187,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 "-o", "Context1Id=" + context1IdFile.toURI().toString(),
                 "-o", "Context2Id=" + context2IdFile.toURI().toString(),
                 "-o", "Patient=" + patientFile.toURI().toString(),
+                "--output-format", "delta",
                 "--overwrite-output-for-contexts"
         };
 
@@ -203,7 +209,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                         .add("Context1Id|define_string", DataTypes.StringType, true)
                         // Decimal precision currently hardcoded in QNameToDataTypeConverter
                         .add("Context1Id|define_decimal", DataTypes.createDecimalType(28, 8), true)
-                        .add("Context1Id|define_boolean", DataTypes.BooleanType, true)
+                        .add("Context1Id|define_boolean", DataTypes.BooleanType, true),
+                "delta"
         );
 
         validateOutput(
@@ -220,7 +227,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 new StructType()
                         .add("id", DataTypes.IntegerType, false)
                         .add("Context2Id|define_date", DataTypes.DateType, true)
-                        .add("Context2Id|define_datetime", DataTypes.TimestampType, true)
+                        .add("Context2Id|define_datetime", DataTypes.TimestampType, true),
+                "delta"
         );
 
         validateOutput(
@@ -236,14 +244,16 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 ),
                 new StructType()
                         .add("id", DataTypes.IntegerType, false)
-                        .add("PatientMeasure|cohort", DataTypes.BooleanType, true)
+                        .add("PatientMeasure|cohort", DataTypes.BooleanType, true),
+                "delta"
         );
     }
     
-    private void validateOutput(String filename, List<Row> expectedRows, StructType schema) {
+    private void validateOutput(String filename, List<Row> expectedRows, StructType schema, String expectedFormat) {
         // SparkCqlEvaluator closes the SparkSession. Make sure we have one opened before any validation.
+        DeltaLog.clearCache();
         spark = initializeSession(Java8API.ENABLED);
-        Dataset<Row> actualDataFrame = spark.read().parquet(filename);
+        Dataset<Row> actualDataFrame = spark.read().format(expectedFormat).load(filename);
         // Column names with a dot in them need escaped with backticks
         List<String> columnList = Arrays.asList(actualDataFrame.columns());
         String[] actualColumns = columnList.toArray(new String[columnList.size()]);
