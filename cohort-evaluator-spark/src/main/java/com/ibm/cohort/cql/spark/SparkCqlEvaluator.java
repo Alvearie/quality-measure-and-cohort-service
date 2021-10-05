@@ -336,6 +336,8 @@ public class SparkCqlEvaluator implements Serializable {
             }
 
             // add any global parameters that have not been overridden locally
+            // TODO: Figure out parameter stuff...Any output name lookup will need to index by CqlEvaluationRequest.
+            //       Editing that here makes it so we can't look up names.
             if (requests.getGlobalParameters() != null) {
                 for (Map.Entry<String, Parameter> globalParameter : requests.getGlobalParameters().entrySet()) {
                     request.getParameters().putIfAbsent(globalParameter.getKey(), globalParameter.getValue());

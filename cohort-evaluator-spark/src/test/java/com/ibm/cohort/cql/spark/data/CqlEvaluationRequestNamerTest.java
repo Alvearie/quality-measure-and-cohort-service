@@ -10,10 +10,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
+import com.ibm.cohort.cql.evaluation.CqlExpressionConfiguration;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 
 public class CqlEvaluationRequestNamerTest {
@@ -54,18 +54,52 @@ public class CqlEvaluationRequestNamerTest {
 		assertEquals(expectedResult, defineToOutputNameMap);
 	}
 
-	// TODO: Cannot set up this test yet with strings as input. Need complex define -> output name objects first
-	// OR -- Mappings can live elsewhere. That would allow existing jobs files to be compatible with changes.
-	@Ignore
 	@Test
 	public void testMultipleDefinesSameNameThrowsError() {
 		CqlLibraryDescriptor libraryDescriptor = new CqlLibraryDescriptor();
 		libraryDescriptor.setLibraryId("lib1");
 
+		CqlExpressionConfiguration expressionConfiguration1 = new CqlExpressionConfiguration();
+		expressionConfiguration1.setName("abcd");
+		expressionConfiguration1.setoutputColumn("A1");
+
+		CqlExpressionConfiguration expressionConfiguration2 = new CqlExpressionConfiguration();
+		expressionConfiguration2.setName("abcd");
+		expressionConfiguration2.setoutputColumn("A2");
+
+
 		CqlEvaluationRequest request = new CqlEvaluationRequest();
-		request.setExpressionsByNames(new HashSet<>(Arrays.asList("abcd", "abcd")));
+		request.setExpressions(new HashSet<>(Arrays.asList(expressionConfiguration1, expressionConfiguration2)));
 		request.setDescriptor(libraryDescriptor);
 
 		assertThrows(IllegalArgumentException.class, () -> CqlEvaluationRequestNamer.getDefineToOutputNameMap(request, "|"));
+	}
+
+	@Test
+	public void testDefinesWithOutputColumns() {
+		CqlLibraryDescriptor libraryDescriptor = new CqlLibraryDescriptor();
+		libraryDescriptor.setLibraryId("lib1");
+
+		CqlEvaluationRequest request = new CqlEvaluationRequest();
+
+		CqlExpressionConfiguration expressionConfiguration1 = new CqlExpressionConfiguration();
+		expressionConfiguration1.setName("abcd");
+		expressionConfiguration1.setoutputColumn("A1");
+
+		CqlExpressionConfiguration expressionConfiguration2 = new CqlExpressionConfiguration();
+		expressionConfiguration2.setName("efgh");
+		expressionConfiguration2.setoutputColumn("A2");
+
+		request.setExpressions(new HashSet<>(Arrays.asList(expressionConfiguration1, expressionConfiguration2)));
+		request.setDescriptor(libraryDescriptor);
+
+		Map<String, String> defineToOutputNameMap = CqlEvaluationRequestNamer.getDefineToOutputNameMap(request, "|");
+
+		Map<String, String> expectedResult = new HashMap<String, String>() {{
+			put("abcd", "A1");
+			put("efgh", "A2");
+		}};
+
+		assertEquals(expectedResult, defineToOutputNameMap);
 	}
 }
