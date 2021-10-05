@@ -502,7 +502,10 @@ public class SparkCqlEvaluator implements Serializable {
     public static void main(String[] args) throws Exception {
         SparkCqlEvaluatorArgs programArgs = new SparkCqlEvaluatorArgs();
 
-        JCommander commander = JCommander.newBuilder().addObject(programArgs).build();
+        JCommander commander = JCommander.newBuilder()
+                .programName("SparkCqlEvaluator")
+                .addObject(programArgs)
+                .build();
         commander.parse(args);
 
         SparkCqlEvaluator evaluator = new SparkCqlEvaluator(programArgs);

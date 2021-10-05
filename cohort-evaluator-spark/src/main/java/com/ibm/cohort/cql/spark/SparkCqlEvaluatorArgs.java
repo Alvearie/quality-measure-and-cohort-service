@@ -26,7 +26,7 @@ public class SparkCqlEvaluatorArgs implements Serializable {
     public boolean help;
 
     @Parameter(names = { "-d",
-            "--context-definitions" }, description = "Filesystem path to the context-definitions file.", required = false)
+            "--context-definitions" }, description = "Filesystem path to the context-definitions file.", required = true)
     public String contextDefinitionPath;
 
     @Parameter(names = { "--input-format" }, description = "Spark SQL format identifier for input files. If not provided, the value of spark.sql.datasources.default is used.", required = false)
