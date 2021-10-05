@@ -12,7 +12,7 @@ public class CqlEvaluationRequestNamer {
 		DefaultSparkOutputColumnEncoder encoder = new DefaultSparkOutputColumnEncoder(defaultColumnDelimiter);
 		
 		String libraryId = request.getDescriptor().getLibraryId();
-		for (String expression : request.getExpressions()) {
+		for (String expression : request.getExpressionNames()) {
 			if (defineToOutputNameMap.containsKey(expression)) {
 				throw new IllegalArgumentException("Evaluation request contains duplicate expression " + expression + " for the library " + libraryId);
 			}

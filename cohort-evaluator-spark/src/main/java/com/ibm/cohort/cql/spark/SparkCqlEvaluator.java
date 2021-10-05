@@ -332,7 +332,7 @@ public class SparkCqlEvaluator implements Serializable {
         Map<String, Object> expressionResults = new HashMap<>();
         for (CqlEvaluationRequest request : requestsForContext) {
             if (args.expressions != null && args.expressions.size() > 0) {
-                request.setExpressions(args.expressions);
+                request.setExpressionsByNames(args.expressions);
             }
 
             // add any global parameters that have not been overridden locally

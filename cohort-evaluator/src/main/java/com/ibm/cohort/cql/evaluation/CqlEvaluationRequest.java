@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
@@ -22,7 +23,7 @@ import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 
 public class CqlEvaluationRequest {
     private CqlLibraryDescriptor descriptor;
-	private Set<String> expressions;
+	private Set<CqlExpressionConfiguration> expressions;
 	@Valid
 	private Map<String,Parameter> parameters;
 	private String contextKey;
@@ -50,10 +51,10 @@ public class CqlEvaluationRequest {
     public void setDescriptor(CqlLibraryDescriptor descriptor) {
         this.descriptor = descriptor;
     }
-	public Set<String> getExpressions() {
+	public Set<CqlExpressionConfiguration> getExpressions() {
 		return expressions;
 	}
-	public void setExpressions(Set<String> expressions) {
+	public void setExpressions(Set<CqlExpressionConfiguration> expressions) {
 		this.expressions = expressions;
 	}
 	public Map<String, Parameter> getParameters() {
@@ -74,6 +75,21 @@ public class CqlEvaluationRequest {
     public void setContextValue(String contextValue) {
         this.contextValue = contextValue;
     }
+    
+    public Set<String> getExpressionNames() {
+		return expressions.stream().map(CqlExpressionConfiguration::getName).collect(Collectors.toSet());
+	}
+	
+	public void setExpressionsByNames(Set<String> expressionNames) {
+		Set<CqlExpressionConfiguration> expressionConfigurations = new HashSet<>();
+		for (String expressionName : expressionNames) {
+			CqlExpressionConfiguration expressionConfiguration = new CqlExpressionConfiguration();
+			expressionConfiguration.setName(expressionName);
+			expressionConfigurations.add(expressionConfiguration);
+		}
+		
+		this.expressions = expressionConfigurations;
+	}
     
     @Override
     public String toString() {

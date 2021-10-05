@@ -104,7 +104,7 @@ public class SparkSchemaCreator {
 			CqlLibraryDescriptor descriptor = filteredRequest.getDescriptor();
 			String libraryId = descriptor.getLibraryId();
 
-			for (String expression : filteredRequest.getExpressions()) {
+			for (String expression : filteredRequest.getExpressionNames()) {
 				CqlLibrary providedLibrary = libraryProvider.getLibrary(new CqlLibraryDescriptor().setLibraryId(libraryId).setVersion(descriptor.getVersion()));
 				if( providedLibrary == null ) {
 					throw new IllegalArgumentException("Library not found: " + descriptor.getLibraryId() + "-" + descriptor.getVersion());

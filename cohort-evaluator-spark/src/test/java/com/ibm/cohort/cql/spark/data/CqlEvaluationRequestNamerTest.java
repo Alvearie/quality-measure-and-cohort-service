@@ -23,7 +23,7 @@ public class CqlEvaluationRequestNamerTest {
 		libraryDescriptor.setLibraryId("lib1");
 		
 		CqlEvaluationRequest request = new CqlEvaluationRequest();
-		request.setExpressions(new HashSet<>(Collections.singletonList("abcd")));
+		request.setExpressionsByNames(new HashSet<>(Collections.singletonList("abcd")));
 		request.setDescriptor(libraryDescriptor);
 
 		Map<String, String> defineToOutputNameMap = CqlEvaluationRequestNamer.getDefineToOutputNameMap(request, "|");
@@ -41,7 +41,7 @@ public class CqlEvaluationRequestNamerTest {
 		libraryDescriptor.setLibraryId("lib1");
 
 		CqlEvaluationRequest request = new CqlEvaluationRequest();
-		request.setExpressions(new HashSet<>(Arrays.asList("abcd", "efgh")));
+		request.setExpressionsByNames(new HashSet<>(Arrays.asList("abcd", "efgh")));
 		request.setDescriptor(libraryDescriptor);
 
 		Map<String, String> defineToOutputNameMap = CqlEvaluationRequestNamer.getDefineToOutputNameMap(request, "|");
@@ -63,7 +63,7 @@ public class CqlEvaluationRequestNamerTest {
 		libraryDescriptor.setLibraryId("lib1");
 
 		CqlEvaluationRequest request = new CqlEvaluationRequest();
-		request.setExpressions(new HashSet<>(Arrays.asList("abcd", "abcd")));
+		request.setExpressionsByNames(new HashSet<>(Arrays.asList("abcd", "abcd")));
 		request.setDescriptor(libraryDescriptor);
 
 		assertThrows(IllegalArgumentException.class, () -> CqlEvaluationRequestNamer.getDefineToOutputNameMap(request, "|"));
