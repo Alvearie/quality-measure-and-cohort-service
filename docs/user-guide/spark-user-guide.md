@@ -150,6 +150,7 @@ The data tables that are used as input to the Spark CQL Evaluator application ar
 
 Aggregation contexts are defined in a JSON-formatted configuration file that we typically call `context-definitions.json` though the name isn't prescribed. In the `context-definitions.json` file, you define a primary data type and all of the relationships to related data that will be needed for CQL evaluation. Each record of the primary data type should be uniquely keyed and the related data types can be joined in using one-to-many or many-to-many semantics. In the one-to-many join scenario, data for a related data type is assumed to have a direct foreign key to the primary data type table. In the many-to-many join scenario, data for a related data type is assumed to be once removed from the primary data type table. Join logic is performed first on an "association" table and then again via a different key value on the true related data type. 
 
+An example context-definitions.json file might look like this..
 ```json
 {
         "contextDefinitions": [{
@@ -197,7 +198,7 @@ When a `cql-jobs.json` evaluation request descriptor specifies a CQL Library for
 
 The CQL jobs that will be evaluated by a run of the Spark CQL Evaluator application are stored in a JSON-formatted configuration file that is typically called cql-jobs.json. Again, the name isn't prescribed, but the rest of this guide will use the name cql-jobs.json for simplicity. The cql-jobs.json file lists each CQL Library that will be used, which expressions (aka define statements) within the CQL Library will be evaluated, and any input parameters that will be passed to the CQL evaluation engine to be used by parameterized logic within the library, and a `contextKey` that links the CQL to a particular aggregation context defined in the `context-definitions.json` file. A convenience item is provided for configuring CQL parameters at a global level. This is potentially useful for something like a measurement period that is intended to be constant throughout the evaluation of all libraries and statements being evaluated.
 
-An example cql-jobs.json file is show below...
+An example cql-jobs.json file is shown below...
 ```json
 {
 	"globalParameters": {
