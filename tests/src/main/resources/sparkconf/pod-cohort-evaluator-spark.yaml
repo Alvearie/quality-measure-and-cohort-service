@@ -1,0 +1,16 @@
+#
+# (C) Copyright IBM Corp. 2021, 2021
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+kind: Pod
+apiVersion: v1
+metadata:
+    name: cohort-evaluator-spark
+spec:
+    # The cohort-evaluator-spark Docker image runs the application
+    # under the "spark" user which is created with uid 185
+    securityContext:
+        runAsUser: 185
+        fsGroup: 185
