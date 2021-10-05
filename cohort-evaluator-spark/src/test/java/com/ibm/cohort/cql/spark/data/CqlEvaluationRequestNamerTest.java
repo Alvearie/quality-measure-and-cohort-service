@@ -3,6 +3,7 @@ package com.ibm.cohort.cql.spark.data;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -72,7 +73,30 @@ public class CqlEvaluationRequestNamerTest {
 		request.setExpressions(new HashSet<>(Arrays.asList(expressionConfiguration1, expressionConfiguration2)));
 		request.setDescriptor(libraryDescriptor);
 
-		assertThrows(IllegalArgumentException.class, () -> CqlEvaluationRequestNamer.getDefineToOutputNameMap(request, "|"));
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> CqlEvaluationRequestNamer.getDefineToOutputNameMap(request, "|"));
+		assertTrue(ex.getMessage().contains("Evaluation request contains duplicate expression abcd"));
+	}
+
+	@Test
+	public void testMultipleDefinesSameOutputColumnThrowsError() {
+		CqlLibraryDescriptor libraryDescriptor = new CqlLibraryDescriptor();
+		libraryDescriptor.setLibraryId("lib1");
+
+		CqlExpressionConfiguration expressionConfiguration1 = new CqlExpressionConfiguration();
+		expressionConfiguration1.setName("abcd");
+		expressionConfiguration1.setoutputColumn("NAME");
+
+		CqlExpressionConfiguration expressionConfiguration2 = new CqlExpressionConfiguration();
+		expressionConfiguration2.setName("efgh");
+		expressionConfiguration2.setoutputColumn("NAME");
+
+
+		CqlEvaluationRequest request = new CqlEvaluationRequest();
+		request.setExpressions(new HashSet<>(Arrays.asList(expressionConfiguration1, expressionConfiguration2)));
+		request.setDescriptor(libraryDescriptor);
+
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> CqlEvaluationRequestNamer.getDefineToOutputNameMap(request, "|"));
+		assertTrue(ex.getMessage().contains("Evaluation request contains duplicate outputColumn"));
 	}
 
 	@Test
