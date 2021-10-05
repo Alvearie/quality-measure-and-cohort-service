@@ -1,4 +1,9 @@
-package com.ibm.cohort.cql.spark;
+/*
+ * (C) Copyright IBM Corp. 2021
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+package com.ibm.cohort.cql.spark.metrics;
 
 import org.apache.spark.util.LongAccumulator;
 
@@ -16,7 +21,7 @@ public class LongAccumulatorGauge implements Gauge<Long> {
 		if (longAc != null) {
 			return longAc.value();
 		} else {
-			return new Long(-1);
+			return new Long(0);
 		}
 	}
 

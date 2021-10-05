@@ -35,6 +35,8 @@ RUN mv "${SPARK_HOME}/kubernetes/dockerfiles/spark/entrypoint.sh" "${SPARK_HOME}
 RUN mv "${SPARK_HOME}/kubernetes/dockerfiles/spark/decom.sh" "${SPARK_HOME}"
 # Remove the `tini` use from entrypoint.sh.  Tini is unavailable on Red Hat.
 RUN sed -i 's_/usr/bin/tini -s --__g' "${SPARK_HOME}/entrypoint.sh"
+# Remove the `tini` use from entrypoint.sh.  Tini is unavailable on Red Hat.
+RUN sed -i 's_/usr/bin/tini -s --__g' "${SPARK_HOME}/entrypoint.sh"
 
 
 ##############
@@ -88,4 +90,3 @@ COPY --chown=root:root target/cohort-evaluator-spark-*.jar $SPARK_HOME/jars/
 
 # Go back to the spark user for when a container is created
 USER spark
-
