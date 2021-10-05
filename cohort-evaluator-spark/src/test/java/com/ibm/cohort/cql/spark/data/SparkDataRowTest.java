@@ -6,6 +6,9 @@
 
 package com.ibm.cohort.cql.spark.data;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.samePropertyValuesAs;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
@@ -18,6 +21,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.spark.sql.Dataset;
@@ -315,4 +319,95 @@ public class SparkDataRowTest extends BaseSparkTest {
 
         return new SparkDataRow(typeConverter, df.head());
     }
+
+    @Test
+    public void testConversionSemanticsAsAnyStringSingle() {
+        Java8API useJava8API = Java8API.DISABLED;
+        SparkSession session = initializeSession(useJava8API);
+
+        SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
+
+        AnyStringSinglePOJO primaryField = new AnyStringSinglePOJO();
+        primaryField.setPrimaryField("primaryString");
+        primaryField.setOtherField("otherString");
+
+        Dataset<Row> df = session.createDataFrame(Collections.singletonList(primaryField), AnyStringSinglePOJO.class);
+        df = df.withColumn("primaryCol", df.col("primaryField"), createPrimaryColumnMetadata("primary_"));
+
+        assertEquals(1, df.count());
+
+        SparkDataRow sdr = new SparkDataRow(typeConverter, df.first());
+        assertThat((List<String>) sdr.getValue("primaryCol"), containsInAnyOrder("primaryString"));
+    }
+
+    @Test
+    public void testConversionSemanticsAsAnyStringMultiple() {
+        Java8API useJava8API = Java8API.DISABLED;
+        SparkSession session = initializeSession(useJava8API);
+
+        SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
+
+        AnyStringMultiplePOJO expected = new AnyStringMultiplePOJO("any1", "any2", "any3");
+
+        Dataset<Row> df = session.createDataFrame(Collections.singletonList(expected), AnyStringMultiplePOJO.class);
+        df = df.withColumn("anyPrimary", df.col("anyPrimary"), createPrimaryColumnMetadata("any"));
+
+        assertEquals(1, df.count());
+
+        SparkDataRow sdr = new SparkDataRow(typeConverter, df.first());
+        assertThat((List<String>) sdr.getValue("anyPrimary"), containsInAnyOrder(expected.getAnyPrimary(), expected.getAny2(), expected.getAny3()));
+    }
+
+    @Test
+    public void testConversionSemanticsAsAnyCodeMultiple() {
+        Java8API useJava8API = Java8API.DISABLED;
+        SparkSession session = initializeSession(useJava8API);
+
+        SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
+
+        AnyCodeMultiplePOJO expected = new AnyCodeMultiplePOJO();
+        Code expectedCode1 = new Code().withCode("strA").withSystem("systemA").withDisplay("displayA");
+        expected.setCodeStr1(expectedCode1.getCode(), expectedCode1.getSystem(), expectedCode1.getDisplay());
+        Code expectedCode2 = new Code().withCode("strB").withSystem("systemB").withDisplay("displayB");
+        expected.setCodeStr2(expectedCode2.getCode(), expectedCode2.getSystem(), expectedCode2.getDisplay());
+        Code expectedCode3 = new Code().withCode("strC").withSystem("systemC").withDisplay("displayC");
+        expected.setCodeStr3(expectedCode3.getCode(), expectedCode3.getSystem(), expectedCode3.getDisplay());
+        
+        Dataset<Row> df = session.createDataFrame(Collections.singletonList(expected), AnyCodeMultiplePOJO.class);
+        Metadata primaryColumnMetadata = createPrimaryColumnMetadata("codeStr");
+        Metadata anyPrimaryMetadata = new MetadataBuilder()
+            .withMetadata(primaryColumnMetadata)
+            .putBoolean(SparkDataRow.IS_CODE_COL, Boolean.TRUE)
+            .putString(SparkDataRow.SYSTEM_COL, "system1")
+            .putString(SparkDataRow.DISPLAY_COL, "display1")
+            .build();
+        df = df.withColumn("codeStr1", df.col("codeStr1"), anyPrimaryMetadata);
+        
+        Metadata any2Metadata = new MetadataBuilder()
+            .putBoolean(SparkDataRow.IS_CODE_COL, Boolean.TRUE)
+            .putString(SparkDataRow.SYSTEM_COL, "system2")
+            .putString(SparkDataRow.DISPLAY_COL, "display2")
+            .build();
+        df = df.withColumn("codeStr2", df.col("codeStr2"), any2Metadata);
+
+        Metadata any3Metadata = new MetadataBuilder()
+            .putBoolean(SparkDataRow.IS_CODE_COL, Boolean.TRUE)
+            .putString(SparkDataRow.SYSTEM_COL, "system3")
+            .putString(SparkDataRow.DISPLAY_COL, "display3")
+            .build();
+        df = df.withColumn("codeStr3", df.col("codeStr3"), any3Metadata);
+
+        assertEquals(1, df.count());
+
+        SparkDataRow sdr = new SparkDataRow(typeConverter, df.first());
+        assertThat((List<Code>) sdr.getValue("codeStr1"), containsInAnyOrder(samePropertyValuesAs(expectedCode1), samePropertyValuesAs(expectedCode2), samePropertyValuesAs(expectedCode3)));
+    }
+    
+    private Metadata createPrimaryColumnMetadata(String anyColumnPrefix) {
+        return new MetadataBuilder()
+            .putBoolean(SparkDataRow.IS_PRIMARY_ANY_COL, true)
+            .putString(SparkDataRow.ANY_COL_PREFIX, anyColumnPrefix)
+            .build();
+    }
+
 }

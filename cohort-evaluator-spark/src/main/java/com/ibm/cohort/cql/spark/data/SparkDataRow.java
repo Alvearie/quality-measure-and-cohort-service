@@ -6,7 +6,9 @@
 
 package com.ibm.cohort.cql.spark.data;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,6 +44,8 @@ public class SparkDataRow implements DataRow {
     public static final String IS_CODE_COL = "isCodeCol";
     public static final String SYSTEM_COL = "systemCol";
     public static final String DISPLAY_COL = "displayCol";
+    public static final String IS_PRIMARY_ANY_COL = "isPrimaryAnyCol";
+    public static final String ANY_COL_PREFIX = "anyPrefixCol";
     public static final String SYSTEM = "system";
 
     private final SparkTypeConverter typeConverter;
@@ -100,9 +104,27 @@ public class SparkDataRow implements DataRow {
             } else {
                 result = doDefaultConversion(sparkVal);
             }
+
+            if (metadata.contains(IS_PRIMARY_ANY_COL)) {
+                result = aggregatePrimaryColumn(fieldName, result, metadata.getString(ANY_COL_PREFIX));
+            }
         }
 
         return result;
+    }
+
+    private Object aggregatePrimaryColumn(String primaryFieldName, Object primaryResult, String anyColumnPrefix) {
+        List<Object> allResults = new ArrayList<>();
+        allResults.add(primaryResult);
+
+        if (anyColumnPrefix != null) {
+            getFieldNames().stream().filter(field -> field.startsWith(anyColumnPrefix))
+                .filter(field -> !field.equals(primaryFieldName))
+                .map(this::getValue)
+                .forEach(allResults::add);
+        }
+
+        return allResults;
     }
 
     protected Object doDefaultConversion(Object sparkVal) {
