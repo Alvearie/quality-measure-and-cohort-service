@@ -13,6 +13,12 @@ import org.apache.spark.api.plugin.SparkPlugin;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.MetricRegistry;
 
+/*
+ * This plugin is used to register custom metrics for use by Prometheus/Grafana
+ * dashboards. This plugin must be referenced by name using the spark.plugins=
+ * configuration parameter in order to enable this plugin. If the class name or package
+ * is changed, the value for the spark.plugin configuration parameter must be changed as well
+ */
 public class CustomMetricSparkPlugin implements SparkPlugin{
 	
 	public static LongAccumulatorGauge contextAccumGauge= new LongAccumulatorGauge();	
