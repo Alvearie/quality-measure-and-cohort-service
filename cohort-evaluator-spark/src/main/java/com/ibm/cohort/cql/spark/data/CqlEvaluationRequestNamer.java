@@ -37,7 +37,7 @@ public class CqlEvaluationRequestNamer {
 				throw new IllegalArgumentException("Evaluation request contains duplicate expression " + expressionName + " for the library " + libraryId);
 			}
 			if (outputColumn == null) {
-				outputColumn = encoder.getColumnName(libraryId, expressionName);
+				outputColumn = encoder.getColumnName(request, expressionName);
 			}
 			if (outputColumns.contains(outputColumn)) {
 				throw new IllegalArgumentException("Evaluation request contains duplicate outputColumn " + outputColumn);

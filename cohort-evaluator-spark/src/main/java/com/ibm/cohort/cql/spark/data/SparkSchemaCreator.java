@@ -138,7 +138,7 @@ public class SparkSchemaCreator {
 					throw new IllegalArgumentException("Expression " + expression + " has a null result type: "
 															   + descriptor.getLibraryId() + "-" + descriptor.getVersion());
 				}
-				resultsSchema = resultsSchema.add(sparkOutputColumnEncoder.getColumnName(libraryId, expression), QNameToDataTypeConverter.getFieldType(resultTypeName), true);
+				resultsSchema = resultsSchema.add(sparkOutputColumnEncoder.getColumnName(filteredRequest, expression), QNameToDataTypeConverter.getFieldType(resultTypeName), true);
 			}
 		}
 

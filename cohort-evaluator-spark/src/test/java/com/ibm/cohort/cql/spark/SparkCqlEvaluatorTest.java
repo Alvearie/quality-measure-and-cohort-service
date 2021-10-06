@@ -248,6 +248,52 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 "delta"
         );
     }
+
+    @Test
+    public void testValidateOutputOptionE() throws Exception {
+        File inputDir = new File("src/test/resources/output-validation/");
+        File outputDir = new File("target/output/output-validation-option-e/");
+
+        File context1IdFile = new File(outputDir, "context-1-id");
+        File context2IdFile = new File(outputDir, "context-2-id");
+        File patientFile = new File(outputDir, "patient-context");
+
+        String[] args = new String[]{
+                "-d", "src/test/resources/output-validation/metadata/context-definitions.json",
+                "-j", "src/test/resources/output-validation/metadata/cql-jobs-combined.json",
+                "-m", "src/test/resources/output-validation/modelinfo/simple-all-types-model-info.xml",
+                "-c", "src/test/resources/output-validation/cql",
+                "--input-format", "parquet",
+                "-i", "Type1=" + new File(inputDir, "testdata/Type1").toURI().toString(),
+                "-i", "Type2=" + new File(inputDir, "testdata/Type2").toURI().toString(),
+                "-i", "Patient=" + new File(inputDir, "testdata/Patient").toURI().toString(),
+                "-e", "define_integer",
+                "-l", "Context1Id=1.0.0",
+                "-o", "Context1Id=" + context1IdFile.toURI().toString(),
+                "-o", "Context2Id=" + context2IdFile.toURI().toString(),
+                "-o", "Patient=" + patientFile.toURI().toString(),
+                "--output-format", "parquet",
+                "--overwrite-output-for-contexts"
+        };
+
+        SparkCqlEvaluator.main(args);
+
+
+        validateOutput(
+                context1IdFile.toURI().toString(),
+                Arrays.asList(
+                        RowFactory.create(0, null),
+                        RowFactory.create(1, null),
+                        RowFactory.create(2, 33),
+                        RowFactory.create(3, 22),
+                        RowFactory.create(4, 22)
+                ),
+                new StructType()
+                        .add("id", DataTypes.IntegerType, false)
+                        .add("Context1Id|define_integer", DataTypes.IntegerType, true),
+                "parquet"
+        );
+    }
     
     private void validateOutput(String filename, List<Row> expectedRows, StructType schema, String expectedFormat) {
         // SparkCqlEvaluator closes the SparkSession. Make sure we have one opened before any validation.
@@ -258,11 +304,12 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         List<String> columnList = Arrays.asList(actualDataFrame.columns());
         String[] actualColumns = columnList.toArray(new String[columnList.size()]);
 
+        assertEquals(schema.fields().length, actualColumns.length);
+
         // Make sure columns are in the same order in both dataframes
         Dataset<Row> expectedDataFrame = spark.createDataFrame(expectedRows, schema)
                 .select(actualColumns[0], Arrays.copyOfRange(actualColumns, 1, actualColumns.length));
 
-        assertEquals(schema.fields().length, actualColumns.length);
         assertEquals(0, expectedDataFrame.except(actualDataFrame).count());
         assertEquals(0, actualDataFrame.except(expectedDataFrame).count());
 
@@ -400,94 +447,6 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         cqlEvaluationRequest.setDescriptor(descriptor);
         
         return cqlEvaluationRequest;
-    }
-
-    @Test
-    public void testFilterRequestsNoEvaluationRequests() {
-        CqlEvaluationRequests requests = new CqlEvaluationRequests();
-
-        List<CqlEvaluationRequest> cqlEvaluationRequests = evaluator.filterRequests(requests, "A");
-
-        assertTrue(cqlEvaluationRequests.isEmpty());
-    }
-    
-    @Test
-    public void testFilterRequestsNoEvaluationRequestsForContext() {
-        CqlEvaluationRequests requests = new CqlEvaluationRequests();
-
-        List<CqlEvaluationRequest> evaluations = Arrays.asList(
-                makeEvaluationRequest("B"),
-                makeEvaluationRequest("C"),
-                makeEvaluationRequest("D")
-        );
-        
-        requests.setEvaluations(evaluations);
-        
-        List<CqlEvaluationRequest> cqlEvaluationRequests = evaluator.filterRequests(requests, "A");
-        
-        assertTrue(cqlEvaluationRequests.isEmpty());
-    }
-
-    @Test
-    public void testFilterRequestsFilterToRequestsForContext() {
-        CqlEvaluationRequests requests = new CqlEvaluationRequests();
-
-        List<CqlEvaluationRequest> evaluations = Arrays.asList(
-                makeEvaluationRequest("A"),
-                makeEvaluationRequest("A"),
-                makeEvaluationRequest("B")
-        );
-
-        requests.setEvaluations(evaluations);
-
-        List<CqlEvaluationRequest> cqlEvaluationRequests = evaluator.filterRequests(requests, "A");
-
-        assertEquals(2, cqlEvaluationRequests.size());
-        for (CqlEvaluationRequest cqlEvaluationRequest : cqlEvaluationRequests) {
-            assertEquals("A", cqlEvaluationRequest.getContextKey());
-        }
-    }
-
-    @Test
-    public void testFilterByLibraryNameNoMatches() {
-        CqlEvaluationRequests requests = new CqlEvaluationRequests();
-
-        List<CqlEvaluationRequest> evaluations = Arrays.asList(
-                makeEvaluationRequest("A", "lib4", "1.0.0"),
-                makeEvaluationRequest("A", "lib3", "3.0.0"),
-                makeEvaluationRequest("B", "lib2", "1.0.0")
-        );
-
-        requests.setEvaluations(evaluations);
-
-        args.libraries.put("lib1", "1.0.0");
-        args.libraries.put("lib2", "1.0.0");
-
-        List<CqlEvaluationRequest> cqlEvaluationRequests = evaluator.filterRequests(requests, "A");
-
-        assertTrue(cqlEvaluationRequests.isEmpty());
-    }
-
-    @Test
-    public void testFilterByLibraryNameMatchesIgnoresVersion() {
-        CqlEvaluationRequests requests = new CqlEvaluationRequests();
-
-        Set<CqlEvaluationRequest> expectedRequests = new HashSet<>();
-        expectedRequests.add(makeEvaluationRequest("A", "lib1", "4.0.0"));
-        expectedRequests.add(makeEvaluationRequest("A", "lib2", "7.0.0"));
-
-        List<CqlEvaluationRequest> evaluations = new ArrayList<>(expectedRequests);
-        evaluations.add(makeEvaluationRequest("B", "lib2", "1.0.0"));
-
-        requests.setEvaluations(evaluations);
-
-        args.libraries.put("lib1", "1.0.0");
-        args.libraries.put("lib2", "1.0.0");
-
-        List<CqlEvaluationRequest> cqlEvaluationRequests = evaluator.filterRequests(requests, "A");
-
-        assertEquals(2, cqlEvaluationRequests.size());
-        assertTrue(expectedRequests.containsAll(cqlEvaluationRequests));
     }
 
     @Test

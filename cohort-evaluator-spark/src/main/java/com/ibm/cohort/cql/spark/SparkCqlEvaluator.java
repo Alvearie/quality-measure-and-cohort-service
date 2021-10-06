@@ -282,32 +282,6 @@ public class SparkCqlEvaluator implements Serializable {
 
     /**
      * Evaluate the input CQL for a single context + data pair.
-     *
-     * @param contextName     Name of the context used to select measure evaluations.
-     *                        
-     * @param requests        CqlEvaluationRequests containing lists of libraries,
-     *                        expressions, and parameters to evaluate
-     * @return Filtered list of CqlEvaluationResult. 
-     */
-    protected List<CqlEvaluationRequest> filterRequests(CqlEvaluationRequests requests, String contextName) {
-        List<CqlEvaluationRequest> requestsForContext = new ArrayList<>();
-        
-        List<CqlEvaluationRequest> evaluations = requests.getEvaluations();
-        if (evaluations != null) {
-            requestsForContext = requests.getEvaluationsForContext(contextName);
-        }
-
-        if (args.libraries != null && args.libraries.size() > 0) {
-            requestsForContext = requestsForContext.stream()
-                    .filter(r -> args.libraries.keySet().contains(r.getDescriptor().getLibraryId()))
-                    .collect(Collectors.toList());
-        }
-        
-        return requestsForContext;
-    }
-
-    /**
-     * Evaluate the input CQL for a single context + data pair.
      * 
      * @param rowsByContext   In-memory data for all datatypes related to a single
      *                        context
@@ -327,29 +301,14 @@ public class SparkCqlEvaluator implements Serializable {
             String contextName, CqlEvaluator evaluator, CqlEvaluationRequests requests, LongAccumulator perContextAccum) {
         perContextAccum.add(1);
         
-        List<CqlEvaluationRequest> requestsForContext = filterRequests(requests, contextName);
+        List<CqlEvaluationRequest> requestsForContext = requests.getEvaluationsForContext(contextName);
         
         Map<String, Object> expressionResults = new HashMap<>();
         for (CqlEvaluationRequest request : requestsForContext) {
-            // TODO: Move this to the beginning of the program?
-            if (args.expressions != null && args.expressions.size() > 0) {
-                request.setExpressionsByNames(args.expressions);
-            }
-
-            // add any global parameters that have not been overridden locally
-            // TODO: Figure out parameter stuff...Any output name lookup will need to index by CqlEvaluationRequest.
-            //       Editing that here makes it so we can't look up names.
-            //       Can this go at the start of the program as well?
-            if (requests.getGlobalParameters() != null) {
-                for (Map.Entry<String, Parameter> globalParameter : requests.getGlobalParameters().entrySet()) {
-                    request.getParameters().putIfAbsent(globalParameter.getKey(), globalParameter.getValue());
-                }
-            }
-
             try {
                 CqlEvaluationResult result = evaluator.evaluate(request, args.debug ? CqlDebug.DEBUG : CqlDebug.NONE);
                 for (Map.Entry<String, Object> entry : result.getExpressionResults().entrySet()) {
-                    String outputColumnKey = sparkOutputColumnEncoder.getColumnName(request.getDescriptor().getLibraryId(), entry.getKey());
+                    String outputColumnKey = sparkOutputColumnEncoder.getColumnName(request, entry.getKey());
                     expressionResults.put(outputColumnKey, typeConverter.toSparkType(entry.getValue()));
                 }
             } catch( Throwable th ) {
@@ -426,6 +385,33 @@ public class SparkCqlEvaluator implements Serializable {
             }
         }
         
+        return getFilteredRequests(requests, args.libraries, args.expressions);
+    }
+
+    protected CqlEvaluationRequests getFilteredRequests(CqlEvaluationRequests requests, Map<String, String> libraries, Set<String> expressions) throws Exception {
+        if (requests != null) {
+            List<CqlEvaluationRequest> evaluations = requests.getEvaluations();
+            if (libraries != null && !libraries.isEmpty()) {
+                evaluations = evaluations.stream()
+                        .filter(r -> libraries.keySet().contains(r.getDescriptor().getLibraryId()))
+                        .collect(Collectors.toList());
+            }
+            if (expressions != null && !expressions.isEmpty()) {
+                evaluations.stream()
+                        .forEach(x -> x.setExpressionsByNames(expressions));
+            }
+
+            if (requests.getGlobalParameters() != null) {
+                for (CqlEvaluationRequest evaluation : evaluations) {
+                    for (Map.Entry<String, Parameter> globalParameter : requests.getGlobalParameters().entrySet()) {
+                        evaluation.getParameters().putIfAbsent(globalParameter.getKey(), globalParameter.getValue());
+                    }
+                }
+            }
+            requests.setEvaluations(evaluations);
+
+            jobSpecification.set(requests);
+        }
         return requests;
     }
 
