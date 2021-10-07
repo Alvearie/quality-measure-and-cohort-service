@@ -108,8 +108,23 @@ public class SparkCqlEvaluator implements Serializable {
      * discussion in the libraryProvider documentation for complete reasoning.
      */
     protected static ThreadLocal<CqlTerminologyProvider> terminologyProvider = new ThreadLocal<>();
-    
-    protected Map<String, StructType> calculateSparkSchema(List<String> contextNames, ContextDefinitions contextDefinitions, SparkOutputColumnEncoder encoder) throws Exception{
+
+    /**
+     * Auto-detect an output schema for 1 or more contexts using program metadata files
+     * and the CQL definitions that will be used by the engine.
+     * 
+     * @param contextNames          List of context names to calculate schemas for.
+     * @param contextDefinitions    Context definitions used during schema calculation. Used to
+     *                              detect the key column for each context.
+     * @param encoder               Encoder used to calculate the output column names to use for
+     *                              each output schema.
+     * @return Map of context name to the output Spark schema for that context. The map will only
+     *         contain entries for each context name that included in the contextNames list
+     *         used as input to this function.
+     * @throws Exception if deserialization errors occur when reading in any of the input files
+     *         or if inferring an output schema fails for any reason.
+     */
+    protected Map<String, StructType> calculateSparkSchema(List<String> contextNames, ContextDefinitions contextDefinitions, SparkOutputColumnEncoder encoder) throws Exception {
         CqlLibraryProvider libProvider = SparkCqlEvaluator.libraryProvider.get();
         if (libProvider == null) {
             libProvider = createLibraryProvider();
@@ -130,6 +145,24 @@ public class SparkCqlEvaluator implements Serializable {
         this.args = args;
     }
     
+    public CqlEvaluationRequests getJobSpecification() throws Exception {
+        CqlEvaluationRequests requests = jobSpecification.get();
+        if (requests == null) {
+            requests = readJobSpecification(args.jobSpecPath);
+            jobSpecification.set(requests);
+        }
+        return requests;
+    }
+    
+    public SparkOutputColumnEncoder getSparkOutputColumnEncoder() throws Exception {
+        SparkOutputColumnEncoder columnEncoder = sparkOutputColumnEncoder.get();
+        if (columnEncoder == null) {
+            columnEncoder = ConfigurableOutputColumnNameEncoder.create(getJobSpecification(), args.defaultOutputColumnDelimiter);
+            sparkOutputColumnEncoder.set(columnEncoder);
+        }
+        return columnEncoder;
+    }
+    
     public void run(PrintStream out) throws Exception {
 
         SparkSession.Builder sparkBuilder = SparkSession.builder();
@@ -137,28 +170,12 @@ public class SparkCqlEvaluator implements Serializable {
             boolean useJava8API = Boolean.valueOf(spark.conf().get("spark.sql.datetime.java8API.enabled"));
             this.typeConverter = new SparkTypeConverter(useJava8API);
 
-            CqlEvaluationRequests requests = jobSpecification.get();
-            if (requests == null) {
-                requests = readJobSpecification(args.jobSpecPath);
-                jobSpecification.set(requests);
-            }
+            SparkOutputColumnEncoder columnEncoder = getSparkOutputColumnEncoder();
             
-            SparkOutputColumnEncoder columnEncoder = sparkOutputColumnEncoder.get();
-            if (columnEncoder == null) {
-                columnEncoder = ConfigurableOutputColumnNameEncoder.create(requests, args.defaultOutputColumnDelimiter);
-                sparkOutputColumnEncoder.set(columnEncoder);
-            }
-
             ContextDefinitions contexts = readContextDefinitions(args.contextDefinitionPath);
 
-            Map<String, StructType> resultSchemas = calculateSparkSchema(
-                    contexts.getContextDefinitions().stream().map(ContextDefinition::getName).collect(Collectors.toList()),
-                    contexts,
-                    columnEncoder
-            );
-
             List<ContextDefinition> filteredContexts = contexts.getContextDefinitions();
-            if (args.aggregations != null && args.aggregations.size() > 0) {
+            if (args.aggregations != null && !args.aggregations.isEmpty()) {
                 filteredContexts = filteredContexts.stream().filter(def -> args.aggregations.contains(def.getName()))
                         .collect(Collectors.toList());
             }
@@ -166,6 +183,12 @@ public class SparkCqlEvaluator implements Serializable {
                 throw new IllegalArgumentException(
                         "At least one context definition is required (after filtering if enabled).");
             }
+
+            Map<String, StructType> resultSchemas = calculateSparkSchema(
+                    filteredContexts.stream().map(ContextDefinition::getName).collect(Collectors.toList()),
+                    contexts,
+                    columnEncoder
+            );
 
             final LongAccumulator contextAccum = spark.sparkContext().longAccumulator("Context");
             final LongAccumulator perContextAccum = spark.sparkContext().longAccumulator("PerContext");
@@ -282,17 +305,9 @@ public class SparkCqlEvaluator implements Serializable {
         CqlEvaluator evaluator = new CqlEvaluator().setLibraryProvider(libraryProvider).setDataProvider(dataProvider)
                 .setTerminologyProvider(termProvider);
 
-        CqlEvaluationRequests requests = jobSpecification.get();
-        if (requests == null) {
-            requests = readJobSpecification(args.jobSpecPath);
-            jobSpecification.set(requests);
-        }
+        CqlEvaluationRequests requests = getJobSpecification();
 
-        SparkOutputColumnEncoder columnEncoder = sparkOutputColumnEncoder.get();
-        if (columnEncoder == null) {
-            columnEncoder = ConfigurableOutputColumnNameEncoder.create(requests, args.defaultOutputColumnDelimiter);
-            sparkOutputColumnEncoder.set(columnEncoder);
-        }
+        SparkOutputColumnEncoder columnEncoder = getSparkOutputColumnEncoder();
 
         return evaluate(rowsByContext, contextName, evaluator, requests, columnEncoder, perContextAccum);
     }

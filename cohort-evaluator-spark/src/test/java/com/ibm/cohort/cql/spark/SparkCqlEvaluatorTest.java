@@ -103,7 +103,6 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         SparkCqlEvaluator.main(args);
         
-        // BaseSparkTest uses .config("spark.sql.sources.default", "delta");
         validateOutputCountsAndColumns(outputLocation, new HashSet<>(Arrays.asList("id", "SampleLibrary|IsFemale")), 10, "delta");
     }
 
@@ -251,7 +250,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
     }
 
     @Test
-    public void testValidateOutputOptionE() throws Exception {
+    public void testValidateOutputOptionEAndOptionL() throws Exception {
         File inputDir = new File("src/test/resources/output-validation/");
         File outputDir = new File("target/output/output-validation-option-e/");
 
@@ -273,6 +272,50 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 "-o", "Context1Id=" + context1IdFile.toURI().toString(),
                 "-o", "Context2Id=" + context2IdFile.toURI().toString(),
                 "-o", "Patient=" + patientFile.toURI().toString(),
+                "--output-format", "parquet",
+                "--overwrite-output-for-contexts"
+        };
+
+        SparkCqlEvaluator.main(args);
+
+
+        validateOutput(
+                context1IdFile.toURI().toString(),
+                Arrays.asList(
+                        RowFactory.create(0, null),
+                        RowFactory.create(1, null),
+                        RowFactory.create(2, 33),
+                        RowFactory.create(3, 22),
+                        RowFactory.create(4, 22)
+                ),
+                new StructType()
+                        .add("id", DataTypes.IntegerType, false)
+                        .add("Context1Id|define_integer", DataTypes.IntegerType, true),
+                "parquet"
+        );
+    }
+
+    @Test
+    public void testValidateOutputOptionEAndOptionA() throws Exception {
+        File inputDir = new File("src/test/resources/output-validation/");
+        File outputDir = new File("target/output/output-validation-option-e/");
+
+        File context1IdFile = new File(outputDir, "context-1-id");
+        File context2IdFile = new File(outputDir, "context-2-id");
+        File patientFile = new File(outputDir, "patient-context");
+
+        String[] args = new String[]{
+                "-d", "src/test/resources/output-validation/metadata/context-definitions.json",
+                "-j", "src/test/resources/output-validation/metadata/cql-jobs-combined.json",
+                "-m", "src/test/resources/output-validation/modelinfo/simple-all-types-model-info.xml",
+                "-c", "src/test/resources/output-validation/cql",
+                "--input-format", "parquet",
+                "-i", "Type1=" + new File(inputDir, "testdata/Type1").toURI().toString(),
+                "-i", "Type2=" + new File(inputDir, "testdata/Type2").toURI().toString(),
+                "-i", "Patient=" + new File(inputDir, "testdata/Patient").toURI().toString(),
+                "-e", "define_integer",
+                "-a", "Context1Id",
+                "-o", "Context1Id=" + context1IdFile.toURI().toString(),
                 "--output-format", "parquet",
                 "--overwrite-output-for-contexts"
         };
