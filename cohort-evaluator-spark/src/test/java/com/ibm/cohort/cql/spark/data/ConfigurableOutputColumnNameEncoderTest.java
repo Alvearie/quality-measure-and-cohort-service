@@ -16,7 +16,7 @@ import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
 import com.ibm.cohort.cql.evaluation.CqlExpressionConfiguration;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 
-public class OutputColumnNamerTest {
+public class ConfigurableOutputColumnNameEncoderTest {
 	@Test
 	public void testNamesForSingleContext() {
 		CqlLibraryDescriptor libraryDescriptor1 = new CqlLibraryDescriptor();
@@ -55,12 +55,12 @@ public class OutputColumnNamerTest {
 		CqlEvaluationRequests evaluationRequests = new CqlEvaluationRequests();
 		evaluationRequests.setEvaluations(Arrays.asList(request, request2));
 		
-		OutputColumnNamer outputColumnNamer = OutputColumnNamer.create(evaluationRequests, "|");
+		ConfigurableOutputColumnNameEncoder nameEncoder = ConfigurableOutputColumnNameEncoder.create(evaluationRequests, "|");
 
-		assertEquals("lib1|abcd", outputColumnNamer.getOutputColumn(request, "abcd"));
-		assertEquals("A2", outputColumnNamer.getOutputColumn(request, "efgh"));
-		assertEquals("A3", outputColumnNamer.getOutputColumn(request2, "ijkl"));
-		assertEquals("lib2|mnop", outputColumnNamer.getOutputColumn(request2, "mnop"));
+		assertEquals("lib1|abcd", nameEncoder.getColumnName(request, "abcd"));
+		assertEquals("A2", nameEncoder.getColumnName(request, "efgh"));
+		assertEquals("A3", nameEncoder.getColumnName(request2, "ijkl"));
+		assertEquals("lib2|mnop", nameEncoder.getColumnName(request2, "mnop"));
 	}
 
 	@Test
@@ -103,12 +103,12 @@ public class OutputColumnNamerTest {
 		CqlEvaluationRequests evaluationRequests = new CqlEvaluationRequests();
 		evaluationRequests.setEvaluations(Arrays.asList(request, request2));
 
-		OutputColumnNamer outputColumnNamer = OutputColumnNamer.create(evaluationRequests, "|");
+		ConfigurableOutputColumnNameEncoder nameEncoder = ConfigurableOutputColumnNameEncoder.create(evaluationRequests, "|");
 
-		assertEquals("A1", outputColumnNamer.getOutputColumn(request, "abcd"));
-		assertEquals("A2", outputColumnNamer.getOutputColumn(request, "efgh"));
-		assertEquals("A3", outputColumnNamer.getOutputColumn(request2, "abcd"));
-		assertEquals("A4", outputColumnNamer.getOutputColumn(request2, "efgh"));
+		assertEquals("A1", nameEncoder.getColumnName(request, "abcd"));
+		assertEquals("A2", nameEncoder.getColumnName(request, "efgh"));
+		assertEquals("A3", nameEncoder.getColumnName(request2, "abcd"));
+		assertEquals("A4", nameEncoder.getColumnName(request2, "efgh"));
 	}
 
 	@Test
@@ -144,7 +144,7 @@ public class OutputColumnNamerTest {
 		CqlEvaluationRequests evaluationRequests = new CqlEvaluationRequests();
 		evaluationRequests.setEvaluations(Arrays.asList(request, request2));
 
-		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> OutputColumnNamer.create(evaluationRequests, "|"));
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> ConfigurableOutputColumnNameEncoder.create(evaluationRequests, "|"));
 		assertTrue(ex.getMessage().contains("Output column A1 defined multiple times"));
 	}
 }

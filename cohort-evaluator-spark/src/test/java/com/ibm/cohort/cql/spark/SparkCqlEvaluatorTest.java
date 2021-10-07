@@ -60,6 +60,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         SparkCqlEvaluator.jobSpecification.remove();
         SparkCqlEvaluator.libraryProvider.remove();
         SparkCqlEvaluator.terminologyProvider.remove();
+        SparkCqlEvaluator.sparkOutputColumnEncoder.remove();
     }
 
     /**
