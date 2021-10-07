@@ -255,8 +255,6 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         File outputDir = new File("target/output/output-validation-option-e/");
 
         File context1IdFile = new File(outputDir, "context-1-id");
-        File context2IdFile = new File(outputDir, "context-2-id");
-        File patientFile = new File(outputDir, "patient-context");
 
         String[] args = new String[]{
                 "-d", "src/test/resources/output-validation/metadata/context-definitions.json",
@@ -265,13 +263,9 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 "-c", "src/test/resources/output-validation/cql",
                 "--input-format", "parquet",
                 "-i", "Type1=" + new File(inputDir, "testdata/Type1").toURI().toString(),
-                "-i", "Type2=" + new File(inputDir, "testdata/Type2").toURI().toString(),
-                "-i", "Patient=" + new File(inputDir, "testdata/Patient").toURI().toString(),
                 "-e", "define_integer",
                 "-l", "Context1Id=1.0.0",
                 "-o", "Context1Id=" + context1IdFile.toURI().toString(),
-                "-o", "Context2Id=" + context2IdFile.toURI().toString(),
-                "-o", "Patient=" + patientFile.toURI().toString(),
                 "--output-format", "parquet",
                 "--overwrite-output-for-contexts"
         };
@@ -301,8 +295,6 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         File outputDir = new File("target/output/output-validation-option-e/");
 
         File context1IdFile = new File(outputDir, "context-1-id");
-        File context2IdFile = new File(outputDir, "context-2-id");
-        File patientFile = new File(outputDir, "patient-context");
 
         String[] args = new String[]{
                 "-d", "src/test/resources/output-validation/metadata/context-definitions.json",
@@ -311,8 +303,6 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 "-c", "src/test/resources/output-validation/cql",
                 "--input-format", "parquet",
                 "-i", "Type1=" + new File(inputDir, "testdata/Type1").toURI().toString(),
-                "-i", "Type2=" + new File(inputDir, "testdata/Type2").toURI().toString(),
-                "-i", "Patient=" + new File(inputDir, "testdata/Patient").toURI().toString(),
                 "-e", "define_integer",
                 "-a", "Context1Id",
                 "-o", "Context1Id=" + context1IdFile.toURI().toString(),
