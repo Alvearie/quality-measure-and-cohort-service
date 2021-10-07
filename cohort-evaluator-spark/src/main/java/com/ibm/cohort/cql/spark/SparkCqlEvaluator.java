@@ -422,7 +422,7 @@ public class SparkCqlEvaluator implements Serializable {
         return getFilteredRequests(requests, args.libraries, args.expressions);
     }
 
-    protected CqlEvaluationRequests getFilteredRequests(CqlEvaluationRequests requests, Map<String, String> libraries, Set<String> expressions) throws Exception {
+    protected CqlEvaluationRequests getFilteredRequests(CqlEvaluationRequests requests, Map<String, String> libraries, Set<String> expressions) {
         if (requests != null) {
             List<CqlEvaluationRequest> evaluations = requests.getEvaluations();
             if (libraries != null && !libraries.isEmpty()) {
@@ -438,7 +438,12 @@ public class SparkCqlEvaluator implements Serializable {
             if (requests.getGlobalParameters() != null) {
                 for (CqlEvaluationRequest evaluation : evaluations) {
                     for (Map.Entry<String, Parameter> globalParameter : requests.getGlobalParameters().entrySet()) {
-                        evaluation.getParameters().putIfAbsent(globalParameter.getKey(), globalParameter.getValue());
+                        Map<String, Parameter> parameters = evaluation.getParameters();
+                        if (parameters == null) {
+                            evaluation.setParameters(new HashMap<>());
+                            parameters = evaluation.getParameters();
+                        }
+                        parameters.putIfAbsent(globalParameter.getKey(), globalParameter.getValue());
                     }
                 }
             }

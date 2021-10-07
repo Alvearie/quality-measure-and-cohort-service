@@ -252,7 +252,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
     @Test
     public void testValidateOutputOptionEAndOptionL() throws Exception {
         File inputDir = new File("src/test/resources/output-validation/");
-        File outputDir = new File("target/output/output-validation-option-e/");
+        File outputDir = new File("target/output/output-validation-option-el/");
 
         File context1IdFile = new File(outputDir, "context-1-id");
 
@@ -292,7 +292,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
     @Test
     public void testValidateOutputOptionEAndOptionA() throws Exception {
         File inputDir = new File("src/test/resources/output-validation/");
-        File outputDir = new File("target/output/output-validation-option-e/");
+        File outputDir = new File("target/output/output-validation-option-ea/");
 
         File context1IdFile = new File(outputDir, "context-1-id");
 
@@ -325,6 +325,46 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 new StructType()
                         .add("id", DataTypes.IntegerType, false)
                         .add("Context1Id|define_integer", DataTypes.IntegerType, true),
+                "parquet"
+        );
+    }
+
+    @Test
+    public void testValidateSameDefinesWithOutputMapping() throws Exception {
+        File inputDir = new File("src/test/resources/column-mapping-validation/");
+        File outputDir = new File("target/output/column-mapping-validation/");
+
+        File patientFile = new File(outputDir, "patient");
+
+        String[] args = new String[]{
+                "-d", "src/test/resources/column-mapping-validation/metadata/context-definitions.json",
+                "-j", "src/test/resources/column-mapping-validation/metadata/cql-jobs.json",
+                "-m", "src/test/resources/column-mapping-validation/modelinfo/simple-all-types-model-info.xml",
+                "-c", "src/test/resources/column-mapping-validation/cql",
+                "--input-format", "parquet",
+                "-i", "Patient=" + new File(inputDir, "testdata/Patient").toURI().toString(),
+                "-o", "Patient=" + patientFile.toURI().toString(),
+                "--output-format", "parquet",
+                "--overwrite-output-for-contexts"
+        };
+
+        SparkCqlEvaluator.main(args);
+
+
+        validateOutput(
+                patientFile.toURI().toString(),
+                Arrays.asList(
+                        RowFactory.create(0, 5, 10, 1),
+                        RowFactory.create(1, 5, 10, 1),
+                        RowFactory.create(2, 5, 10, 1),
+                        RowFactory.create(3, 5, 10, 1),
+                        RowFactory.create(4, 5, 10, 1)
+                ),
+                new StructType()
+                        .add("id", DataTypes.IntegerType, false)
+                        .add("all5", DataTypes.IntegerType, true)
+                        .add("all10", DataTypes.IntegerType, true)
+                        .add("ParameterMeasure|cohort", DataTypes.IntegerType, true),
                 "parquet"
         );
     }

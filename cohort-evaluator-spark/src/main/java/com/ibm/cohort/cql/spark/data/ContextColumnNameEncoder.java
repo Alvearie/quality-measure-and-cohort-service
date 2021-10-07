@@ -30,7 +30,7 @@ public class ContextColumnNameEncoder implements SparkOutputColumnEncoder, Seria
 			// Make sure output names are unique across requests
 			for (String value : defineToOutputNameMap.values()) {
 				if (outputColumnNames.contains(value)) {
-					throw new IllegalArgumentException("Duplicate outputColumn " + value + " defined in the job definition file.");
+					throw new IllegalArgumentException("Duplicate outputColumn " + value + " defined for context " + contextRequest.getContextKey());
 				}
 				outputColumnNames.add(value);
 			}
