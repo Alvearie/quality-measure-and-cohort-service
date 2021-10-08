@@ -131,11 +131,7 @@ public class SparkCqlEvaluator implements Serializable {
             SparkCqlEvaluator.libraryProvider.set(libProvider);
         }
 
-        CqlEvaluationRequests cqlEvaluationRequests = jobSpecification.get();
-        if (cqlEvaluationRequests == null) {
-            cqlEvaluationRequests = readJobSpecification(args.jobSpecPath);
-            jobSpecification.set(cqlEvaluationRequests);
-        }
+        CqlEvaluationRequests cqlEvaluationRequests = getFilteredJobSpecification();
 
         SparkSchemaCreator sparkSchemaCreator = new SparkSchemaCreator(libProvider, cqlEvaluationRequests, contextDefinitions, encoder);
         return sparkSchemaCreator.calculateSchemasForContexts(contextNames);
@@ -153,11 +149,46 @@ public class SparkCqlEvaluator implements Serializable {
         }
         return requests;
     }
+
+    public CqlEvaluationRequests getFilteredJobSpecification() throws Exception {
+        return getFilteredRequests(getJobSpecification(), args.libraries, args.expressions);
+    }
+
+    protected CqlEvaluationRequests getFilteredRequests(CqlEvaluationRequests requests, Map<String, String> libraries, Set<String> expressions) {
+        if (requests != null) {
+            List<CqlEvaluationRequest> evaluations = requests.getEvaluations();
+            if (libraries != null && !libraries.isEmpty()) {
+                evaluations = evaluations.stream()
+                        .filter(r -> libraries.keySet().contains(r.getDescriptor().getLibraryId()))
+                        .collect(Collectors.toList());
+            }
+            if (expressions != null && !expressions.isEmpty()) {
+                evaluations.forEach(x -> x.setExpressionsByNames(expressions));
+            }
+
+            if (requests.getGlobalParameters() != null) {
+                for (CqlEvaluationRequest evaluation : evaluations) {
+                    for (Map.Entry<String, Parameter> globalParameter : requests.getGlobalParameters().entrySet()) {
+                        Map<String, Parameter> parameters = evaluation.getParameters();
+                        if (parameters == null) {
+                            evaluation.setParameters(new HashMap<>());
+                            parameters = evaluation.getParameters();
+                        }
+                        parameters.putIfAbsent(globalParameter.getKey(), globalParameter.getValue());
+                    }
+                }
+            }
+            requests.setEvaluations(evaluations);
+
+            jobSpecification.set(requests);
+        }
+        return requests;
+    }
     
     public SparkOutputColumnEncoder getSparkOutputColumnEncoder() throws Exception {
         SparkOutputColumnEncoder columnEncoder = sparkOutputColumnEncoder.get();
         if (columnEncoder == null) {
-            columnEncoder = ConfigurableOutputColumnNameEncoder.create(getJobSpecification(), args.defaultOutputColumnDelimiter);
+            columnEncoder = ConfigurableOutputColumnNameEncoder.create(getFilteredJobSpecification(), args.defaultOutputColumnDelimiter);
             sparkOutputColumnEncoder.set(columnEncoder);
         }
         return columnEncoder;
@@ -232,8 +263,7 @@ public class SparkCqlEvaluator implements Serializable {
      */
     protected ContextDefinitions readContextDefinitions(String path) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        ContextDefinitions contexts = mapper.readValue(new File(path), ContextDefinitions.class);
-        return contexts;
+        return mapper.readValue(new File(path), ContextDefinitions.class);
     }
 
     /**
@@ -305,7 +335,7 @@ public class SparkCqlEvaluator implements Serializable {
         CqlEvaluator evaluator = new CqlEvaluator().setLibraryProvider(libraryProvider).setDataProvider(dataProvider)
                 .setTerminologyProvider(termProvider);
 
-        CqlEvaluationRequests requests = getJobSpecification();
+        CqlEvaluationRequests requests = getFilteredJobSpecification();
 
         SparkOutputColumnEncoder columnEncoder = getSparkOutputColumnEncoder();
 
@@ -419,38 +449,6 @@ public class SparkCqlEvaluator implements Serializable {
             }
         }
         
-        return getFilteredRequests(requests, args.libraries, args.expressions);
-    }
-
-    protected CqlEvaluationRequests getFilteredRequests(CqlEvaluationRequests requests, Map<String, String> libraries, Set<String> expressions) {
-        if (requests != null) {
-            List<CqlEvaluationRequest> evaluations = requests.getEvaluations();
-            if (libraries != null && !libraries.isEmpty()) {
-                evaluations = evaluations.stream()
-                        .filter(r -> libraries.keySet().contains(r.getDescriptor().getLibraryId()))
-                        .collect(Collectors.toList());
-            }
-            if (expressions != null && !expressions.isEmpty()) {
-                evaluations.stream()
-                        .forEach(x -> x.setExpressionsByNames(expressions));
-            }
-
-            if (requests.getGlobalParameters() != null) {
-                for (CqlEvaluationRequest evaluation : evaluations) {
-                    for (Map.Entry<String, Parameter> globalParameter : requests.getGlobalParameters().entrySet()) {
-                        Map<String, Parameter> parameters = evaluation.getParameters();
-                        if (parameters == null) {
-                            evaluation.setParameters(new HashMap<>());
-                            parameters = evaluation.getParameters();
-                        }
-                        parameters.putIfAbsent(globalParameter.getKey(), globalParameter.getValue());
-                    }
-                }
-            }
-            requests.setEvaluations(evaluations);
-
-            jobSpecification.set(requests);
-        }
         return requests;
     }
 
