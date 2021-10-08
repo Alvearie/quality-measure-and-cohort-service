@@ -39,6 +39,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
 import com.ibm.cohort.cql.evaluation.parameters.DateParameter;
@@ -721,6 +722,18 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         assertEquals(measurementPeriod, requests.getGlobalParameters().get("Measurement Period"));
         assertEquals(1, requests.getEvaluations().size());
         assertEquals(minimumAge, requests.getEvaluations().get(0).getParameters().get("MinimumAge"));
+    }
+
+    @Test
+    public void testReadFilteredJobs() throws Exception {
+        evaluator.args.jobSpecPath = "src/test/resources/column-mapping-validation/metadata/cql-jobs.json";
+
+        CqlEvaluationRequests requests = evaluator.getFilteredJobSpecificationWithIds();
+        assertNotNull(requests);
+        assertEquals(3, requests.getEvaluations().size());
+        assertEquals(1, (int) requests.getEvaluations().get(0).getId());
+        assertEquals(2, (int) requests.getEvaluations().get(1).getId());
+        assertEquals(3, (int) requests.getEvaluations().get(2).getId());
     }
     
     @Test

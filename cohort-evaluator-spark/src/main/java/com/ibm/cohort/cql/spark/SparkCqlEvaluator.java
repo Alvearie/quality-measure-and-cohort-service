@@ -131,7 +131,7 @@ public class SparkCqlEvaluator implements Serializable {
             SparkCqlEvaluator.libraryProvider.set(libProvider);
         }
 
-        CqlEvaluationRequests cqlEvaluationRequests = getFilteredJobSpecification();
+        CqlEvaluationRequests cqlEvaluationRequests = getFilteredJobSpecificationWithIds();
 
         SparkSchemaCreator sparkSchemaCreator = new SparkSchemaCreator(libProvider, cqlEvaluationRequests, contextDefinitions, encoder);
         return sparkSchemaCreator.calculateSchemasForContexts(contextNames);
@@ -150,10 +150,49 @@ public class SparkCqlEvaluator implements Serializable {
         return requests;
     }
 
-    public CqlEvaluationRequests getFilteredJobSpecification() throws Exception {
-        return getFilteredRequests(getJobSpecification(), args.libraries, args.expressions);
+    /**
+     * Read the job specification file, apply some filtering logic for the
+     * given requests, and then assign unique ids to each remaining request.
+     * 
+     * 
+     * @return CqlEvaluationRequests object containing requests with optional
+     *         filtering and overrides described in {@link #getFilteredRequests(CqlEvaluationRequests, Map, Set)}.
+     *         Each remaining CqlEvaluationRequest is assigned a unique integer id.
+     *         
+     * @throws Exception if there was an error reading the job specification.
+     */
+    public CqlEvaluationRequests getFilteredJobSpecificationWithIds() throws Exception {
+        CqlEvaluationRequests filteredRequests = getFilteredRequests(getJobSpecification(), args.libraries, args.expressions);
+
+        List<CqlEvaluationRequest> evaluations = filteredRequests.getEvaluations();
+        if (evaluations != null && !evaluations.isEmpty()) {
+            int i = 1;
+            for (CqlEvaluationRequest evaluation : evaluations) {
+                evaluation.setId(i);
+                i++;
+            }
+            filteredRequests.setEvaluations(evaluations);
+        }
+        return filteredRequests;
     }
 
+    /**
+     * @param requests     Request object to filter.
+     * @param libraries    Map of library id to version used for filtering
+     *                     down request based on library id. If this argument
+     *                     is null or empty, then no library id filtering
+     *                     is performed.
+     * @param expressions  Used to optionally override which expressions will
+     *                     run for each individual CqlEvaluationRequest. If this
+     *                     argument is null or empty, no expressions are overwritten.
+     *
+     * @return CqlEvaluationRequests with the original requests optionally filtered
+     *         based on the library ids the.
+     *         Requests will optionally have their expressions overridden
+     *         by args.expressions. if any are provided.
+     *         Individual requests will also will also have any global
+     *         parameters set on each individual CqlEvaluationRequest.
+     */
     protected CqlEvaluationRequests getFilteredRequests(CqlEvaluationRequests requests, Map<String, String> libraries, Set<String> expressions) {
         if (requests != null) {
             List<CqlEvaluationRequest> evaluations = requests.getEvaluations();
@@ -188,7 +227,7 @@ public class SparkCqlEvaluator implements Serializable {
     public SparkOutputColumnEncoder getSparkOutputColumnEncoder() throws Exception {
         SparkOutputColumnEncoder columnEncoder = sparkOutputColumnEncoder.get();
         if (columnEncoder == null) {
-            columnEncoder = ConfigurableOutputColumnNameEncoder.create(getFilteredJobSpecification(), args.defaultOutputColumnDelimiter);
+            columnEncoder = ConfigurableOutputColumnNameEncoder.create(getFilteredJobSpecificationWithIds(), args.defaultOutputColumnDelimiter);
             sparkOutputColumnEncoder.set(columnEncoder);
         }
         return columnEncoder;
@@ -335,7 +374,7 @@ public class SparkCqlEvaluator implements Serializable {
         CqlEvaluator evaluator = new CqlEvaluator().setLibraryProvider(libraryProvider).setDataProvider(dataProvider)
                 .setTerminologyProvider(termProvider);
 
-        CqlEvaluationRequests requests = getFilteredJobSpecification();
+        CqlEvaluationRequests requests = getFilteredJobSpecificationWithIds();
 
         SparkOutputColumnEncoder columnEncoder = getSparkOutputColumnEncoder();
 

@@ -20,7 +20,7 @@ import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
  */
 public class ContextColumnNameEncoder implements SparkOutputColumnEncoder {
 	public static ContextColumnNameEncoder create(List<CqlEvaluationRequest> contextRequests, String defaultColumnDelimiter) {
-		Map<CqlEvaluationRequest, Map<String, String>> requestToDefineToOutputColumn = new HashMap<>();
+		Map<Integer, Map<String, String>> requestToDefineToOutputColumn = new HashMap<>();
 		Set<String> outputColumnNames = new HashSet<>();
 		
 		for (CqlEvaluationRequest contextRequest : contextRequests) {
@@ -34,7 +34,7 @@ public class ContextColumnNameEncoder implements SparkOutputColumnEncoder {
 				outputColumnNames.add(value);
 			}
 
-			requestToDefineToOutputColumn.put(contextRequest, defineToOutputNameMap);
+			requestToDefineToOutputColumn.put(contextRequest.getId(), defineToOutputNameMap);
 		}
 		
 		return new ContextColumnNameEncoder(requestToDefineToOutputColumn, outputColumnNames);
@@ -74,10 +74,10 @@ public class ContextColumnNameEncoder implements SparkOutputColumnEncoder {
 		return defineToOutputNameMap;
 	}
 	
-	private final Map<CqlEvaluationRequest, Map<String, String>> requestToDefineToOutputColumn;
+	private final Map<Integer, Map<String, String>> requestToDefineToOutputColumn;
 	private final Set<String> outputColumnNames;
 	
-	private ContextColumnNameEncoder(Map<CqlEvaluationRequest, Map<String, String>> requestToDefineToOutputColumn, Set<String> outputColumnNames) {
+	private ContextColumnNameEncoder(Map<Integer, Map<String, String>> requestToDefineToOutputColumn, Set<String> outputColumnNames) {
 		this.requestToDefineToOutputColumn = requestToDefineToOutputColumn;
 		this.outputColumnNames = outputColumnNames;
 	}
@@ -88,10 +88,10 @@ public class ContextColumnNameEncoder implements SparkOutputColumnEncoder {
 
 	@Override
 	public String getColumnName(CqlEvaluationRequest request, String defineName) {
-		Map<String, String> defineToOutputName = requestToDefineToOutputColumn.get(request);
+		Map<String, String> defineToOutputName = requestToDefineToOutputColumn.get(request.getId());
 		if (defineToOutputName == null) {
-			// TODO: Figure out how to handle this more gracefully. What can't be found?
-			throw new IllegalArgumentException("Cannot find column name data for the provided request.");
+			throw new IllegalArgumentException("No lookup information found for CqlEvaluationRequest with id " + request.getId() 
+													   + ". Did the id change since this object was created?");
 		}
 		return defineToOutputName.get(defineName);
 	}

@@ -14,14 +14,15 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 
 public class CqlEvaluationRequest {
+	@JsonIgnore
+	private Integer id;
     private CqlLibraryDescriptor descriptor;
 	private Set<CqlExpressionConfiguration> expressions;
 	@Valid
@@ -34,6 +35,7 @@ public class CqlEvaluationRequest {
 	}
 	
 	public CqlEvaluationRequest(CqlEvaluationRequest other) {
+		this.setId(other.getId());
 	    this.setDescriptor(other.getDescriptor());
 	    this.setContextKey(other.getContextKey());
 	    this.setContextValue(other.getContextValue());
@@ -44,8 +46,14 @@ public class CqlEvaluationRequest {
 	        this.setParameters(new HashMap<>(other.getParameters()));
 	    }
 	}
-	
-    public CqlLibraryDescriptor getDescriptor() {
+
+	public Integer getId() {
+		return id;
+	}
+	public void setId(Integer id) {
+		this.id = id;
+	}
+	public CqlLibraryDescriptor getDescriptor() {
         return descriptor;
     }
     public void setDescriptor(CqlLibraryDescriptor descriptor) {
@@ -101,32 +109,4 @@ public class CqlEvaluationRequest {
                 .append("contextValue", contextValue)
                 .toString();
     }
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-
-		if (o == null || getClass() != o.getClass()) return false;
-
-		CqlEvaluationRequest that = (CqlEvaluationRequest) o;
-
-		return new EqualsBuilder()
-				.append(descriptor, that.descriptor)
-				.append(expressions, that.expressions)
-				.append(parameters, that.parameters)
-				.append(contextKey, that.contextKey)
-				.append(contextValue, that.contextValue)
-				.isEquals();
-	}
-
-	@Override
-	public int hashCode() {
-		return new HashCodeBuilder(17, 37)
-				.append(descriptor)
-				.append(expressions)
-				.append(parameters)
-				.append(contextKey)
-				.append(contextValue)
-				.toHashCode();
-	}
 }
