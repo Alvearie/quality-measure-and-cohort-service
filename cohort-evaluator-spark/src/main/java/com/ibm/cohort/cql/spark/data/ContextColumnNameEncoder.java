@@ -1,6 +1,5 @@
 package com.ibm.cohort.cql.spark.data;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -19,7 +18,7 @@ import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
  * Output names (whether configured or created with a default behavior) must be
  * unique or else an IllegalArgumentException is thrown.
  */
-public class ContextColumnNameEncoder implements SparkOutputColumnEncoder, Serializable {
+public class ContextColumnNameEncoder implements SparkOutputColumnEncoder {
 	public static ContextColumnNameEncoder create(List<CqlEvaluationRequest> contextRequests, String defaultColumnDelimiter) {
 		Map<CqlEvaluationRequest, Map<String, String>> requestToDefineToOutputColumn = new HashMap<>();
 		Set<String> outputColumnNames = new HashSet<>();
@@ -49,7 +48,7 @@ public class ContextColumnNameEncoder implements SparkOutputColumnEncoder, Seria
 		Set<String> outputColumns = new HashSet<>();
 
 		CqlLibraryDescriptor descriptor = request.getDescriptor();
-		if (descriptor == null || descriptor.getLibraryId() == null || descriptor.getLibraryId() == "") {
+		if (descriptor == null || descriptor.getLibraryId() == null || descriptor.getLibraryId().isEmpty()) {
 			throw new IllegalArgumentException("A library descriptor must be defined for each configured evaluation request.");
 		}
 
