@@ -1,5 +1,6 @@
 # Parameter Formats
-This page contains the fields for each type of parameter and examples of how to specify each parameter type in JSON.
+This page contains the fields for each type of parameter and examples of how to specify each parameter type in JSON. This encoding scheme is used in various parts of the cohorting solution including the MeasureCLI JSON configuration file, REST service interactions, and cql-jobs metadata for Spark analytics.
+
 Each field is required unless marked with `(Optional)`.
 
 ## Integer
