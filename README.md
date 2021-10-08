@@ -16,7 +16,7 @@ This project looks to extend existing CQL-based cohort evaluation capabilities b
 
 ### Contributing to the IBM Cohort and Quality Measure Service
 The IBM Cohort and Quality Measure Service is under active development. To help develop the service, clone or download the project and build it using Maven.
-See [Setting up for development]() for more information.
+See [Setting up for development](docs/dev-guide/getting-started.md) for more information.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for contributing your changes back to the project.
 

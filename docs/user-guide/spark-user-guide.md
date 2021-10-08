@@ -1,13 +1,11 @@
 
-# CQL Evaluation using Apache Spark
+# Big-Data Mode using Apache Spark
 
-## Overview
-
-The CQL evaluation function provided by the quality-measure-and-cohort-service project can be deployed in a variety of modes depending on the needs of the consuming solution. The most flexible option is a client-server mode of operation where the client performs the CQL evaluation for data that is stored in any remote FHIR server supporting the FHIR REST specification. While flexible, the client-server mode is likely not ideal for applications that need to process very large datasets due to the amount of data serialization and transfers required. For solutions wanting to process big data there is a program provided that runs under Apache Spark. In this mode, the FHIR data model is eschewed in favor of traditional tabular data used by many analytics applications. Facilities are provided for loading the data from randomly ordered files, aggregated based on a specific execution context (e.g. Patient, Claim, etc.), and then evaluated using any number of CQL inputs. Outputs are written back out as tabular data. This guide describes how to configure and use that application.
+While deployment modes such as [client-server](user-guide/client-server-guide.md) and [server-only](server-only-guide.md) add flexibility and standards-complaince, these modes are likely not ideal for applications that need to process very large datasets due to the amount of data serialization and transfers required. For solutions wanting to process big data there is a program provided that runs under Apache Spark that brings the processing closer to the data. In this mode, the FHIR data model is eschewed in favor of traditional tabular data used by many analytics applications. Facilities are provided for loading the data from randomly ordered files, aggregated based on a specific execution context (e.g. Patient, Claim, etc.), and then evaluated using any number of CQL inputs. Outputs are written back out as tabular data. This guide describes how to configure and use that application.
 
 ## Program assets
 
-The cohorting capabilities (aka [quality-measure-and-cohort-service](https://github.com/Alvearie/quality-measure-and-cohort-service/)) are delivered as a public open source project under the Alvearie organization in Github. The module of interest for users consuming the Apache Spark function is  [cohort-evaluator-spark](https://github.com/Alvearie/quality-measure-and-cohort-service/tree/cql-spark-evaluator). Provided inside that project is a sample [Dockerfile](https://github.com/Alvearie/quality-measure-and-cohort-service/blob/cql-spark-evaluator/cohort-evaluator-spark/Dockerfile) that can be built and published to the appropriate place in your execution environment. No publicly published version of the docker image exists at this time.
+The module of interest for users consuming the Apache Spark function is [cohort-evaluator-spark](https://github.com/Alvearie/quality-measure-and-cohort-service/tree/cql-spark-evaluator) under the main [quality-measure-and-cohort-service](https://github.com/Alvearie/quality-measure-and-cohort-service/) project in Github. Provided inside that project is a sample [Dockerfile](https://github.com/Alvearie/quality-measure-and-cohort-service/blob/cql-spark-evaluator/cohort-evaluator-spark/Dockerfile) that can be built and published to the appropriate place in your execution environment. No publicly published version of the docker image exists at this time.
 
 ## Program Execution
 
@@ -80,7 +78,7 @@ Usage: SparkCqlEvaluator [options]
       Default: false
 ```
 
-The typical mode of invocation is to run the program using the spark-submit script from SPARK_HOME\bin to submit to a target Spark cluster. The simplest invocation for a Windows user will look like this...
+The typical mode of invocation is to run the program using the spark-submit script from SPARK_HOME\bin to submit a job to a target Spark cluster. The simplest invocation for a Windows user will look like this...
 
 ```
 %SPARK_HOME%\bin\spark-submit.cmd --name cohort-evaluator-spark --class com.ibm.cohort.cql.spark.SparkCqlEvaluator local:/opt/spark/jars/cohort-evaluator-spark/target/cohort-evaluator-spark-1.0.2-SNAPSHOT.jar @/path/to/program-args.txt

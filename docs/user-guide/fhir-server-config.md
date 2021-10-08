@@ -1,15 +1,19 @@
 
-# IBM FHIR Server configuration steps
+# FHIR Server Installation & Configuration
+
+The CQL engine [client-server](client-server-guide.md) and [server-only](server-only-guide.md) modes of operation utilizes data and terminology stored in a FHIR server adhering to the FHIR R4 standard. Our testing is focused on use of the [IBM Open Source FHIR Server](https://github.com/IBM/FHIR), but any reasonably robust FHIR server, such as the [open source HAPI FHIR server](https://github.com/jamesagnew/hapi-fhir), should be usable. The configuration and management of the FHIR server is ultimately left to the user, but this guide contains some IBM FHIR configuration recommendations when using IBM FHIR for cohort evaluation. 
+
+## IBM FHIR Server configuration steps
 
 Collected here are notes on how to configure an IBM FHIR server to support the Alvearie cohorting common component. Many of the configuration steps, such as how to configure persistence, are left up to the solution consuming the cohorting capability, but this document describes some specific configuration that should be done if cohorting is going to be used.
 
-## Create a tenant for storing knowledge artifacts
+### Create a tenant for storing knowledge artifacts
 The measure evaluation engine relies on Measure and Library definitions that are assumed to be stored in an R4 compliant FHIR server. When using a multitenant IBM FHIR server installation, it is recommended that solutions consuming the engine configure a single, shared tenant in their FHIR server that will contain all knowledge artifacts. In our development environment, we call this tenant "knowledge". See the [IBM FHIR Server User's Guide](https://ibm.github.io/FHIR/guides/FHIRServerUsersGuide/#322-tenant-specific-configuration-properties) for complete details on how to configure an additional tenant.
 
-## Enable searching for ValueSet resources vs. those defined in an IG
-In the fhir-server-config.json for the knowledge tenant created above, set fhirServer/core/serverRegistryResourceProviderEnabled to true to enable user-defined ValueSet resources to be searchable via the REST API. This is a required setting to enable search functionality in the cohort and measure authoring tool. See [the Dev Guide](/dev-guide/value-sets?id=fhir-server-setup) for complete details. The property is also described in the [IBM FHIR Server User's Guide](https://ibm.github.io/FHIR/guides/FHIRServerUsersGuide/).
+### Enable the server registry resource provider
+In the fhir-server-config.json for the knowledge tenant created above, set fhirServer/core/serverRegistryResourceProviderEnabled to true to enable user-defined ValueSet stored as user-defined resources to be searchable via the REST API. This is a required setting to enable search functionality in the Measure Authoring Tool. See [the Dev Guide](/dev-guide/value-sets?id=fhir-server-setup) for complete details. The property is also described in the [IBM FHIR Server User's Guide](https://ibm.github.io/FHIR/guides/FHIRServerUsersGuide/).
 
-## Configure the FHIR Server's SSL certificate
+### Configure the FHIR Server's SSL certificate
 IBM FHIR comes preconfigured with only an SSL endpoint enabled. A clear text HTTP endpoint can be setup, but it is *strongly recommended* not to do this for any type of production environment, especially one that processes PHI data. 
 
 A default, well-known certificate is provided in the FHIR server installation with a subject name of localhost. The cohorting service will check the host name used to connect to the FHIR server against the certificate's subject and fail if there is no match. Users running the FHIR server on a different service from the cohorting engine code will need to [update the FHIR server's SSL certificate](https://ibm.github.io/FHIR/guides/FHIRServerUsersGuide#52-keystores-truststores-and-the-fhir-server) and then make sure that the server's public key is trusted by the JVM that runs the cohorting component using the instructions documented in the [Getting Started](/user-guide/getting-started?id=secure-socket-layer-ssl-configuration) guide.
@@ -19,5 +23,5 @@ When running IBM FHIR on IBM Cloud it is recommended to use a certificate genera
 ## Configure authentication (Optional)
 IBM FHIR comes preconfigured for basic authentication using a well-known username and password. While not strictly required, it is recommended that users update their FHIR server configuration to use more secure values. OAuth is also supported. See the [IBM FHIR Server User's Guide](https://ibm.github.io/FHIR/guides/FHIRServerUsersGuide/#53-openid-connect-and-oauth-20) for details on how to configure OAuth. 
 
-## Install the CDM IG JAR (Optional)
-The measure evaluation engine comes packaged with extension logic that handles extensions defined in the Common Data Model (CDM) Implementation Guide (IG). If you would like to support validation of FHIR resources that contain CDM extensions, it is recommended that you download and install the CDM IG extension JAR based on the [optional profile support](https://ibm.github.io/FHIR/guides/FHIRValidationGuide#optional-profile-support) instructions in the IBM FHIR Server User's Guide. The CDM IG is currently inner source at IBM, but is making its way through internal processes to become open source. In the meantime, check with the CDM team on where to get the appropriate JAR. This step is not required for the cohorting component to function.
+## Install custom IG JARs (Optional)
+If your application requires any customer Implementation Guide (IG) support such as for the [Alvearie FHIR IG](https://github.com/Alvearie/alvearie-fhir-ig) you should build and copy the appropriate JARs to your server's userlib folder as described in the [optional profile support](https://ibm.github.io/FHIR/guides/FHIRValidationGuide#optional-profile-support) instructions in the IBM FHIR Server User's Guide. 
