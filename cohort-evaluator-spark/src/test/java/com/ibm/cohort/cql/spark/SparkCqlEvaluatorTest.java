@@ -10,6 +10,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -19,8 +20,11 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.spark.SparkException;
@@ -38,8 +42,11 @@ import org.junit.Test;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
 import com.ibm.cohort.cql.evaluation.parameters.DateParameter;
+import com.ibm.cohort.cql.evaluation.parameters.DecimalParameter;
 import com.ibm.cohort.cql.evaluation.parameters.IntegerParameter;
 import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
+import com.ibm.cohort.cql.evaluation.parameters.StringParameter;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.data.Patient;
@@ -504,10 +511,6 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         Throwable th = assertThrows( SparkException.class, () -> SparkCqlEvaluator.main(args) );
         assertStackTraceContainsMessage(th, "CQL evaluation failed");
     }
-
-    private CqlEvaluationRequest makeEvaluationRequest(String contextName) {
-        return makeEvaluationRequest(contextName, null, null);
-    }
     
     private CqlEvaluationRequest makeEvaluationRequest(String contextName, String libraryName, String libraryVersion) {
         CqlEvaluationRequest cqlEvaluationRequest = new CqlEvaluationRequest();
@@ -521,6 +524,189 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         cqlEvaluationRequest.setDescriptor(descriptor);
         
         return cqlEvaluationRequest;
+    }
+
+    @Test
+    public void testGetFilteredRequestsNoFilters() {
+        CqlEvaluationRequests requests = new CqlEvaluationRequests();
+        requests.setEvaluations(Arrays.asList(
+                makeEvaluationRequest("context", "lib1", "1.0.0")
+        ));
+
+        CqlEvaluationRequests actual = evaluator.getFilteredRequests(
+                requests,
+                null,
+                null
+        );
+
+        assertEquals(1, actual.getEvaluations().size());
+    }
+
+    @Test
+    public void testGetFilteredRequestsNoEvaluationRequestsForLibraries() {
+        CqlEvaluationRequests requests = new CqlEvaluationRequests();
+
+        CqlEvaluationRequest request = makeEvaluationRequest("context", "lib1", "1.0.0");
+        request.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohort")));
+
+
+        CqlEvaluationRequest request2 = makeEvaluationRequest("context", "lib2", "1.0.0");
+        request2.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohort")));
+        
+        List<CqlEvaluationRequest> evaluations = Arrays.asList(
+                request,
+                request2
+        );
+
+        requests.setEvaluations(evaluations);
+
+        Map<String, String> libs = new HashMap<String, String>() {{
+            put("lib3", "1.0.0");
+            put("lib4", "1.0.0");
+        }};
+
+        CqlEvaluationRequests actual = evaluator.getFilteredRequests(
+                requests,
+                libs,
+                null
+        );
+
+        assertTrue(actual.getEvaluations().isEmpty());
+    }
+
+    @Test
+    public void testGetFilteredRequestsFilterToLibrariesIgnoresVersion() {
+        CqlEvaluationRequests requests = new CqlEvaluationRequests();
+
+        CqlEvaluationRequest request = makeEvaluationRequest("context", "lib1", "1.0.0");
+        request.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohort")));
+
+
+        CqlEvaluationRequest request2 = makeEvaluationRequest("context", "lib2", "1.0.0");
+        request2.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohort")));
+
+        CqlEvaluationRequest request3 = makeEvaluationRequest("context", "lib3", "1.0.0");
+        request.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohort")));
+
+
+        CqlEvaluationRequest request4 = makeEvaluationRequest("context", "lib4", "1.0.0");
+        request2.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohort")));
+
+        List<CqlEvaluationRequest> evaluations = Arrays.asList(
+                request,
+                request2,
+                request3,
+                request4
+        );
+
+        requests.setEvaluations(evaluations);
+
+        Map<String, String> libs = new HashMap<String, String>() {{
+            put("lib3", "7.0.0");
+            put("lib4", "1.0.0");
+        }};
+
+        CqlEvaluationRequests actual = evaluator.getFilteredRequests(
+                requests,
+                libs,
+                null
+        );
+
+        assertEquals(2, actual.getEvaluations().size());
+        for (CqlEvaluationRequest cqlEvaluationRequest : actual.getEvaluations()) {
+            assertTrue(libs.containsKey(cqlEvaluationRequest.getDescriptor().getLibraryId()));
+        }
+    }
+
+    @Test
+    public void testGetFilteredRequestsOverwriteEvaluations() {
+        CqlEvaluationRequests requests = new CqlEvaluationRequests();
+
+        CqlEvaluationRequest request = makeEvaluationRequest("context", "lib1", "1.0.0");
+        request.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohortOrig")));
+
+
+        CqlEvaluationRequest request2 = makeEvaluationRequest("context", "lib2", "1.0.0");
+        request2.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohortOrig")));
+
+        List<CqlEvaluationRequest> evaluations = Arrays.asList(
+                request,
+                request2
+        );
+
+        requests.setEvaluations(evaluations);
+
+        Map<String, String> libs = new HashMap<String, String>() {{
+            put("lib1", "1.0.0");
+            put("lib2", "1.0.0");
+        }};
+
+        Set<String> expressions = new HashSet<>(Arrays.asList("expr1", "expr2"));
+
+        
+        CqlEvaluationRequests actual = evaluator.getFilteredRequests(
+                requests,
+                libs,
+                expressions
+        );
+
+        assertEquals(2, actual.getEvaluations().size());
+        for (CqlEvaluationRequest evaluation : actual.getEvaluations()) {
+            assertEquals(2, evaluation.getExpressions().size());
+            for (String expressionName : evaluation.getExpressionNames()) {
+                assertTrue(expressions.contains(expressionName));
+            }
+        }
+    }
+
+    @Test
+    public void testGetFilteredRequestsGlobalParametersApplied() {
+        CqlEvaluationRequests requests = new CqlEvaluationRequests();
+        requests.setGlobalParameters(
+                new HashMap<String, Parameter>() {{
+                    put("param1", new IntegerParameter(10));
+                    put("param2", new StringParameter("10"));
+                    put("globalParam", new DecimalParameter("10.0"));
+                }}  
+        );
+
+        CqlEvaluationRequest request = makeEvaluationRequest("context", "lib1", "1.0.0");
+        request.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohortOrig")));
+        request.setParameters(
+                new HashMap<String, Parameter>() {{
+                    put("param1", new IntegerParameter(1));
+                    put("param2", new StringParameter("1"));
+                    put("param3", new DecimalParameter("1.0"));
+                }}
+        );
+
+        CqlEvaluationRequest request2 = makeEvaluationRequest("context", "lib2", "1.0.0");
+        request2.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohortOrig")));
+        
+        List<CqlEvaluationRequest> evaluations = Arrays.asList(request, request2);
+
+        requests.setEvaluations(evaluations);
+
+        CqlEvaluationRequests actual = evaluator.getFilteredRequests(requests, null, null);
+
+        for (CqlEvaluationRequest evaluation : actual.getEvaluations()) {
+            if (evaluation.getDescriptor().getLibraryId().equals("lib1")) {
+                assertEquals(4, evaluation.getParameters().size());
+                assertEquals(new IntegerParameter(1), evaluation.getParameters().get("param1"));
+                assertEquals(new StringParameter("1"), evaluation.getParameters().get("param2"));
+                assertEquals(new DecimalParameter("1.0"), evaluation.getParameters().get("param3"));
+                assertEquals(new DecimalParameter("10.0"), evaluation.getParameters().get("globalParam"));
+            }
+            else if (evaluation.getDescriptor().getLibraryId().equals("lib2")) {
+                assertEquals(3, evaluation.getParameters().size());
+                assertEquals(new IntegerParameter(10), evaluation.getParameters().get("param1"));
+                assertEquals(new StringParameter("10"), evaluation.getParameters().get("param2"));
+                assertEquals(new DecimalParameter("10.0"), evaluation.getParameters().get("globalParam"));
+            }
+            else {
+                fail("Unexpected library encountered. Expected only lib1 and lib2.");
+            }
+        }
     }
 
     @Test
