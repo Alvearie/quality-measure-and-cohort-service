@@ -25,6 +25,12 @@ public class CqlExpressionConfigurationDeserializer extends StdDeserializer<CqlE
 
 		JsonNodeType nodeType = node.getNodeType();
 		if (nodeType == JsonNodeType.OBJECT) {
+			node.fieldNames().forEachRemaining(x -> {
+				if (!x.equals("name") && !x.equals("outputColumn")) {
+					throw new IllegalArgumentException("Unrecognized field " + x);
+				}
+			});
+
 			JsonNode name = node.get("name");
 			JsonNode outputColumn = node.get("outputColumn");
 

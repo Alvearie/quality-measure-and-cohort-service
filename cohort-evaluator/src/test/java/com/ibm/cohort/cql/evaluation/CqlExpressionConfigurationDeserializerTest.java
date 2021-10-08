@@ -70,4 +70,11 @@ public class CqlExpressionConfigurationDeserializerTest {
 		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> mapper.readValue("2", CqlExpressionConfiguration.class));
 		assertTrue(ex.getMessage().contains("Expected string or object"));
 	}
+
+	@Test
+	public void testDeserializerUnrecognizedField() {
+		ObjectMapper mapper = new ObjectMapper();
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> mapper.readValue("{\"name\":\"aName\",\"badField\":\"val\"}", CqlExpressionConfiguration.class));
+		assertTrue(ex.getMessage().contains("Unrecognized field"));
+	}
 }
