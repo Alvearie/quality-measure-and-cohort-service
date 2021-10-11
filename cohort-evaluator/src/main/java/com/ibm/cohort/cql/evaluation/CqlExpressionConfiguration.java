@@ -23,11 +23,11 @@ public class CqlExpressionConfiguration {
 		this.name = name;
 	}
 
-	public String getoutputColumn() {
+	public String getOutputColumn() {
 		return outputColumn;
 	}
 
-	public void setoutputColumn(String outputColumn) {
+	public void setOutputColumn(String outputColumn) {
 		this.outputColumn = outputColumn;
 	}
 

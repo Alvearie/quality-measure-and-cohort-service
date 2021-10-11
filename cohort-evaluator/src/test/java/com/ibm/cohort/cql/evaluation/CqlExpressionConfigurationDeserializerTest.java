@@ -44,7 +44,7 @@ public class CqlExpressionConfigurationDeserializerTest {
 
 		CqlExpressionConfiguration expected = new CqlExpressionConfiguration();
 		expected.setName("aName");
-		expected.setoutputColumn("colA");
+		expected.setOutputColumn("colA");
 		assertEquals(expected, actual);
 	}
 

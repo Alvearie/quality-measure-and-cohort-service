@@ -53,7 +53,7 @@ public class CqlExpressionConfigurationDeserializer extends StdDeserializer<CqlE
 					if (outputColumn.getNodeType() != JsonNodeType.STRING) {
 						throw new IllegalArgumentException("Error parsing 'outputColumn'. Expected string but got " + name.getNodeType());
 					}
-					retVal.setoutputColumn(outputColumn.asText());
+					retVal.setOutputColumn(outputColumn.asText());
 				}
 			}
 		}

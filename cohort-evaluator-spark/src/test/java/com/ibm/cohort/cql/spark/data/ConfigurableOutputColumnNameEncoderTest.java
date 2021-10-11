@@ -36,7 +36,7 @@ public class ConfigurableOutputColumnNameEncoderTest {
 
 		CqlExpressionConfiguration expressionConfiguration2 = new CqlExpressionConfiguration();
 		expressionConfiguration2.setName("efgh");
-		expressionConfiguration2.setoutputColumn("A2");
+		expressionConfiguration2.setOutputColumn("A2");
 
 		request.setExpressions(new HashSet<>(Arrays.asList(expressionConfiguration1, expressionConfiguration2)));
 
@@ -49,7 +49,7 @@ public class ConfigurableOutputColumnNameEncoderTest {
 
 		CqlExpressionConfiguration expressionConfiguration3 = new CqlExpressionConfiguration();
 		expressionConfiguration3.setName("ijkl");
-		expressionConfiguration3.setoutputColumn("A3");
+		expressionConfiguration3.setOutputColumn("A3");
 
 		CqlExpressionConfiguration expressionConfiguration4 = new CqlExpressionConfiguration();
 		expressionConfiguration4.setName("mnop");
@@ -81,11 +81,11 @@ public class ConfigurableOutputColumnNameEncoderTest {
 
 		CqlExpressionConfiguration expressionConfiguration1 = new CqlExpressionConfiguration();
 		expressionConfiguration1.setName("abcd");
-		expressionConfiguration1.setoutputColumn("A1");
+		expressionConfiguration1.setOutputColumn("A1");
 
 		CqlExpressionConfiguration expressionConfiguration2 = new CqlExpressionConfiguration();
 		expressionConfiguration2.setName("efgh");
-		expressionConfiguration2.setoutputColumn("A2");
+		expressionConfiguration2.setOutputColumn("A2");
 
 		request.setExpressions(new HashSet<>(Arrays.asList(expressionConfiguration1, expressionConfiguration2)));
 
@@ -98,11 +98,11 @@ public class ConfigurableOutputColumnNameEncoderTest {
 
 		CqlExpressionConfiguration expressionConfiguration3 = new CqlExpressionConfiguration();
 		expressionConfiguration3.setName("abcd");
-		expressionConfiguration3.setoutputColumn("A3");
+		expressionConfiguration3.setOutputColumn("A3");
 
 		CqlExpressionConfiguration expressionConfiguration4 = new CqlExpressionConfiguration();
 		expressionConfiguration4.setName("efgh");
-		expressionConfiguration4.setoutputColumn("A4");
+		expressionConfiguration4.setOutputColumn("A4");
 
 		request2.setExpressions(new HashSet<>(Arrays.asList(expressionConfiguration3, expressionConfiguration4)));
 
@@ -131,7 +131,7 @@ public class ConfigurableOutputColumnNameEncoderTest {
 
 		CqlExpressionConfiguration expressionConfiguration1 = new CqlExpressionConfiguration();
 		expressionConfiguration1.setName("abcd");
-		expressionConfiguration1.setoutputColumn("A1");
+		expressionConfiguration1.setOutputColumn("A1");
 		
 		
 		request.setExpressions(new HashSet<>(Collections.singletonList(expressionConfiguration1)));
@@ -145,7 +145,7 @@ public class ConfigurableOutputColumnNameEncoderTest {
 
 		CqlExpressionConfiguration expressionConfiguration2 = new CqlExpressionConfiguration();
 		expressionConfiguration2.setName("abcd");
-		expressionConfiguration2.setoutputColumn("A1");
+		expressionConfiguration2.setOutputColumn("A1");
 
 		request2.setExpressions(new HashSet<>(Collections.singletonList(expressionConfiguration2)));
 
@@ -172,11 +172,11 @@ public class ConfigurableOutputColumnNameEncoderTest {
 
 		CqlExpressionConfiguration expressionConfiguration1 = new CqlExpressionConfiguration();
 		expressionConfiguration1.setName("abcd");
-		expressionConfiguration1.setoutputColumn("A1");
+		expressionConfiguration1.setOutputColumn("A1");
 
 		CqlExpressionConfiguration expressionConfiguration2 = new CqlExpressionConfiguration();
 		expressionConfiguration2.setName("efgh");
-		expressionConfiguration2.setoutputColumn("A1");
+		expressionConfiguration2.setOutputColumn("A1");
 
 
 		request.setExpressions(new HashSet<>(Arrays.asList(expressionConfiguration1, expressionConfiguration2)));

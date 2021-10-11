@@ -64,7 +64,7 @@ public class ContextColumnNameEncoder implements SparkOutputColumnEncoder {
 		String libraryId = descriptor.getLibraryId();
 		for (CqlExpressionConfiguration expression : request.getExpressions()) {
 			String expressionName = expression.getName();
-			String outputColumn = expression.getoutputColumn();
+			String outputColumn = expression.getOutputColumn();
 
 			if (defineToOutputNameMap.containsKey(expressionName)) {
 				throw new IllegalArgumentException("Evaluation request contains duplicate expression " + expressionName + " for the library " + libraryId);
