@@ -1,11 +1,14 @@
+/*
+ * (C) Copyright IBM Corp. 2021
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package com.ibm.cohort.cql.spark.data;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
