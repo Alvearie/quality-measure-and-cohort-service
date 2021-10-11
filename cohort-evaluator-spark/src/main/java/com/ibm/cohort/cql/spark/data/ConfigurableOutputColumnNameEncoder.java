@@ -35,19 +35,10 @@ public class ConfigurableOutputColumnNameEncoder implements SparkOutputColumnEnc
 		}
 
 		Map<String, ContextColumnNameEncoder> contextKeyToContextNameEncoder = new HashMap<>();
-		Set<String> outputColumnNames = new HashSet<>();
 
 		for (String contextKey : requestsByContext.keySet()) {
 			ContextColumnNameEncoder nameEncoder = ContextColumnNameEncoder.create(requestsByContext.get(contextKey), defaultNameDelimiter);
 			contextKeyToContextNameEncoder.put(contextKey, nameEncoder);
-
-			for (String outputColumnName : nameEncoder.getOutputColumnNames()) {
-				if (outputColumnNames.contains(outputColumnName)) {
-					throw new IllegalArgumentException("Output column " + outputColumnName + " defined multiple times.");
-				}
-				outputColumnNames.add(outputColumnName);
-			}
-			
 		}
 
 		

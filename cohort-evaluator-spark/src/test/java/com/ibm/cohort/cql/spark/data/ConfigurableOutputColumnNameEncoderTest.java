@@ -116,7 +116,7 @@ public class ConfigurableOutputColumnNameEncoderTest {
 	}
 
 	@Test
-	public void testOutputColumnsRepeatedAcrossContextsThrowsError() {
+	public void testOutputColumnsRepeatedAcrossContexts() {
 		CqlLibraryDescriptor libraryDescriptor1 = new CqlLibraryDescriptor();
 		libraryDescriptor1.setLibraryId("lib1");
 
@@ -138,11 +138,11 @@ public class ConfigurableOutputColumnNameEncoderTest {
 		request2.setDescriptor(libraryDescriptor2);
 		request2.setId(2);
 
-		CqlExpressionConfiguration expressionConfiguration3 = new CqlExpressionConfiguration();
-		expressionConfiguration3.setName("abcd");
-		expressionConfiguration3.setoutputColumn("A1");
+		CqlExpressionConfiguration expressionConfiguration2 = new CqlExpressionConfiguration();
+		expressionConfiguration2.setName("abcd");
+		expressionConfiguration2.setoutputColumn("A1");
 
-		request2.setExpressions(new HashSet<>(Collections.singletonList(expressionConfiguration3)));
+		request2.setExpressions(new HashSet<>(Collections.singletonList(expressionConfiguration2)));
 
 		request.setContextKey("context1");
 		request2.setContextKey("context2");
@@ -150,7 +150,38 @@ public class ConfigurableOutputColumnNameEncoderTest {
 		CqlEvaluationRequests evaluationRequests = new CqlEvaluationRequests();
 		evaluationRequests.setEvaluations(Arrays.asList(request, request2));
 
+		ConfigurableOutputColumnNameEncoder nameEncoder = ConfigurableOutputColumnNameEncoder.create(evaluationRequests, "|");
+
+		assertEquals("A1", nameEncoder.getColumnName(request, "abcd"));
+		assertEquals("A1", nameEncoder.getColumnName(request2, "abcd"));
+	}
+
+	@Test
+	public void testOutputColumnsRepeatedInContextThrowsError() {
+		CqlLibraryDescriptor libraryDescriptor1 = new CqlLibraryDescriptor();
+		libraryDescriptor1.setLibraryId("lib1");
+
+		CqlEvaluationRequest request = new CqlEvaluationRequest();
+		request.setDescriptor(libraryDescriptor1);
+		request.setId(1);
+
+		CqlExpressionConfiguration expressionConfiguration1 = new CqlExpressionConfiguration();
+		expressionConfiguration1.setName("abcd");
+		expressionConfiguration1.setoutputColumn("A1");
+
+		CqlExpressionConfiguration expressionConfiguration2 = new CqlExpressionConfiguration();
+		expressionConfiguration2.setName("efgh");
+		expressionConfiguration2.setoutputColumn("A1");
+
+
+		request.setExpressions(new HashSet<>(Arrays.asList(expressionConfiguration1, expressionConfiguration2)));
+
+		request.setContextKey("context1");
+
+		CqlEvaluationRequests evaluationRequests = new CqlEvaluationRequests();
+		evaluationRequests.setEvaluations(Collections.singletonList(request));
+
 		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> ConfigurableOutputColumnNameEncoder.create(evaluationRequests, "|"));
-		assertTrue(ex.getMessage().contains("Output column A1 defined multiple times"));
+		assertTrue(ex.getMessage().contains("Evaluation request contains duplicate outputColumn"));
 	}
 }
