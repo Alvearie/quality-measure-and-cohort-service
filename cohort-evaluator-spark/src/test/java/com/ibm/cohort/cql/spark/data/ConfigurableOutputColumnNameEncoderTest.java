@@ -24,6 +24,7 @@ public class ConfigurableOutputColumnNameEncoderTest {
 
 		CqlEvaluationRequest request = new CqlEvaluationRequest();
 		request.setDescriptor(libraryDescriptor1);
+		request.setId(1);
 
 		CqlExpressionConfiguration expressionConfiguration1 = new CqlExpressionConfiguration();
 		expressionConfiguration1.setName("abcd");
@@ -39,6 +40,7 @@ public class ConfigurableOutputColumnNameEncoderTest {
 
 		CqlEvaluationRequest request2 = new CqlEvaluationRequest();
 		request2.setDescriptor(libraryDescriptor2);
+		request2.setId(2);
 
 		CqlExpressionConfiguration expressionConfiguration3 = new CqlExpressionConfiguration();
 		expressionConfiguration3.setName("ijkl");
@@ -70,6 +72,7 @@ public class ConfigurableOutputColumnNameEncoderTest {
 
 		CqlEvaluationRequest request = new CqlEvaluationRequest();
 		request.setDescriptor(libraryDescriptor1);
+		request.setId(1);
 
 		CqlExpressionConfiguration expressionConfiguration1 = new CqlExpressionConfiguration();
 		expressionConfiguration1.setName("abcd");
@@ -86,6 +89,7 @@ public class ConfigurableOutputColumnNameEncoderTest {
 
 		CqlEvaluationRequest request2 = new CqlEvaluationRequest();
 		request2.setDescriptor(libraryDescriptor2);
+		request2.setId(2);
 
 		CqlExpressionConfiguration expressionConfiguration3 = new CqlExpressionConfiguration();
 		expressionConfiguration3.setName("abcd");
@@ -118,6 +122,7 @@ public class ConfigurableOutputColumnNameEncoderTest {
 
 		CqlEvaluationRequest request = new CqlEvaluationRequest();
 		request.setDescriptor(libraryDescriptor1);
+		request.setId(1);
 
 		CqlExpressionConfiguration expressionConfiguration1 = new CqlExpressionConfiguration();
 		expressionConfiguration1.setName("abcd");
@@ -131,6 +136,7 @@ public class ConfigurableOutputColumnNameEncoderTest {
 
 		CqlEvaluationRequest request2 = new CqlEvaluationRequest();
 		request2.setDescriptor(libraryDescriptor2);
+		request2.setId(2);
 
 		CqlExpressionConfiguration expressionConfiguration3 = new CqlExpressionConfiguration();
 		expressionConfiguration3.setName("abcd");

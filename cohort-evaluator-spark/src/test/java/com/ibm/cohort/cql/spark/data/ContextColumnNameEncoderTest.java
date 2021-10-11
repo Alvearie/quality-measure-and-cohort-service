@@ -28,6 +28,7 @@ public class ContextColumnNameEncoderTest {
 
 		CqlEvaluationRequest request = new CqlEvaluationRequest();
 		request.setDescriptor(libraryDescriptor1);
+		request.setId(1);
 
 		CqlExpressionConfiguration expressionConfiguration1 = new CqlExpressionConfiguration();
 		expressionConfiguration1.setName("abcd");
@@ -43,6 +44,7 @@ public class ContextColumnNameEncoderTest {
 
 		CqlEvaluationRequest request2 = new CqlEvaluationRequest();
 		request2.setDescriptor(libraryDescriptor2);
+		request2.setId(2);
 
 		CqlExpressionConfiguration expressionConfiguration3 = new CqlExpressionConfiguration();
 		expressionConfiguration3.setName("ijkl");
@@ -72,6 +74,7 @@ public class ContextColumnNameEncoderTest {
 
 		CqlEvaluationRequest request = new CqlEvaluationRequest();
 		request.setDescriptor(libraryDescriptor1);
+		request.setId(1);
 
 		CqlExpressionConfiguration expressionConfiguration1 = new CqlExpressionConfiguration();
 		expressionConfiguration1.setName(commonDefine);
@@ -84,6 +87,7 @@ public class ContextColumnNameEncoderTest {
 
 		CqlEvaluationRequest request2 = new CqlEvaluationRequest();
 		request2.setDescriptor(libraryDescriptor2);
+		request2.setId(2);
 
 		CqlExpressionConfiguration expressionConfiguration2 = new CqlExpressionConfiguration();
 		expressionConfiguration2.setName(commonDefine);
@@ -107,6 +111,7 @@ public class ContextColumnNameEncoderTest {
 
 		CqlEvaluationRequest request = new CqlEvaluationRequest();
 		request.setDescriptor(libraryDescriptor1);
+		request.setId(1);
 
 		CqlExpressionConfiguration expressionConfiguration1 = new CqlExpressionConfiguration();
 		expressionConfiguration1.setName(commonDefine);
@@ -118,6 +123,7 @@ public class ContextColumnNameEncoderTest {
 
 		CqlEvaluationRequest request2 = new CqlEvaluationRequest();
 		request2.setDescriptor(libraryDescriptor2);
+		request2.setId(2);
 
 		CqlExpressionConfiguration expressionConfiguration2 = new CqlExpressionConfiguration();
 		expressionConfiguration2.setName(commonDefine);
@@ -132,8 +138,11 @@ public class ContextColumnNameEncoderTest {
 	public void testgetColumnNameForUnknownEvaluationRequest() {
 		ContextColumnNameEncoder contextColumnNameEncoder = ContextColumnNameEncoder.create(Collections.emptyList(), "|");
 
-		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> contextColumnNameEncoder.getColumnName(new CqlEvaluationRequest(), "define1"));
-		assertTrue(ex.getMessage().contains("Cannot find column name data for the provided request"));
+		CqlEvaluationRequest request = new CqlEvaluationRequest();
+		request.setId(1);
+
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> contextColumnNameEncoder.getColumnName(request, "define1"));
+		assertTrue(ex.getMessage().contains("No lookup information found for CqlEvaluationRequest with id"));
 	}
 
 	@Test
@@ -144,6 +153,7 @@ public class ContextColumnNameEncoderTest {
 		CqlEvaluationRequest request = new CqlEvaluationRequest();
 		request.setExpressionsByNames(new HashSet<>(Collections.singletonList("abcd")));
 		request.setDescriptor(libraryDescriptor);
+		request.setId(1);
 
 		Map<String, String> defineToOutputNameMap = ContextColumnNameEncoder.getDefineToOutputNameMap(request, "|");
 
@@ -162,6 +172,7 @@ public class ContextColumnNameEncoderTest {
 		CqlEvaluationRequest request = new CqlEvaluationRequest();
 		request.setExpressionsByNames(new HashSet<>(Arrays.asList("abcd", "efgh")));
 		request.setDescriptor(libraryDescriptor);
+		request.setId(1);
 
 		Map<String, String> defineToOutputNameMap = ContextColumnNameEncoder.getDefineToOutputNameMap(request, "|");
 
@@ -190,6 +201,7 @@ public class ContextColumnNameEncoderTest {
 		CqlEvaluationRequest request = new CqlEvaluationRequest();
 		request.setExpressions(new HashSet<>(Arrays.asList(expressionConfiguration1, expressionConfiguration2)));
 		request.setDescriptor(libraryDescriptor);
+		request.setId(1);
 
 		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> ContextColumnNameEncoder.getDefineToOutputNameMap(request, "|"));
 		assertTrue(ex.getMessage().contains("Evaluation request contains duplicate expression abcd"));
@@ -212,6 +224,7 @@ public class ContextColumnNameEncoderTest {
 		CqlEvaluationRequest request = new CqlEvaluationRequest();
 		request.setExpressions(new HashSet<>(Arrays.asList(expressionConfiguration1, expressionConfiguration2)));
 		request.setDescriptor(libraryDescriptor);
+		request.setId(1);
 
 		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> ContextColumnNameEncoder.getDefineToOutputNameMap(request, "|"));
 		assertTrue(ex.getMessage().contains("Evaluation request contains duplicate outputColumn"));
@@ -234,6 +247,7 @@ public class ContextColumnNameEncoderTest {
 
 		request.setExpressions(new HashSet<>(Arrays.asList(expressionConfiguration1, expressionConfiguration2)));
 		request.setDescriptor(libraryDescriptor);
+		request.setId(1);
 
 		Map<String, String> defineToOutputNameMap = ContextColumnNameEncoder.getDefineToOutputNameMap(request, "|");
 

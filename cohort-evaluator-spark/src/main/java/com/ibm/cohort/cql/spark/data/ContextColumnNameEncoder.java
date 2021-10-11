@@ -34,7 +34,11 @@ public class ContextColumnNameEncoder implements SparkOutputColumnEncoder {
 				outputColumnNames.add(value);
 			}
 
-			requestToDefineToOutputColumn.put(contextRequest.getId(), defineToOutputNameMap);
+			Integer requestId = contextRequest.getId();
+			if (requestId == null) {
+				throw new IllegalArgumentException("Each CqlEvaluationRequest argument must have an requestId set before calling ContextColumnNameEncoder.create()");
+			}
+			requestToDefineToOutputColumn.put(requestId, defineToOutputNameMap);
 		}
 		
 		return new ContextColumnNameEncoder(requestToDefineToOutputColumn, outputColumnNames);
