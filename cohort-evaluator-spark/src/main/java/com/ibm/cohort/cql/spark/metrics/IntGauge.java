@@ -8,7 +8,7 @@ package com.ibm.cohort.cql.spark.metrics;
 import com.codahale.metrics.Gauge;
 
 public class IntGauge implements Gauge<Integer> {
-	private int value = -1;
+	private int value = 0;
 
 	public void setValue(int intVal) {
 		value = intVal;
