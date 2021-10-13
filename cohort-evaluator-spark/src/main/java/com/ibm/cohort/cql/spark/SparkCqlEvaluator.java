@@ -286,14 +286,17 @@ public class SparkCqlEvaluator implements Serializable {
 
             final LongAccumulator contextAccum = spark.sparkContext().longAccumulator("Context");
             final LongAccumulator perContextAccum = spark.sparkContext().longAccumulator("PerContext");
-            DatasetRetriever datasetRetriever = new DefaultDatasetRetriever(spark, args.inputFormat);
+            DatasetRetriever defaultDatasetRetriever = new DefaultDatasetRetriever(spark, args.inputFormat);
 
             for (ContextDefinition context : filteredContexts) {
                 final String contextName = context.getName();
                 
-                Map<String, Set<String>> pathsByDataType = getFiltersForContext(cqlTranslator, context);
-                DatasetRetriever filteredRetriever = new FilteredDatasetRetriever(datasetRetriever, pathsByDataType);
-                ContextRetriever contextRetriever = new ContextRetriever(args.inputPaths, filteredRetriever);
+                DatasetRetriever datasetRetriever = defaultDatasetRetriever;
+                if( ! args.disableColumnFiltering ) {
+                    Map<String, Set<String>> pathsByDataType = getFiltersForContext(cqlTranslator, context);
+                    datasetRetriever = new FilteredDatasetRetriever(defaultDatasetRetriever, pathsByDataType);
+                } 
+                ContextRetriever contextRetriever = new ContextRetriever(args.inputPaths, datasetRetriever);
 
                 StructType resultsSchema = resultSchemas.get(contextName);
                 
@@ -340,7 +343,6 @@ public class SparkCqlEvaluator implements Serializable {
     protected Map<String, Set<String>> getFiltersForContext(CqlToElmTranslator cqlTranslator, ContextDefinition context)
             throws Exception, IOException, FileNotFoundException {
         
-        
         List<CqlEvaluationRequest> requests = getFilteredJobSpecificationWithIds().getEvaluations();
         
         Map<CqlLibraryDescriptor,Set<String>> expressionsByLibrary = new HashMap<>();
@@ -374,7 +376,7 @@ public class SparkCqlEvaluator implements Serializable {
                 if( join.getPrimaryDataTypeColumn() != null ) {
                     contextFields.add(join.getPrimaryDataTypeColumn());
                 }
-    
+                
                 if( join instanceof ManyToMany ) {
                     ManyToMany manyToMany = (ManyToMany) join;
                     Set<String> associationFields = pathsByDataType.computeIfAbsent(manyToMany.getAssociationDataType(), dt -> new HashSet<String>());
