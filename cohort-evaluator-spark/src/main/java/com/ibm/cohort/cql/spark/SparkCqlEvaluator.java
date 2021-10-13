@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -194,11 +195,21 @@ public class SparkCqlEvaluator implements Serializable {
                 }
             }
             CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(0);
-            //tabishop sleep for just over 5 seconds because Prometheus only polls
-            //every 5 seconds. If spark finishes and goes away immediately after completing,
-            //Prometheus will never be able to poll for the final set of metrics for the spark-submit
-            //The default promtheus config map was changed from 2 minute scrape interval to 5 seconds for spark pods
-            Thread.sleep(5500);
+            try {
+	            Boolean metricsEnabledStr = Boolean.valueOf(spark.conf().get("spark.ui.prometheus.enabled"));
+	            if(metricsEnabledStr) {
+	            	LOG.info("Prometheus metrics enabled, sleeping for 5.5 seconds to finish gathering metrics");
+		            //sleep for just over 5 seconds because Prometheus only polls
+		            //every 5 seconds. If spark finishes and goes away immediately after completing,
+		            //Prometheus will never be able to poll for the final set of metrics for the spark-submit
+		            //The default promtheus config map was changed from 2 minute scrape interval to 5 seconds for spark pods
+		            Thread.sleep(5500);
+	            }else {
+	            	LOG.info("Prometheus metrics not enabled");
+	            }
+            } catch (NoSuchElementException e) {
+            	LOG.info("spark.ui.prometheus.enabled is not set");
+            }
         }
     }
 

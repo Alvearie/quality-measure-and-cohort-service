@@ -21,11 +21,11 @@ import com.codahale.metrics.MetricRegistry;
  */
 public class CustomMetricSparkPlugin implements SparkPlugin{
 	
-	public static LongAccumulatorGauge contextAccumGauge= new LongAccumulatorGauge();	
-	public static IntGauge currentlyEvaluatingContextGauge = new IntGauge();	
-	public static LongAccumulatorGauge perContextAccumGauge = new LongAccumulatorGauge();
-	public static Counter contextUnionsCompletedCounter = new Counter();
-	public static Counter totalContextsToProcessCounter = new Counter();
+	public static final LongAccumulatorGauge contextAccumGauge= new LongAccumulatorGauge();	
+	public static final IntGauge currentlyEvaluatingContextGauge = new IntGauge();	
+	public static final LongAccumulatorGauge perContextAccumGauge = new LongAccumulatorGauge();
+	public static final Counter contextUnionsCompletedCounter = new Counter();
+	public static final Counter totalContextsToProcessCounter = new Counter();
 
 	
 	@Override
