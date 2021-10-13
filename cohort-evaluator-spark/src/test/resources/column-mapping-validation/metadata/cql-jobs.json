@@ -1,0 +1,55 @@
+{
+  "globalParameters": {
+    "NumberToCheck": {
+      "type": "integer",
+      "value": 1
+    }
+  },
+  "evaluations": [
+    {
+      "descriptor": {
+        "libraryId": "ParameterMeasure",
+        "version": "1.0.0"
+      },
+      "expressions": [
+        {"name": "cohort", "outputColumn": "all10"}
+      ],
+      "contextKey": "Patient",
+      "contextValue": "NA",
+      "parameters": {
+        "NumberToCheck": {
+          "type": "integer",
+          "value": 10
+        }
+      }
+    },
+    {
+      "descriptor": {
+        "libraryId": "ParameterMeasure",
+        "version": "1.0.0"
+      },
+      "expressions": [
+        {"name": "cohort", "outputColumn": "all5"}
+      ],
+      "contextKey": "Patient",
+      "contextValue": "NA",
+      "parameters": {
+        "NumberToCheck": {
+          "type": "integer",
+          "value": 5
+        }
+      }
+    },
+    {
+      "descriptor": {
+        "libraryId": "ParameterMeasure",
+        "version": "1.0.0"
+      },
+      "expressions": [
+        "cohort"
+      ],
+      "contextKey": "Patient",
+      "contextValue": "NA"
+    }
+  ]
+}

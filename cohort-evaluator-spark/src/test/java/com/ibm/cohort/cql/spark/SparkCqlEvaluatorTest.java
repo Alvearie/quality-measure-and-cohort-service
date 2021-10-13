@@ -10,6 +10,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -19,8 +20,11 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.spark.SparkException;
@@ -35,11 +39,15 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
 import com.ibm.cohort.cql.evaluation.parameters.DateParameter;
+import com.ibm.cohort.cql.evaluation.parameters.DecimalParameter;
 import com.ibm.cohort.cql.evaluation.parameters.IntegerParameter;
 import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
+import com.ibm.cohort.cql.evaluation.parameters.StringParameter;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.data.Patient;
@@ -60,6 +68,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         SparkCqlEvaluator.jobSpecification.remove();
         SparkCqlEvaluator.libraryProvider.remove();
         SparkCqlEvaluator.terminologyProvider.remove();
+        SparkCqlEvaluator.sparkOutputColumnEncoder.remove();
     }
 
     /**
@@ -102,7 +111,6 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         SparkCqlEvaluator.main(args);
         
-        // BaseSparkTest uses .config("spark.sql.sources.default", "delta");
         validateOutputCountsAndColumns(outputLocation, new HashSet<>(Arrays.asList("id", "SampleLibrary|IsFemale")), 10, "delta");
     }
 
@@ -248,6 +256,126 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 "delta"
         );
     }
+
+    @Test
+    public void testValidateOutputOptionEAndOptionL() throws Exception {
+        File inputDir = new File("src/test/resources/output-validation/");
+        File outputDir = new File("target/output/output-validation-option-el/");
+
+        File context1IdFile = new File(outputDir, "context-1-id");
+
+        String[] args = new String[]{
+                "-d", "src/test/resources/output-validation/metadata/context-definitions.json",
+                "-j", "src/test/resources/output-validation/metadata/cql-jobs-combined.json",
+                "-m", "src/test/resources/output-validation/modelinfo/simple-all-types-model-info.xml",
+                "-c", "src/test/resources/output-validation/cql",
+                "--input-format", "parquet",
+                "-i", "Type1=" + new File(inputDir, "testdata/Type1").toURI().toString(),
+                "-e", "define_integer",
+                "-l", "Context1Id=1.0.0",
+                "-o", "Context1Id=" + context1IdFile.toURI().toString(),
+                "--output-format", "parquet",
+                "--overwrite-output-for-contexts"
+        };
+
+        SparkCqlEvaluator.main(args);
+
+
+        validateOutput(
+                context1IdFile.toURI().toString(),
+                Arrays.asList(
+                        RowFactory.create(0, null),
+                        RowFactory.create(1, null),
+                        RowFactory.create(2, 33),
+                        RowFactory.create(3, 22),
+                        RowFactory.create(4, 22)
+                ),
+                new StructType()
+                        .add("id", DataTypes.IntegerType, false)
+                        .add("Context1Id|define_integer", DataTypes.IntegerType, true),
+                "parquet"
+        );
+    }
+
+    @Test
+    public void testValidateOutputOptionEAndOptionA() throws Exception {
+        File inputDir = new File("src/test/resources/output-validation/");
+        File outputDir = new File("target/output/output-validation-option-ea/");
+
+        File context1IdFile = new File(outputDir, "context-1-id");
+
+        String[] args = new String[]{
+                "-d", "src/test/resources/output-validation/metadata/context-definitions.json",
+                "-j", "src/test/resources/output-validation/metadata/cql-jobs-combined.json",
+                "-m", "src/test/resources/output-validation/modelinfo/simple-all-types-model-info.xml",
+                "-c", "src/test/resources/output-validation/cql",
+                "--input-format", "parquet",
+                "-i", "Type1=" + new File(inputDir, "testdata/Type1").toURI().toString(),
+                "-e", "define_integer",
+                "-a", "Context1Id",
+                "-o", "Context1Id=" + context1IdFile.toURI().toString(),
+                "--output-format", "parquet",
+                "--overwrite-output-for-contexts"
+        };
+
+        SparkCqlEvaluator.main(args);
+
+
+        validateOutput(
+                context1IdFile.toURI().toString(),
+                Arrays.asList(
+                        RowFactory.create(0, null),
+                        RowFactory.create(1, null),
+                        RowFactory.create(2, 33),
+                        RowFactory.create(3, 22),
+                        RowFactory.create(4, 22)
+                ),
+                new StructType()
+                        .add("id", DataTypes.IntegerType, false)
+                        .add("Context1Id|define_integer", DataTypes.IntegerType, true),
+                "parquet"
+        );
+    }
+
+    @Test
+    public void testValidateSameDefinesWithOutputMapping() throws Exception {
+        File inputDir = new File("src/test/resources/column-mapping-validation/");
+        File outputDir = new File("target/output/column-mapping-validation/");
+
+        File patientFile = new File(outputDir, "patient");
+
+        String[] args = new String[]{
+                "-d", "src/test/resources/column-mapping-validation/metadata/context-definitions.json",
+                "-j", "src/test/resources/column-mapping-validation/metadata/cql-jobs.json",
+                "-m", "src/test/resources/column-mapping-validation/modelinfo/simple-all-types-model-info.xml",
+                "-c", "src/test/resources/column-mapping-validation/cql",
+                "--input-format", "parquet",
+                "-i", "Patient=" + new File(inputDir, "testdata/Patient").toURI().toString(),
+                "-o", "Patient=" + patientFile.toURI().toString(),
+                "--output-format", "parquet",
+                "--overwrite-output-for-contexts"
+        };
+
+        SparkCqlEvaluator.main(args);
+
+
+        validateOutput(
+                patientFile.toURI().toString(),
+                Arrays.asList(
+                        RowFactory.create(0, 5, 10, 1),
+                        RowFactory.create(1, 5, 10, 1),
+                        RowFactory.create(2, 5, 10, 1),
+                        RowFactory.create(3, 5, 10, 1),
+                        RowFactory.create(4, 5, 10, 1)
+                ),
+                new StructType()
+                        .add("id", DataTypes.IntegerType, false)
+                        .add("all5", DataTypes.IntegerType, true)
+                        .add("all10", DataTypes.IntegerType, true)
+                        .add("ParameterMeasure|cohort", DataTypes.IntegerType, true),
+                "parquet"
+        );
+    }
     
     private void validateOutput(String filename, List<Row> expectedRows, StructType schema, String expectedFormat) {
         // SparkCqlEvaluator closes the SparkSession. Make sure we have one opened before any validation.
@@ -258,11 +386,12 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         List<String> columnList = Arrays.asList(actualDataFrame.columns());
         String[] actualColumns = columnList.toArray(new String[columnList.size()]);
 
+        assertEquals(schema.fields().length, actualColumns.length);
+
         // Make sure columns are in the same order in both dataframes
         Dataset<Row> expectedDataFrame = spark.createDataFrame(expectedRows, schema)
                 .select(actualColumns[0], Arrays.copyOfRange(actualColumns, 1, actualColumns.length));
 
-        assertEquals(schema.fields().length, actualColumns.length);
         assertEquals(0, expectedDataFrame.except(actualDataFrame).count());
         assertEquals(0, actualDataFrame.except(expectedDataFrame).count());
 
@@ -383,10 +512,6 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         Throwable th = assertThrows( SparkException.class, () -> SparkCqlEvaluator.main(args) );
         assertStackTraceContainsMessage(th, "CQL evaluation failed");
     }
-
-    private CqlEvaluationRequest makeEvaluationRequest(String contextName) {
-        return makeEvaluationRequest(contextName, null, null);
-    }
     
     private CqlEvaluationRequest makeEvaluationRequest(String contextName, String libraryName, String libraryVersion) {
         CqlEvaluationRequest cqlEvaluationRequest = new CqlEvaluationRequest();
@@ -403,91 +528,186 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
     }
 
     @Test
-    public void testFilterRequestsNoEvaluationRequests() {
+    public void testGetFilteredRequestsNoFilters() {
         CqlEvaluationRequests requests = new CqlEvaluationRequests();
+        requests.setEvaluations(Arrays.asList(
+                makeEvaluationRequest("context", "lib1", "1.0.0")
+        ));
 
-        List<CqlEvaluationRequest> cqlEvaluationRequests = evaluator.filterRequests(requests, "A");
-
-        assertTrue(cqlEvaluationRequests.isEmpty());
-    }
-    
-    @Test
-    public void testFilterRequestsNoEvaluationRequestsForContext() {
-        CqlEvaluationRequests requests = new CqlEvaluationRequests();
-
-        List<CqlEvaluationRequest> evaluations = Arrays.asList(
-                makeEvaluationRequest("B"),
-                makeEvaluationRequest("C"),
-                makeEvaluationRequest("D")
+        CqlEvaluationRequests actual = evaluator.getFilteredRequests(
+                requests,
+                null,
+                null
         );
-        
-        requests.setEvaluations(evaluations);
-        
-        List<CqlEvaluationRequest> cqlEvaluationRequests = evaluator.filterRequests(requests, "A");
-        
-        assertTrue(cqlEvaluationRequests.isEmpty());
+
+        assertEquals(1, actual.getEvaluations().size());
     }
 
     @Test
-    public void testFilterRequestsFilterToRequestsForContext() {
+    public void testGetFilteredRequestsNoEvaluationRequestsForLibraries() {
         CqlEvaluationRequests requests = new CqlEvaluationRequests();
 
+        CqlEvaluationRequest request = makeEvaluationRequest("context", "lib1", "1.0.0");
+        request.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohort")));
+
+
+        CqlEvaluationRequest request2 = makeEvaluationRequest("context", "lib2", "1.0.0");
+        request2.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohort")));
+        
         List<CqlEvaluationRequest> evaluations = Arrays.asList(
-                makeEvaluationRequest("A"),
-                makeEvaluationRequest("A"),
-                makeEvaluationRequest("B")
+                request,
+                request2
         );
 
         requests.setEvaluations(evaluations);
 
-        List<CqlEvaluationRequest> cqlEvaluationRequests = evaluator.filterRequests(requests, "A");
+        Map<String, String> libs = new HashMap<String, String>() {{
+            put("lib3", "1.0.0");
+            put("lib4", "1.0.0");
+        }};
 
-        assertEquals(2, cqlEvaluationRequests.size());
-        for (CqlEvaluationRequest cqlEvaluationRequest : cqlEvaluationRequests) {
-            assertEquals("A", cqlEvaluationRequest.getContextKey());
+        CqlEvaluationRequests actual = evaluator.getFilteredRequests(
+                requests,
+                libs,
+                null
+        );
+
+        assertTrue(actual.getEvaluations().isEmpty());
+    }
+
+    @Test
+    public void testGetFilteredRequestsFilterToLibrariesIgnoresVersion() {
+        CqlEvaluationRequests requests = new CqlEvaluationRequests();
+
+        CqlEvaluationRequest request = makeEvaluationRequest("context", "lib1", "1.0.0");
+        request.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohort")));
+
+
+        CqlEvaluationRequest request2 = makeEvaluationRequest("context", "lib2", "1.0.0");
+        request2.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohort")));
+
+        CqlEvaluationRequest request3 = makeEvaluationRequest("context", "lib3", "1.0.0");
+        request.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohort")));
+
+
+        CqlEvaluationRequest request4 = makeEvaluationRequest("context", "lib4", "1.0.0");
+        request2.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohort")));
+
+        List<CqlEvaluationRequest> evaluations = Arrays.asList(
+                request,
+                request2,
+                request3,
+                request4
+        );
+
+        requests.setEvaluations(evaluations);
+
+        Map<String, String> libs = new HashMap<String, String>() {{
+            put("lib3", "7.0.0");
+            put("lib4", "1.0.0");
+        }};
+
+        CqlEvaluationRequests actual = evaluator.getFilteredRequests(
+                requests,
+                libs,
+                null
+        );
+
+        assertEquals(2, actual.getEvaluations().size());
+        for (CqlEvaluationRequest cqlEvaluationRequest : actual.getEvaluations()) {
+            assertTrue(libs.containsKey(cqlEvaluationRequest.getDescriptor().getLibraryId()));
         }
     }
 
     @Test
-    public void testFilterByLibraryNameNoMatches() {
+    public void testGetFilteredRequestsOverwriteEvaluations() {
         CqlEvaluationRequests requests = new CqlEvaluationRequests();
 
+        CqlEvaluationRequest request = makeEvaluationRequest("context", "lib1", "1.0.0");
+        request.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohortOrig")));
+
+
+        CqlEvaluationRequest request2 = makeEvaluationRequest("context", "lib2", "1.0.0");
+        request2.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohortOrig")));
+
         List<CqlEvaluationRequest> evaluations = Arrays.asList(
-                makeEvaluationRequest("A", "lib4", "1.0.0"),
-                makeEvaluationRequest("A", "lib3", "3.0.0"),
-                makeEvaluationRequest("B", "lib2", "1.0.0")
+                request,
+                request2
         );
 
         requests.setEvaluations(evaluations);
 
-        args.libraries.put("lib1", "1.0.0");
-        args.libraries.put("lib2", "1.0.0");
+        Map<String, String> libs = new HashMap<String, String>() {{
+            put("lib1", "1.0.0");
+            put("lib2", "1.0.0");
+        }};
 
-        List<CqlEvaluationRequest> cqlEvaluationRequests = evaluator.filterRequests(requests, "A");
+        Set<String> expressions = new HashSet<>(Arrays.asList("expr1", "expr2"));
 
-        assertTrue(cqlEvaluationRequests.isEmpty());
+        
+        CqlEvaluationRequests actual = evaluator.getFilteredRequests(
+                requests,
+                libs,
+                expressions
+        );
+
+        assertEquals(2, actual.getEvaluations().size());
+        for (CqlEvaluationRequest evaluation : actual.getEvaluations()) {
+            assertEquals(2, evaluation.getExpressions().size());
+            for (String expressionName : evaluation.getExpressionNames()) {
+                assertTrue(expressions.contains(expressionName));
+            }
+        }
     }
 
     @Test
-    public void testFilterByLibraryNameMatchesIgnoresVersion() {
+    public void testGetFilteredRequestsGlobalParametersApplied() {
         CqlEvaluationRequests requests = new CqlEvaluationRequests();
+        requests.setGlobalParameters(
+                new HashMap<String, Parameter>() {{
+                    put("param1", new IntegerParameter(10));
+                    put("param2", new StringParameter("10"));
+                    put("globalParam", new DecimalParameter("10.0"));
+                }}  
+        );
 
-        Set<CqlEvaluationRequest> expectedRequests = new HashSet<>();
-        expectedRequests.add(makeEvaluationRequest("A", "lib1", "4.0.0"));
-        expectedRequests.add(makeEvaluationRequest("A", "lib2", "7.0.0"));
+        CqlEvaluationRequest request = makeEvaluationRequest("context", "lib1", "1.0.0");
+        request.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohortOrig")));
+        request.setParameters(
+                new HashMap<String, Parameter>() {{
+                    put("param1", new IntegerParameter(1));
+                    put("param2", new StringParameter("1"));
+                    put("param3", new DecimalParameter("1.0"));
+                }}
+        );
 
-        List<CqlEvaluationRequest> evaluations = new ArrayList<>(expectedRequests);
-        evaluations.add(makeEvaluationRequest("B", "lib2", "1.0.0"));
+        CqlEvaluationRequest request2 = makeEvaluationRequest("context", "lib2", "1.0.0");
+        request2.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohortOrig")));
+        
+        List<CqlEvaluationRequest> evaluations = Arrays.asList(request, request2);
 
         requests.setEvaluations(evaluations);
 
-        args.libraries.put("lib1", "1.0.0");
-        args.libraries.put("lib2", "1.0.0");
+        CqlEvaluationRequests actual = evaluator.getFilteredRequests(requests, null, null);
 
-        List<CqlEvaluationRequest> cqlEvaluationRequests = evaluator.filterRequests(requests, "A");
-
-        assertEquals(2, cqlEvaluationRequests.size());
-        assertTrue(expectedRequests.containsAll(cqlEvaluationRequests));
+        for (CqlEvaluationRequest evaluation : actual.getEvaluations()) {
+            if (evaluation.getDescriptor().getLibraryId().equals("lib1")) {
+                assertEquals(4, evaluation.getParameters().size());
+                assertEquals(new IntegerParameter(1), evaluation.getParameters().get("param1"));
+                assertEquals(new StringParameter("1"), evaluation.getParameters().get("param2"));
+                assertEquals(new DecimalParameter("1.0"), evaluation.getParameters().get("param3"));
+                assertEquals(new DecimalParameter("10.0"), evaluation.getParameters().get("globalParam"));
+            }
+            else if (evaluation.getDescriptor().getLibraryId().equals("lib2")) {
+                assertEquals(3, evaluation.getParameters().size());
+                assertEquals(new IntegerParameter(10), evaluation.getParameters().get("param1"));
+                assertEquals(new StringParameter("10"), evaluation.getParameters().get("param2"));
+                assertEquals(new DecimalParameter("10.0"), evaluation.getParameters().get("globalParam"));
+            }
+            else {
+                fail("Unexpected library encountered. Expected only lib1 and lib2.");
+            }
+        }
     }
 
     @Test
@@ -502,6 +722,18 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         assertEquals(measurementPeriod, requests.getGlobalParameters().get("Measurement Period"));
         assertEquals(1, requests.getEvaluations().size());
         assertEquals(minimumAge, requests.getEvaluations().get(0).getParameters().get("MinimumAge"));
+    }
+
+    @Test
+    public void testReadFilteredJobs() throws Exception {
+        evaluator.args.jobSpecPath = "src/test/resources/column-mapping-validation/metadata/cql-jobs.json";
+
+        CqlEvaluationRequests requests = evaluator.getFilteredJobSpecificationWithIds();
+        assertNotNull(requests);
+        assertEquals(3, requests.getEvaluations().size());
+        assertEquals(1, (int) requests.getEvaluations().get(0).getId());
+        assertEquals(2, (int) requests.getEvaluations().get(1).getId());
+        assertEquals(3, (int) requests.getEvaluations().get(2).getId());
     }
     
     @Test

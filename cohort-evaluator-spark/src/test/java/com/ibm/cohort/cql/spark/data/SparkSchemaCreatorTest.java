@@ -340,7 +340,7 @@ public class SparkSchemaCreatorTest {
 	) {
 		CqlEvaluationRequest evaluationRequest = new CqlEvaluationRequest();
 		evaluationRequest.setDescriptor(descriptor);
-		evaluationRequest.setExpressions(expressions);
+		evaluationRequest.setExpressionsByNames(expressions);
 		evaluationRequest.setContextKey(contextKey);
 		return evaluationRequest;
 	}
