@@ -7,6 +7,7 @@
 package com.ibm.cohort.cql.spark.data;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.io.File;
 import java.util.Collections;
@@ -49,5 +50,18 @@ public class FilteredDatasetRetrieverTest extends BaseSparkTest {
         Dataset<Row> filtered = filteredRetriever.readDataset(dataType, path);
         assertEquals(1, filtered.schema().fields().length);
         assertEquals(0, filtered.schema().getFieldIndex(colName).get());
+    }
+    
+    @Test
+    public void testColumnFilteringNoColumnsRequired() {
+        String dataType = "A";
+        String path = new File("src/test/resources/alltypes/testdata/test-A.parquet").toURI().toString();
+        
+        Map<String,Set<String>> fieldsByDataType = new HashMap<>();
+        
+        DefaultDatasetRetriever defaultRetriever = new DefaultDatasetRetriever(spark, "parquet");
+        FilteredDatasetRetriever filteredRetriever = new FilteredDatasetRetriever(defaultRetriever, fieldsByDataType);
+        Dataset<Row> filtered = filteredRetriever.readDataset(dataType, path);
+        assertNull(filtered);
     }
 }

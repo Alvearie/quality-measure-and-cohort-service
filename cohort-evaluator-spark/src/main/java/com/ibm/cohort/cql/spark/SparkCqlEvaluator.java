@@ -293,7 +293,7 @@ public class SparkCqlEvaluator implements Serializable {
                 
                 DatasetRetriever datasetRetriever = defaultDatasetRetriever;
                 if( ! args.disableColumnFiltering ) {
-                    Map<String, Set<String>> pathsByDataType = getFiltersForContext(cqlTranslator, context);
+                    Map<String, Set<String>> pathsByDataType = getDataRequirementsForContext(cqlTranslator, context);
                     datasetRetriever = new FilteredDatasetRetriever(defaultDatasetRetriever, pathsByDataType);
                 } 
                 ContextRetriever contextRetriever = new ContextRetriever(args.inputPaths, datasetRetriever);
@@ -340,8 +340,17 @@ public class SparkCqlEvaluator implements Serializable {
         }
     }
 
-    protected Map<String, Set<String>> getFiltersForContext(CqlToElmTranslator cqlTranslator, ContextDefinition context)
-            throws Exception, IOException, FileNotFoundException {
+    /**
+     * Retrieve the merged set of data type and column filters for all CQL jobs that will
+     * be evaluated for a given aggregation context.
+     * 
+     * @param cqlTranslator Pre-configured CQL translator instance
+     * @param context ContextDefinition whose CQL jobs will be interrogated for data requirements
+     * @return Map of data type to the fields in that datatype that are used by the CQL jobs
+     * @throws Exception any failure
+     */
+    protected Map<String, Set<String>> getDataRequirementsForContext(CqlToElmTranslator cqlTranslator, ContextDefinition context)
+            throws Exception {
         
         List<CqlEvaluationRequest> requests = getFilteredJobSpecificationWithIds().getEvaluations();
         
@@ -355,7 +364,7 @@ public class SparkCqlEvaluator implements Serializable {
         
         Map<String,Set<String>> pathsByDataType = new HashMap<>();
         for( Map.Entry<CqlLibraryDescriptor, Set<String>> entry : expressionsByLibrary.entrySet() ) {
-            LOG.info("Extracting data requirements for " + entry.getKey().toString());
+            LOG.debug("Extracting data requirements for " + entry.getKey().toString());
             
             // There is a method for filtering by specific expressions, but it is buggy, so we are requesting requirements
             // for the whole library.
@@ -370,18 +379,21 @@ public class SparkCqlEvaluator implements Serializable {
         contextFields.add(context.getPrimaryKeyColumn());
         if( context.getRelationships() != null ) {
             for( Join join : context.getRelationships() ) {
-                Set<String> joinFields = pathsByDataType.computeIfAbsent(join.getRelatedDataType(), dt -> new HashSet<String>());
-                joinFields.add(join.getRelatedKeyColumn());
-                
-                if( join.getPrimaryDataTypeColumn() != null ) {
-                    contextFields.add(join.getPrimaryDataTypeColumn());
-                }
-                
-                if( join instanceof ManyToMany ) {
-                    ManyToMany manyToMany = (ManyToMany) join;
-                    Set<String> associationFields = pathsByDataType.computeIfAbsent(manyToMany.getAssociationDataType(), dt -> new HashSet<String>());
-                    associationFields.add(manyToMany.getAssociationOneKeyColumn());
-                    associationFields.add(manyToMany.getAssociationManyKeyColumn());
+                Set<String> joinFields = pathsByDataType.get(join.getRelatedDataType());
+                if( joinFields != null && joinFields.size() > 0 ) {
+                    joinFields.add(join.getRelatedKeyColumn());
+                    
+                    // if the join key is not the primary key of the primary data table, then we need to add in the alternate key
+                    if( join.getPrimaryDataTypeColumn() != null ) {
+                        contextFields.add(join.getPrimaryDataTypeColumn());
+                    }
+                    
+                    if( join instanceof ManyToMany ) {
+                        ManyToMany manyToMany = (ManyToMany) join;
+                        Set<String> associationFields = pathsByDataType.computeIfAbsent(manyToMany.getAssociationDataType(), dt -> new HashSet<String>());
+                        associationFields.add(manyToMany.getAssociationOneKeyColumn());
+                        associationFields.add(manyToMany.getAssociationManyKeyColumn());
+                    }
                 }
             }
         }

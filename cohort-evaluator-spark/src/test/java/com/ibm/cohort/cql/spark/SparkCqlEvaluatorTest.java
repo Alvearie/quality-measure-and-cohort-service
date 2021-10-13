@@ -159,6 +159,44 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         validateOutputCountsAndColumns(cFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureC|cohort")), 600, "parquet");
         validateOutputCountsAndColumns(dFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureD|cohort")), 567, "parquet");
     }
+    
+    @Test
+    public void testAllTypesEvaluationFilteredDataSuccess() throws Exception {
+        File inputDir = new File("src/test/resources/alltypes/");
+        File outputDir = new File("target/output/alltypes/");
+
+        File patientFile = new File(outputDir, "Patient_cohort");
+        File aFile = new File(outputDir, "A_cohort");
+        File bFile = new File(outputDir, "B_cohort");
+        File cFile = new File(outputDir, "C_cohort");
+        File dFile = new File(outputDir, "D_cohort");
+
+        String [] args = new String[] {
+          "-d", "src/test/resources/alltypes/metadata/context-definitions.json",
+          "-j", "src/test/resources/alltypes/metadata/parent-child-jobs.json",
+          "-m", "src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml",
+          "-c", "src/test/resources/alltypes/cql",
+          "--input-format", "parquet",
+          "-i", "A=" + new File(inputDir, "testdata/test-A.parquet").toURI().toString(),
+          "-i", "B=" + new File(inputDir, "testdata/test-B.parquet").toURI().toString(),
+          "-i", "C=" + new File(inputDir, "testdata/test-C.parquet").toURI().toString(),
+          "-i", "D=" + new File(inputDir, "testdata/test-D.parquet").toURI().toString(),
+          "-o", "Patient=" + patientFile.toURI().toString(),
+          "-o", "A=" + aFile.toURI().toString(),
+          "-o", "B=" + bFile.toURI().toString(),
+          "-o", "C=" + cFile.toURI().toString(),
+          "-o", "D=" + dFile.toURI().toString(),
+          "-n", "1",
+          "--output-format", "parquet",
+          "--overwrite-output-for-contexts"
+        };
+
+        SparkCqlEvaluator.main(args);
+
+        // Expected rows per context were derived from inspecting the input data
+        // by hand and counting the unique values for each context's key column.
+        validateOutputCountsAndColumns(patientFile.toURI().toString(), new HashSet<>(Arrays.asList("pat_id", "Parent|cohort")), 100, "parquet");
+    }
 
     @Test
     public void testAnyColumnEvaluation() throws Exception {
@@ -815,13 +853,10 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         ContextDefinitions definitions = evaluator.readContextDefinitions(evaluator.args.contextDefinitionPath);
         ContextDefinition context = definitions.getContextDefinitionByName("Patient");
         
-        Map<String,Set<String>> actual = evaluator.getFiltersForContext(cqlTranslator, context);
+        Map<String,Set<String>> actual = evaluator.getDataRequirementsForContext(cqlTranslator, context);
         
         Map<String,Set<String>> expected = new HashMap<>();
         expected.put("A", new HashSet<>(Arrays.asList("pat_id", "code_col", "boolean_col")));
-        expected.put("B", new HashSet<>(Arrays.asList("pat_id")));
-        expected.put("C", new HashSet<>(Arrays.asList("pat_id")));
-        expected.put("D", new HashSet<>(Arrays.asList("pat_id")));
         
         assertEquals( expected, actual );
     }

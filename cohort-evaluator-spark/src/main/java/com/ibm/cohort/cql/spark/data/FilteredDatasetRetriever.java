@@ -35,7 +35,7 @@ public class FilteredDatasetRetriever implements DatasetRetriever {
         Dataset<Row> result = null;
         
         Set<String> columnNames = dataTypeFilters.get(dataType);
-        if( columnNames.size() > 0 ) {
+        if( columnNames != null && columnNames.size() > 0 ) {
             result = retriever.readDataset(dataType, path);
             
             List<Column> cols = new ArrayList<>();//Column[ columnNames.size() ];
