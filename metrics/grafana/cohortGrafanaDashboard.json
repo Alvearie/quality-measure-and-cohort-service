@@ -22,16 +22,12 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 8,
-  "iteration": 1633534252434,
+  "iteration": 1634060699479,
   "links": [],
   "panels": [
     {
       "collapsed": false,
       "datasource": null,
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -165,7 +161,7 @@
         },
         {
           "exemplar": true,
-          "expr": "metrics_spark_${application_ID}_driver_plugin_com_ibm_cohort_cql_spark_CustomMetricSparkPlugin_metrics_CohortMetricCounter_Count",
+          "expr": "metrics_spark_${application_ID}_driver_plugin_com_ibm_cohort_cql_spark_metrics_CustomMetricSparkPlugin_Cohort_TotalContextsToProcessCounter_Count",
           "hide": false,
           "interval": "",
           "legendFormat": "total",
@@ -368,10 +364,6 @@
     {
       "collapsed": false,
       "datasource": null,
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -947,8 +939,8 @@
         "allValue": null,
         "current": {
           "selected": false,
-          "text": "5c3b45fe91dc47ff92ae0dd2f0619ad1",
-          "value": "5c3b45fe91dc47ff92ae0dd2f0619ad1"
+          "text": "e00acf19aff54bb89f32d93926188fb3",
+          "value": "e00acf19aff54bb89f32d93926188fb3"
         },
         "datasource": null,
         "definition": "label_values(application_id)",
