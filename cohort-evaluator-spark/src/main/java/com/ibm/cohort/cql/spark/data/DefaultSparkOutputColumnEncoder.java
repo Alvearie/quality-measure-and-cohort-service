@@ -7,6 +7,8 @@ package com.ibm.cohort.cql.spark.data;
 
 import java.io.Serializable;
 
+import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
+
 public class DefaultSparkOutputColumnEncoder implements Serializable, SparkOutputColumnEncoder {
 	
 	private final String columnDelimieter;
@@ -14,9 +16,9 @@ public class DefaultSparkOutputColumnEncoder implements Serializable, SparkOutpu
 	public DefaultSparkOutputColumnEncoder(String columnDelimieter) {
 		this.columnDelimieter = columnDelimieter;
 	}
-	
+
 	@Override
-	public String getColumnName(String libraryId, String defineName) {
-		return String.join(columnDelimieter, libraryId, defineName);
+	public String getColumnName(CqlEvaluationRequest request, String defineName) {
+		return String.join(columnDelimieter, request.getDescriptor().getLibraryId(), defineName);
 	}
 }
