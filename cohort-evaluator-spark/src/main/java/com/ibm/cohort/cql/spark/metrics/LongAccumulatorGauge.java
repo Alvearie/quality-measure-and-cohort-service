@@ -21,7 +21,7 @@ public class LongAccumulatorGauge implements Gauge<Long> {
 		if (longAc != null) {
 			return longAc.value();
 		} else {
-			return new Long(0);
+			return Long.valueOf(0);
 		}
 	}
 
