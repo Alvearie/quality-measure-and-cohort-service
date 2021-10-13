@@ -50,9 +50,12 @@ import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.cql.evaluation.parameters.StringParameter;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
+import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.data.Patient;
+import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 
+@SuppressWarnings("serial")
 public class SparkCqlEvaluatorTest extends BaseSparkTest {
     private static final long serialVersionUID = 1L;
 
@@ -799,6 +802,29 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         assertEquals(3, contextDefinitions.getContextDefinitions().get(0).getRelationships().size());
     }
 
+    @Test
+    public void testGetFiltersForContext() throws Exception {
+        evaluator.args.cqlPath = "src/test/resources/alltypes/cql";
+        evaluator.args.contextDefinitionPath = "src/test/resources/alltypes/metadata/context-definitions.json";
+        evaluator.args.jobSpecPath = "src/test/resources/alltypes/metadata/parent-child-jobs.json";
+        evaluator.args.modelInfoPaths = Arrays.asList("src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml");
+
+        CqlToElmTranslator cqlTranslator = new CqlToElmTranslator();
+        cqlTranslator.registerModelInfo(new File("src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml"));
+        
+        ContextDefinitions definitions = evaluator.readContextDefinitions(evaluator.args.contextDefinitionPath);
+        ContextDefinition context = definitions.getContextDefinitionByName("Patient");
+        
+        Map<String,Set<String>> actual = evaluator.getFiltersForContext(cqlTranslator, context);
+        
+        Map<String,Set<String>> expected = new HashMap<>();
+        expected.put("A", new HashSet<>(Arrays.asList("pat_id", "code_col", "boolean_col")));
+        expected.put("B", new HashSet<>(Arrays.asList("pat_id")));
+        expected.put("C", new HashSet<>(Arrays.asList("pat_id")));
+        expected.put("D", new HashSet<>(Arrays.asList("pat_id")));
+        
+        assertEquals( expected, actual );
+    }
 
     public static void assertStackTraceContainsMessage(Throwable th, String message) {
         boolean found = false;
