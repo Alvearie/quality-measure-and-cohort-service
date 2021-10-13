@@ -47,8 +47,7 @@ public class ClasspathCqlLibraryProvider implements CqlLibraryProvider {
                     CqlLibraryDescriptor descriptor = new CqlLibraryDescriptor()
                             .setLibraryId(cqlResourceDescriptor.getLibraryId())
                             .setVersion(cqlResourceDescriptor.getVersion())
-                            .setFormat(cqlResourceDescriptor.getFormat())
-                            .setExternalId(name);
+                            .setFormat(cqlResourceDescriptor.getFormat());
                     
                     library = new CqlLibrary();
                     library.setDescriptor(descriptor);

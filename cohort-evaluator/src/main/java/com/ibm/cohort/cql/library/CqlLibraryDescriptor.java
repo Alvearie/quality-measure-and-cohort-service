@@ -16,6 +16,7 @@ import java.util.Map;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 public class CqlLibraryDescriptor implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -59,7 +60,6 @@ public class CqlLibraryDescriptor implements Serializable {
     private String libraryId;
     private String version;
     private Format format;
-    private String externalId;
 
     public String getLibraryId() {
         return libraryId;
@@ -88,14 +88,6 @@ public class CqlLibraryDescriptor implements Serializable {
         return this;
     }
 
-    public String getExternalId() {
-        return externalId;
-    }
-
-    public CqlLibraryDescriptor setExternalId(String externalId) {
-        this.externalId = externalId;
-        return this;
-    }
     
     @Override
     public int hashCode() {
@@ -122,11 +114,10 @@ public class CqlLibraryDescriptor implements Serializable {
     
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .append( libraryId )
-                .append( version )
-                .append( format )
-                .append( externalId )
+        return new ToStringBuilder(this, ToStringStyle.JSON_STYLE)
+                .append( "libraryId", libraryId )
+                .append( "version", version )
+                .append( "format", format )
                 .build();
     }
 }

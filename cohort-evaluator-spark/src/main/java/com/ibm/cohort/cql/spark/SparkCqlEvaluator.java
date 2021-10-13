@@ -15,6 +15,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -54,20 +55,25 @@ import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.cql.functions.AnyColumn;
 import com.ibm.cohort.cql.functions.CohortExternalFunctionProvider;
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
+import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.library.HadoopBasedCqlLibraryProvider;
 import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.aggregation.ContextRetriever;
+import com.ibm.cohort.cql.spark.aggregation.Join;
+import com.ibm.cohort.cql.spark.aggregation.ManyToMany;
 import com.ibm.cohort.cql.spark.data.ConfigurableOutputColumnNameEncoder;
 import com.ibm.cohort.cql.spark.data.DatasetRetriever;
 import com.ibm.cohort.cql.spark.data.DefaultDatasetRetriever;
+import com.ibm.cohort.cql.spark.data.FilteredDatasetRetriever;
 import com.ibm.cohort.cql.spark.data.SparkDataRow;
 import com.ibm.cohort.cql.spark.data.SparkOutputColumnEncoder;
 import com.ibm.cohort.cql.spark.data.SparkSchemaCreator;
 import com.ibm.cohort.cql.spark.data.SparkTypeConverter;
 import com.ibm.cohort.cql.spark.metrics.CustomMetricSparkPlugin;
+import com.ibm.cohort.cql.spark.optimizer.DataTypeRequirementsProcessor;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import com.ibm.cohort.cql.terminology.R4FileSystemFhirTerminologyProvider;
 import com.ibm.cohort.cql.terminology.UnsupportedTerminologyProvider;
@@ -131,13 +137,14 @@ public class SparkCqlEvaluator implements Serializable {
      *                              detect the key column for each context.
      * @param encoder               Encoder used to calculate the output column names to use for
      *                              each output schema.
+     * @param cqlTranslator         Pre-configured CQL Translator instance
      * @return Map of context name to the output Spark schema for that context. The map will only
      *         contain entries for each context name that included in the contextNames list
      *         used as input to this function.
      * @throws Exception if deserialization errors occur when reading in any of the input files
      *         or if inferring an output schema fails for any reason.
      */
-    protected Map<String, StructType> calculateSparkSchema(List<String> contextNames, ContextDefinitions contextDefinitions, SparkOutputColumnEncoder encoder) throws Exception {
+    protected Map<String, StructType> calculateSparkSchema(List<String> contextNames, ContextDefinitions contextDefinitions, SparkOutputColumnEncoder encoder, CqlToElmTranslator cqlTranslator) throws Exception {
         CqlLibraryProvider libProvider = SparkCqlEvaluator.libraryProvider.get();
         if (libProvider == null) {
             libProvider = createLibraryProvider();
@@ -146,7 +153,7 @@ public class SparkCqlEvaluator implements Serializable {
 
         CqlEvaluationRequests cqlEvaluationRequests = getFilteredJobSpecificationWithIds();
 
-        SparkSchemaCreator sparkSchemaCreator = new SparkSchemaCreator(libProvider, cqlEvaluationRequests, contextDefinitions, encoder);
+        SparkSchemaCreator sparkSchemaCreator = new SparkSchemaCreator(libProvider, cqlEvaluationRequests, contextDefinitions, encoder, cqlTranslator);
         return sparkSchemaCreator.calculateSchemasForContexts(contextNames);
     }
 
@@ -254,6 +261,8 @@ public class SparkCqlEvaluator implements Serializable {
             this.typeConverter = new SparkTypeConverter(useJava8API);
             this.hadoopConfiguration = new SerializableConfiguration(spark.sparkContext().hadoopConfiguration());
 
+            CqlToElmTranslator cqlTranslator = getCqlTranslator();
+            
             SparkOutputColumnEncoder columnEncoder = getSparkOutputColumnEncoder();
             
             ContextDefinitions contexts = readContextDefinitions(args.contextDefinitionPath);
@@ -267,24 +276,24 @@ public class SparkCqlEvaluator implements Serializable {
                 throw new IllegalArgumentException(
                         "At least one context definition is required (after filtering if enabled).");
             }
-
+            
             Map<String, StructType> resultSchemas = calculateSparkSchema(
                     filteredContexts.stream().map(ContextDefinition::getName).collect(Collectors.toList()),
                     contexts,
-                    columnEncoder
+                    columnEncoder,
+                    cqlTranslator
             );
 
             final LongAccumulator contextAccum = spark.sparkContext().longAccumulator("Context");
             final LongAccumulator perContextAccum = spark.sparkContext().longAccumulator("PerContext");
-            CustomMetricSparkPlugin.contextAccumGauge.setAccumulator(contextAccum);
-            CustomMetricSparkPlugin.perContextAccumGauge.setAccumulator(perContextAccum);
-            CustomMetricSparkPlugin.totalContextsToProcessCounter.inc(filteredContexts.size());
-            CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(0);
-            
             DatasetRetriever datasetRetriever = new DefaultDatasetRetriever(spark, args.inputFormat);
-            ContextRetriever contextRetriever = new ContextRetriever(args.inputPaths, datasetRetriever);
+
             for (ContextDefinition context : filteredContexts) {
                 final String contextName = context.getName();
+                
+                Map<String, Set<String>> pathsByDataType = getFiltersForContext(cqlTranslator, context);
+                DatasetRetriever filteredRetriever = new FilteredDatasetRetriever(datasetRetriever, pathsByDataType);
+                ContextRetriever contextRetriever = new ContextRetriever(args.inputPaths, filteredRetriever);
 
                 StructType resultsSchema = resultSchemas.get(contextName);
                 
@@ -298,7 +307,6 @@ public class SparkCqlEvaluator implements Serializable {
 
                     JavaPairRDD<Object, List<Row>> rowsByContextId = contextRetriever.retrieveContext(context);
 
-                    CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.getValue() + 1);
                     JavaPairRDD<Object, Map<String, Object>> resultsByContext = rowsByContextId
                             .mapToPair(x -> evaluate(contextName, x, perContextAccum));
                     
@@ -327,6 +335,60 @@ public class SparkCqlEvaluator implements Serializable {
             	LOG.info("spark.ui.prometheus.enabled is not set");
             }
         }
+    }
+
+    protected Map<String, Set<String>> getFiltersForContext(CqlToElmTranslator cqlTranslator, ContextDefinition context)
+            throws Exception, IOException, FileNotFoundException {
+        
+        
+        List<CqlEvaluationRequest> requests = getFilteredJobSpecificationWithIds().getEvaluations();
+        
+        Map<CqlLibraryDescriptor,Set<String>> expressionsByLibrary = new HashMap<>();
+        for( CqlEvaluationRequest request : requests ) {
+            Set<String> expressions = expressionsByLibrary.computeIfAbsent( request.getDescriptor(), desc -> new HashSet<>() );
+            request.getExpressions().stream().forEach( exp -> expressions.add(exp.getName()) );
+        }
+        
+        DataTypeRequirementsProcessor requirementsProcessor = new DataTypeRequirementsProcessor(cqlTranslator);
+        
+        Map<String,Set<String>> pathsByDataType = new HashMap<>();
+        for( Map.Entry<CqlLibraryDescriptor, Set<String>> entry : expressionsByLibrary.entrySet() ) {
+            LOG.info("Extracting data requirements for " + entry.getKey().toString());
+            
+            // There is a method for filtering by specific expressions, but it is buggy, so we are requesting requirements
+            // for the whole library.
+            Map<String,Set<String>> newPaths = requirementsProcessor.getPathsByDataType(createLibraryProvider(), entry.getKey());
+            
+            newPaths.forEach( (key,value) -> {
+                pathsByDataType.merge(key, value, (prev,current) -> { prev.addAll(current); return prev; } );
+            });
+        }
+        
+        Set<String> contextFields = pathsByDataType.computeIfAbsent(context.getPrimaryDataType(), dt -> new HashSet<String>() );
+        contextFields.add(context.getPrimaryKeyColumn());
+        if( context.getRelationships() != null ) {
+            for( Join join : context.getRelationships() ) {
+                Set<String> joinFields = pathsByDataType.computeIfAbsent(join.getRelatedDataType(), dt -> new HashSet<String>());
+                joinFields.add(join.getRelatedKeyColumn());
+                
+                if( join.getPrimaryDataTypeColumn() != null ) {
+                    contextFields.add(join.getPrimaryDataTypeColumn());
+                }
+    
+                if( join instanceof ManyToMany ) {
+                    ManyToMany manyToMany = (ManyToMany) join;
+                    Set<String> associationFields = pathsByDataType.computeIfAbsent(manyToMany.getAssociationDataType(), dt -> new HashSet<String>());
+                    associationFields.add(manyToMany.getAssociationOneKeyColumn());
+                    associationFields.add(manyToMany.getAssociationManyKeyColumn());
+                }
+            }
+        }
+        // Must have the key field for every data type
+        for( Map.Entry<String, Set<String>> entry : pathsByDataType.entrySet() ) {
+            entry.getValue().add(context.getPrimaryKeyColumn());
+        }
+        
+        return pathsByDataType;
     }
 
     /**
@@ -491,6 +553,10 @@ public class SparkCqlEvaluator implements Serializable {
         CqlLibraryProvider cpBasedLp = new ClasspathCqlLibraryProvider("org.hl7.fhir");
         CqlLibraryProvider priorityLp = new PriorityCqlLibraryProvider( hadoopBasedLp, cpBasedLp );
 
+        return new TranslatingCqlLibraryProvider(priorityLp, getCqlTranslator());
+    }
+    
+    protected CqlToElmTranslator getCqlTranslator() throws IOException {
         // TODO - replace with cohort shared translation component
         final CqlToElmTranslator translator = new CqlToElmTranslator();
         if (args.modelInfoPaths != null && !args.modelInfoPaths.isEmpty()) {
@@ -502,8 +568,7 @@ public class SparkCqlEvaluator implements Serializable {
                 }
             }
         }
-        
-        return new TranslatingCqlLibraryProvider(priorityLp, translator);
+        return translator;
     }
     
     /**
@@ -524,7 +589,6 @@ public class SparkCqlEvaluator implements Serializable {
      * Create external function provider.
      *
      * @return  external function provider with registered static functions
-     *          from {@link com.ibm.cohort.cql.functions.AnyColumn }
      */
     protected ExternalFunctionProvider createExternalFunctionProvider() {
         ExternalFunctionProvider functionProvider =

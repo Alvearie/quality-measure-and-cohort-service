@@ -29,8 +29,7 @@ public class CqlLibraryHelpers {
             id = new CqlLibraryDescriptor()
                     .setLibraryId(libraryId)
                     .setVersion(version)
-                    .setFormat(format)
-                    .setExternalId(filename);
+                    .setFormat(format);
         }
 
         return id;

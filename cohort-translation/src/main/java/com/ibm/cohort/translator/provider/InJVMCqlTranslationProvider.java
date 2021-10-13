@@ -11,7 +11,9 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.bind.JAXB;
 
@@ -22,11 +24,10 @@ import org.cqframework.cql.cql2elm.FhirLibrarySourceProvider;
 import org.cqframework.cql.cql2elm.LibraryBuilder;
 import org.cqframework.cql.cql2elm.LibraryManager;
 import org.cqframework.cql.cql2elm.LibrarySourceProvider;
-import org.cqframework.cql.cql2elm.ModelInfoLoader;
-import org.cqframework.cql.cql2elm.ModelInfoProvider;
 import org.cqframework.cql.cql2elm.ModelManager;
 import org.cqframework.cql.elm.tracking.TrackBack;
 import org.fhir.ucum.UcumService;
+import org.hl7.elm.r1.VersionedIdentifier;
 import org.hl7.elm_modelinfo.r1.ModelInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,9 +42,13 @@ public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
 	private static final Logger LOG = LoggerFactory.getLogger(InJVMCqlTranslationProvider.class);
 	private ModelManager modelManager;
 	private LibraryManager libraryManager;
+	
+	private Map<VersionedIdentifier, ModelInfo> customModels = new HashMap<>();
 
 	public InJVMCqlTranslationProvider() {
 		this.modelManager = new ModelManager();
+		modelManager.getModelInfoLoader().registerModelInfoProvider( (vid) -> customModels.get(vid) );
+		
 		this.libraryManager = new LibraryManager(modelManager);
 		libraryManager.getLibrarySourceLoader().registerProvider(new FhirLibrarySourceProvider());
 	}
@@ -116,9 +121,8 @@ public class InJVMCqlTranslationProvider extends BaseCqlTranslationProvider {
 		// Possibly add support for auto-loading model info files.
 		modelInfo.setTargetVersion("4.0.1");
 		modelInfo.setTargetUrl("http://hl7.org/fhir");
-		org.hl7.elm.r1.VersionedIdentifier modelId = (new org.hl7.elm.r1.VersionedIdentifier()).withId(modelInfo.getName()).withVersion(modelInfo.getVersion());
-		ModelInfoProvider modelProvider = () -> modelInfo;
-		ModelInfoLoader.registerModelInfoProvider(modelId, modelProvider);
+		VersionedIdentifier modelId = new VersionedIdentifier().withId(modelInfo.getName()).withVersion(modelInfo.getVersion());
+		customModels.put(modelId,  modelInfo);
 	}
 
 	@Override

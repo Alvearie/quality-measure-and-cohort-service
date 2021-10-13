@@ -15,6 +15,7 @@ import com.ibm.cohort.annotations.Generated;
 import com.ibm.cohort.file.LibraryFormat;
 
 import org.cqframework.cql.cql2elm.CqlTranslator.Options;
+import org.cqframework.cql.cql2elm.CqlTranslator;
 import org.cqframework.cql.cql2elm.CqlTranslatorOptions;
 
 /**
@@ -28,6 +29,7 @@ public abstract class BaseCqlTranslationProvider implements CqlTranslationProvid
 	
 	public List<Options> getDefaultOptions() {
 		List<Options> defaults = new ArrayList<>(CqlTranslatorOptions.defaultOptions().getOptions());
+		defaults.add( CqlTranslator.Options.EnableResultTypes );
 		//defaults.add( CqlTranslator.Options.EnableDateRangeOptimization );
 		return defaults;
 	}

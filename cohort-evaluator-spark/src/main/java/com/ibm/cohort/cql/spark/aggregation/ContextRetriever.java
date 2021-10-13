@@ -227,7 +227,7 @@ public class ContextRetriever {
         if (path == null) {
             throw new IllegalArgumentException(String.format("No path mapping found for datatype %s", dataType));
         }
-        return datasetRetriever.readDataset(path)
+        return datasetRetriever.readDataset(dataType, path)
                 .withColumn(SOURCE_FACT_IDX, functions.lit(dataType));
     }
 

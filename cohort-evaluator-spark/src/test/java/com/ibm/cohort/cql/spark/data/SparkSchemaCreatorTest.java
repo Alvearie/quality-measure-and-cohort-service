@@ -1,3 +1,9 @@
+/*
+ * (C) Copyright IBM Corp. 2021
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.ibm.cohort.cql.spark.data;
 
 
@@ -37,15 +43,17 @@ public class SparkSchemaCreatorTest {
 	
 	private CqlLibraryProvider cqlLibraryProvider;
 	private DefaultSparkOutputColumnEncoder outputColumnNameFactory;
+	private CqlToElmTranslator cqlTranslator;
 	
 	@Before
 	public void setup() {
-		cqlLibraryProvider = new TranslatingCqlLibraryProvider(
+        cqlTranslator = new CqlToElmTranslator();
+        cqlTranslator.registerModelInfo(new File("src/test/resources/output-validation/modelinfo/simple-all-types-model-info.xml"));
+	    
+	    cqlLibraryProvider = new TranslatingCqlLibraryProvider(
 				new DirectoryBasedCqlLibraryProvider(new File("src/test/resources/output-validation/cql")),
-				new CqlToElmTranslator()
+				cqlTranslator
 		);
-
-		CqlTranslator.loadModelInfo(new File("src/test/resources/output-validation/modelinfo/simple-all-types-model-info.xml"));
 		
 		outputColumnNameFactory = new DefaultSparkOutputColumnEncoder(".");
 	}
@@ -72,7 +80,7 @@ public class SparkSchemaCreatorTest {
 				)
 		);
 		
-		SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory);
+		SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory, cqlTranslator);
 		StructType actualSchema = schemaCreator.calculateSchemasForContexts(Arrays.asList("A")).get("A");
 
 		StructType expectedSchema = new StructType()
@@ -104,7 +112,7 @@ public class SparkSchemaCreatorTest {
                 )
         );
 
-        SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory);
+        SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory, cqlTranslator);
         schemaCreator.calculateSchemasForContexts(Arrays.asList("Context1Id"));
     }
 	
@@ -125,7 +133,7 @@ public class SparkSchemaCreatorTest {
 				)
 		);
 
-		SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory);
+		SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory, cqlTranslator);
 		schemaCreator.calculateSchemasForContexts(Arrays.asList("Context1Id"));
 	}
 
@@ -153,7 +161,7 @@ public class SparkSchemaCreatorTest {
 				)
 		);
 
-		SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory);
+		SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory, cqlTranslator);
 		Map<String, StructType> actualSchemas = schemaCreator.calculateSchemasForContexts(Arrays.asList("Context1Id", "Context2Id"));
 
 
@@ -198,7 +206,7 @@ public class SparkSchemaCreatorTest {
 				)
 		);
 
-		SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory);
+		SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory, cqlTranslator);
 		schemaCreator.calculateSchemasForContexts(Arrays.asList("Context1Id"));
 	}
 
@@ -221,13 +229,13 @@ public class SparkSchemaCreatorTest {
 				)
 		);
 
-		SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory);
+		SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory, cqlTranslator);
 		schemaCreator.calculateSchemasForContexts(Arrays.asList("Context1Id"));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testDuplicateTypeInformation() throws Exception {
-		CqlTranslator.loadModelInfo(new File("src/test/resources/schema-validation/duplicate-type-model-info.xml"));
+	    cqlTranslator.registerModelInfo(new File("src/test/resources/schema-validation/duplicate-type-model-info.xml"));
 		
 		ContextDefinitions contextDefinitions = makeContextDefinitions(
 				Arrays.asList(
@@ -246,13 +254,13 @@ public class SparkSchemaCreatorTest {
 				)
 		);
 
-		SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory);
+		SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory, cqlTranslator);
 		schemaCreator.calculateSchemasForContexts(Arrays.asList("Context1Id"));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testDuplicateElementInformation() throws Exception {
-		CqlTranslator.loadModelInfo(new File("src/test/resources/schema-validation/duplicate-element-model-info.xml"));
+	    cqlTranslator.registerModelInfo(new File("src/test/resources/schema-validation/duplicate-element-model-info.xml"));
 
 		ContextDefinitions contextDefinitions = makeContextDefinitions(
 				Arrays.asList(
@@ -271,7 +279,7 @@ public class SparkSchemaCreatorTest {
 				)
 		);
 
-		SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory);
+		SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory, cqlTranslator);
 		schemaCreator.calculateSchemasForContexts(Arrays.asList("Context1Id"));
 	}
 
@@ -294,7 +302,7 @@ public class SparkSchemaCreatorTest {
 				)
 		);
 
-		SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory);
+		SparkSchemaCreator schemaCreator = new SparkSchemaCreator(cqlLibraryProvider, cqlEvaluationRequests, contextDefinitions, outputColumnNameFactory, cqlTranslator);
 		schemaCreator.calculateSchemasForContexts(Arrays.asList("Context1Id"));
 	}
 	

@@ -17,9 +17,10 @@ public interface DatasetRetriever {
     /**
      * Reads a {@link Dataset} for a provided path.
      *
+     * @param dataType A typeName for a CQL or custom model type
      * @param path A Hadoop compatible path/URI.
      * @return The data in {@link Dataset} form.
      */
-    Dataset<Row> readDataset(String path);
+    Dataset<Row> readDataset(String dataType, String path);
 
 }

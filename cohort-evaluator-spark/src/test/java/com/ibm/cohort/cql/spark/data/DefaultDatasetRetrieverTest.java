@@ -30,7 +30,7 @@ public class DefaultDatasetRetrieverTest extends BaseSparkTest {
     @Test
     public void readDataset_defaultFormat_deltaLake() {
         DatasetRetriever datasetRetriever = new DefaultDatasetRetriever(spark);
-        Dataset<Row> dataset = datasetRetriever.readDataset(DELTA_FILE);
+        Dataset<Row> dataset = datasetRetriever.readDataset("Dummy", DELTA_FILE);
         long actual = dataset.count();
         Assert.assertEquals(10L, actual);
     }
@@ -38,7 +38,7 @@ public class DefaultDatasetRetrieverTest extends BaseSparkTest {
     @Test
     public void readDataset_explicitFormat_parquet() {
         DatasetRetriever datasetRetriever = new DefaultDatasetRetriever(spark, "parquet");
-        Dataset<Row> dataset = datasetRetriever.readDataset(PARQUET_FILE);
+        Dataset<Row> dataset = datasetRetriever.readDataset("Dummy", PARQUET_FILE);
         long actual = dataset.count();
         Assert.assertEquals(572L, actual);
     }
