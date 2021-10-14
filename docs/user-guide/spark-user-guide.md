@@ -219,7 +219,8 @@ An example cql-jobs.json file is shown below...
 				"version": "1.0.0"
 			},
 			"expressions": [
-				"IsFemale"
+				"IsFemale",
+				{"name": "IsMale", "outputColumn": "isMaleResultColumn"}
 			],
 			"parameters": {
 				"MinimumAge": {
@@ -242,7 +243,7 @@ If the user wishes to limit which jobs are evaluated during a specific applicati
 
 ### Program Output
 
-For each aggregation context, a separate output table is created. The storage path for the output table is configured using `-o` options as described above. The records of the context output table consist of the unique key for the specific context record (sharing the same name as the field in the model definition) and a column for each CQL expression that is evaluated. The default column name for the CQL evaluation columns is `<Library Name>|<Expression Name>`. The pipe delimiter can be changed using the `--default-output-column-delimiter` program option or users can provide their own column name alongside the expression in the `cql-jobs.json` file. If more than one column ends up with the same name, a runtime error will be thrown.
+For each aggregation context, a separate output table is created. The storage path for the output table is configured using `-o` options as described above. The records of the context output table consist of the unique key for the specific context record (sharing the same name as the field in the model definition) and a column for each CQL expression that is evaluated. The default column name for the CQL evaluation columns is `<Library Name>|<Expression Name>`. The pipe delimiter can be changed using the `--default-output-column-delimiter` program option or users can provide their own column name alongside the expression in the `cql-jobs.json` file. An output column name for an expression is defined using the format `{"name": "<Expression Name>", "outputColumn": "<Output Column Name>"}` in the `expressions` list rather than using a plain string for an expression. If more than one column ends up with the same name, a runtime error will be thrown.
 
 Because output is written to single columns and due to the complexity of serializing arbitrarily-shaped data, there is currently a limitation on the data types that may be produced by a CQL expression that will be written to the output table. List data, map/tuple data, domain objects, etc. are not supported. Expressions should return System.Boolean, System.Integer, System.Decimal, System.String, System.Long, System.Date, or System.DateTime data. 
 
