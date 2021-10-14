@@ -14,5 +14,8 @@ concept "MyConcept": {
 context Patient
 
 define "cohort":
+	"other_cohort"
+
+define "other_cohort":
   Exists([A: code_col in "MyConcept".codes] a
     where a.boolean_col = true)
