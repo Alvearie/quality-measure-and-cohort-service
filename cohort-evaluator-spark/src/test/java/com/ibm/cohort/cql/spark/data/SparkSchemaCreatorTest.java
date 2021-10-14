@@ -22,7 +22,6 @@ import java.util.Set;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
-import org.cqframework.cql.cql2elm.CqlTranslator;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,6 +37,7 @@ import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
 
 import scala.Tuple2;
 
+@SuppressWarnings("serial")
 public class SparkSchemaCreatorTest {
 	// can hand build request / context definitions if needed
 	
@@ -47,10 +47,10 @@ public class SparkSchemaCreatorTest {
 	
 	@Before
 	public void setup() {
-        cqlTranslator = new CqlToElmTranslator();
-        cqlTranslator.registerModelInfo(new File("src/test/resources/output-validation/modelinfo/simple-all-types-model-info.xml"));
-	    
-	    cqlLibraryProvider = new TranslatingCqlLibraryProvider(
+				cqlTranslator = new CqlToElmTranslator();
+				cqlTranslator.registerModelInfo(new File("src/test/resources/output-validation/modelinfo/simple-all-types-model-info.xml"));
+				
+				cqlLibraryProvider = new TranslatingCqlLibraryProvider(
 				new DirectoryBasedCqlLibraryProvider(new File("src/test/resources/output-validation/cql")),
 				cqlTranslator
 		);
@@ -235,7 +235,7 @@ public class SparkSchemaCreatorTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testDuplicateTypeInformation() throws Exception {
-	    cqlTranslator.registerModelInfo(new File("src/test/resources/schema-validation/duplicate-type-model-info.xml"));
+		cqlTranslator.registerModelInfo(new File("src/test/resources/schema-validation/duplicate-type-model-info.xml"));
 		
 		ContextDefinitions contextDefinitions = makeContextDefinitions(
 				Arrays.asList(
@@ -260,7 +260,7 @@ public class SparkSchemaCreatorTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testDuplicateElementInformation() throws Exception {
-	    cqlTranslator.registerModelInfo(new File("src/test/resources/schema-validation/duplicate-element-model-info.xml"));
+		cqlTranslator.registerModelInfo(new File("src/test/resources/schema-validation/duplicate-element-model-info.xml"));
 
 		ContextDefinitions contextDefinitions = makeContextDefinitions(
 				Arrays.asList(

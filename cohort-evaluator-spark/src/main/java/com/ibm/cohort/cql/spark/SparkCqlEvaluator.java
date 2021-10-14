@@ -286,6 +286,11 @@ public class SparkCqlEvaluator implements Serializable {
 
             final LongAccumulator contextAccum = spark.sparkContext().longAccumulator("Context");
             final LongAccumulator perContextAccum = spark.sparkContext().longAccumulator("PerContext");
+            CustomMetricSparkPlugin.contextAccumGauge.setAccumulator(contextAccum);
+            CustomMetricSparkPlugin.perContextAccumGauge.setAccumulator(perContextAccum);
+            CustomMetricSparkPlugin.totalContextsToProcessCounter.inc(filteredContexts.size());
+            CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(0);
+
             DatasetRetriever defaultDatasetRetriever = new DefaultDatasetRetriever(spark, args.inputFormat);
 
             for (ContextDefinition context : filteredContexts) {
@@ -310,6 +315,7 @@ public class SparkCqlEvaluator implements Serializable {
 
                     JavaPairRDD<Object, List<Row>> rowsByContextId = contextRetriever.retrieveContext(context);
 
+                    CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.getValue() + 1);
                     JavaPairRDD<Object, Map<String, Object>> resultsByContext = rowsByContextId
                             .mapToPair(x -> evaluate(contextName, x, perContextAccum));
                     
@@ -323,19 +329,19 @@ public class SparkCqlEvaluator implements Serializable {
             }
             CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(0);
             try {
-	            Boolean metricsEnabledStr = Boolean.valueOf(spark.conf().get("spark.ui.prometheus.enabled"));
-	            if(metricsEnabledStr) {
-	            	LOG.info("Prometheus metrics enabled, sleeping for 7 seconds to finish gathering metrics");
-		            //sleep for over 5 seconds because Prometheus only polls
-		            //every 5 seconds. If spark finishes and goes away immediately after completing,
-		            //Prometheus will never be able to poll for the final set of metrics for the spark-submit
-		            //The default promtheus config map was changed from 2 minute scrape interval to 5 seconds for spark pods
-		            Thread.sleep(7000);
-	            }else {
-	            	LOG.info("Prometheus metrics not enabled");
-	            }
+                Boolean metricsEnabledStr = Boolean.valueOf(spark.conf().get("spark.ui.prometheus.enabled"));
+                if(metricsEnabledStr) {
+                    LOG.info("Prometheus metrics enabled, sleeping for 7 seconds to finish gathering metrics");
+                    //sleep for over 5 seconds because Prometheus only polls
+                    //every 5 seconds. If spark finishes and goes away immediately after completing,
+                    //Prometheus will never be able to poll for the final set of metrics for the spark-submit
+                    //The default promtheus config map was changed from 2 minute scrape interval to 5 seconds for spark pods
+                    Thread.sleep(7000);
+                }else {
+                    LOG.info("Prometheus metrics not enabled");
+                }
             } catch (NoSuchElementException e) {
-            	LOG.info("spark.ui.prometheus.enabled is not set");
+                LOG.info("spark.ui.prometheus.enabled is not set");
             }
         }
     }
