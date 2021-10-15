@@ -1,0 +1,2 @@
+mycodesystem=http://nowhere.com/nothing/CodeSystem
+otherthing=http://dummy.io/otherthing

@@ -1,9 +1,3 @@
-##### IHE
-Intelligent Health Engagement team, formerly know as Digital Clinical Conversation (DCC)
-
-##### DCC
-?> _deprecated:_ see `IHE`
-
 ##### JXSON
 !> _crispy warning:_ not an official JSON serialization format or term.
 
@@ -107,10 +101,6 @@ Standard for Trial Use
 https://confluence.hl7.org/display/HL7/HL7+Balloting
 
 Standard for Trial Use (STU) ballots are used to vet content that is eventually intended to be binding on implementers.
-
-##### TREX 
-is a data integration component that advantage suite (aka Truven) offerings use for data ingestion into their pipeline.
-We are now decoupling it though as a component that has value for claims data integration for more than just Advantage offerings
 
 ##### VSAC
 Value Set Authority Center

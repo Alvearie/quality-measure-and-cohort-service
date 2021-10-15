@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -31,6 +32,7 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
+import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.StructType;
 import org.apache.spark.util.LongAccumulator;
@@ -56,13 +58,14 @@ import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.aggregation.ContextRetriever;
+import com.ibm.cohort.cql.spark.data.ConfigurableOutputColumnNameEncoder;
 import com.ibm.cohort.cql.spark.data.DatasetRetriever;
 import com.ibm.cohort.cql.spark.data.DefaultDatasetRetriever;
-import com.ibm.cohort.cql.spark.data.DefaultSparkOutputColumnEncoder;
 import com.ibm.cohort.cql.spark.data.SparkDataRow;
 import com.ibm.cohort.cql.spark.data.SparkOutputColumnEncoder;
 import com.ibm.cohort.cql.spark.data.SparkSchemaCreator;
 import com.ibm.cohort.cql.spark.data.SparkTypeConverter;
+import com.ibm.cohort.cql.spark.metrics.CustomMetricSparkPlugin;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import com.ibm.cohort.cql.terminology.UnsupportedTerminologyProvider;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
@@ -87,7 +90,7 @@ public class SparkCqlEvaluator implements Serializable {
 
     protected SparkTypeConverter typeConverter;
     
-    protected SparkOutputColumnEncoder sparkOutputColumnEncoder;
+    protected static ThreadLocal<SparkOutputColumnEncoder> sparkOutputColumnEncoder = new ThreadLocal<>();
 
     /**
      * Store a single copy of the job specification data per thread. This allows the data
@@ -111,27 +114,129 @@ public class SparkCqlEvaluator implements Serializable {
      * discussion in the libraryProvider documentation for complete reasoning.
      */
     protected static ThreadLocal<CqlTerminologyProvider> terminologyProvider = new ThreadLocal<>();
-    
-    protected Map<String, StructType> calculateSparkSchema(List<String> contextNames, ContextDefinitions contextDefinitions) throws Exception{
+
+    /**
+     * Auto-detect an output schema for 1 or more contexts using program metadata files
+     * and the CQL definitions that will be used by the engine.
+     * 
+     * @param contextNames          List of context names to calculate schemas for.
+     * @param contextDefinitions    Context definitions used during schema calculation. Used to
+     *                              detect the key column for each context.
+     * @param encoder               Encoder used to calculate the output column names to use for
+     *                              each output schema.
+     * @return Map of context name to the output Spark schema for that context. The map will only
+     *         contain entries for each context name that included in the contextNames list
+     *         used as input to this function.
+     * @throws Exception if deserialization errors occur when reading in any of the input files
+     *         or if inferring an output schema fails for any reason.
+     */
+    protected Map<String, StructType> calculateSparkSchema(List<String> contextNames, ContextDefinitions contextDefinitions, SparkOutputColumnEncoder encoder) throws Exception {
         CqlLibraryProvider libProvider = SparkCqlEvaluator.libraryProvider.get();
         if (libProvider == null) {
             libProvider = createLibraryProvider();
             SparkCqlEvaluator.libraryProvider.set(libProvider);
         }
 
+        CqlEvaluationRequests cqlEvaluationRequests = getFilteredJobSpecificationWithIds();
 
-        CqlEvaluationRequests cqlEvaluationRequests = jobSpecification.get();
-        if (cqlEvaluationRequests == null) {
-            cqlEvaluationRequests = readJobSpecification(args.jobSpecPath);
-            jobSpecification.set(cqlEvaluationRequests);
-        }
-
-        SparkSchemaCreator sparkSchemaCreator = new SparkSchemaCreator(libProvider, cqlEvaluationRequests, contextDefinitions, sparkOutputColumnEncoder);
+        SparkSchemaCreator sparkSchemaCreator = new SparkSchemaCreator(libProvider, cqlEvaluationRequests, contextDefinitions, encoder);
         return sparkSchemaCreator.calculateSchemasForContexts(contextNames);
     }
 
     public SparkCqlEvaluator(SparkCqlEvaluatorArgs args) {
         this.args = args;
+    }
+    
+    public CqlEvaluationRequests getJobSpecification() throws Exception {
+        CqlEvaluationRequests requests = jobSpecification.get();
+        if (requests == null) {
+            requests = readJobSpecification(args.jobSpecPath);
+            jobSpecification.set(requests);
+        }
+        return requests;
+    }
+
+    /**
+     * Read the job specification file, apply some filtering logic for the
+     * given requests, and then assign unique ids to each remaining request.
+     * 
+     * 
+     * @return CqlEvaluationRequests object containing requests with optional
+     *         filtering and overrides described in {@link #getFilteredRequests(CqlEvaluationRequests, Map, Set)}.
+     *         Each remaining CqlEvaluationRequest is assigned a unique integer id.
+     *         
+     * @throws Exception if there was an error reading the job specification.
+     */
+    public CqlEvaluationRequests getFilteredJobSpecificationWithIds() throws Exception {
+        CqlEvaluationRequests filteredRequests = getFilteredRequests(getJobSpecification(), args.libraries, args.expressions);
+
+        List<CqlEvaluationRequest> evaluations = filteredRequests.getEvaluations();
+        if (evaluations != null && !evaluations.isEmpty()) {
+            int i = 1;
+            for (CqlEvaluationRequest evaluation : evaluations) {
+                evaluation.setId(i);
+                i++;
+            }
+            filteredRequests.setEvaluations(evaluations);
+        }
+        return filteredRequests;
+    }
+
+    /**
+     * @param requests     Request object to filter.
+     * @param libraries    Map of library id to version used for filtering
+     *                     down request based on library id. If this argument
+     *                     is null or empty, then no library id filtering
+     *                     is performed.
+     * @param expressions  Used to optionally override which expressions will
+     *                     run for each individual CqlEvaluationRequest. If this
+     *                     argument is null or empty, no expressions are overwritten.
+     *
+     * @return CqlEvaluationRequests with the original requests optionally filtered
+     *         based on the library ids the.
+     *         Requests will optionally have their expressions overridden
+     *         by args.expressions. if any are provided.
+     *         Individual requests will also will also have any global
+     *         parameters set on each individual CqlEvaluationRequest.
+     */
+    protected CqlEvaluationRequests getFilteredRequests(CqlEvaluationRequests requests, Map<String, String> libraries, Set<String> expressions) {
+        if (requests != null) {
+            List<CqlEvaluationRequest> evaluations = requests.getEvaluations();
+            if (libraries != null && !libraries.isEmpty()) {
+                evaluations = evaluations.stream()
+                        .filter(r -> libraries.keySet().contains(r.getDescriptor().getLibraryId()))
+                        .collect(Collectors.toList());
+            }
+            if (expressions != null && !expressions.isEmpty()) {
+                evaluations.forEach(x -> x.setExpressionsByNames(expressions));
+            }
+
+            if (requests.getGlobalParameters() != null) {
+                for (CqlEvaluationRequest evaluation : evaluations) {
+                    for (Map.Entry<String, Parameter> globalParameter : requests.getGlobalParameters().entrySet()) {
+                        Map<String, Parameter> parameters = evaluation.getParameters();
+                        if (parameters == null) {
+                            evaluation.setParameters(new HashMap<>());
+                            parameters = evaluation.getParameters();
+                        }
+                        parameters.putIfAbsent(globalParameter.getKey(), globalParameter.getValue());
+                    }
+                }
+            }
+            requests.setEvaluations(evaluations);
+
+            jobSpecification.set(requests);
+        }
+        return requests;
+    }
+    
+    public SparkOutputColumnEncoder getSparkOutputColumnEncoder() throws Exception {
+        SparkOutputColumnEncoder columnEncoder = sparkOutputColumnEncoder.get();
+        if (columnEncoder == null) {
+            columnEncoder = ConfigurableOutputColumnNameEncoder.create(getFilteredJobSpecificationWithIds(), args.defaultOutputColumnDelimiter);
+            sparkOutputColumnEncoder.set(columnEncoder);
+        }
+        return columnEncoder;
     }
     
     public void run(PrintStream out) throws Exception {
@@ -140,17 +245,13 @@ public class SparkCqlEvaluator implements Serializable {
         try (SparkSession spark = sparkBuilder.getOrCreate()) {
             boolean useJava8API = Boolean.valueOf(spark.conf().get("spark.sql.datetime.java8API.enabled"));
             this.typeConverter = new SparkTypeConverter(useJava8API);
-            this.sparkOutputColumnEncoder = new DefaultSparkOutputColumnEncoder(args.defaultOutputColumnDelimiter);
 
+            SparkOutputColumnEncoder columnEncoder = getSparkOutputColumnEncoder();
+            
             ContextDefinitions contexts = readContextDefinitions(args.contextDefinitionPath);
 
-            Map<String, StructType> resultSchemas = calculateSparkSchema(
-                    contexts.getContextDefinitions().stream().map(ContextDefinition::getName).collect(Collectors.toList()),
-                    contexts
-            );
-
             List<ContextDefinition> filteredContexts = contexts.getContextDefinitions();
-            if (args.aggregations != null && args.aggregations.size() > 0) {
+            if (args.aggregations != null && !args.aggregations.isEmpty()) {
                 filteredContexts = filteredContexts.stream().filter(def -> args.aggregations.contains(def.getName()))
                         .collect(Collectors.toList());
             }
@@ -159,8 +260,19 @@ public class SparkCqlEvaluator implements Serializable {
                         "At least one context definition is required (after filtering if enabled).");
             }
 
+            Map<String, StructType> resultSchemas = calculateSparkSchema(
+                    filteredContexts.stream().map(ContextDefinition::getName).collect(Collectors.toList()),
+                    contexts,
+                    columnEncoder
+            );
+
             final LongAccumulator contextAccum = spark.sparkContext().longAccumulator("Context");
             final LongAccumulator perContextAccum = spark.sparkContext().longAccumulator("PerContext");
+            CustomMetricSparkPlugin.contextAccumGauge.setAccumulator(contextAccum);
+            CustomMetricSparkPlugin.perContextAccumGauge.setAccumulator(perContextAccum);
+            CustomMetricSparkPlugin.totalContextsToProcessCounter.inc(filteredContexts.size());
+            CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(0);
+            
             DatasetRetriever datasetRetriever = new DefaultDatasetRetriever(spark, args.inputFormat);
             ContextRetriever contextRetriever = new ContextRetriever(args.inputPaths, datasetRetriever);
             for (ContextDefinition context : filteredContexts) {
@@ -178,6 +290,7 @@ public class SparkCqlEvaluator implements Serializable {
 
                     JavaPairRDD<Object, List<Row>> rowsByContextId = contextRetriever.retrieveContext(context);
 
+                    CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.getValue() + 1);
                     JavaPairRDD<Object, Map<String, Object>> resultsByContext = rowsByContextId
                             .mapToPair(x -> evaluate(contextName, x, perContextAccum));
                     
@@ -188,6 +301,22 @@ public class SparkCqlEvaluator implements Serializable {
                     contextAccum.add(1);
                     perContextAccum.reset();
                 }
+            }
+            CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(0);
+            try {
+	            Boolean metricsEnabledStr = Boolean.valueOf(spark.conf().get("spark.ui.prometheus.enabled"));
+	            if(metricsEnabledStr) {
+	            	LOG.info("Prometheus metrics enabled, sleeping for 5.5 seconds to finish gathering metrics");
+		            //sleep for just over 5 seconds because Prometheus only polls
+		            //every 5 seconds. If spark finishes and goes away immediately after completing,
+		            //Prometheus will never be able to poll for the final set of metrics for the spark-submit
+		            //The default promtheus config map was changed from 2 minute scrape interval to 5 seconds for spark pods
+		            Thread.sleep(5500);
+	            }else {
+	            	LOG.info("Prometheus metrics not enabled");
+	            }
+            } catch (NoSuchElementException e) {
+            	LOG.info("spark.ui.prometheus.enabled is not set");
             }
         }
     }
@@ -201,8 +330,7 @@ public class SparkCqlEvaluator implements Serializable {
      */
     protected ContextDefinitions readContextDefinitions(String path) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        ContextDefinitions contexts = mapper.readValue(new File(path), ContextDefinitions.class);
-        return contexts;
+        return mapper.readValue(new File(path), ContextDefinitions.class);
     }
 
     /**
@@ -280,39 +408,11 @@ public class SparkCqlEvaluator implements Serializable {
             .setTerminologyProvider(termProvider)
             .setExternalFunctionProvider(funProvider);
 
-        CqlEvaluationRequests requests = jobSpecification.get();
-        if (requests == null) {
-            requests = readJobSpecification(args.jobSpecPath);
-            jobSpecification.set(requests);
-        }
+        CqlEvaluationRequests requests = getFilteredJobSpecificationWithIds();
 
-        return evaluate(rowsByContext, contextName, evaluator, requests, perContextAccum);
-    }
+        SparkOutputColumnEncoder columnEncoder = getSparkOutputColumnEncoder();
 
-    /**
-     * Evaluate the input CQL for a single context + data pair.
-     *
-     * @param contextName     Name of the context used to select measure evaluations.
-     *                        
-     * @param requests        CqlEvaluationRequests containing lists of libraries,
-     *                        expressions, and parameters to evaluate
-     * @return Filtered list of CqlEvaluationResult. 
-     */
-    protected List<CqlEvaluationRequest> filterRequests(CqlEvaluationRequests requests, String contextName) {
-        List<CqlEvaluationRequest> requestsForContext = new ArrayList<>();
-        
-        List<CqlEvaluationRequest> evaluations = requests.getEvaluations();
-        if (evaluations != null) {
-            requestsForContext = requests.getEvaluationsForContext(contextName);
-        }
-
-        if (args.libraries != null && args.libraries.size() > 0) {
-            requestsForContext = requestsForContext.stream()
-                    .filter(r -> args.libraries.keySet().contains(r.getDescriptor().getLibraryId()))
-                    .collect(Collectors.toList());
-        }
-        
-        return requestsForContext;
+        return evaluate(rowsByContext, contextName, evaluator, requests, columnEncoder, perContextAccum);
     }
 
     /**
@@ -325,6 +425,8 @@ public class SparkCqlEvaluator implements Serializable {
      *                        library provider all previously setup)
      * @param requests        CqlEvaluationRequests containing lists of libraries,
      *                        expressions, and parameters to evaluate
+     * @param columnEncoder   Encoder used to calculate output column names for
+     *                        evaluation results
      * @param perContextAccum Spark accumulator that tracks each individual context
      *                        evaluation
      * @return Evaluation results for all expressions evaluated keyed by the context
@@ -333,28 +435,22 @@ public class SparkCqlEvaluator implements Serializable {
      *         between libraries (e.g. LibraryName.ExpressionName).
      */
     protected Tuple2<Object, Map<String, Object>> evaluate(Tuple2<Object, List<Row>> rowsByContext,
-            String contextName, CqlEvaluator evaluator, CqlEvaluationRequests requests, LongAccumulator perContextAccum) {
+            String contextName, CqlEvaluator evaluator, CqlEvaluationRequests requests, SparkOutputColumnEncoder columnEncoder, LongAccumulator perContextAccum) {
         perContextAccum.add(1);
         
-        List<CqlEvaluationRequest> requestsForContext = filterRequests(requests, contextName);
+        List<CqlEvaluationRequest> requestsForContext = requests.getEvaluationsForContext(contextName);
         
         Map<String, Object> expressionResults = new HashMap<>();
         for (CqlEvaluationRequest request : requestsForContext) {
-            if (args.expressions != null && args.expressions.size() > 0) {
-                request.setExpressions(args.expressions);
-            }
-
-            // add any global parameters that have not been overridden locally
-            if (requests.getGlobalParameters() != null) {
-                for (Map.Entry<String, Parameter> globalParameter : requests.getGlobalParameters().entrySet()) {
-                    request.getParameters().putIfAbsent(globalParameter.getKey(), globalParameter.getValue());
+            try {
+                CqlEvaluationResult result = evaluator.evaluate(request, args.debug ? CqlDebug.DEBUG : CqlDebug.NONE);
+                for (Map.Entry<String, Object> entry : result.getExpressionResults().entrySet()) {
+                    String outputColumnKey = columnEncoder.getColumnName(request, entry.getKey());
+                    expressionResults.put(outputColumnKey, typeConverter.toSparkType(entry.getValue()));
                 }
-            }
-
-            CqlEvaluationResult result = evaluator.evaluate(request, args.debug ? CqlDebug.DEBUG : CqlDebug.NONE);
-            for (Map.Entry<String, Object> entry : result.getExpressionResults().entrySet()) {
-                String outputColumnKey = sparkOutputColumnEncoder.getColumnName(request.getDescriptor().getLibraryId(), entry.getKey());
-                expressionResults.put(outputColumnKey, typeConverter.toSparkType(entry.getValue()));
+            } catch( Throwable th ) {
+                Object contextValue = rowsByContext._1();
+                throw new RuntimeException( String.format("CQL evaluation failed for ContextKey: %s, ContextValue: %s, Request: %s", request.getContextKey(), String.valueOf(contextValue), request.toString()), th );
             }
         }
 
@@ -476,7 +572,10 @@ public class SparkCqlEvaluator implements Serializable {
 			dataFrame = dataFrame.repartition(args.outputPartitions);
 		}
 
-        dataFrame.write().mode(args.overwriteResults ? "overwrite" : "errorifexists").format("parquet").save(outputURI);
+        dataFrame.write()
+                .mode(args.overwriteResults ? SaveMode.Overwrite : SaveMode.ErrorIfExists)
+                .format(args.outputFormat != null ? args.outputFormat : spark.conf().get("spark.sql.sources.default"))
+                .save(outputURI);
     }
 
     /**
@@ -517,7 +616,10 @@ public class SparkCqlEvaluator implements Serializable {
     public static void main(String[] args) throws Exception {
         SparkCqlEvaluatorArgs programArgs = new SparkCqlEvaluatorArgs();
 
-        JCommander commander = JCommander.newBuilder().addObject(programArgs).build();
+        JCommander commander = JCommander.newBuilder()
+                .programName("SparkCqlEvaluator")
+                .addObject(programArgs)
+                .build();
         commander.parse(args);
 
         SparkCqlEvaluator evaluator = new SparkCqlEvaluator(programArgs);

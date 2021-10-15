@@ -37,16 +37,19 @@ public class CqlEvaluationRequestsTest {
         
         CqlLibraryDescriptor desc = new CqlLibraryDescriptor().setLibraryId("SampleLibrary").setVersion("1.0.0");
         
+        CqlExpressionConfiguration expressionConfiguration = new CqlExpressionConfiguration();
+        expressionConfiguration.setName("IsFemale");
+        
         CqlEvaluationRequest r1 = new CqlEvaluationRequest();
         r1.setDescriptor(desc);
         r1.setParameters(localParameters);
-        r1.setExpressions(Collections.singleton("IsFemale"));
+        r1.setExpressions(Collections.singleton(expressionConfiguration));
         r1.setContextKey("Patient");
         r1.setContextValue("NA");
 
         assertEquals( desc, r1.getDescriptor() );
         assertEquals( localParameters, r1.getParameters() );
-        assertEquals( Collections.singleton("IsFemale"), r1.getExpressions() );
+        assertEquals( Collections.singleton(expressionConfiguration), r1.getExpressions() );
         assertEquals( "Patient", r1.getContextKey() );
         assertEquals( "NA", r1.getContextValue() );
         

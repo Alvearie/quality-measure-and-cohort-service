@@ -1,4 +1,4 @@
-## `cql` and `FHIR` parameter model investigation
+## `CQL` and `FHIR` parameter model investigation
 
 [cql_engine's](https://github.com/DBCG/cql_engine) `FHIR` to `cql` model support in parameter usage
 

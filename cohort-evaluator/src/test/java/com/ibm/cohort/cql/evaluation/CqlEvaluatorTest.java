@@ -124,10 +124,16 @@ public class CqlEvaluatorTest {
         parameters.put(parameterName, new IntegerParameter(expectedMinimumAge));
         
         Pair<String,String> context = Pair.of("Patient", "123");
+
+        CqlExpressionConfiguration expressionConfiguration = new CqlExpressionConfiguration();
+        expressionConfiguration.setName("Something");
+
+        CqlExpressionConfiguration expressionConfiguration2 = new CqlExpressionConfiguration();
+        expressionConfiguration2.setName("EchoParam");
         
         CqlEvaluationRequest request = new CqlEvaluationRequest();
         request.setDescriptor(libraryDescriptor);
-        request.setExpressions(Arrays.asList("Something", "EchoParam").stream().collect(Collectors.toSet()));
+        request.setExpressions(Arrays.asList(expressionConfiguration, expressionConfiguration2).stream().collect(Collectors.toSet()));
         request.setParameters(parameters);
         request.setContextKey(context.getKey());
         request.setContextValue(context.getValue());
