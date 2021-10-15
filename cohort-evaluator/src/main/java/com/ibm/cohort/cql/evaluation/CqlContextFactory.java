@@ -44,16 +44,22 @@ public class CqlContextFactory {
     protected static class ContextCacheKey {
         final public CqlLibraryProvider libraryProvider;
         final public CqlTerminologyProvider terminologyProvider;
+        final public ExternalFunctionProvider externalFunctionProvider;
         final public CqlLibraryDescriptor topLevelLibrary;
         final public ZonedDateTime evaluationDateTime;
         final public Map<String,Parameter> parameters;
 
-        public ContextCacheKey(CqlLibraryProvider libraryProvider, CqlLibraryDescriptor topLevelLibrary,
-                CqlTerminologyProvider terminologyProvider,ZonedDateTime evaluationDateTime,
-                Map<String, Parameter> parameters ) {
+        public ContextCacheKey(
+            CqlLibraryProvider libraryProvider,
+            CqlLibraryDescriptor topLevelLibrary,
+            CqlTerminologyProvider terminologyProvider,
+            ExternalFunctionProvider externalFunctionProvider,
+            ZonedDateTime evaluationDateTime,
+            Map<String, Parameter> parameters ) {
             this.libraryProvider = libraryProvider;
             this.topLevelLibrary = topLevelLibrary;
             this.terminologyProvider = terminologyProvider;
+            this.externalFunctionProvider = externalFunctionProvider;
             this.evaluationDateTime = evaluationDateTime;
             this.parameters = parameters;
         }
@@ -66,6 +72,7 @@ public class CqlContextFactory {
                 isEqual = Objects.equals(topLevelLibrary, k2.topLevelLibrary) &&
                         Objects.equals( libraryProvider, k2.libraryProvider ) &&
                         Objects.equals( terminologyProvider, k2.terminologyProvider ) &&
+                        Objects.equals( externalFunctionProvider, k2.externalFunctionProvider ) &&
                         Objects.equals( evaluationDateTime, k2.evaluationDateTime ) &&
                         Objects.equals( parameters, k2.parameters );
             }
@@ -74,7 +81,7 @@ public class CqlContextFactory {
 
         @Override
         public int hashCode() {
-            return Objects.hash(topLevelLibrary, libraryProvider, terminologyProvider, evaluationDateTime, parameters);
+            return Objects.hash(topLevelLibrary, libraryProvider, terminologyProvider, externalFunctionProvider, evaluationDateTime, parameters);
         }
     }
 
@@ -134,7 +141,14 @@ public class CqlContextFactory {
             Pair<String, String> contextData, Map<String, Parameter> parameters, CqlDebug debug)
             throws CqlLibraryDeserializationException {
 
-        ContextCacheKey key = new ContextCacheKey( libraryProvider, topLevelLibrary, terminologyProvider, evaluationDateTime, parameters );
+        ContextCacheKey key =
+            new ContextCacheKey(
+                libraryProvider,
+                topLevelLibrary,
+                terminologyProvider,
+                this.externalFunctionProvider,
+                evaluationDateTime,
+                parameters);
         Context cqlContext = CONTEXT_CACHE.computeIfAbsent( key, k -> {
             return this.createContext(k);
         } );
