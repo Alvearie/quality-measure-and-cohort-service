@@ -200,6 +200,7 @@ public class CqlContextFactory {
         }
 
         cqlContext.registerExternalFunctionProvider(vid, this.externalFunctionProvider);
+        registerExternalIncludes(cqlContext, cqlContext.getCurrentLibrary());
 
         cqlContext.registerLibraryLoader(libraryLoader);
 
@@ -225,6 +226,19 @@ public class CqlContextFactory {
         }
 
         return cqlContext;
+    }
+
+    private void registerExternalIncludes(Context context, Library currentLibrary) {
+        Library.Includes includes = currentLibrary.getIncludes();
+
+        if (includes != null) {
+            for (IncludeDef include : includes.getDef()) {
+                VersionedIdentifier vid = new VersionedIdentifier()
+                    .withId(include.getLocalIdentifier())
+                    .withVersion(include.getVersion());
+                context.registerExternalFunctionProvider(vid, this.externalFunctionProvider);
+            }
+        }
     }
 
     /**
