@@ -1,0 +1,12 @@
+{
+	"evaluations": [{
+		"descriptor": {
+			"libraryId": "MeasureAnyColumn",
+			"version": "1.0.0"
+		},
+		"expressions": ["cohort"],
+		"contextKey": "A",
+		"contextValue": "NA"
+	}
+]
+}
