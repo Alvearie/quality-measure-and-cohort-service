@@ -165,6 +165,24 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         SparkCqlEvaluator.main(args);
 
         validateOutputCountsAndColumns(aFile.toURI().toString(), new HashSet<>(Arrays.asList("id_col", "MeasureAnyColumn|cohort")), 572);
+
+        StructType outputSchema = new StructType()
+            .add("id_col", DataTypes.StringType, false)
+            .add("MeasureAnyColumn|cohort", DataTypes.BooleanType, true);
+        List<Row> expectedRows = jsonToRows("src/test/resources/any-column/output/expected.json", outputSchema);
+
+        validateOutput(
+            aFile.toURI().toString(),
+            expectedRows,
+            outputSchema
+        );
+    }
+
+    private List<Row> jsonToRows(String jsonPath, StructType schema) {
+        spark = initializeSession(Java8API.ENABLED);
+        Dataset<Row> ds = spark.read().schema(schema).json(jsonPath);
+
+        return ds.collectAsList();
     }
 
     private void validateOutputCountsAndColumns(String filename, Set<String> columnNames, int numExpectedRows) {
