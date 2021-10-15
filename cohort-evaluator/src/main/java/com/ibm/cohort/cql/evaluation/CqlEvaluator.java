@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.opencds.cqf.cql.engine.data.ExternalFunctionProvider;
 import org.opencds.cqf.cql.engine.execution.Context;
 
 import com.ibm.cohort.cql.data.CqlDataProvider;
@@ -30,6 +31,7 @@ public class CqlEvaluator {
     private CqlLibraryProvider libraryProvider;
     private CqlDataProvider dataProvider;
     private CqlTerminologyProvider terminologyProvider;
+    private ExternalFunctionProvider externalFunctionProvider;
     
     public List<Pair<CqlEvaluationRequest,CqlEvaluationResult>> evaluate( CqlEvaluationRequests requests ) {
         return evaluate(requests, DEFAULT_CQL_DEBUG);
@@ -63,7 +65,7 @@ public class CqlEvaluator {
     public CqlEvaluationResult evaluate( CqlEvaluationRequest request, CqlDebug debug ) {
         return evaluate( request.getDescriptor(), request.getParameters(), Pair.of(request.getContextKey(), request.getContextValue()), request.getExpressionNames(), debug );
     }
-    
+
     public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary) throws CqlLibraryDeserializationException {
         return evaluate(topLevelLibrary, null);
     }
@@ -84,7 +86,10 @@ public class CqlEvaluator {
     public CqlEvaluationResult evaluate(CqlLibraryDescriptor topLevelLibrary, Map<String, Parameter> parameters,
             Pair<String, String> context, Set<String> expressions, CqlDebug debug)
             throws CqlLibraryDeserializationException {
-        Context cqlContext = new CqlContextFactory().createContext(libraryProvider, topLevelLibrary,
+        CqlContextFactory contextFactory = new CqlContextFactory();
+        contextFactory.setExternalFunctionProvider(this.externalFunctionProvider);
+
+        Context cqlContext = contextFactory.createContext(libraryProvider, topLevelLibrary,
                 terminologyProvider, dataProvider, null, context, parameters, debug);
         
         if( expressions == null ) {
@@ -128,6 +133,12 @@ public class CqlEvaluator {
 
     public CqlEvaluator setTerminologyProvider(CqlTerminologyProvider terminologyProvider) {
         this.terminologyProvider = terminologyProvider;
+        return this;
+    }
+
+    public CqlEvaluator setExternalFunctionProvider(ExternalFunctionProvider externalFunctionProvider) {
+        this.externalFunctionProvider = externalFunctionProvider;
+
         return this;
     }
 

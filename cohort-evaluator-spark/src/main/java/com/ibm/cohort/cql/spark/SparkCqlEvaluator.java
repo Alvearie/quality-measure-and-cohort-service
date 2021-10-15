@@ -14,6 +14,7 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,8 @@ import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.StructType;
 import org.apache.spark.util.LongAccumulator;
+import org.opencds.cqf.cql.engine.data.ExternalFunctionProvider;
+import org.opencds.cqf.cql.engine.data.SystemExternalFunctionProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +50,7 @@ import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
 import com.ibm.cohort.cql.evaluation.CqlEvaluator;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
+import com.ibm.cohort.cql.functions.AnyColumn;
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.library.DirectoryBasedCqlLibraryProvider;
@@ -357,8 +361,8 @@ public class SparkCqlEvaluator implements Serializable {
             termProvider = createTerminologyProvider();
             terminologyProvider.set(termProvider);
         }
-        
-        return evaluate(provider, termProvider, contextName, rowsByContext, perContextAccum);
+
+        return evaluate(provider, termProvider, createExternalFunctionProvider(), contextName, rowsByContext, perContextAccum);
     }
 
 
@@ -367,6 +371,7 @@ public class SparkCqlEvaluator implements Serializable {
      * 
      * @param libraryProvider Library provider providing CQL/ELM content
      * @param termProvider    Terminology provider providing terminology resources
+     * @param funProvider     External function provider providing static CQL functions
      * @param contextName     Context name corresponding to the library context key
      *                        currently under evaluation.
      * @param rowsByContext   Data for a single evaluation context
@@ -379,8 +384,10 @@ public class SparkCqlEvaluator implements Serializable {
      * @throws Exception on general failure including CQL library loading issues
      */
     protected Tuple2<Object, Map<String, Object>> evaluate(CqlLibraryProvider libraryProvider,
-            CqlTerminologyProvider termProvider, String contextName, Tuple2<Object, List<Row>> rowsByContext,
-            LongAccumulator perContextAccum) throws Exception {
+                                                           CqlTerminologyProvider termProvider,
+                                                           ExternalFunctionProvider funProvider,
+                                                           String contextName, Tuple2<Object, List<Row>> rowsByContext,
+                                                           LongAccumulator perContextAccum) throws Exception {
 
         // Convert the Spark objects to the cohort Java model
         List<DataRow> datarows = rowsByContext._2().stream().map(getDataRowFactory()).collect(Collectors.toList());
@@ -395,8 +402,11 @@ public class SparkCqlEvaluator implements Serializable {
         DataRowRetrieveProvider retrieveProvider = new DataRowRetrieveProvider(dataByDataType, termProvider);
         CqlDataProvider dataProvider = new DataRowDataProvider(getDataRowClass(), retrieveProvider);
 
-        CqlEvaluator evaluator = new CqlEvaluator().setLibraryProvider(libraryProvider).setDataProvider(dataProvider)
-                .setTerminologyProvider(termProvider);
+        CqlEvaluator evaluator = new CqlEvaluator()
+            .setLibraryProvider(libraryProvider)
+            .setDataProvider(dataProvider)
+            .setTerminologyProvider(termProvider)
+            .setExternalFunctionProvider(funProvider);
 
         CqlEvaluationRequests requests = getFilteredJobSpecificationWithIds();
 
@@ -484,6 +494,20 @@ public class SparkCqlEvaluator implements Serializable {
     protected CqlTerminologyProvider createTerminologyProvider() {
         return new UnsupportedTerminologyProvider();
     }
+
+    /**
+     * Create external function provider.
+     *
+     * @return  external function provider with registered static functions
+     *          from {@link com.ibm.cohort.cql.functions.AnyColumn }
+     */
+    protected ExternalFunctionProvider createExternalFunctionProvider() {
+        SystemExternalFunctionProvider functionProvider =
+            new SystemExternalFunctionProvider(Arrays.asList(AnyColumn.class.getDeclaredMethods()));
+
+        return functionProvider;
+    }
+
 
     /**
      * Deserialize CQL Job requests.

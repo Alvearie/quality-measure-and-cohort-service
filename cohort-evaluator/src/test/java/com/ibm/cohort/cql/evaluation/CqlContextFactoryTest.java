@@ -105,10 +105,10 @@ public class CqlContextFactoryTest {
         ZonedDateTime evaluationDateTime = ZonedDateTime.now();
         
         
-        CqlContextFactory.ContextCacheKey k1 = new CqlContextFactory.ContextCacheKey(libraryProvider, topLevelLibrary, terminologyProvider, evaluationDateTime, parameters);
+        CqlContextFactory.ContextCacheKey k1 = new CqlContextFactory.ContextCacheKey(libraryProvider, topLevelLibrary, terminologyProvider, null, evaluationDateTime, parameters);
         assertEquals(k1, k1);
         
-        CqlContextFactory.ContextCacheKey k2 = new CqlContextFactory.ContextCacheKey(libraryProvider, topLevelLibrary, terminologyProvider, evaluationDateTime, parameters);
+        CqlContextFactory.ContextCacheKey k2 = new CqlContextFactory.ContextCacheKey(libraryProvider, topLevelLibrary, terminologyProvider, null, evaluationDateTime, parameters);
         assertEquals(k1, k2);
         
         Map<ContextCacheKey,String> map = new HashMap<>();
