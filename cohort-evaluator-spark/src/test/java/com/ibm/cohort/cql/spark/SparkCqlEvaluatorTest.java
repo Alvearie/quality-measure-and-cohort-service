@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.spark.SparkException;
+import org.apache.spark.deploy.SparkHadoopUtil;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
@@ -35,11 +36,11 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.delta.DeltaLog;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
+import org.apache.spark.util.SerializableConfiguration;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
 import com.ibm.cohort.cql.evaluation.parameters.DateParameter;
@@ -761,6 +762,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         
         IntegerParameter minimumAge = new IntegerParameter(17);
         
+        evaluator.hadoopConfiguration = new SerializableConfiguration(SparkHadoopUtil.get().conf());
         CqlEvaluationRequests requests = evaluator.readJobSpecification("src/test/resources/simple-job/cql-jobs.json");
         assertNotNull(requests);
         assertEquals(measurementPeriod, requests.getGlobalParameters().get("Measurement Period"));
@@ -772,6 +774,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
     public void testReadFilteredJobs() throws Exception {
         evaluator.args.jobSpecPath = "src/test/resources/column-mapping-validation/metadata/cql-jobs.json";
 
+        evaluator.hadoopConfiguration = new SerializableConfiguration(SparkHadoopUtil.get().conf());
         CqlEvaluationRequests requests = evaluator.getFilteredJobSpecificationWithIds();
         assertNotNull(requests);
         assertEquals(3, requests.getEvaluations().size());
@@ -782,12 +785,14 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
     
     @Test
     public void testReadCqlJobsInvalid() throws Exception {
+        evaluator.hadoopConfiguration = new SerializableConfiguration(SparkHadoopUtil.get().conf());
         assertThrows(IllegalArgumentException.class,
                 () -> evaluator.readJobSpecification("src/test/resources/invalid/cql-jobs-invalid-global.json"));
     }
     
     @Test
     public void testReadContextDefinitions() throws Exception {
+        evaluator.hadoopConfiguration = new SerializableConfiguration(SparkHadoopUtil.get().conf());
         ContextDefinitions contextDefinitions = evaluator.readContextDefinitions("src/test/resources/alltypes/metadata/context-definitions.json");
         assertNotNull(contextDefinitions);
         assertEquals(5, contextDefinitions.getContextDefinitions().size());
