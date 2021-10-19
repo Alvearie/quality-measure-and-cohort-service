@@ -7,9 +7,11 @@
 package com.ibm.cohort.cql.spark.data;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
@@ -18,52 +20,58 @@ import org.apache.spark.sql.types.Metadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ibm.cohort.cql.util.StringMatcher;
+
 public class FilteredDatasetRetriever implements DatasetRetriever {
 
     private static final Logger LOG = LoggerFactory.getLogger(FilteredDatasetRetriever.class);
     
     private DatasetRetriever retriever;
-    private Map<String, Set<String>> dataTypeFilters;
+    private Map<String, Set<StringMatcher>> dataTypeFilters;
 
-    public FilteredDatasetRetriever(DatasetRetriever retriever, Map<String,Set<String>> dataTypeFilters) {
+    public FilteredDatasetRetriever(DatasetRetriever retriever, Map<String,Set<StringMatcher>> filters) {
         this.retriever = retriever;
-        this.dataTypeFilters = dataTypeFilters;
+        this.dataTypeFilters = filters;
     }
 
     @Override
     public Dataset<Row> readDataset(String dataType, String path) {
         Dataset<Row> result = null;
         
-        Set<String> columnNames = dataTypeFilters.get(dataType);
-        if( columnNames != null && columnNames.size() > 0 ) {
-            result = retriever.readDataset(dataType, path);
+        Collection<StringMatcher> columnNameMatchers = dataTypeFilters.get(dataType);
+        if( columnNameMatchers != null && columnNameMatchers.size() > 0 ) {
+            final Dataset<Row> sourceDataset = retriever.readDataset(dataType, path);
             
-            List<Column> cols = new ArrayList<>();//Column[ columnNames.size() ];
-            for( String colName : columnNames ) {
+            List<Column> cols = new ArrayList<>();
+            for( StringMatcher colNameMatcher : columnNameMatchers ) {
                 try {
-                    Column col = result.col(colName);
-                    cols.add(col);
-                    
-                    Metadata metadata = MetadataUtils.getColumnMetadata(result.schema(), colName);
-                    if( metadata != null ) {
-                        if( MetadataUtils.isCodeCol(metadata) ) {
-                            String systemCol = MetadataUtils.getSystemCol(metadata);
-                            if( systemCol != null ) {
-                                cols.add( result.col(systemCol) );
+                    Stream.of(sourceDataset.schema().fieldNames())
+                        .filter( fn -> colNameMatcher.test(fn) )
+                        .map( fn -> sourceDataset.col( fn ) )
+                        .forEach( col -> {
+                            cols.add(col);
+                            
+                            Metadata metadata = MetadataUtils.getColumnMetadata(sourceDataset.schema(), col.toString());
+                            if( metadata != null ) {
+                                if( MetadataUtils.isCodeCol(metadata) ) {
+                                    String systemCol = MetadataUtils.getSystemCol(metadata);
+                                    if( systemCol != null ) {
+                                        cols.add( sourceDataset.col(systemCol) );
+                                    }
+        
+                                    String displayCol = MetadataUtils.getDisplayCol(metadata);
+                                    if( displayCol != null ) {
+                                        cols.add( sourceDataset.col(displayCol) );
+                                    }
+                                }
                             }
-
-                            String displayCol = MetadataUtils.getDisplayCol(metadata);
-                            if( displayCol != null ) {
-                                cols.add( result.col(displayCol) );
-                            }
-                        }
-                    }
+                        });
                 } catch( Throwable th ) {
                     LOG.error("Failed to resolve column %s of data type %s", th);
                     throw th;
                 }
             }
-            result = result.select( cols.toArray(new Column[cols.size()]) );
+            result = sourceDataset.select( cols.toArray(new Column[cols.size()]) );
         }
         
         return result;

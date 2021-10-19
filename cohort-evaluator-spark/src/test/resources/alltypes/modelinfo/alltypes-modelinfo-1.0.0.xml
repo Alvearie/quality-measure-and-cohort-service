@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <modelInfo xmlns="urn:hl7-org:elm-modelinfo:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="CohortTest" version="0.0.1" url="http://mock.cohort.model" targetQualifier="IDontKnow" patientClassName="A" patientBirthDatePropertyName="none">
-    <typeInfo namespace="CohortTest" name="A" identifier="http://mock.cohort.model/A" label="A" retrievable="true" xsi:type="ClassInfo">
+	<typeInfo namespace="CohortTest" name="Base" identifier="http://mock.cohort.model/Base" label="Base" retrievable="false" xsi:type="ClassInfo">
+	</typeInfo>
+
+    <typeInfo namespace="CohortTest" name="A" baseType="Base" identifier="http://mock.cohort.model/A" label="A" retrievable="true" xsi:type="ClassInfo">
         <element name="id_col" elementType="System.String"/>
         <element name="boolean_col" elementType="System.Boolean"/>
         <element name="integer_col" elementType="System.Integer"/>
@@ -15,7 +18,7 @@
         <element name="fake_int_col" elementType="System.Decimal"/>
     </typeInfo>
 
-    <typeInfo namespace="CohortTest" name="B" identifier="http://mock.cohort.model/B" label="B" retrievable="true" xsi:type="ClassInfo">
+    <typeInfo namespace="CohortTest" name="B" baseType="Base" identifier="http://mock.cohort.model/B" label="B" retrievable="true" xsi:type="ClassInfo">
         <element name="id" elementType="System.String"/>
         <element name="boolean" elementType="System.Boolean"/>
         <element name="integer" elementType="System.Integer"/>
@@ -27,7 +30,7 @@
         <contextRelationship context="Patient" relatedKeyElement="pat_id"/>
     </typeInfo>
     
-    <typeInfo namespace="CohortTest" name="C" identifier="http://mock.cohort.model/C" label="C" retrievable="true" xsi:type="ClassInfo">
+    <typeInfo namespace="CohortTest" name="C" baseType="Base" identifier="http://mock.cohort.model/C" label="C" retrievable="true" xsi:type="ClassInfo">
         <element name="id" elementType="System.String"/>
         <element name="pat_id" elementType="System.String"/>
         <element name="big_decimal" elementType="System.Decimal"/>
@@ -36,7 +39,7 @@
         <contextRelationship context="Patient" relatedKeyElement="pat_id"/>
     </typeInfo>
     
-    <typeInfo namespace="CohortTest" name="D" identifier="http://mock.cohort.model/D" label="D" retrievable="true" xsi:type="ClassInfo">
+    <typeInfo namespace="CohortTest" name="D" baseType="Base" identifier="http://mock.cohort.model/D" label="D" retrievable="true" xsi:type="ClassInfo">
         <element name="id" elementType="System.String"/>
         <element name="pat_id" elementType="System.String"/>
         <element name="integer" elementType="System.Integer"/>

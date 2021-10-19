@@ -35,8 +35,13 @@ import com.ibm.cohort.cql.translation.CqlLibrarySourceProvider;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.DefaultCqlLibrarySourceProvider;
 import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
+import com.ibm.cohort.cql.util.StringMatcher;
+import com.ibm.cohort.cql.util.EqualsStringMatcher;
 
 public class DataTypeRequirementsProcessor {
+    
+    private static final String SYSTEM_MODEL_URI = "urn:hl7-org:elm-types:r1";
+
     private static final Logger LOG = LoggerFactory.getLogger(DataTypeRequirementsProcessor.class);
     
     private CqlToElmTranslator translator;
@@ -45,32 +50,37 @@ public class DataTypeRequirementsProcessor {
         this.translator = translator;
     }
     
+    public Map<String,Set<StringMatcher>> getRequirementsByDataType(CqlLibraryProvider sourceProvider, CqlLibraryDescriptor libraryDescriptor) {
+        Map<String,Set<StringMatcher>> result = new HashMap<>();
+        
+        Map<String,Set<String>> pathsByDataType = getPathsByDataType(sourceProvider, libraryDescriptor, null);
+        pathsByDataType.forEach( (key,value) -> {
+            result.put(key, value.stream().map( path -> new EqualsStringMatcher(path) ).collect(Collectors.toSet()));
+        });
+        
+        Map<String,Set<StringMatcher>> anyColumnReqsByDataType = getAnyColumnRequirementsByDataType(sourceProvider, libraryDescriptor);
+        anyColumnReqsByDataType.forEach( (key,value) -> {
+            result.merge(key, value, (prev,cur) -> { prev.addAll(cur); return prev; } );
+        });
+        
+        return result;
+    }
+    
     public Map<String,Set<String>> getPathsByDataType(CqlLibraryProvider sourceProvider, CqlLibraryDescriptor libraryDescriptor) {
-        return getPathsByDataType(sourceProvider, libraryDescriptor, null);
+        return getPathsByDataType( sourceProvider, libraryDescriptor, null);
     }
     
     // This is private because the expression filtering doesn't work well when we want the inferred data requirements. For example,
     // a define statement that is simple "A and B" will return no inferred data requirements for "A" and "B".
     private Map<String,Set<String>> getPathsByDataType(CqlLibraryProvider sourceProvider, CqlLibraryDescriptor libraryDescriptor, Set<String> expressions) {
-        Map<String,Set<String>> pathsByDataType = new HashMap<>();
+         Map<String,Set<String>> pathsByDataType = new HashMap<>();
         
         CqlLibrarySourceProvider clsp = new DefaultCqlLibrarySourceProvider(sourceProvider);
         
         ElmRequirementsVisitor visitor = new CustomElmRequirementsVisitor();
         ElmRequirementsContext context = new ElmRequirementsContext(translator.newLibraryManager(clsp), translator.getOptions(), visitor); 
         
-        CqlLibraryDescriptor targetFormat = new CqlLibraryDescriptor()
-                .setLibraryId(libraryDescriptor.getLibraryId())
-                .setVersion(libraryDescriptor.getVersion())
-                .setFormat(Format.ELM);
-        
-        TranslatingCqlLibraryProvider provider = new TranslatingCqlLibraryProvider(sourceProvider, translator);
-        CqlLibrary library = provider.getLibrary(targetFormat);
-        if( library == null ) {
-            throw new IllegalArgumentException("Failed to load library " + libraryDescriptor.toString());
-        }
-        
-        Library elmLibrary = JAXB.unmarshal(library.getContentAsStream(), Library.class);
+        Library elmLibrary = getElmLibrary(sourceProvider, libraryDescriptor);
         
         // Build a list of all the expressions in the Library that we care about
         List<ExpressionDef> expressionDefs = elmLibrary.getStatements().getDef();
@@ -81,7 +91,7 @@ public class DataTypeRequirementsProcessor {
                     .collect(Collectors.toList());
 
             if( expressionDefs.size() != expressions.size() ) {
-                throw new IllegalArgumentException(String.format("One or more requested expressions %s not found in library %s", expressions, library.getDescriptor().toString()));
+                throw new IllegalArgumentException(String.format("One or more requested expressions %s not found in library %s", expressions, libraryDescriptor.toString()));
             }
         }
         
@@ -106,13 +116,11 @@ public class DataTypeRequirementsProcessor {
             requirements.reportRequirement(inferredRequirements);
         }
         
-        //requirements = requirements.collapse();
-        
         // Grab all of the object properties
         for( ElmRequirement requirement : requirements.getRetrieves() ) {
             Retrieve retrieve = (Retrieve) requirement.getElement();
             
-            if( retrieve.getDataType() != null ) {
+            if( retrieve.getDataType() != null && ! retrieve.getDataType().getNamespaceURI().equals(SYSTEM_MODEL_URI) ) {
                 Set<String> properties = pathsByDataType.computeIfAbsent(retrieve.getDataType().getLocalPart(), k -> new HashSet<>());
                 CollectionUtils.addIgnoreNull(properties, retrieve.getCodeProperty());
                 CollectionUtils.addIgnoreNull(properties, retrieve.getDateProperty());
@@ -132,5 +140,32 @@ public class DataTypeRequirementsProcessor {
         }
         
         return pathsByDataType;
+    }
+    
+    public Map<String,Set<StringMatcher>> getAnyColumnRequirementsByDataType(CqlLibraryProvider sourceProvider, CqlLibraryDescriptor libraryDescriptor) {
+        AnyColumnContext context = new AnyColumnContext();
+        AnyColumnVisitor visitor = new AnyColumnVisitor();
+
+        Library elm = getElmLibrary(sourceProvider, libraryDescriptor);
+        visitor.visitLibrary(elm, context);
+        
+        return context.getMatchers();
+    }
+    
+
+    protected Library getElmLibrary(CqlLibraryProvider sourceProvider, CqlLibraryDescriptor libraryDescriptor) {
+        CqlLibraryDescriptor targetFormat = new CqlLibraryDescriptor()
+                .setLibraryId(libraryDescriptor.getLibraryId())
+                .setVersion(libraryDescriptor.getVersion())
+                .setFormat(Format.ELM);
+        
+        TranslatingCqlLibraryProvider provider = new TranslatingCqlLibraryProvider(sourceProvider, translator);
+        CqlLibrary library = provider.getLibrary(targetFormat);
+        if( library == null ) {
+            throw new IllegalArgumentException("Failed to load library " + libraryDescriptor.toString());
+        }
+        
+        Library elmLibrary = JAXB.unmarshal(library.getContentAsStream(), Library.class);
+        return elmLibrary;
     }
 }

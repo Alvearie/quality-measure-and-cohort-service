@@ -10,8 +10,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.io.File;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -22,6 +23,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.ibm.cohort.cql.spark.BaseSparkTest;
+import com.ibm.cohort.cql.util.StringMatcher;
+import com.ibm.cohort.cql.util.EqualsStringMatcher;
+import com.ibm.cohort.cql.util.RegexStringMatcher;
 
 public class FilteredDatasetRetrieverTest extends BaseSparkTest {
     private static final long serialVersionUID = 1L;
@@ -42,14 +46,17 @@ public class FilteredDatasetRetrieverTest extends BaseSparkTest {
         assertEquals(12, baseline.schema().fields().length);
 
         String colName = "boolean_col";
+        String regexColName = "code_col[0-9]*";
         
-        Map<String,Set<String>> fieldsByDataType = new HashMap<>();
-        fieldsByDataType.put(dataType, Collections.singleton(colName));
+        Map<String,Set<StringMatcher>> fieldsByDataType = new HashMap<>();
+        fieldsByDataType.put(dataType, new HashSet<>(Arrays.asList(new EqualsStringMatcher(colName), new RegexStringMatcher(regexColName))));
         
         FilteredDatasetRetriever filteredRetriever = new FilteredDatasetRetriever(defaultRetriever, fieldsByDataType);
         Dataset<Row> filtered = filteredRetriever.readDataset(dataType, path);
-        assertEquals(1, filtered.schema().fields().length);
-        assertEquals(0, filtered.schema().getFieldIndex(colName).get());
+        
+        Set<String> expectedNames = new HashSet<>(Arrays.asList(colName, "code_col", "code_col_system", "string_col", "code_col2"));
+        Set<String> actualNames = new HashSet<>(Arrays.asList(filtered.schema().fieldNames()));
+        assertEquals( expectedNames, actualNames );
     }
     
     @Test
@@ -57,7 +64,7 @@ public class FilteredDatasetRetrieverTest extends BaseSparkTest {
         String dataType = "A";
         String path = new File("src/test/resources/alltypes/testdata/test-A.parquet").toURI().toString();
         
-        Map<String,Set<String>> fieldsByDataType = new HashMap<>();
+        Map<String,Set<StringMatcher>> fieldsByDataType = new HashMap<>();
         
         DefaultDatasetRetriever defaultRetriever = new DefaultDatasetRetriever(spark, "parquet");
         FilteredDatasetRetriever filteredRetriever = new FilteredDatasetRetriever(defaultRetriever, fieldsByDataType);

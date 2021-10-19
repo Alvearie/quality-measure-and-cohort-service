@@ -17,8 +17,6 @@ context A
 define "cohort":
   exists("Passes all checks")
 
-define function AnyColumn(key Choice<Any>, key String) returns List<Any> : external
-
 define "Passes all checks":
   [A] typeA where
     exists(CohortHelpers.AnyColumn(typeA, 'code_col') intersect "MyConcept".codes)

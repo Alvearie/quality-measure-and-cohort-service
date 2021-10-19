@@ -15,6 +15,7 @@ import org.junit.Test;
 
 import com.ibm.cohort.cql.spark.BaseSparkTest;
 
+@SuppressWarnings("serial")
 public class DefaultDatasetRetrieverTest extends BaseSparkTest {
 
     private static final String PARQUET_FILE = "src/test/resources/alltypes/testdata/test-A.parquet";

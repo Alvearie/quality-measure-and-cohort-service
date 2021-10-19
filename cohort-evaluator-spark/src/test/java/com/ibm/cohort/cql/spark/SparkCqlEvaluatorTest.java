@@ -54,6 +54,8 @@ import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.data.Patient;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
+import com.ibm.cohort.cql.util.StringMatcher;
+import com.ibm.cohort.cql.util.EqualsStringMatcher;
 
 @SuppressWarnings("serial")
 public class SparkCqlEvaluatorTest extends BaseSparkTest {
@@ -469,8 +471,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         Dataset<Row> expectedDataFrame = spark.createDataFrame(expectedRows, schema)
                 .select(actualColumns[0], Arrays.copyOfRange(actualColumns, 1, actualColumns.length));
 
-        assertEquals(0, expectedDataFrame.except(actualDataFrame).count());
-        assertEquals(0, actualDataFrame.except(expectedDataFrame).count());
+        assertEquals("Rows exist in expected dataframe that are not in actual dataframe", 0, expectedDataFrame.except(actualDataFrame).count());
+        assertEquals("Rows exist in actual dataframe that are not in expected dataframe", 0, actualDataFrame.except(expectedDataFrame).count());
 
     }
     
@@ -844,10 +846,11 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         ContextDefinitions definitions = evaluator.readContextDefinitions(evaluator.args.contextDefinitionPath);
         ContextDefinition context = definitions.getContextDefinitionByName("Patient");
         
-        Map<String,Set<String>> actual = evaluator.getDataRequirementsForContext(cqlTranslator, context);
+        Map<String,Set<StringMatcher>> actual = evaluator.getDataRequirementsForContext(cqlTranslator, context);
         
-        Map<String,Set<String>> expected = new HashMap<>();
-        expected.put("A", new HashSet<>(Arrays.asList("pat_id", "code_col", "boolean_col")));
+        Map<String,Set<StringMatcher>> expected = new HashMap<>();
+        expected.put("A", new HashSet<>(Arrays.asList(new EqualsStringMatcher("pat_id"),
+                new EqualsStringMatcher("code_col"), new EqualsStringMatcher("boolean_col"))));
         
         assertEquals( expected, actual );
     }

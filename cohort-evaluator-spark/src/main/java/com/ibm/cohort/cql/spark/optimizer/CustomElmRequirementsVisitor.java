@@ -6,12 +6,18 @@
 
 package com.ibm.cohort.cql.spark.optimizer;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 import org.cqframework.cql.elm.requirements.ElmRequirement;
 import org.cqframework.cql.elm.requirements.ElmRequirementsContext;
 import org.cqframework.cql.elm.requirements.ElmRequirementsVisitor;
 import org.hl7.elm.r1.If;
 
 public class CustomElmRequirementsVisitor extends ElmRequirementsVisitor {
+    public Map<String, Set<String>> anyColsByDataType = new HashMap<>();
+    
     // The original code fails to visit all the parts of the IF. There is a 
     // TODO there that suggests more work is required in the future. For now
     // we are reverting back to the default implementation and it seems to work.

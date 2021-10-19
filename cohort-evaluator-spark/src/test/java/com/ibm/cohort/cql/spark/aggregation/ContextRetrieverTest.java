@@ -31,6 +31,7 @@ import com.ibm.cohort.cql.spark.data.TestDatasetRetriever;
 
 import scala.Tuple2;
 
+@SuppressWarnings("serial")
 public class ContextRetrieverTest extends BaseSparkTest {
 
     // The primary data
@@ -527,6 +528,7 @@ public class ContextRetrieverTest extends BaseSparkTest {
         Assert.assertTrue(e.getMessage().contains("No path mapping found for datatype"));
     }
 
+    @SuppressWarnings({"unchecked","rawtypes"})
     private void assertOutput(List<Tuple2<Object, List<Row>>> expected, List<Tuple2<Object, List<Row>>> actual) {
         // Sort the `actual` outer list.
         // Even with one task, Spark likes to jumble the order of the results.

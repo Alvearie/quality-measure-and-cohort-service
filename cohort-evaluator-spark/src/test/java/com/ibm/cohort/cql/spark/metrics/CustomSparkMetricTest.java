@@ -10,8 +10,6 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
-import com.ibm.cohort.cql.spark.metrics.CustomMetricSparkPlugin;
-
 public class CustomSparkMetricTest {
 
 	@Test

@@ -52,7 +52,7 @@ import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
 import com.ibm.cohort.cql.evaluation.CqlEvaluator;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
-import com.ibm.cohort.cql.functions.AnyColumn;
+import com.ibm.cohort.cql.functions.AnyColumnFunctions;
 import com.ibm.cohort.cql.functions.CohortExternalFunctionProvider;
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
@@ -79,6 +79,8 @@ import com.ibm.cohort.cql.terminology.R4FileSystemFhirTerminologyProvider;
 import com.ibm.cohort.cql.terminology.UnsupportedTerminologyProvider;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
+import com.ibm.cohort.cql.util.StringMatcher;
+import com.ibm.cohort.cql.util.EqualsStringMatcher;
 import com.ibm.cohort.cql.util.MapUtils;
 import com.ibm.cohort.datarow.engine.DataRowDataProvider;
 import com.ibm.cohort.datarow.engine.DataRowRetrieveProvider;
@@ -298,7 +300,7 @@ public class SparkCqlEvaluator implements Serializable {
                 
                 DatasetRetriever datasetRetriever = defaultDatasetRetriever;
                 if( ! args.disableColumnFiltering ) {
-                    Map<String, Set<String>> pathsByDataType = getDataRequirementsForContext(cqlTranslator, context);
+                    Map<String, Set<StringMatcher>> pathsByDataType = getDataRequirementsForContext(cqlTranslator, context);
                     datasetRetriever = new FilteredDatasetRetriever(defaultDatasetRetriever, pathsByDataType);
                 } 
                 ContextRetriever contextRetriever = new ContextRetriever(args.inputPaths, datasetRetriever);
@@ -355,7 +357,7 @@ public class SparkCqlEvaluator implements Serializable {
      * @return Map of data type to the fields in that datatype that are used by the CQL jobs
      * @throws Exception any failure
      */
-    protected Map<String, Set<String>> getDataRequirementsForContext(CqlToElmTranslator cqlTranslator, ContextDefinition context)
+    protected Map<String, Set<StringMatcher>> getDataRequirementsForContext(CqlToElmTranslator cqlTranslator, ContextDefinition context)
             throws Exception {
         
         List<CqlEvaluationRequest> requests = getFilteredJobSpecificationWithIds().getEvaluations();
@@ -368,44 +370,44 @@ public class SparkCqlEvaluator implements Serializable {
         
         DataTypeRequirementsProcessor requirementsProcessor = new DataTypeRequirementsProcessor(cqlTranslator);
         
-        Map<String,Set<String>> pathsByDataType = new HashMap<>();
+        Map<String,Set<StringMatcher>> pathsByDataType = new HashMap<>();
         for( Map.Entry<CqlLibraryDescriptor, Set<String>> entry : expressionsByLibrary.entrySet() ) {
             LOG.debug("Extracting data requirements for " + entry.getKey().toString());
             
             // There is a method for filtering by specific expressions, but it is buggy, so we are requesting requirements
             // for the whole library.
-            Map<String,Set<String>> newPaths = requirementsProcessor.getPathsByDataType(createLibraryProvider(), entry.getKey());
+            Map<String,Set<StringMatcher>> newPaths = requirementsProcessor.getRequirementsByDataType(createLibraryProvider(), entry.getKey());
             
             newPaths.forEach( (key,value) -> {
                 pathsByDataType.merge(key, value, (prev,current) -> { prev.addAll(current); return prev; } );
             });
         }
         
-        Set<String> contextFields = pathsByDataType.computeIfAbsent(context.getPrimaryDataType(), dt -> new HashSet<String>() );
-        contextFields.add(context.getPrimaryKeyColumn());
+        Set<StringMatcher> contextFields = pathsByDataType.computeIfAbsent(context.getPrimaryDataType(), dt -> new HashSet<>() );
+        contextFields.add(new EqualsStringMatcher(context.getPrimaryKeyColumn()));
         if( context.getRelationships() != null ) {
             for( Join join : context.getRelationships() ) {
-                Set<String> joinFields = pathsByDataType.get(join.getRelatedDataType());
+                Set<StringMatcher> joinFields = pathsByDataType.get(join.getRelatedDataType());
                 if( joinFields != null && joinFields.size() > 0 ) {
-                    joinFields.add(join.getRelatedKeyColumn());
+                    joinFields.add(new EqualsStringMatcher(join.getRelatedKeyColumn()));
                     
                     // if the join key is not the primary key of the primary data table, then we need to add in the alternate key
                     if( join.getPrimaryDataTypeColumn() != null ) {
-                        contextFields.add(join.getPrimaryDataTypeColumn());
+                        contextFields.add(new EqualsStringMatcher(join.getPrimaryDataTypeColumn()));
                     }
                     
                     if( join instanceof ManyToMany ) {
                         ManyToMany manyToMany = (ManyToMany) join;
-                        Set<String> associationFields = pathsByDataType.computeIfAbsent(manyToMany.getAssociationDataType(), dt -> new HashSet<String>());
-                        associationFields.add(manyToMany.getAssociationOneKeyColumn());
-                        associationFields.add(manyToMany.getAssociationManyKeyColumn());
+                        Set<StringMatcher> associationFields = pathsByDataType.computeIfAbsent(manyToMany.getAssociationDataType(), dt -> new HashSet<>());
+                        associationFields.add(new EqualsStringMatcher(manyToMany.getAssociationOneKeyColumn()));
+                        associationFields.add(new EqualsStringMatcher(manyToMany.getAssociationManyKeyColumn()));
                     }
                 }
             }
         }
         // Must have the key field for every data type
-        for( Map.Entry<String, Set<String>> entry : pathsByDataType.entrySet() ) {
-            entry.getValue().add(context.getPrimaryKeyColumn());
+        for( Map.Entry<String, Set<StringMatcher>> entry : pathsByDataType.entrySet() ) {
+            entry.getValue().add(new EqualsStringMatcher(context.getPrimaryKeyColumn()));
         }
         
         return pathsByDataType;
@@ -609,11 +611,11 @@ public class SparkCqlEvaluator implements Serializable {
      * Create external function provider.
      *
      * @return  external function provider with registered static functions
+     *          from {@link com.ibm.cohort.cql.functions.AnyColumnFunctions }
      */
     protected ExternalFunctionProvider createExternalFunctionProvider() {
-        ExternalFunctionProvider functionProvider =
-            new CohortExternalFunctionProvider(Arrays.asList(AnyColumn.class.getDeclaredMethods()));
-
+        SystemExternalFunctionProvider functionProvider =
+            new SystemExternalFunctionProvider(Arrays.asList(AnyColumnFunctions.class.getDeclaredMethods()));
         return functionProvider;
     }
 
