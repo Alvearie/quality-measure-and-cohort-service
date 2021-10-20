@@ -137,9 +137,9 @@ else
   echo "Found '${pythonBinary}' binary"
 fi
 
-# Install the pyspark package for use for validating test results for the Spark/COS based tests.
-pip install pyspark
-echo "Install of pyspark completed successfully."
+# Install the python requirements for use for validating test results for the Spark/COS based tests.
+pip install -r ${TEST_DIR}/requirements.txt
+echo "Installed Python requirements successfully."
 
 # Copy over the fvt output folder along with all subfolders from COS locally. This is so that the validation script (validateSparkFvtOutput.py) can access the output 
 # files locally without having to make calls into COS. The cohort-data-tenant2 COS bucket under which fvt-output exists is already mounted in the engine-spark-fvt-test 
