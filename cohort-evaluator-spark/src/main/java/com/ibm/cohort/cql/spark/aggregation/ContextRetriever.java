@@ -6,20 +6,24 @@
 
 package com.ibm.cohort.cql.spark.aggregation;
 
-import com.ibm.cohort.cql.spark.data.DatasetRetriever;
-import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.sql.Column;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
-import org.apache.spark.sql.functions;
-import scala.Tuple2;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.sql.Column;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.functions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.ibm.cohort.cql.spark.data.DatasetRetriever;
+
+import scala.Tuple2;
 
 /**
  * Handles the retrieval and organization of context data.
@@ -28,7 +32,8 @@ import java.util.stream.Collectors;
  * this class and process any number of contexts.
  */
 public class ContextRetriever {
-
+    private static final Logger LOG = LoggerFactory.getLogger(ContextRetriever.class);
+    
     /**
      * A column that tracks the source datatype for each data row.
      */
@@ -144,6 +149,8 @@ public class ContextRetriever {
                 joinedDataset = joinedDataset.select(columnArray);
     
                 retVal.add(toPairRDD(joinedDataset, JOIN_CONTEXT_VALUE_IDX));
+            } else { 
+                LOG.info("No data was read for context {}, datatype {}. This happens natually when CQL-based column filtering is enabled and no data is required from the specified datatype.", contextDefinition.getName(), relatedDataType);
             }
         }
 

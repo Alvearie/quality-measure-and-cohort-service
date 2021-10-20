@@ -10,9 +10,9 @@ import java.io.Serializable;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 
 public class DefaultSparkOutputColumnEncoder implements Serializable, SparkOutputColumnEncoder {
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    private final String columnDelimieter;
+	private final String columnDelimieter;
 	
 	public DefaultSparkOutputColumnEncoder(String columnDelimieter) {
 		this.columnDelimieter = columnDelimieter;

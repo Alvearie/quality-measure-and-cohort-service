@@ -40,7 +40,7 @@ public class FilteredDatasetRetriever implements DatasetRetriever {
         
         Collection<StringMatcher> columnNameMatchers = dataTypeFilters.get(dataType);
         if( columnNameMatchers != null && columnNameMatchers.size() > 0 ) {
-            final Dataset<Row> sourceDataset = retriever.readDataset(dataType, path);
+            Dataset<Row> sourceDataset = retriever.readDataset(dataType, path);
             
             List<Column> cols = new ArrayList<>();
             for( StringMatcher colNameMatcher : columnNameMatchers ) {
