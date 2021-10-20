@@ -29,9 +29,7 @@ import javax.validation.ValidatorFactory;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.deploy.SparkHadoopUtil;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
@@ -251,7 +249,7 @@ public class SparkCqlEvaluator implements Serializable {
         try (SparkSession spark = sparkBuilder.getOrCreate()) {
             boolean useJava8API = Boolean.valueOf(spark.conf().get("spark.sql.datetime.java8API.enabled"));
             this.typeConverter = new SparkTypeConverter(useJava8API);
-            this.hadoopConfiguration = new SerializableConfiguration(SparkHadoopUtil.get().newConfiguration(SparkContext.getOrCreate().conf()));
+            this.hadoopConfiguration = new SerializableConfiguration(spark.sparkContext().hadoopConfiguration());
 
             SparkOutputColumnEncoder columnEncoder = getSparkOutputColumnEncoder();
             
