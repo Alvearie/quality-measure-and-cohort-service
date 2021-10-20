@@ -549,6 +549,11 @@
 				<version>${hadoop.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>org.apache.hadoop</groupId>
+				<artifactId>hadoop-common</artifactId>
+				<version>${hadoop.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>io.delta</groupId>
 				<artifactId>delta-core_${spark.scala.version}</artifactId>
 				<version>1.0.0</version>
