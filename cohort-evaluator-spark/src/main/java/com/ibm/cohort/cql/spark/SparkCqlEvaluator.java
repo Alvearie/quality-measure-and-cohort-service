@@ -6,10 +6,9 @@
 
 package com.ibm.cohort.cql.spark;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Serializable;
@@ -28,6 +27,8 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -36,6 +37,7 @@ import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.StructType;
 import org.apache.spark.util.LongAccumulator;
+import org.apache.spark.util.SerializableConfiguration;
 import org.opencds.cqf.cql.engine.data.ExternalFunctionProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +55,7 @@ import com.ibm.cohort.cql.functions.AnyColumn;
 import com.ibm.cohort.cql.functions.CohortExternalFunctionProvider;
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
-import com.ibm.cohort.cql.library.DirectoryBasedCqlLibraryProvider;
+import com.ibm.cohort.cql.library.HadoopBasedCqlLibraryProvider;
 import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
@@ -89,6 +91,8 @@ public class SparkCqlEvaluator implements Serializable {
     protected SparkCqlEvaluatorArgs args;
 
     protected SparkTypeConverter typeConverter;
+
+    protected SerializableConfiguration hadoopConfiguration;
     
     protected static ThreadLocal<SparkOutputColumnEncoder> sparkOutputColumnEncoder = new ThreadLocal<>();
 
@@ -247,6 +251,7 @@ public class SparkCqlEvaluator implements Serializable {
         try (SparkSession spark = sparkBuilder.getOrCreate()) {
             boolean useJava8API = Boolean.valueOf(spark.conf().get("spark.sql.datetime.java8API.enabled"));
             this.typeConverter = new SparkTypeConverter(useJava8API);
+            this.hadoopConfiguration = new SerializableConfiguration(spark.sparkContext().hadoopConfiguration());
 
             SparkOutputColumnEncoder columnEncoder = getSparkOutputColumnEncoder();
             
@@ -332,7 +337,11 @@ public class SparkCqlEvaluator implements Serializable {
      */
     protected ContextDefinitions readContextDefinitions(String path) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(new File(path), ContextDefinitions.class);
+        Path filePath = new Path(path);
+        FileSystem fileSystem = filePath.getFileSystem(this.hadoopConfiguration.value());
+        try (Reader r = new InputStreamReader(fileSystem.open(filePath))) {
+            return mapper.readValue(r, ContextDefinitions.class);
+        }
     }
 
     /**
@@ -477,15 +486,17 @@ public class SparkCqlEvaluator implements Serializable {
      */
     protected CqlLibraryProvider createLibraryProvider() throws IOException, FileNotFoundException {
         
-        CqlLibraryProvider fsBasedLp = new DirectoryBasedCqlLibraryProvider(new File(args.cqlPath));
+        CqlLibraryProvider hadoopBasedLp = new HadoopBasedCqlLibraryProvider(new Path(args.cqlPath), this.hadoopConfiguration.value());
         CqlLibraryProvider cpBasedLp = new ClasspathCqlLibraryProvider("org.hl7.fhir");
-        CqlLibraryProvider priorityLp = new PriorityCqlLibraryProvider( fsBasedLp, cpBasedLp );
+        CqlLibraryProvider priorityLp = new PriorityCqlLibraryProvider( hadoopBasedLp, cpBasedLp );
 
         // TODO - replace with cohort shared translation component
         final CqlToElmTranslator translator = new CqlToElmTranslator();
-        if (args.modelInfoPaths != null && args.modelInfoPaths.size() > 0) {
+        if (args.modelInfoPaths != null && !args.modelInfoPaths.isEmpty()) {
             for (String path : args.modelInfoPaths) {
-                try (Reader r = new FileReader(path)) {
+                Path filePath = new Path(path);
+                FileSystem modelInfoFilesystem = filePath.getFileSystem(this.hadoopConfiguration.value());
+                try (Reader r = new InputStreamReader(modelInfoFilesystem.open(filePath))) {
                     translator.registerModelInfo(r);
                 }
             }
@@ -526,8 +537,13 @@ public class SparkCqlEvaluator implements Serializable {
      */
     protected CqlEvaluationRequests readJobSpecification(String path) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        CqlEvaluationRequests requests = mapper.readValue(new File(path), CqlEvaluationRequests.class);
-        
+        Path filePath = new Path(path);
+        FileSystem fileSystem = filePath.getFileSystem(this.hadoopConfiguration.value());
+        CqlEvaluationRequests requests;
+        try (Reader r = new InputStreamReader(fileSystem.open(filePath))) {
+            requests = mapper.readValue(r, CqlEvaluationRequests.class);
+        }
+
         try( ValidatorFactory factory = Validation.buildDefaultValidatorFactory() ) { 
             Validator validator = factory.getValidator();
             
