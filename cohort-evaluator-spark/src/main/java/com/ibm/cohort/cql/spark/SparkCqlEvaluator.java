@@ -37,7 +37,6 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.StructType;
 import org.apache.spark.util.LongAccumulator;
 import org.opencds.cqf.cql.engine.data.ExternalFunctionProvider;
-import org.opencds.cqf.cql.engine.data.SystemExternalFunctionProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +50,7 @@ import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
 import com.ibm.cohort.cql.evaluation.CqlEvaluator;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.cql.functions.AnyColumn;
+import com.ibm.cohort.cql.functions.CohortExternalFunctionProvider;
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.library.DirectoryBasedCqlLibraryProvider;
@@ -114,6 +114,8 @@ public class SparkCqlEvaluator implements Serializable {
      * discussion in the libraryProvider documentation for complete reasoning.
      */
     protected static ThreadLocal<CqlTerminologyProvider> terminologyProvider = new ThreadLocal<>();
+
+    protected static ThreadLocal<ExternalFunctionProvider> functionProvider = new ThreadLocal<>();
 
     /**
      * Auto-detect an output schema for 1 or more contexts using program metadata files
@@ -362,7 +364,13 @@ public class SparkCqlEvaluator implements Serializable {
             terminologyProvider.set(termProvider);
         }
 
-        return evaluate(provider, termProvider, createExternalFunctionProvider(), contextName, rowsByContext, perContextAccum);
+        ExternalFunctionProvider funProvider = functionProvider.get();
+        if( funProvider == null ) {
+            funProvider = createExternalFunctionProvider();
+            functionProvider.set(funProvider);
+        }
+
+        return evaluate(provider, termProvider, funProvider, contextName, rowsByContext, perContextAccum);
     }
 
 
@@ -502,8 +510,8 @@ public class SparkCqlEvaluator implements Serializable {
      *          from {@link com.ibm.cohort.cql.functions.AnyColumn }
      */
     protected ExternalFunctionProvider createExternalFunctionProvider() {
-        SystemExternalFunctionProvider functionProvider =
-            new SystemExternalFunctionProvider(Arrays.asList(AnyColumn.class.getDeclaredMethods()));
+        ExternalFunctionProvider functionProvider =
+            new CohortExternalFunctionProvider(Arrays.asList(AnyColumn.class.getDeclaredMethods()));
 
         return functionProvider;
     }
