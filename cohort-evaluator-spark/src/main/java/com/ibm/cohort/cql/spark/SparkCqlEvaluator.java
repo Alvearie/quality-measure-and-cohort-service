@@ -69,6 +69,7 @@ import com.ibm.cohort.cql.spark.data.SparkSchemaCreator;
 import com.ibm.cohort.cql.spark.data.SparkTypeConverter;
 import com.ibm.cohort.cql.spark.metrics.CustomMetricSparkPlugin;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
+import com.ibm.cohort.cql.terminology.R4FileSystemFhirTerminologyProvider;
 import com.ibm.cohort.cql.terminology.UnsupportedTerminologyProvider;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
@@ -511,7 +512,12 @@ public class SparkCqlEvaluator implements Serializable {
      * @return configured terminology provider.
      */
     protected CqlTerminologyProvider createTerminologyProvider() {
-        return new UnsupportedTerminologyProvider();
+    	if(args.terminologyPath != null && !args.terminologyPath.isEmpty()) {
+    		return new R4FileSystemFhirTerminologyProvider(new Path(args.terminologyPath), this.hadoopConfiguration.value());
+    	}
+    	else {
+    		return new UnsupportedTerminologyProvider();
+    	}
     }
 
     /**
