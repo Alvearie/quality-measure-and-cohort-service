@@ -32,19 +32,18 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.DataFormatException;
 
 /**
- * This class is used to read ValueSet definitions from the local filesystem or S3 compatible source.
+ * This class is used to read ValueSet definitions from the local filesystem or S3 compatible endpoint.
  * ValueSet definitions are expected to be stored in FHIR xml or JSON format and can be generated from
  * spreadsheets using the com.ibm.cohort.tooling.fhir.ValueSetImporter tool.
  * 
- * In order to use ValueSets stored on the filesystem, the following spark config parameters must be provided:
+ * In order to use ValueSets stored on the S3 compatible endpoint, the following spark config parameters must be provided:
  * -Dspark.hadoop.fs.s3a.access.key = access_key_value
  * -Dspark.hadoop.fs.s3a.secret.key = secret_key_value
  * -Dspark.hadoop.fs.s3a.endpoint = object store endpoint
  * 
- * as well as setting the following environment variables:
- * AWS_ACCESS_KEY = access_key_value
- * AWS_ENDPOINT = object store endpoint
- * AWS_LOCATION = location value ie us-east
+ * If the spark properties are not enabled, the code will fall back on using the
+ * following environment variables:
+ * AWS_ACCESS_KEY_ID = access_key_value
  * AWS_SECRET_ACCESS_KEY = secret_key_value
  *
  */
@@ -73,7 +72,7 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 	 */
 	@Override
 	public boolean in(Code code, ValueSetInfo valueSetInfo) {
-		LOG.debug("Entry: in() ValueSet.getId=[" + valueSetInfo.getId() + "] version=[" + valueSetInfo.getVersion() +"]");
+		LOG.debug("Entry: in() ValueSet.getId=[{}] version=[{}]", valueSetInfo.getId(), valueSetInfo.getVersion());
 		ValueSet valueSetFhirR4 = loadFromFile(valueSetInfo);
 
 		// Check and see if the input code is in the ValueSet
@@ -84,14 +83,14 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 					// there was test case for null code system so checking for that
 					if ( ( code.getSystem() == null || (code.getSystem() != null && csc.getSystem().equalsIgnoreCase(code.getSystem())))
 							&& code.getCode().equalsIgnoreCase(cfc.getCode())) {
-						LOG.debug("Exit: in() ValueSet.getId=[" + valueSetInfo.getId() + "] version=[" + valueSetInfo.getVersion() +"]");
+						LOG.debug( "Exit: in() ValueSet.getId=[{}] version=[{}]", valueSetInfo.getId(), valueSetInfo.getVersion());
 						return true;
 					}
 				}
 			}
 		}
 
-		LOG.debug("Exit: in() ValueSet.getId=[" + valueSetInfo.getId() + "] version=[" + valueSetInfo.getVersion() +"]");
+		LOG.debug("Exit: in() ValueSet.getId=[{}] version=[{}]", valueSetInfo.getId(), valueSetInfo.getVersion());
 		return false;
 	}
 	
@@ -105,7 +104,7 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 	 */
 	@Override
 	public Iterable<Code> expand(ValueSetInfo valueSetInfo) {
-		LOG.debug("Entry: expand() ValueSet.getId=[" + valueSetInfo.getId() + "] version=[" + valueSetInfo.getVersion() +"]");
+		LOG.debug("Entry: expand() ValueSet.getId=[{}] version=[{}]", valueSetInfo.getId(), valueSetInfo.getVersion());
 		ValueSet valueSetFhirR4 = loadFromFile(valueSetInfo);
 		List<Code> codes = new ArrayList<>();
 
@@ -122,7 +121,7 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 			}
 		}
 
-		LOG.debug("Exit: expand() ValueSet.getId=[" + valueSetInfo.getId() + "] version=[" + valueSetInfo.getVersion() +"] found " + codes.size() + " codes");
+		LOG.debug("Exit: expand() ValueSet.getId=[{}] version=[{}] found {} codes", valueSetInfo.getId(), valueSetInfo.getVersion(), codes.size());
 		return codes;
 	}
 
@@ -151,7 +150,7 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 	 * @return A ValueSet object populated from the file definition or null if no valueset file was found
 	 */
 	protected ValueSet loadFromFile(ValueSetInfo valueSetInfo) throws RuntimeException {
-		LOG.debug("Entry: loadFromFile() ValueSet.getId=[" + valueSetInfo.getId() + "] version=[" + valueSetInfo.getVersion() +"]");
+		LOG.debug("Entry: loadFromFile() ValueSet.getId=[{}] version=[{}]", valueSetInfo.getId(), valueSetInfo.getVersion());
 		String valueSetId;
 		
 		//strip of the urn or url portions of the id if they exist
@@ -163,7 +162,7 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 			valueSetId = valueSetInfo.getId();
 		}
 		
-		LOG.debug("loadFromFile() trimmed valueSetId=" + valueSetId);
+		LOG.debug("loadFromFile() trimmed valueSetId={}", valueSetId);
 		
 		String valueSetVersion = valueSetInfo.getVersion();	
 		VersionedIdentifier valueSetIdentifier = new VersionedIdentifier().withId(valueSetId)
@@ -172,7 +171,7 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 		//get the value from the cache if it is there
 		ValueSet valueSetFhirR4 = valueSetCache.get(valueSetIdentifier);
 		if (valueSetFhirR4 == null) {
-			LOG.debug("loadFromFile() valueSetId=" + valueSetId + " not found in cache, attempting to load from file");
+			LOG.debug("loadFromFile() valueSetId={} not found in cache, attempting to load from file", valueSetId);
 			FileStatus[] valueSetFiles;
 			FileSystem fileSystem;
 			
@@ -197,8 +196,9 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 						+ ".xml found in terminology directory " + terminologyDirectory.toString());
 			} else {
 				if (valueSetFiles.length > 1) {
-					LOG.warn("Multiple ValueSet files found for ValueSet " + valueSetId + " in terminology directory " + terminologyDirectory.toString()
-							+ ". File " + valueSetFiles[0].toString() + " will be used.");
+					LOG.warn(
+							"Multiple ValueSet files found for ValueSet {} in terminology directory {}. File {} will be used.",
+							valueSetId, terminologyDirectory.toString(), valueSetFiles[0].toString());
 				}
 
 				try {
@@ -206,11 +206,11 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 					if (valueSetFiles[0].getPath().getName().toLowerCase().endsWith(".xml")) {
 						valueSetFhirR4 = (ValueSet) fhirContext.newXmlParser()
 								.parseResource(new InputStreamReader(fileSystem.open(valueSetFiles[0].getPath())));
-						LOG.info("Unmarshalled xml " + valueSetFhirR4.getId());
+						LOG.info("Unmarshalled xml {}", valueSetFhirR4.getId());
 					} else if (valueSetFiles[0].getPath().getName().toLowerCase().endsWith(".json")) {
 						valueSetFhirR4 = (ValueSet) fhirContext.newJsonParser()
 								.parseResource(new InputStreamReader(fileSystem.open(valueSetFiles[0].getPath())));
-						LOG.info("Unmarshalled json " + valueSetFhirR4.getId());
+						LOG.info("Unmarshalled json {}", valueSetFhirR4.getId());
 					}
 
 					valueSetCache.put(valueSetIdentifier, valueSetFhirR4);
@@ -221,7 +221,7 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 			}
 		}
 		
-		LOG.debug("Exit: loadFromFile() ValueSet.getId=[" + valueSetInfo.getId() + "] version=[" + valueSetInfo.getVersion() +"]");
+		LOG.debug("Exit: loadFromFile() ValueSet.getId=[{}] version=[{}]", valueSetInfo.getId(), valueSetInfo.getVersion());
 		return valueSetFhirR4;
 	}
 }

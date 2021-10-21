@@ -120,20 +120,20 @@ public class ValueSetImporter {
 						String valueSetId = vs.getId().startsWith("urn:oid:") ? vs.getId().replace("urn:oid:", "") : vs.getId();						
 						String vsFileName = valueSetId + "." +arguments.filesystemOutputFormat.toLowerCase();
 						
-						//create the output dir if it doesn't exist
-						File outputDir = new File(arguments.fileSystemOutputPath);
-						if(!outputDir.exists()) {
-							outputDir.mkdir();
+						try (BufferedWriter writer = new BufferedWriter(new FileWriter(arguments.fileSystemOutputPath + System.getProperty("file.separator")+vsFileName))) {
+							//create the output dir if it doesn't exist
+							File outputDir = new File(arguments.fileSystemOutputPath);
+							if(!outputDir.exists()) {
+								outputDir.mkdir();
+							}
+							
+							//write to xml or json format
+							if(arguments.filesystemOutputFormat == null || arguments.filesystemOutputFormat.isEmpty() || arguments.filesystemOutputFormat.equalsIgnoreCase("json")) {
+								fhirContext.newJsonParser().encodeResourceToWriter(vs, writer);
+							}else if (arguments.filesystemOutputFormat.equalsIgnoreCase("xml")) {
+								fhirContext.newXmlParser().encodeResourceToWriter(vs, writer);
+							}
 						}
-						
-						//write to xml or json format
-						BufferedWriter writer = new BufferedWriter(new FileWriter(arguments.fileSystemOutputPath + System.getProperty("file.separator")+vsFileName));
-						if(arguments.filesystemOutputFormat == null || arguments.filesystemOutputFormat.isEmpty() || arguments.filesystemOutputFormat.equalsIgnoreCase("json")) {
-							fhirContext.newJsonParser().encodeResourceToWriter(vs, writer);
-						}else if (arguments.filesystemOutputFormat.equalsIgnoreCase("xml")) {
-							fhirContext.newXmlParser().encodeResourceToWriter(vs, writer);
-						}
-						writer.close();
 					}
 				}
 			}
