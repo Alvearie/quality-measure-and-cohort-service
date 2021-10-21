@@ -61,7 +61,7 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 	public R4FileSystemFhirTerminologyProvider(Path terminologyDirectory, Configuration configuration) {
 		super();
 		this.terminologyDirectory = terminologyDirectory;
-		LOG.info("TerminologyDirectory is " + terminologyDirectory.getName());
+		LOG.info("TerminologyDirectory is " + terminologyDirectory.toString());
 		this.configuration = configuration;
 	}
 
