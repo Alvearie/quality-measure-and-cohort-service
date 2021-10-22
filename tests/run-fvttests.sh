@@ -122,8 +122,8 @@ if [ ${sparksbmrc} != 0 ]; then
    exit 1
 fi
 
-# Check to see if python3 is available for executing the xmlCombiner.py script later to combine the Results xml files into single file. If not install python3.8.
-pythonBinary=python3
+# Check to see if python3.8 is available for executing the xmlCombiner.py script later to combine the Results xml files into single file. If not install python3.8.
+pythonBinary=python3.8
 pythonVersion=$(${pythonBinary} --version 2>/dev/null)
 if [ -z "${pythonVersion}" ]
 then
@@ -138,8 +138,8 @@ else
 fi
 
 # Install the python requirements for use for validating test results for the Spark/COS based tests.
-pip install -r ${TEST_DIR}/requirements.txt
-echo "Installed Python requirements successfully."
+$pythonBinary -m pip install -r ${TEST_DIR}/requirements.txt
+echo "Install of python requirements for validating spark fvt test results completed successfully."
 
 # Copy over the fvt output folder along with all subfolders from COS locally. This is so that the validation script (validateSparkFvtOutput.py) can access the output 
 # files locally without having to make calls into COS. The cohort-data-tenant2 COS bucket under which fvt-output exists is already mounted in the engine-spark-fvt-test 
