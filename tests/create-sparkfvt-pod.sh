@@ -21,6 +21,9 @@ fi
 #Replace the placeholder spark kubernetes container image value in spark-defaults.conf file with one built by the CI toolchain
 sed -i "s_^spark\.kubernetes\.container\.image .*_spark.kubernetes.container.image ${sparkImage}_g" tests/src/main/resources/sparkconf/spark-defaults.conf
 
+#Replace the placeholder spark kubernetes namespace value in spark-defaults.conf file with the value of ${CLUSTER_NAMESPACE}
+sed -i "s_^spark\.kubernetes\.namespace .*_spark.kubernetes.namespace ${CLUSTER_NAMESPACE}_g" tests/src/main/resources/sparkconf/spark-defaults.conf
+
 #Delete the engine-spark-fvt-test from previous run before spinning off a new one
 kubectl -n ${CLUSTER_NAMESPACE} delete pod/${SPARK_POD_NAME}
 
