@@ -205,6 +205,13 @@ as [external functions](https://cql.hl7.org/03-developersguide.html#external-fun
 using "CustomDataModel" version '1.0.0'
 include "CohortHelpers" version '1.0.0'
 
+code "PrimaryCode": 'code1' from "SNOMED"
+code "SecondaryCode": 'code2' from "SNOMED"
+
+concept "CustomConcept": {
+  "PrimaryCode", "SecondaryCode"
+} display 'CustomConcept'
+
 // checks if any of the inlined codes (`code1`, `code2`) matches the data from
 // the fields that start with `dx_cd` (`dx_cd`, `dx_cd_02`, `dx_cd_03`) in `TypeA`
 define "Prefix Example":
