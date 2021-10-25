@@ -54,7 +54,7 @@ public class ValueSetImporter {
 		@Parameter(names = {"-o", "--file-system-output-format"}, description = "Format to use when exporting value sets to the file system when using the -p/--file-system-output-path parameters. Valid values are JSON or XML. If not specified, the default output format will be JSON", required = false)
 		String filesystemOutputFormat = "json";
 
-		@Parameter(description = "The list of value set set spreadsheets to import", required = true)
+		@Parameter(description = "The list of value set spreadsheets to import", required = true)
 		List<String> spreadsheets;
 		
 		public void validate() {
