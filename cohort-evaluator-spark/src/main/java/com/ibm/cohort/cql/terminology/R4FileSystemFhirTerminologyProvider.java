@@ -79,8 +79,6 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 		if (valueSetFhirR4 != null) {
 			for (ConceptSetComponent csc : valueSetFhirR4.getCompose().getInclude()) {
 				for (ConceptReferenceComponent cfc : csc.getConcept()) {
-					// tabishop is equivalent ok here, or do we want equals (ie code system version needs to match?)
-					// there was test case for null code system so checking for that
 					if ( ( code.getSystem() == null || (code.getSystem() != null && csc.getSystem().equalsIgnoreCase(code.getSystem())))
 							&& code.getCode().equalsIgnoreCase(cfc.getCode())) {
 						LOG.debug( "Exit: in() ValueSet.getId=[{}] version=[{}]", valueSetInfo.getId(), valueSetInfo.getVersion());

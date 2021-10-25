@@ -315,7 +315,7 @@ public class SparkCqlEvaluator implements Serializable {
 	            Boolean metricsEnabledStr = Boolean.valueOf(spark.conf().get("spark.ui.prometheus.enabled"));
 	            if(metricsEnabledStr) {
 	            	LOG.info("Prometheus metrics enabled, sleeping for 7 seconds to finish gathering metrics");
-		            //sleep for just over 5 seconds because Prometheus only polls
+		            //sleep for over 5 seconds because Prometheus only polls
 		            //every 5 seconds. If spark finishes and goes away immediately after completing,
 		            //Prometheus will never be able to poll for the final set of metrics for the spark-submit
 		            //The default promtheus config map was changed from 2 minute scrape interval to 5 seconds for spark pods

@@ -43,12 +43,12 @@ public class R4FileSystemFhirTerminologyProviderTest {
 	}
 	
 	@Parameters
-    public static Collection<Object[]> data() {
-    	//Run tests using XML input and JSON input
-        return Arrays.asList(new Object[][] {
-                { "urn:oid:Test"}, { "urn:oid:TestXml"}
-        });
-    }
+	public static Collection<Object[]> data() {
+		//Run tests using XML input and JSON input
+		return Arrays.asList(new Object[][] {
+			{ "urn:oid:Test"}, { "urn:oid:TestXml"}
+		});
+	}
 
 	@BeforeClass
 	public static void initializeProvider() throws IOException {
