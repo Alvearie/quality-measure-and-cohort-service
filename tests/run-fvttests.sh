@@ -87,11 +87,10 @@ runSparkTest() {
   # pod at /spark-cos
   kubectl exec -n ${CLUSTER_NAMESPACE} ${SPARK_POD_NAME} -- tar cf - /spark-cos/fvt-output | tar xf - -C .
   
-  #SPARK_RESULTS_FILE=sparkfvttest.xml
   # Call a Python script to validate the results of the spark fvt test by reading the parquet files from fvt-output folder copied earlier
   $pythonBinary ${TEST_DIR}/scripts/validateSparkFvtOutput.py ${SPARK_RESULTS_FILE}
   
-  # Check for existence of a file called sparkfvttest.xml written out by the validateSparkFVTOutput.py python with validation results. If the file exists copy the file 
+  # Check for existence of the file written out by the validateSparkFVTOutput.py python with validation results. If the file exists copy the file 
   # into the ${OUTPUT_DIR}/Results directory to be later combined with other "results" xml files (from non Spark based tests) into a single fvttest.xml file by the 
   # xmlCombiner.py script
   if [ -f "${SPARK_RESULTS_FILE}" ]; then
