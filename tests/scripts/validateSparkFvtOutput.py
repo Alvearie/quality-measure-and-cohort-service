@@ -20,8 +20,15 @@ from pyspark.sql.types import StructField
 # Declare global variables to keep track of number of passing and failing tests
 passing=0
 failing=0
+
+if (len(sys.argv) != 2):
+    print("No output file name provided. Exiting.")
+    sys.exit(1)
+
+output_file = sys.argv[1]
+
 # Open an xml file to write validation results to in global scope
-xmlfile = open("sparkfvttest.xml", "w")
+xmlfile = open(output_file, "w")
 
 #Create a SparkSession object (one time only)
 spark = SparkSession\
