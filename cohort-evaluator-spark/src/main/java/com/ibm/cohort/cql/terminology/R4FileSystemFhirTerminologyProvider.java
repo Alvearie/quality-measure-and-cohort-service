@@ -154,7 +154,7 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 		//strip of the urn or url portions of the id if they exist
 		if (valueSetInfo.getId().startsWith("urn:oid:")) {
 			valueSetId = valueSetInfo.getId().replace("urn:oid:", "");
-		} else if(valueSetInfo.getId().startsWith("http") || valueSetInfo.getId().startsWith("https") ) {
+		} else if (valueSetInfo.getId().startsWith("http")) {
 			valueSetId = valueSetInfo.getId().substring(valueSetInfo.getId().lastIndexOf("/")+1);
 		} else {
 			valueSetId = valueSetInfo.getId();

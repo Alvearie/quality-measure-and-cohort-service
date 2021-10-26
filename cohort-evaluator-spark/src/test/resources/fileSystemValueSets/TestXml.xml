@@ -1,1 +1,17 @@
-<ValueSet xmlns="http://hl7.org/fhir"><id value="TestXml"></id><url value="http://cts.nlm.nih.gov/fhir/ValueSet/TestXml"></url><version value="20200331"></version><name value="Test Codeset"></name><title value="Test Codeset"></title><status value="active"></status><compose><include><system value="http://snomed.info/sct"></system><concept><code value="10901-7"></code><display value="Display"></display></concept></include></compose></ValueSet>
+<ValueSet xmlns="http://hl7.org/fhir">
+	<id value="TestXml"></id>
+	<url value="http://cts.nlm.nih.gov/fhir/ValueSet/TestXml"></url>
+	<version value="20200331"></version>
+	<name value="Test Codeset"></name>
+	<title value="Test Codeset"></title>
+	<status value="active"></status>
+	<compose>
+		<include>
+			<system value="http://snomed.info/sct"></system>
+			<concept>
+				<code value="10901-7"></code>
+				<display value="Display"></display>
+			</concept>
+		</include>
+	</compose>
+</ValueSet>

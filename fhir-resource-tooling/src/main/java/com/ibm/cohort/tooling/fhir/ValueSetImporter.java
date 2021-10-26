@@ -34,6 +34,9 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 public class ValueSetImporter {
 	private static final Logger logger = LoggerFactory.getLogger(ValueSetImporter.class.getName());
+	
+	private enum FileFormat {JSON, XML};
+	
 	public static final class ValueSetImporterArguments {
 		@Parameter(names = {"-m",
 				"--measure-server"}, description = "Path to JSON configuration data for the FHIR server connection that will be used to retrieve measure and library resources.")
@@ -52,7 +55,7 @@ public class ValueSetImporter {
 		String fileSystemOutputPath;
 		
 		@Parameter(names = {"-o", "--file-system-output-format"}, description = "Format to use when exporting value sets to the file system when using the -p/--file-system-output-path parameters. Valid values are JSON or XML. If not specified, the default output format will be JSON", required = false)
-		String filesystemOutputFormat = "json";
+		FileFormat filesystemOutputFormat = FileFormat.JSON;
 
 		@Parameter(description = "The list of value set spreadsheets to import", required = true)
 		List<String> spreadsheets;
@@ -65,11 +68,6 @@ public class ValueSetImporter {
 			
 			if(fileSystemOutputPath == null && measureServerConfigFile == null) {
 				throw new IllegalArgumentException("Parameters [-m, --measure-server] and [-p, --file-system-output-path] cannot both be null. Please supply a value for one of these parameters");
-			}
-			
-			//check for valid file system output format
-			if (filesystemOutputFormat != null && !(filesystemOutputFormat.equalsIgnoreCase("json") || filesystemOutputFormat.equalsIgnoreCase("xml"))){
-				throw new IllegalArgumentException("Bad parameter value. Valid values for [-o, --file-system-output-format parameter] are json or xml");
 			}
 		}
 	}
@@ -118,7 +116,7 @@ public class ValueSetImporter {
 						
 						//If the valueset id contains urn:oid, remove it to make a valid filename
 						String valueSetId = vs.getId().startsWith("urn:oid:") ? vs.getId().replace("urn:oid:", "") : vs.getId();						
-						String vsFileName = valueSetId + "." +arguments.filesystemOutputFormat.toLowerCase();
+						String vsFileName = valueSetId + "." + arguments.filesystemOutputFormat.toString().toLowerCase();
 						
 						try (BufferedWriter writer = new BufferedWriter(new FileWriter(arguments.fileSystemOutputPath + System.getProperty("file.separator")+vsFileName))) {
 							//create the output dir if it doesn't exist
@@ -128,9 +126,9 @@ public class ValueSetImporter {
 							}
 							
 							//write to xml or json format
-							if(arguments.filesystemOutputFormat == null || arguments.filesystemOutputFormat.isEmpty() || arguments.filesystemOutputFormat.equalsIgnoreCase("json")) {
+							if(arguments.filesystemOutputFormat ==  FileFormat.JSON) {
 								fhirContext.newJsonParser().encodeResourceToWriter(vs, writer);
-							}else if (arguments.filesystemOutputFormat.equalsIgnoreCase("xml")) {
+							}else if (arguments.filesystemOutputFormat ==  FileFormat.XML) {
 								fhirContext.newXmlParser().encodeResourceToWriter(vs, writer);
 							}
 						}

@@ -112,7 +112,7 @@ public class ValueSetImporterTest extends BaseFhirTest {
 		runSaveToFileTest("2.16.840.1.113762.1.4.1114.7", ".xlsx", "xml");
 	}
 	
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected=com.beust.jcommander.ParameterException.class)
 	public void testBadOutputFormat() throws Exception {		
 		runSaveToFileTest("2.16.840.1.113762.1.4.1114.7", ".xlsx", "garbage");
 	}
