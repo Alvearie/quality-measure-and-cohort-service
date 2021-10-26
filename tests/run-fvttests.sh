@@ -46,10 +46,7 @@ runSparkTest() {
   DVRNAMEPREFIX="cohortfvt-spark"
   olddriverpod=`kubectl -n ${CLUSTER_NAMESPACE} get pods --no-headers -o custom-columns=":metadata.name" | grep ${DVRNAMEPREFIX} | grep driver`
   kubectl -n ${CLUSTER_NAMESPACE} delete pod ${olddriverpod}
-
-  # Build up the spark-submit command arguments as a string
-  SPARK_ARGS="--deploy-mode cluster --name cohortfvt-spark --class com.ibm.cohort.cql.spark.SparkCqlEvaluator local:///opt/spark/jars/cohort-evaluator-spark-1.0.2-SNAPSHOT.jar -d /cohort-config/fvt/fvt-context-definitions.json -j /cohort-config/fvt/fvt-cql-jobs.json -m /cohort-config/fvt/fvt-model-info.xml -c /cohort-config/fvt/cql --input-format delta -i Device=s3a://cohort-data-tenant2/fvt-input-data/Device -i Observation=s3a://cohort-data-tenant2/fvt-input-data/Observation -i Patient=s3a://cohort-data-tenant2/fvt-input-data/Patient -i PatientDeviceJoin=s3a://cohort-data-tenant2/fvt-input-data/PatientDeviceJoin -i Practitioner=s3a://cohort-data-tenant2/fvt-input-data/Practitioner --overwrite-output-for-contexts -o Patient=s3a://cohort-data-tenant2/fvt-output/Patient_cohort -o Observation=s3a://cohort-data-tenant2/fvt-output/Observation_cohort -o Practitioner=s3a://cohort-data-tenant2/fvt-output/Practitioner_cohort -o Device=s3a://cohort-data-tenant2/fvt-output/Device_cohort"
-  
+ 
   # use kubectl to exec into engine-spark-fvt-test pod spun off earlier and run the spark-submit command providing it the SPARK_ARGS string
   kubectl -n ${CLUSTER_NAMESPACE} exec ${SPARK_POD_NAME} -- bash -c "/opt/spark/bin/spark-submit ${SPARK_ARGS}"
   
