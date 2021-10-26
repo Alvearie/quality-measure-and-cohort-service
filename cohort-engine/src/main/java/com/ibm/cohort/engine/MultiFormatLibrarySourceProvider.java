@@ -6,16 +6,15 @@
 
 package com.ibm.cohort.engine;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+import org.apache.commons.io.IOUtils;
 import org.cqframework.cql.cql2elm.LibrarySourceProvider;
 import org.hl7.elm.r1.VersionedIdentifier;
 
@@ -100,24 +99,29 @@ public class MultiFormatLibrarySourceProvider implements LibrarySourceProvider {
 	private static void addClasspathFhirHelpers(Map<VersionedIdentifier, Map<LibraryFormat, String>> sources, VersionedIdentifier libraryIdentifier){
 		Map<LibraryFormat, String> specFormat = sources.computeIfAbsent(libraryIdentifier, key -> new HashMap<>());
 		if(specFormat.isEmpty()) {
-			InputStream fhirHelperResource = MultiFormatLibrarySourceProvider.class.getResourceAsStream(
-					String.format("/org/hl7/fhir/%s-%s.xml",
-							libraryIdentifier.getId(),
-							libraryIdentifier.getVersion()));
-			String fhirHelperResourceAsString = new BufferedReader(
-					new InputStreamReader(fhirHelperResource, StandardCharsets.UTF_8))
-					.lines()
-					.collect(Collectors.joining(System.lineSeparator()));
-			specFormat.put(LibraryFormat.XML, fhirHelperResourceAsString);
-			InputStream fhirHelperResourceCQL = MultiFormatLibrarySourceProvider.class.getResourceAsStream(
-					String.format("/org/hl7/fhir/%s-%s.cql",
-							libraryIdentifier.getId(),
-							libraryIdentifier.getVersion()));
-			String fhirHelperResourceCQLAsString = new BufferedReader(
-					new InputStreamReader(fhirHelperResourceCQL, StandardCharsets.UTF_8))
-					.lines()
-					.collect(Collectors.joining(System.lineSeparator()));
-			specFormat.put(LibraryFormat.CQL, fhirHelperResourceCQLAsString);
+			try {
+				try( InputStream fhirHelperResourceELM = MultiFormatLibrarySourceProvider.class.getResourceAsStream(
+						String.format("/org/hl7/fhir/%s-%s.xml",
+								libraryIdentifier.getId(),
+								libraryIdentifier.getVersion())) ) {
+					if( fhirHelperResourceELM != null ) {
+						String elm = new String(IOUtils.toByteArray(fhirHelperResourceELM), StandardCharsets.UTF_8);
+						specFormat.put(LibraryFormat.XML, elm);
+					}
+				}
+				
+				try( InputStream fhirHelperResourceCQL = MultiFormatLibrarySourceProvider.class.getResourceAsStream(
+						String.format("/org/hl7/fhir/%s-%s.cql",
+								libraryIdentifier.getId(),
+								libraryIdentifier.getVersion())) ) {
+					if( fhirHelperResourceCQL != null ) {
+						String cql = new String(IOUtils.toByteArray(fhirHelperResourceCQL), StandardCharsets.UTF_8);
+						specFormat.put(LibraryFormat.CQL, cql);
+					}
+				}
+			} catch( IOException iex ) {
+				throw new RuntimeException(iex);
+			}
 		}
 	}
 }

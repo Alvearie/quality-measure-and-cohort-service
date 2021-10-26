@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<modelInfo xmlns="urn:hl7-org:elm-modelinfo:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="CohortTest" version="0.0.1" url="http://mock.cohort.model" targetQualifier="IDontKnow" patientClassName="A" patientBirthDatePropertyName="none">
+<modelInfo xmlns="urn:hl7-org:elm-modelinfo:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="CohortTest" version="0.0.1" url="http://mock.cohort.model" targetQualifier="IDontKnow" patientClassName="A" patientBirthDatePropertyName="datetime_col">
 	<typeInfo namespace="CohortTest" name="Base" identifier="http://mock.cohort.model/Base" label="Base" retrievable="false" xsi:type="ClassInfo">
 	</typeInfo>
 
-    <typeInfo namespace="CohortTest" name="A" baseType="Base" identifier="http://mock.cohort.model/A" label="A" retrievable="true" xsi:type="ClassInfo">
+    <typeInfo namespace="CohortTest" name="A" baseType="Base" identifier="http://mock.cohort.model/A" label="A" retrievable="true" xsi:type="ClassInfo" primaryCodePath="code_col">
         <element name="id_col" elementType="System.String"/>
         <element name="boolean_col" elementType="System.Boolean"/>
         <element name="integer_col" elementType="System.Integer"/>

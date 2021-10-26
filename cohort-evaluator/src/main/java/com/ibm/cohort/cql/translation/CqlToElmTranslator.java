@@ -93,7 +93,7 @@ public class CqlToElmTranslator {
         return CqlTranslatorOptions.defaultOptions()
                  .withOptions(CqlTranslator.Options.EnableResultTypes)
                  .withAnalyzeDataRequirements(true)
-                 //.withCollapseDataRequirements(true)
+                 .withCollapseDataRequirements(true)
                  ;
     }
     

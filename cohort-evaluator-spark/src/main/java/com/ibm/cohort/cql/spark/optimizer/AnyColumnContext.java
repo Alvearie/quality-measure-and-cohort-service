@@ -18,7 +18,7 @@ import com.ibm.cohort.cql.util.StringMatcher;
  * This context object is used by the AnyColumnVisitor to collect 
  * data about AnyColumn function usage during an ELM tree traversal. 
  */
-public class AnyColumnContext {
+public class AnyColumnContext extends PathCaptureContext {
 
     private Map<String, Set<StringMatcher>> matchersByDataType = new HashMap<>();
 

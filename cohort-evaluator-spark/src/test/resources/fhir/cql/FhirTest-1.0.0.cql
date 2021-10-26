@@ -16,12 +16,6 @@ define MyCondition :
 define MyObservation:
   First([Observation] o)
 
-define MyTuple:
-  { "Condition": MyCondition.subject, "Observation": MyObservation.code }
-
-define Convoluted:
-  "MyTuple"."Condition"
-
 define Aliased:
   [Condition] c
     let rd: c.recordedDate

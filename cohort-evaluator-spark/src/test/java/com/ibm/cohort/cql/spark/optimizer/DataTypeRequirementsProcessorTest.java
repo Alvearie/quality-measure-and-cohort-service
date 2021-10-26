@@ -8,31 +8,21 @@ package com.ibm.cohort.cql.spark.optimizer;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import org.junit.Test;
 
-import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
-import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
-import com.ibm.cohort.cql.library.CqlLibraryProvider;
-import com.ibm.cohort.cql.library.DirectoryBasedCqlLibraryProvider;
-import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
-import com.ibm.cohort.cql.translation.CqlToElmTranslator;
-import com.ibm.cohort.cql.util.StringMatcher;
 import com.ibm.cohort.cql.util.PrefixStringMatcher;
+import com.ibm.cohort.cql.util.RegexStringMatcher;
+import com.ibm.cohort.cql.util.StringMatcher;
 
-public class DataTypeRequirementsProcessorTest {
+
+public class DataTypeRequirementsProcessorTest extends BaseDataTypeRequirementsProcessorTest {
 
     @Test
     public void testCQLWithAllTypesModel() throws Exception {
@@ -107,23 +97,61 @@ public class DataTypeRequirementsProcessorTest {
         Map<String,Set<String>> pathsByDataType = runPathTest("src/test/resources/fhir/cql", null, null);
         
         Map<String,Set<String>> expectations = new HashMap<>();
-        expectations.put("Patient", new HashSet<>(Arrays.asList("birthDate")));
-        expectations.put("Condition", new HashSet<>(Arrays.asList("code", "subject", "recordedDate")));
-        expectations.put("Encounter", new HashSet<>(Arrays.asList("period", "period.end")));
-        expectations.put("Observation", new HashSet<>(Arrays.asList("code")));
+        expectations.put("Patient", new HashSet<>(Arrays.asList("name", "birthDate")));
+        expectations.put("Condition", new HashSet<>(Arrays.asList("code", "id", "recordedDate")));
+        expectations.put("Encounter", new HashSet<>(Arrays.asList("diagnosis", "period")));
+        expectations.put("Encounter.Diagnosis", new HashSet<>(Arrays.asList("condition")));
+        expectations.put("Observation", new HashSet<>(Arrays.asList("effective")));
+        expectations.put("Period", new HashSet<>(Arrays.asList("start", "end")));
+        expectations.put("Reference", new HashSet<>(Arrays.asList("reference")));
+        expectations.put("dateTime", new HashSet<>(Arrays.asList("value")));
+        expectations.put("instant", new HashSet<>(Arrays.asList("value")));
+        
         
         assertEquals( expectations, pathsByDataType );
     }
     
     @Test
-    public void testCQLWithAnyColumn() throws Exception {
+    public void testAnyColumnRequirements() throws Exception {
         String basePath = "src/test/resources";
         
         Map<String, Set<StringMatcher>> reqsByDataType = runPatternTest(basePath + "/any-column/cql",
-                basePath + "/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml", null);
+                basePath + "/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml", null, (cld) -> cld.getLibraryId().equals("MeasureAnyColumn"));
         
         Map<String,Set<StringMatcher>> expectations = new HashMap<>();
         expectations.put("A", new HashSet<>(Arrays.asList(new PrefixStringMatcher("code_col"))));
+        expectations.put("B", new HashSet<>(Arrays.asList(new RegexStringMatcher("integer_col"))));
+        expectations.put("C", new HashSet<>(Arrays.asList(new RegexStringMatcher(".*_decimal"))));
+        
+        assertEquals( expectations, reqsByDataType );
+    }
+    
+    @Test
+    public void testMeasureAnyColumnPathRequirements() throws Exception {
+        String basePath = "src/test/resources";
+        
+        Map<String, Set<String>> reqsByDataType = runPathTest(basePath + "/any-column/cql",
+                basePath + "/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml", null, (cld) -> cld.getLibraryId().equals("MeasureAnyColumn"));
+        
+        Map<String,Set<String>> expectations = new HashMap<>();
+        expectations.put("A", new HashSet<>(Arrays.asList("decimal_col")));
+        expectations.put("B", new HashSet<>());
+        expectations.put("C", new HashSet<>(Arrays.asList("big_decimal")));
+        
+        assertEquals( expectations, reqsByDataType );
+    }
+    
+    @Test
+    public void testMeasureAnyColumnChildPathRequirements() throws Exception {
+        String basePath = "src/test/resources";
+        
+        Map<String, Set<String>> reqsByDataType = runPathTest(basePath + "/any-column/cql",
+                basePath + "/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml", null, (cld) -> cld.getLibraryId().equals("AnyColumnChild"));
+        
+        Map<String,Set<String>> expectations = new HashMap<>();
+        expectations.put("A", new HashSet<>(Arrays.asList("pat_id", "decimal_col", "string_col")));
+        expectations.put("B", new HashSet<>());
+        expectations.put("C", new HashSet<>(Arrays.asList("big_decimal", "double")));
         
         assertEquals( expectations, reqsByDataType );
     }
@@ -137,80 +165,5 @@ public class DataTypeRequirementsProcessorTest {
 //        
 //        assertEquals( "One or more requested expressions [DoesNotExist] not found in library {\"libraryId\":\"FhirTest\",\"version\":\"1.0.0\",\"format\":\"ELM\"}", ex.getMessage() );
 //    }
-    
-    protected Map<String, Set<String>> runPathTest(String cqlPath, String modelInfoPath, Set<String> expressions) throws IOException, FileNotFoundException {
-        return runPathTest(cqlPath, modelInfoPath, expressions, null);
-    }
 
-    protected Map<String, Set<String>> runPathTest(String cqlPath, String modelInfoPath, Set<String> expressions, Predicate<CqlLibraryDescriptor> libraryFilter) throws IOException, FileNotFoundException {
-        CqlLibraryProvider cpBasedLp = new ClasspathCqlLibraryProvider("org.hl7.fhir");
-        DirectoryBasedCqlLibraryProvider dirBasedLp = new DirectoryBasedCqlLibraryProvider(new File(cqlPath));
-        PriorityCqlLibraryProvider lsp = new PriorityCqlLibraryProvider(dirBasedLp, cpBasedLp);
-        
-        CqlToElmTranslator translator = new CqlToElmTranslator();
-        
-        if( modelInfoPath != null ) {
-            final File modelInfoFile = new File(modelInfoPath);
-            try( Reader r = new FileReader( modelInfoFile ) ) {
-                translator.registerModelInfo(r);
-            }
-        }
-        
-        DataTypeRequirementsProcessor requirementsProcessor = new DataTypeRequirementsProcessor(translator);
-        
-        Map<String,Set<String>> pathsByDataType = new HashMap<>();
-        for( CqlLibraryDescriptor cld : lsp.listLibraries() ) {
-            if( libraryFilter == null || libraryFilter.test(cld) ) {
-                System.out.println("Processing " + cld.toString());
-                Map<String,Set<String>> newPaths = requirementsProcessor.getPathsByDataType(lsp, cld);
-                
-                newPaths.forEach( (key,value) -> {
-                    pathsByDataType.merge(key, value, (prev,current) -> { prev.addAll(current); return prev; } );
-                });
-            } else {
-                System.out.println("Skipping " + cld.toString());
-            }
-        }   
-        
-        System.out.println(pathsByDataType);
-        return pathsByDataType;
-    }
-    
-    protected Map<String, Set<StringMatcher>> runPatternTest(String cqlPath, String modelInfoPath, Set<String> expressions) throws IOException, FileNotFoundException {
-        return runPatternTest(cqlPath, modelInfoPath, expressions, null);
-    }
-
-    protected Map<String, Set<StringMatcher>> runPatternTest(String cqlPath, String modelInfoPath, Set<String> expressions, Predicate<CqlLibraryDescriptor> libraryFilter) throws IOException, FileNotFoundException {
-        CqlLibraryProvider cpBasedLp = new ClasspathCqlLibraryProvider("org.hl7.fhir");
-        DirectoryBasedCqlLibraryProvider dirBasedLp = new DirectoryBasedCqlLibraryProvider(new File(cqlPath));
-        PriorityCqlLibraryProvider lsp = new PriorityCqlLibraryProvider(dirBasedLp, cpBasedLp);
-        
-        CqlToElmTranslator translator = new CqlToElmTranslator();
-        
-        if( modelInfoPath != null ) {
-            final File modelInfoFile = new File(modelInfoPath);
-            try( Reader r = new FileReader( modelInfoFile ) ) {
-                translator.registerModelInfo(r);
-            }
-        }
-        
-        DataTypeRequirementsProcessor requirementsProcessor = new DataTypeRequirementsProcessor(translator);
-        
-        Map<String,Set<StringMatcher>> pathsByDataType = new HashMap<>();
-        for( CqlLibraryDescriptor cld : lsp.listLibraries() ) {
-            if( libraryFilter == null || libraryFilter.test(cld) ) {
-                System.out.println("Processing " + cld.toString());
-                Map<String,Set<StringMatcher>> newPaths = requirementsProcessor.getRequirementsByDataType(lsp, cld);
-                
-                newPaths.forEach( (key,value) -> {
-                    pathsByDataType.merge(key, value, (prev,current) -> { prev.addAll(current); return prev; } );
-                });
-            } else {
-                System.out.println("Skipping " + cld.toString());
-            }
-        }   
-        
-        System.out.println(pathsByDataType);
-        return pathsByDataType;
-    }
 }

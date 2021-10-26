@@ -6,6 +6,9 @@
 
 package com.ibm.cohort.cql.util;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
 public class PrefixStringMatcher implements StringMatcher {
     private String prefix;
 
@@ -34,6 +37,8 @@ public class PrefixStringMatcher implements StringMatcher {
 
     @Override
     public String toString() {
-        return this.prefix;
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .append("prefix", this.prefix)
+                .toString();
     }
 }

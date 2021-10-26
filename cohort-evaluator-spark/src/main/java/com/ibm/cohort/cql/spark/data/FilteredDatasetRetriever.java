@@ -36,6 +36,8 @@ public class FilteredDatasetRetriever implements DatasetRetriever {
 
     @Override
     public Dataset<Row> readDataset(String dataType, String path) {
+        LOG.info("Reading dataset {} from {} with filters {}", dataType, path, dataTypeFilters);
+        
         Dataset<Row> result = null;
         
         Collection<StringMatcher> columnNameMatchers = dataTypeFilters.get(dataType);

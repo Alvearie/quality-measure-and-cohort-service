@@ -1,0 +1,5 @@
+{
+	"A" : ["datetime_col", "string_col"],
+	"B" :[ "decimal"],
+	"C" :[ "big_decimal"]
+}

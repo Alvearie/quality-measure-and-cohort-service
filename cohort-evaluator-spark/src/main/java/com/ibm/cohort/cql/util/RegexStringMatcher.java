@@ -6,6 +6,9 @@
 
 package com.ibm.cohort.cql.util;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
 public class RegexStringMatcher implements StringMatcher {
     private String regex;
 
@@ -34,6 +37,8 @@ public class RegexStringMatcher implements StringMatcher {
 
     @Override
     public String toString() {
-        return this.regex;
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+                .append("regex", this.regex)
+                .toString();
     }
 }

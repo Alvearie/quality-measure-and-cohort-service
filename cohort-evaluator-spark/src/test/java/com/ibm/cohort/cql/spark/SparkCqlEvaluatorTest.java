@@ -699,19 +699,23 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
     }
 
     @Test
-    public void testGetFilteredRequestsOverwriteEvaluations() {
+    public void testGetFilteredRequestsFilterEvaluations() {
         CqlEvaluationRequests requests = new CqlEvaluationRequests();
 
         CqlEvaluationRequest request = makeEvaluationRequest("context", "lib1", "1.0.0");
-        request.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohortOrig")));
+        request.setExpressionsByNames(new HashSet<>(Arrays.asList("cohortOrig", "expr1")));
 
 
         CqlEvaluationRequest request2 = makeEvaluationRequest("context", "lib2", "1.0.0");
-        request2.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohortOrig")));
+        request2.setExpressionsByNames(new HashSet<>(Arrays.asList("cohortOrig", "expr2")));
 
+        CqlEvaluationRequest request3 = makeEvaluationRequest("context", "lib3", "1.0.0");
+        request3.setExpressionsByNames(new HashSet<>(Arrays.asList("cohortOrig")));
+        
         List<CqlEvaluationRequest> evaluations = Arrays.asList(
                 request,
-                request2
+                request2,
+                request3
         );
 
         requests.setEvaluations(evaluations);
@@ -719,6 +723,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         Map<String, String> libs = new HashMap<String, String>() {{
             put("lib1", "1.0.0");
             put("lib2", "1.0.0");
+            put("lib3", "1.0.0");
         }};
 
         Set<String> expressions = new HashSet<>(Arrays.asList("expr1", "expr2"));
@@ -730,13 +735,11 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 expressions
         );
 
-        assertEquals(2, actual.getEvaluations().size());
-        for (CqlEvaluationRequest evaluation : actual.getEvaluations()) {
-            assertEquals(2, evaluation.getExpressions().size());
-            for (String expressionName : evaluation.getExpressionNames()) {
-                assertTrue(expressions.contains(expressionName));
-            }
-        }
+        assertEquals(3, actual.getEvaluations().size());
+        assertEquals(Collections.singleton("expr1"), actual.getEvaluations().get(0).getExpressionNames());
+        assertEquals(Collections.singleton("expr2"), actual.getEvaluations().get(1).getExpressionNames());
+        assertEquals(Collections.emptySet(), actual.getEvaluations().get(2).getExpressionNames());
+
     }
 
     @Test
@@ -839,6 +842,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         evaluator.args.contextDefinitionPath = "src/test/resources/alltypes/metadata/context-definitions.json";
         evaluator.args.jobSpecPath = "src/test/resources/alltypes/metadata/parent-child-jobs.json";
         evaluator.args.modelInfoPaths = Arrays.asList("src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml");
+        evaluator.hadoopConfiguration = new SerializableConfiguration(spark.sparkContext().hadoopConfiguration());
 
         CqlToElmTranslator cqlTranslator = new CqlToElmTranslator();
         cqlTranslator.registerModelInfo(new File("src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml"));
@@ -846,7 +850,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         ContextDefinitions definitions = evaluator.readContextDefinitions(evaluator.args.contextDefinitionPath);
         ContextDefinition context = definitions.getContextDefinitionByName("Patient");
         
-        Map<String,Set<StringMatcher>> actual = evaluator.getDataRequirementsForContext(cqlTranslator, context);
+        Map<String,Set<StringMatcher>> actual = evaluator.getDataRequirementsForContext(context);
         
         Map<String,Set<StringMatcher>> expected = new HashMap<>();
         expected.put("A", new HashSet<>(Arrays.asList(new EqualsStringMatcher("pat_id"),
