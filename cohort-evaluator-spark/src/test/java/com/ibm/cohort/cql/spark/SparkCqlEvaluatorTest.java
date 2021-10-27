@@ -7,12 +7,14 @@
 package com.ibm.cohort.cql.spark;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.spark.SparkException;
 import org.apache.spark.deploy.SparkHadoopUtil;
 import org.apache.spark.sql.Dataset;
@@ -41,6 +44,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
 import com.ibm.cohort.cql.evaluation.parameters.DateParameter;
@@ -52,6 +56,7 @@ import com.ibm.cohort.cql.evaluation.parameters.StringParameter;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.data.Patient;
+import com.ibm.cohort.cql.spark.errors.EvaluationSummary;
 
 public class SparkCqlEvaluatorTest extends BaseSparkTest {
     private static final long serialVersionUID = 1L;
@@ -125,6 +130,9 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         File bFile = new File(outputDir, "B_cohort");
         File cFile = new File(outputDir, "C_cohort");
         File dFile = new File(outputDir, "D_cohort");
+        
+        File successMarkerPath = new File(outputDir, "evaluation_success_success_marker");
+        File batchSummaryPath = new File(outputDir, "evaluation_success_summary");
 
         String [] args = new String[] {
           "-d", "src/test/resources/alltypes/metadata/context-definitions.json",
@@ -143,7 +151,9 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
           "-o", "D=" + dFile.toURI().toString(),
           "-n", "10",
           "--output-format", "parquet",
-          "--overwrite-output-for-contexts"
+          "--overwrite-output-for-contexts",
+          "--success-marker-path", successMarkerPath.toURI().toString(),
+          "--batch-summary-path", batchSummaryPath.toURI().toString()
         };
 
         SparkCqlEvaluator.main(args);
@@ -155,6 +165,15 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         validateOutputCountsAndColumns(bFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureB|cohort")), 575, "parquet");
         validateOutputCountsAndColumns(cFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureC|cohort")), 600, "parquet");
         validateOutputCountsAndColumns(dFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureD|cohort")), 567, "parquet");
+        
+        assertTrue(new File(successMarkerPath, SparkCqlEvaluator.SUCCESS_MARKER).exists());
+        assertTrue(new File(batchSummaryPath, SparkCqlEvaluator.BATCH_SUMMARY_FILE).exists());
+        
+        try(FileInputStream fileInputStream = new FileInputStream(new File(batchSummaryPath, SparkCqlEvaluator.BATCH_SUMMARY_FILE))) {
+            ObjectMapper mapper = new ObjectMapper();
+            EvaluationSummary evaluationSummary = mapper.readValue(fileInputStream, EvaluationSummary.class);
+            assertTrue(evaluationSummary.getErrorList().isEmpty());
+        }
     }
 
     @Test
@@ -556,6 +575,53 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         Throwable th = assertThrows( SparkException.class, () -> SparkCqlEvaluator.main(args) );
         assertStackTraceContainsMessage(th, "CQL evaluation failed");
+    }
+    
+    @Test
+    public void testCQLEngineErrorsAccumulated() throws Exception {
+        File inputDir = new File("src/test/resources/alltypes/");
+        File outputDir = new File("target/output/alltypes/");
+
+        File patientFile = new File(outputDir, "Patient_cohort");
+        File aFile = new File(outputDir, "A_cohort");
+        File bFile = new File(outputDir, "B_cohort");
+        File cFile = new File(outputDir, "C_cohort");
+        File dFile = new File(outputDir, "D_cohort");
+
+        File batchSummaryPath = new File(outputDir, "errors_accum_run_summary");
+        File successMarkerPath = new File(outputDir, "errors_accum_success_marker");
+
+        String [] args = new String[] {
+                "-d", "src/test/resources/alltypes/metadata/context-definitions.json",
+                "-j", "src/test/resources/alltypes/metadata/throws-exception-cql-jobs.json",
+                "-m", "src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml",
+                "-c", "src/test/resources/alltypes/cql",
+                "--input-format", "parquet",
+                "-i", "A=" + new File(inputDir, "testdata/test-A.parquet").toURI().toString(),
+                "-i", "B=" + new File(inputDir, "testdata/test-B.parquet").toURI().toString(),
+                "-i", "C=" + new File(inputDir, "testdata/test-C.parquet").toURI().toString(),
+                "-i", "D=" + new File(inputDir, "testdata/test-D.parquet").toURI().toString(),
+                "-o", "Patient=" + patientFile.toURI().toString(),
+                "-o", "A=" + aFile.toURI().toString(),
+                "-o", "B=" + bFile.toURI().toString(),
+                "-o", "C=" + cFile.toURI().toString(),
+                "-o", "D=" + dFile.toURI().toString(),
+                "-n", "10",
+                "--overwrite-output-for-contexts",
+                "--batch-summary-path", batchSummaryPath.toURI().toString(),
+                "--success-marker-path", successMarkerPath.toURI().toString()
+        };
+        
+        SparkCqlEvaluator.main(args);
+        
+        assertFalse(new File(successMarkerPath, SparkCqlEvaluator.SUCCESS_MARKER).exists());
+        assertTrue(new File(batchSummaryPath, SparkCqlEvaluator.BATCH_SUMMARY_FILE).exists());
+
+        try(FileInputStream fileInputStream = new FileInputStream(new File(batchSummaryPath, SparkCqlEvaluator.BATCH_SUMMARY_FILE))) {
+            ObjectMapper mapper = new ObjectMapper();
+            EvaluationSummary evaluationSummary = mapper.readValue(fileInputStream, EvaluationSummary.class);
+            assertTrue(CollectionUtils.isNotEmpty(evaluationSummary.getErrorList()));
+        }
     }
     
     private CqlEvaluationRequest makeEvaluationRequest(String contextName, String libraryName, String libraryVersion) {
