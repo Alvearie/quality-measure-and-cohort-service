@@ -192,6 +192,58 @@ CQL files should be stored in a single filesystem folder which is indicated by t
 
 When a `cql-jobs.json` evaluation request descriptor specifies a CQL Library for which there is no .xml (aka ELM) file available, the system will look for and attempt to translate the corresponding .cql file from the CQL folder. In these cases, the user should specify a modelinfo file using the `-m` option. The contents of the model info describe the entities and fields contained in the data. The entity names should correspond to the datatypes provided in the `-i` program options. The field names should correspond to the column names in the Spark data. There are sample modelinfo files provided in the src/test/resources sub-folders of the cohort-evaluator-spark project.
 
+### Enhanced CQL language features
+
+#### Any Column
+
+In order to support the aggregation of multiple fields within a data model, 
+we have added the `AnyColumn` (field-name prefix-based matching) and `AnyColumnRegex` (field-name regex-based matching) 
+as [external functions](https://cql.hl7.org/03-developersguide.html#external-functions).
+
+##### Example Usage
+```
+using "CustomDataModel" version '1.0.0'
+include "CohortHelpers" version '1.0.0'
+
+code "PrimaryCode": 'code1' from "SNOMED"
+code "SecondaryCode": 'code2' from "SNOMED"
+
+concept "CustomConcept": {
+  "PrimaryCode", "SecondaryCode"
+} display 'CustomConcept'
+
+// checks if any of the inlined codes (`code1`, `code2`) matches the data from
+// the fields that start with `dx_cd` (`dx_cd`, `dx_cd_02`, `dx_cd_03`) in `TypeA`
+define "Prefix Example":
+  [A] typeA where
+    exists(CohortHelpers.AnyColumn(typeA, 'dx_cd') intersect {'code1', 'code2'})
+
+// checks if any of the codes from `CustomConcept` matches the data from
+// the fields matching the `dx_cd_{0,1}[0-9]*` regular expression pattern 
+// (`dx_cd`, `dx_cd_02`, `dx_cd_03`) in `TypeA`
+define "Regex Example":
+  [A] typeA where
+    exists(CohortHelpers.AnyColumnRegex(typeA, 'dx_cd_{0,1}[0-9]*') intersect "CustomConcept".codes)
+```
+
+```
+library CohortHelpers version '1.0.0'
+using "CustomDataModel" version '1.0.0'
+
+define function AnyColumn(key Choice<Any>, key String) returns List<Any> : external
+define function AnyColumnRegex(key Choice<Any>, key String) returns List<Any> : external
+```
+
+```xml
+<!-- CustomDataModel --> 
+<typeInfo name="A">
+  <element elementType="System.String" name="dx_cd"/>
+  <element elementType="System.String" name="dx_cd_02"/>
+  <element elementType="System.String" name="dx_cd_03"/>
+  ...
+</typeInfo>
+```
+
 ### CQL Job Descriptions
 
 The CQL jobs that will be evaluated by a run of the Spark CQL Evaluator application are stored in a JSON-formatted configuration file that is typically called cql-jobs.json. Again, the name isn't prescribed, but the rest of this guide will use the name cql-jobs.json for simplicity. The cql-jobs.json file lists each CQL Library that will be used, which expressions (aka define statements) within the CQL Library will be evaluated, and any input parameters that will be passed to the CQL evaluation engine to be used by parameterized logic within the library, and a `contextKey` that links the CQL to a particular aggregation context defined in the `context-definitions.json` file. A convenience item is provided for configuring CQL parameters at a global level. This is potentially useful for something like a measurement period that is intended to be constant throughout the evaluation of all libraries and statements being evaluated.

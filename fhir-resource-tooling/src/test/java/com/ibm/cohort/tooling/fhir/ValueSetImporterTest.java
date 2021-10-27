@@ -13,6 +13,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileWriter;
@@ -100,6 +101,34 @@ public class ValueSetImporterTest extends BaseFhirTest {
 		verify( 1, getRequestedFor(urlEqualTo(resourcePath)) );
 		verify( exactly(0), postRequestedFor(urlEqualTo("/ValueSet")) );
 	}
+	
+	@Test
+	public void testSaveToJSON() throws Exception {
+		runSaveToFileTest("2.16.840.1.113762.1.4.1114.7", ".xlsx", "json");
+	}
+	
+	@Test
+	public void testSaveToXML() throws Exception {		
+		runSaveToFileTest("2.16.840.1.113762.1.4.1114.7", ".xlsx", "xml");
+	}
+	
+	@Test(expected=com.beust.jcommander.ParameterException.class)
+	public void testBadOutputFormat() throws Exception {		
+		runSaveToFileTest("2.16.840.1.113762.1.4.1114.7", ".xlsx", "garbage");
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testBadServerAndFileSystemParameters() throws Exception {
+		ValueSetImporter.main(new String[] { "-p", Paths.get("target").toString(), "-o", "json", "-m", "someJunkServerName",
+				"src/test/resources/" + "2.16.840.1.113762.1.4.1114.7.xlsx" });
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testNoServerOrFileSystemParameters() throws Exception {
+		ValueSetImporter.main(new String[] {"src/test/resources/" + "2.16.840.1.113762.1.4.1114.7.xlsx" });
+	}
+	
+	
 
 	protected void mockFhirResourcePost(String localUrl, String newId, String newVersion) {
 		stubFor(post(urlEqualTo(localUrl)).willReturn(
@@ -126,6 +155,23 @@ public class ValueSetImporterTest extends BaseFhirTest {
 			ValueSetImporter.runWithArgs( new String[] { "-m", tmpFile.toString(), pathString }, out);
 		} finally {
 			Files.delete( tmpFile );
+		}
+	}
+	
+	private void runSaveToFileTest(String inputSpreadSheet, String inputSpreadSheetExt, String inputFormat) throws Exception {
+		String inputSpreadSheetFileName = inputSpreadSheet + inputSpreadSheetExt;
+		String outputFile = Paths.get("target").toString() + "/" + inputSpreadSheet + "." + inputFormat;
+		try {
+			ValueSetImporter.main(new String[] { "-p", Paths.get("target").toString(), "-o", inputFormat,
+					"src/test/resources/" + inputSpreadSheetFileName });
+
+			assertTrue(Files.exists(Paths.get(outputFile)));
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			if (Files.exists(Paths.get(outputFile))) {
+				Files.delete(Paths.get(outputFile));
+			}
 		}
 	}
 }
