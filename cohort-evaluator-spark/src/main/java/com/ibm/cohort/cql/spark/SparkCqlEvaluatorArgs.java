@@ -75,7 +75,10 @@ public class SparkCqlEvaluatorArgs implements Serializable {
 
     @Parameter(names = {"--default-output-column-delimiter"}, description = "Delimiter to use when a result column is named using the default naming rule of `LIBRARY_ID + delimiter + DEFINE_NAME`.")
     public String defaultOutputColumnDelimiter = "|";
-
+    
+    @Parameter(names = { "-t",
+    "--terminology-path" }, description = "Filesystem path to the location containing the ValueSet definitions in FHIR XML or JSON format.")
+    public String terminologyPath;
 
     @Parameter(names = { "--debug" }, description = "Enables CQL debug logging")
     public boolean debug = false;

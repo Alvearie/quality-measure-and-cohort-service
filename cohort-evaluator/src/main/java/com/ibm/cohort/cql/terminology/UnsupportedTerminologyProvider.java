@@ -14,16 +14,16 @@ public class UnsupportedTerminologyProvider implements CqlTerminologyProvider {
 
     @Override
     public boolean in(Code code, ValueSetInfo valueSet) {
-        throw new UnsupportedOperationException("Terminology operations are not supported.");
+        throw new UnsupportedOperationException("A measure attempted to use terminology, but no -t option was provided for value set resources.");
     }
 
     @Override
     public Iterable<Code> expand(ValueSetInfo valueSet) {
-        throw new UnsupportedOperationException("Terminology operations are not supported.");
+        throw new UnsupportedOperationException("A measure attempted to use terminology, but no -t option was provided for value set resources.");
     }
 
     @Override
     public Code lookup(Code code, CodeSystemInfo codeSystem) {
-        throw new UnsupportedOperationException("Terminology operations are not supported.");
+        throw new UnsupportedOperationException("A measure attempted to use terminology, but no -t option was provided for value set resources.");
     }
 }
