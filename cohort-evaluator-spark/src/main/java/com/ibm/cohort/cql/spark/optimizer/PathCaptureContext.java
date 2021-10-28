@@ -22,12 +22,16 @@ import org.hl7.elm.r1.Property;
 import org.hl7.elm.r1.QueryLetRef;
 import org.hl7.elm.r1.Retrieve;
 import org.hl7.elm.r1.VersionedIdentifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Maintains state for an ELM traversal that records the model objects and any
  * property dereferences that are made against those model objects.
  */
 public class PathCaptureContext {
+    private static final Logger LOG = LoggerFactory.getLogger(PathCaptureContext.class);
+    
     private Stack<ExpressionContext> expressionContextStack = new Stack<ExpressionContext>();
     public void enterExpressionContext(VersionedIdentifier libraryIdentifier, ExpressionDef elm) {
         ExpressionContext queryContext = new ExpressionContext(libraryIdentifier, elm);
@@ -51,6 +55,7 @@ public class PathCaptureContext {
     
     
     public void reportProperty(Property elm) {
+        LOG.trace("Property {} source {}", elm.getPath(), elm.getSource() != null ? elm.getSource().getClass().getSimpleName() : null);
         Set<QName> modelTypeNames = null;
         if( elm.getScope() != null || elm.getSource() instanceof AliasRef ) {
             String aliasName = (elm.getScope() != null) ? elm.getScope() : ((AliasRef)elm.getSource()).getName();
@@ -71,6 +76,7 @@ public class PathCaptureContext {
             // of another expression result
             modelTypeNames = ElmUtils.getModelTypeNames(elm.getSource());
         }
+        LOG.trace("ModelTypeNames {}", modelTypeNames);
         
         if( modelTypeNames != null ) {
             for( QName qname : modelTypeNames ) { 

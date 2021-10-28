@@ -21,6 +21,7 @@ import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.library.DirectoryBasedCqlLibraryProvider;
 import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
+import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
 import com.ibm.cohort.cql.util.StringMatcher;
@@ -28,7 +29,9 @@ import com.ibm.cohort.cql.util.StringMatcher;
 public abstract class BaseDataTypeRequirementsProcessorTest {
 
     protected CqlLibraryProvider createLibrarySourceProvider(String cqlPath, String modelInfoPath) throws IOException, FileNotFoundException {
-        CqlLibraryProvider cpBasedLp = new ClasspathCqlLibraryProvider("org.hl7.fhir");
+        ClasspathCqlLibraryProvider cpBasedLp = new ClasspathCqlLibraryProvider("org.hl7.fhir");
+        cpBasedLp.setSupportedFormats(Format.CQL);
+        
         DirectoryBasedCqlLibraryProvider dirBasedLp = new DirectoryBasedCqlLibraryProvider(new File(cqlPath));
         PriorityCqlLibraryProvider lsp = new PriorityCqlLibraryProvider(dirBasedLp, cpBasedLp);
         

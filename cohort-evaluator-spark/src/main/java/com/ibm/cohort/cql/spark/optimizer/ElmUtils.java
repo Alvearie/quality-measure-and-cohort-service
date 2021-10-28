@@ -6,20 +6,30 @@
 
 package com.ibm.cohort.cql.spark.optimizer;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
+import org.hl7.cql_annotations.r1.CqlToElmError;
+import org.hl7.cql_annotations.r1.CqlToElmInfo;
+import org.hl7.cql_annotations.r1.ObjectFactory;
 import org.hl7.elm.r1.ChoiceTypeSpecifier;
 import org.hl7.elm.r1.Expression;
 import org.hl7.elm.r1.IntervalTypeSpecifier;
+import org.hl7.elm.r1.Library;
 import org.hl7.elm.r1.ListTypeSpecifier;
 import org.hl7.elm.r1.NamedTypeSpecifier;
 import org.hl7.elm.r1.TupleTypeSpecifier;
 import org.hl7.elm.r1.TypeSpecifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
 
 public class ElmUtils {
     public static final String SYSTEM_MODEL_URI = "urn:hl7-org:elm-types:r1";
@@ -62,5 +72,32 @@ public class ElmUtils {
             throw new IllegalArgumentException("Unknown TypeSpecifier " + resultTypeSpecifier.getClass().getName());
         }
         return specifierModelTypeNames;
+    }
+    
+    /**
+     * When a Library is deserialized via the CqlLibraryReader helper class the
+     * annotations do not get mapped to Objects. This method helps bridge the gap.
+     * 
+     * @param library Library object containing unmarshalled annotations
+     * @return List of Annotation objects which are usually {@link CqlToElmInfo} or
+     *         {@link CqlToElmError} objects.
+     */
+    public static List<Object> unmarshallAnnotations(Library library) {
+
+        List<Object> annotations = new ArrayList<>();
+        if (library.getAnnotation() != null) {
+            try {
+                JAXBContext ctx = JAXBContext.newInstance(ObjectFactory.class);
+                Unmarshaller u = ctx.createUnmarshaller();
+    
+                for (Object elem : library.getAnnotation()) {
+                    JAXBElement<?> j = (JAXBElement<?>) u.unmarshal((Element) elem);
+                    annotations.add(j.getValue());
+                }
+            } catch( Exception ex ) {
+                throw new RuntimeException("Failed to deserialize annotations", ex);
+            }
+        }
+        return annotations;
     }
 }

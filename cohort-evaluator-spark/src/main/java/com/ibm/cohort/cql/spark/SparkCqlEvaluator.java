@@ -59,6 +59,7 @@ import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.library.HadoopBasedCqlLibraryProvider;
 import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
+import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.aggregation.ContextRetriever;
@@ -570,7 +571,10 @@ public class SparkCqlEvaluator implements Serializable {
     protected CqlLibraryProvider createLibraryProvider() throws IOException, FileNotFoundException {
         
         CqlLibraryProvider hadoopBasedLp = new HadoopBasedCqlLibraryProvider(new Path(args.cqlPath), this.hadoopConfiguration.value());
-        CqlLibraryProvider cpBasedLp = new ClasspathCqlLibraryProvider("org.hl7.fhir");
+        // we are excluding the pre-compiled FHIRHelpers libraries because they were not compiled
+        // with the EnableResultTypes option that is required for some of the features of this program.
+        ClasspathCqlLibraryProvider cpBasedLp = new ClasspathCqlLibraryProvider("org.hl7.fhir");
+        cpBasedLp.setSupportedFormats(Format.CQL);
         CqlLibraryProvider priorityLp = new PriorityCqlLibraryProvider( hadoopBasedLp, cpBasedLp );
 
         return new TranslatingCqlLibraryProvider(priorityLp, getCqlTranslator());

@@ -107,7 +107,6 @@ public class DataTypeRequirementsProcessorTest extends BaseDataTypeRequirementsP
         expectations.put("dateTime", new HashSet<>(Arrays.asList("value")));
         expectations.put("instant", new HashSet<>(Arrays.asList("value")));
         
-        
         assertEquals( expectations, pathsByDataType );
     }
     

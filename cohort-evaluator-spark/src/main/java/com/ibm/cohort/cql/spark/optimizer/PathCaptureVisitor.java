@@ -6,13 +6,16 @@
 
 package com.ibm.cohort.cql.spark.optimizer;
 
+import org.hl7.cql_annotations.r1.CqlToElmInfo;
 import org.hl7.elm.r1.AliasedQuerySource;
 import org.hl7.elm.r1.ByColumn;
 import org.hl7.elm.r1.ExpressionDef;
 import org.hl7.elm.r1.LetClause;
+import org.hl7.elm.r1.Library;
 import org.hl7.elm.r1.Property;
 import org.hl7.elm.r1.Query;
 import org.hl7.elm.r1.Retrieve;
+import org.hl7.elm.r1.VersionedIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,5 +95,24 @@ public class PathCaptureVisitor <C extends PathCaptureContext> extends GraphWalk
     public Object visitByColumn(ByColumn elm, C context) {
         context.reportByColumn(elm);
         return super.visitByColumn(elm, context);
-    }  
+    }
+    
+    @Override
+    protected Library resolveLibrary(VersionedIdentifier libraryIdentifier) {
+        Library library = super.resolveLibrary(libraryIdentifier);
+        if( library.getAnnotation() != null && ElmUtils.unmarshallAnnotations(library).stream().filter( anno -> {
+            boolean hasOption = false;
+            if( anno instanceof CqlToElmInfo ) {
+                CqlToElmInfo info = (CqlToElmInfo) anno;
+                if( info.getTranslatorOptions() != null ) {
+                    hasOption = info.getTranslatorOptions().contains("EnableResultTypes");
+                }
+            }
+            return hasOption;
+        }).findAny().isPresent() ) {
+            return library;
+        } else {
+            throw new IllegalArgumentException("Library " + libraryIdentifier.getId() + "-" + libraryIdentifier.getVersion() + " was not compiled with the EnableResultsTypes translator option");
+        }
+    }
 }

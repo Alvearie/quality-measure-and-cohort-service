@@ -22,6 +22,8 @@ import org.hl7.elm.r1.FunctionRef;
 import org.hl7.elm.r1.IncludeDef;
 import org.hl7.elm.r1.Library;
 import org.hl7.elm.r1.VersionedIdentifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.ibm.cohort.cql.library.CqlLibrary;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
@@ -39,6 +41,8 @@ import com.ibm.cohort.cql.library.CqlLibraryProvider;
  * @param <C> Context object that maintains the state of the overall visit
  */
 public class GraphWalkingElmVisitor<R, C> extends ElmBaseLibraryVisitor <R, C> {
+    
+    private static final Logger LOG = LoggerFactory.getLogger(GraphWalkingElmVisitor.class);
     
     private Stack<VersionedIdentifier> libraryStack = new Stack<VersionedIdentifier>();
     private Set<Element> visited = new HashSet<>();
@@ -151,6 +155,7 @@ public class GraphWalkingElmVisitor<R, C> extends ElmBaseLibraryVisitor <R, C> {
         if( library == null ) {
             throw new IllegalArgumentException("Missing library " + descriptor.toString());
         }
+        LOG.trace(library.getContent());
         Library elmLibrary = JAXB.unmarshal(library.getContentAsStream(), Library.class);
         return elmLibrary;
     }
