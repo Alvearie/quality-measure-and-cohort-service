@@ -104,49 +104,49 @@ must follow the format `name:type:value`. If `type` is an interval, then `value`
 
 There are two options dedicated to expanding the measure report for better understanding of the evidence being provided, `includeEvaluatedResources` and `defineReturnOption`.
 
-### includeEvaluatedResources 
+### includeEvaluatedResources
 If specified, this option will populate the measure report's evaluatedResources property with the resources that were used in evaluating a patient. By default, this value is false.
 
 ### defineReturnOption
-The define return option for evaluated define statements on a measure report. An evidence extension will be added to the measure report with the value of the appropriate defines. The options for the defines are ALL, NONE, or BOOLEAN. If a resource is added to the evidence, the value displayed will be a reference to a resource, not the resource itself. 
+The define return option for evaluated define statements on a measure report. An evidence extension will be added to the measure report with the value of the appropriate defines. The options for the defines are ALL, NONE, or BOOLEAN. If a resource is added to the evidence, the value displayed will be a reference to a resource, not the resource itself.
 
 ```
 {
   "resourceType": "MeasureReport",
-    "extension": [ 
+    "extension": [
     {
        "url": "http://ibm.com/fhir/cdm/StructureDefinition/measure-report-evidence",
-       "extension": [ 
+       "extension": [
        {
          "url": "http://ibm.com/fhir/cdm/StructureDefinition/measure-report-evidence-text",
          "valueString": "COL_InitialPop.Patient"
-       }, 
+       },
        {
          "url": "http://ibm.com/fhir/cdm/StructureDefinition/measure-report-evidence-value",
          "valueReference": {
            "reference": "Patient/123"
          }
-       } 
+       }
        ]
-    }, 
+    },
      {
        "url": "http://ibm.com/fhir/cdm/StructureDefinition/measure-report-evidence",
-       "extension": [ 
+       "extension": [
        {
          "url": "http://ibm.com/fhir/cdm/StructureDefinition/measure-report-evidence-text",
          "valueString": "COL_InitialPop.50-74years"
-       }, 
+       },
        {
          "url": "http://ibm.com/fhir/cdm/StructureDefinition/measure-report-evidence-value",
          "valueBoolean": true
-       } 
+       }
        ]
      }
   ...
 }
 ```
 
-This option is intended for CQL debugging purposes, and will default to NONE. 
+This option is intended for CQL debugging purposes, and will default to NONE.
 
 ## JSON File for -j Argument
 
