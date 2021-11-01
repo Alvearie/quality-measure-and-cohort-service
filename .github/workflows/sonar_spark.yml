@@ -5,7 +5,7 @@ on:
       - sonar_spark
       - cql-spark-evaluator
 jobs:
-  publish:
+  sonar:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
