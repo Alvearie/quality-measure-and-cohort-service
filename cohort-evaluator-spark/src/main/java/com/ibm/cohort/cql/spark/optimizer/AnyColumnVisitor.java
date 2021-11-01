@@ -6,6 +6,8 @@
 
 package com.ibm.cohort.cql.spark.optimizer;
 
+import javax.xml.namespace.QName;
+
 import org.hl7.elm.r1.As;
 import org.hl7.elm.r1.FunctionRef;
 import org.hl7.elm.r1.Literal;
@@ -31,7 +33,7 @@ public class AnyColumnVisitor extends PathCaptureVisitor<AnyColumnContext> {
     public Object visitFunctionRef(FunctionRef elm, AnyColumnContext context) {
         if( AnyColumnFunctions.FUNCTION_NAMES.contains( elm.getName() ) ) {
             if( elm.getOperand().size() == 2 ) {
-                String dataType = ((As)elm.getOperand().get(0)).getOperand().getResultTypeName().getLocalPart();
+                QName dataType = ((As)elm.getOperand().get(0)).getOperand().getResultTypeName();
                 // TODO - validate that the first operand is a model object. We really should be doing that at the
                 // method declaration level instead of Choice<Any>, but that will require the model
                 // to have a base class that everything extends from.

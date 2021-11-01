@@ -56,10 +56,10 @@ import com.ibm.cohort.cql.functions.AnyColumnFunctions;
 import com.ibm.cohort.cql.functions.CohortExternalFunctionProvider;
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
+import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.library.HadoopBasedCqlLibraryProvider;
 import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
-import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.aggregation.ContextRetriever;
@@ -368,13 +368,16 @@ public class SparkCqlEvaluator implements Serializable {
             request.getExpressions().stream().forEach( exp -> expressions.add(exp.getName()) );
         }
         
-        DataTypeRequirementsProcessor requirementsProcessor = new DataTypeRequirementsProcessor();
+        CqlToElmTranslator cqlTranslator = getCqlTranslator();
+        CqlLibraryProvider libraryProvider = createLibraryProvider();
+        DataTypeRequirementsProcessor requirementsProcessor = new DataTypeRequirementsProcessor(cqlTranslator);
         
         Map<String,Set<StringMatcher>> pathsByDataType = new HashMap<>();
         for( Map.Entry<CqlLibraryDescriptor, Set<String>> entry : expressionsByLibrary.entrySet() ) {
-            LOG.debug("Extracting data requirements for " + entry.getKey().toString());
+            LOG.debug("Extracting data requirements for {}", entry.getKey().toString());
             
-            DataTypeRequirementsProcessor.DataTypeRequirements requirements = requirementsProcessor.getDataRequirements(createLibraryProvider(), entry.getKey(), entry.getValue());
+            DataTypeRequirementsProcessor.DataTypeRequirements requirements = requirementsProcessor.getDataRequirements(libraryProvider, entry.getKey(), entry.getValue());            
+
             Map<String,Set<StringMatcher>> newPaths = requirements.allAsStringMatcher();
             
             newPaths.forEach( (key,value) -> {

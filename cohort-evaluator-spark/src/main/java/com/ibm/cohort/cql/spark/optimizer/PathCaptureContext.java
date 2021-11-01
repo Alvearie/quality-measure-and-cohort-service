@@ -21,6 +21,7 @@ import org.hl7.elm.r1.ExpressionDef;
 import org.hl7.elm.r1.Property;
 import org.hl7.elm.r1.QueryLetRef;
 import org.hl7.elm.r1.Retrieve;
+import org.hl7.elm.r1.UsingDef;
 import org.hl7.elm.r1.VersionedIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +54,10 @@ public class PathCaptureContext {
         return pathsByQName;
     }
     
+    private Map<String, VersionedIdentifier> modelIdByUri = new HashMap<>();
+    public Map<String,VersionedIdentifier> getModels() {
+        return modelIdByUri;
+    }
     
     public void reportProperty(Property elm) {
         LOG.trace("Property {} source {}", elm.getPath(), elm.getSource() != null ? elm.getSource().getClass().getSimpleName() : null);
@@ -100,6 +105,15 @@ public class PathCaptureContext {
         Set<QName> modelTypeNames = ElmUtils.getModelTypeNames(getCurrentQueryContext().getQuery());
         for( QName name : modelTypeNames ) {
             pathsByQName.computeIfAbsent(name, key -> new HashSet<>()).add( elm.getPath() );
+        }
+    }
+
+    public void reportUsingDef(UsingDef elm) {
+        if( ! elm.getUri().equals(CqlConstants.SYSTEM_MODEL_URI) ) {
+            VersionedIdentifier vid = new VersionedIdentifier().withId(elm.getLocalIdentifier())
+                    .withVersion(elm.getVersion());
+            
+            modelIdByUri.put( elm.getUri(), vid );
         }
     }
 }

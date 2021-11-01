@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.namespace.QName;
+
 import com.ibm.cohort.cql.util.StringMatcher;
 
 /**
@@ -20,13 +22,13 @@ import com.ibm.cohort.cql.util.StringMatcher;
  */
 public class AnyColumnContext extends PathCaptureContext {
 
-    private Map<String, Set<StringMatcher>> matchersByDataType = new HashMap<>();
+    private Map<QName, Set<StringMatcher>> matchersByDataType = new HashMap<>();
 
-    public Map<String, Set<StringMatcher>> getMatchers() {
+    public Map<QName, Set<StringMatcher>> getMatchers() {
         return Collections.unmodifiableMap(matchersByDataType);
     }
     
-    public void reportAnyColumn(String dataType, StringMatcher matcher) {
+    public void reportAnyColumn(QName dataType, StringMatcher matcher) {
         Set<StringMatcher> patterns = matchersByDataType.computeIfAbsent(dataType, key -> new HashSet<>());
         patterns.add( matcher );
     }

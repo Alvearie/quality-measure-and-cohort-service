@@ -32,10 +32,8 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
 public class ElmUtils {
-    public static final String SYSTEM_MODEL_URI = "urn:hl7-org:elm-types:r1";
     private static final Logger LOG = LoggerFactory.getLogger(ElmUtils.class);
 
-    
     public static Set<QName> getModelTypeNames(Expression expression) {
         Set<QName> modelTypeNames = new HashSet<>();
         if( expression.getResultTypeName() != null ) {
@@ -67,7 +65,7 @@ public class ElmUtils {
                 specifierModelTypeNames.addAll( getModelTypeNames(choice) );
             }
         } else if( resultTypeSpecifier instanceof TupleTypeSpecifier ) {
-            specifierModelTypeNames.add(new QName(SYSTEM_MODEL_URI, "Tuple"));
+            specifierModelTypeNames.add(new QName(CqlConstants.SYSTEM_MODEL_URI, "Tuple"));
         } else { 
             throw new IllegalArgumentException("Unknown TypeSpecifier " + resultTypeSpecifier.getClass().getName());
         }

@@ -17,8 +17,12 @@
         <element name="pat_id" elementType="System.String"/>
         <element name="fake_int_col" elementType="System.Decimal"/>
     </typeInfo>
+    
+    <typeInfo namespace="CohortTest" name="ChildBase" baseType="Base" identifier="http://mock.cohort.model/ChildBase" label="ChildBase" retrievable="false" xsi:type="ClassInfo">
+    	<element name="amount" elementType="System.Decimal"/>
+    </typeInfo>
 
-    <typeInfo namespace="CohortTest" name="B" baseType="Base" identifier="http://mock.cohort.model/B" label="B" retrievable="true" xsi:type="ClassInfo">
+    <typeInfo namespace="CohortTest" name="B" baseType="ChildBase" identifier="http://mock.cohort.model/B" label="B" retrievable="true" xsi:type="ClassInfo">
         <element name="id" elementType="System.String"/>
         <element name="boolean" elementType="System.Boolean"/>
         <element name="integer" elementType="System.Integer"/>
@@ -30,7 +34,7 @@
         <contextRelationship context="Patient" relatedKeyElement="pat_id"/>
     </typeInfo>
     
-    <typeInfo namespace="CohortTest" name="C" baseType="Base" identifier="http://mock.cohort.model/C" label="C" retrievable="true" xsi:type="ClassInfo">
+    <typeInfo namespace="CohortTest" name="C" baseType="ChildBase" identifier="http://mock.cohort.model/C" label="C" retrievable="true" xsi:type="ClassInfo">
         <element name="id" elementType="System.String"/>
         <element name="pat_id" elementType="System.String"/>
         <element name="big_decimal" elementType="System.Decimal"/>
@@ -39,7 +43,7 @@
         <contextRelationship context="Patient" relatedKeyElement="pat_id"/>
     </typeInfo>
     
-    <typeInfo namespace="CohortTest" name="D" baseType="Base" identifier="http://mock.cohort.model/D" label="D" retrievable="true" xsi:type="ClassInfo">
+    <typeInfo namespace="CohortTest" name="D" baseType="ChildBase" identifier="http://mock.cohort.model/D" label="D" retrievable="true" xsi:type="ClassInfo">
         <element name="id" elementType="System.String"/>
         <element name="pat_id" elementType="System.String"/>
         <element name="integer" elementType="System.Integer"/>

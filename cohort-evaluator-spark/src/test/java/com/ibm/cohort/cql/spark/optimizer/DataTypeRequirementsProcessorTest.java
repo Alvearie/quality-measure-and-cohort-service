@@ -94,8 +94,9 @@ public class DataTypeRequirementsProcessorTest extends BaseDataTypeRequirementsP
     
     @Test
     public void testCQLWithFHIRModel() throws Exception {
-        Map<String,Set<String>> pathsByDataType = runPathTest("src/test/resources/fhir/cql", null, null);
-        
+        Map<String,Set<String>> pathsByDataType;
+        pathsByDataType = runPathTest("src/test/resources/fhir/cql", null, null);
+
         Map<String,Set<String>> expectations = new HashMap<>();
         expectations.put("Patient", new HashSet<>(Arrays.asList("name", "birthDate")));
         expectations.put("Condition", new HashSet<>(Arrays.asList("code", "id", "recordedDate")));
@@ -105,7 +106,6 @@ public class DataTypeRequirementsProcessorTest extends BaseDataTypeRequirementsP
         expectations.put("Period", new HashSet<>(Arrays.asList("start", "end")));
         expectations.put("Reference", new HashSet<>(Arrays.asList("reference")));
         expectations.put("dateTime", new HashSet<>(Arrays.asList("value")));
-        expectations.put("instant", new HashSet<>(Arrays.asList("value")));
         
         assertEquals( expectations, pathsByDataType );
     }

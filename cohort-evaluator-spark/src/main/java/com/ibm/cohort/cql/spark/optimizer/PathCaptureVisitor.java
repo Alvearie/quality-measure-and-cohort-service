@@ -15,6 +15,7 @@ import org.hl7.elm.r1.Library;
 import org.hl7.elm.r1.Property;
 import org.hl7.elm.r1.Query;
 import org.hl7.elm.r1.Retrieve;
+import org.hl7.elm.r1.UsingDef;
 import org.hl7.elm.r1.VersionedIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,5 +115,11 @@ public class PathCaptureVisitor <C extends PathCaptureContext> extends GraphWalk
         } else {
             throw new IllegalArgumentException("Library " + libraryIdentifier.getId() + "-" + libraryIdentifier.getVersion() + " was not compiled with the EnableResultsTypes translator option");
         }
+    }
+
+    @Override
+    public Object visitUsingDef(UsingDef elm, C context) {
+        context.reportUsingDef(elm);
+        return super.visitUsingDef(elm, context);
     }
 }
