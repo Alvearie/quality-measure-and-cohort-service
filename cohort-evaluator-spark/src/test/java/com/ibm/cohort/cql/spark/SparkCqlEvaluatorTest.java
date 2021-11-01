@@ -196,7 +196,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
     }
     
     @Test
-    public void testColumnFilteringIsEnabled__usesFilteredRetriever() throws Exception {
+    public void testColumnFilteringIsDisabled__usesDefaultRetriever() throws Exception {
         File inputDir = new File("src/test/resources/alltypes/");
         File outputDir = new File("target/output/alltypes/");
 
@@ -233,7 +233,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
     }
     
     @Test
-    public void testColumnFilteringIsDisabled__usesDefaultRetriever() throws Exception {
+    public void testColumnFilteringIsEnabled__usesFilteredRetriever() throws Exception {
         File inputDir = new File("src/test/resources/alltypes/");
         File outputDir = new File("target/output/alltypes/");
 
