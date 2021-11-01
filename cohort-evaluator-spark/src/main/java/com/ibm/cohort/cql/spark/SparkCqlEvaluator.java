@@ -349,7 +349,8 @@ public class SparkCqlEvaluator implements Serializable {
             }
             
             if (errorAccumulator != null) {
-                EvaluationSummary evaluationSummary = new EvaluationSummary(errorAccumulator.value());
+                // Failed tasks may possibly cause duplicate entries in the errorAccumulator
+                EvaluationSummary evaluationSummary = new EvaluationSummary(errorAccumulator.value().stream().distinct().collect(Collectors.toList()));
 
                 ObjectMapper mapper = new ObjectMapper();
                 ObjectWriter writer = mapper.writer(new DefaultPrettyPrinter());
