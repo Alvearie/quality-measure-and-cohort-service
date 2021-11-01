@@ -52,10 +52,13 @@ import com.ibm.cohort.cql.evaluation.parameters.StringParameter;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
+import com.ibm.cohort.cql.spark.data.DatasetRetriever;
+import com.ibm.cohort.cql.spark.data.DefaultDatasetRetriever;
+import com.ibm.cohort.cql.spark.data.FilteredDatasetRetriever;
 import com.ibm.cohort.cql.spark.data.Patient;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
-import com.ibm.cohort.cql.util.StringMatcher;
 import com.ibm.cohort.cql.util.EqualsStringMatcher;
+import com.ibm.cohort.cql.util.StringMatcher;
 
 @SuppressWarnings("serial")
 public class SparkCqlEvaluatorTest extends BaseSparkTest {
@@ -183,12 +186,87 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
           "-a", "Patient",
           "-n", "1",
           "--output-format", "parquet",
-          "--overwrite-output-for-contexts"
+          "--overwrite-output-for-contexts",
+          "--disable-column-filter"
         };
 
         SparkCqlEvaluator.main(args);
 
         validateOutputCountsAndColumns(patientFile.toURI().toString(), new HashSet<>(Arrays.asList("pat_id", "Parent|cohort")), 100, "parquet");
+    }
+    
+    @Test
+    public void testColumnFilteringIsEnabled__usesFilteredRetriever() throws Exception {
+        File inputDir = new File("src/test/resources/alltypes/");
+        File outputDir = new File("target/output/alltypes/");
+
+        File patientFile = new File(outputDir, "Patient_cohort");
+
+        SparkCqlEvaluatorArgs args = new SparkCqlEvaluatorArgs();
+        args.contextDefinitionPath = "src/test/resources/alltypes/metadata/context-definitions.json";
+        args.jobSpecPath = "src/test/resources/alltypes/metadata/parent-child-jobs.json";
+        args.modelInfoPaths = Arrays.asList("src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml");
+        args.cqlPath = "src/test/resources/alltypes/cql";
+        args.inputFormat = "parquet";
+        args.inputPaths = new HashMap<>();
+        args.inputPaths.put("A", new File(inputDir, "testdata/test-A.parquet").toURI().toString());
+        args.inputPaths.put("B", new File(inputDir, "testdata/test-B.parquet").toURI().toString());
+        args.inputPaths.put("C", new File(inputDir, "testdata/test-C.parquet").toURI().toString());
+        args.inputPaths.put("D", new File(inputDir, "testdata/test-D.parquet").toURI().toString());
+        args.outputPaths = new HashMap<>();
+        args.outputPaths.put("Patient", patientFile.toURI().toString());
+        args.aggregations = Arrays.asList("Patient");
+        args.outputPartitions = 1;
+        args.outputFormat = "parquet";
+        args.overwriteResults = true;
+        args.disableColumnFiltering = true;
+
+        SparkCqlEvaluator evaluator = new SparkCqlEvaluator(args);
+        evaluator.hadoopConfiguration = new SerializableConfiguration(SparkHadoopUtil.get().conf());
+        
+        ContextDefinitions cd = evaluator.readContextDefinitions(args.contextDefinitionPath);
+        ContextDefinition c = cd.getContextDefinitionByName(args.aggregations.iterator().next());
+        
+        spark = initializeSession(Java8API.ENABLED);
+        DatasetRetriever retriever = evaluator.getDatasetRetrieverForContext(spark, c);
+        assertTrue( retriever instanceof DefaultDatasetRetriever );
+    }
+    
+    @Test
+    public void testColumnFilteringIsDisabled__usesDefaultRetriever() throws Exception {
+        File inputDir = new File("src/test/resources/alltypes/");
+        File outputDir = new File("target/output/alltypes/");
+
+        File patientFile = new File(outputDir, "Patient_cohort");
+
+        SparkCqlEvaluatorArgs args = new SparkCqlEvaluatorArgs();
+        args.contextDefinitionPath = "src/test/resources/alltypes/metadata/context-definitions.json";
+        args.jobSpecPath = "src/test/resources/alltypes/metadata/parent-child-jobs.json";
+        args.modelInfoPaths = Arrays.asList("src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml");
+        args.cqlPath = "src/test/resources/alltypes/cql";
+        args.inputFormat = "parquet";
+        args.inputPaths = new HashMap<>();
+        args.inputPaths.put("A", new File(inputDir, "testdata/test-A.parquet").toURI().toString());
+        args.inputPaths.put("B", new File(inputDir, "testdata/test-B.parquet").toURI().toString());
+        args.inputPaths.put("C", new File(inputDir, "testdata/test-C.parquet").toURI().toString());
+        args.inputPaths.put("D", new File(inputDir, "testdata/test-D.parquet").toURI().toString());
+        args.outputPaths = new HashMap<>();
+        args.outputPaths.put("Patient", patientFile.toURI().toString());
+        args.aggregations = Arrays.asList("Patient");
+        args.outputPartitions = 1;
+        args.outputFormat = "parquet";
+        args.overwriteResults = true;
+        args.disableColumnFiltering = false;
+
+        SparkCqlEvaluator evaluator = new SparkCqlEvaluator(args);
+        evaluator.hadoopConfiguration = new SerializableConfiguration(SparkHadoopUtil.get().conf());
+
+        ContextDefinitions cd = evaluator.readContextDefinitions(args.contextDefinitionPath);
+        ContextDefinition c = cd.getContextDefinitionByName(args.aggregations.iterator().next());
+        
+        spark = initializeSession(Java8API.ENABLED);
+        DatasetRetriever retriever = evaluator.getDatasetRetrieverForContext(spark, c);
+        assertTrue( retriever instanceof FilteredDatasetRetriever );
     }
 
     @Test

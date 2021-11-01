@@ -294,16 +294,10 @@ public class SparkCqlEvaluator implements Serializable {
             CustomMetricSparkPlugin.totalContextsToProcessCounter.inc(filteredContexts.size());
             CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(0);
 
-            DatasetRetriever defaultDatasetRetriever = new DefaultDatasetRetriever(spark, args.inputFormat);
-
             for (ContextDefinition context : filteredContexts) {
                 final String contextName = context.getName();
                 
-                DatasetRetriever datasetRetriever = defaultDatasetRetriever;
-                if( ! args.disableColumnFiltering ) {
-                    Map<String, Set<StringMatcher>> pathsByDataType = getDataRequirementsForContext(context);
-                    datasetRetriever = new FilteredDatasetRetriever(defaultDatasetRetriever, pathsByDataType);
-                } 
+                DatasetRetriever datasetRetriever = getDatasetRetrieverForContext(spark, context); 
                 ContextRetriever contextRetriever = new ContextRetriever(args.inputPaths, datasetRetriever);
 
                 StructType resultsSchema = resultSchemas.get(contextName);
@@ -347,6 +341,16 @@ public class SparkCqlEvaluator implements Serializable {
                 LOG.info("spark.ui.prometheus.enabled is not set");
             }
         }
+    }
+
+    public DatasetRetriever getDatasetRetrieverForContext(SparkSession spark, ContextDefinition context) throws Exception {
+        DatasetRetriever defaultDatasetRetriever = new DefaultDatasetRetriever(spark, args.inputFormat);
+        DatasetRetriever datasetRetriever = defaultDatasetRetriever;
+        if( ! args.disableColumnFiltering ) {
+            Map<String, Set<StringMatcher>> pathsByDataType = getDataRequirementsForContext(context);
+            datasetRetriever = new FilteredDatasetRetriever(defaultDatasetRetriever, pathsByDataType);
+        }
+        return datasetRetriever;
     }
 
     /**
