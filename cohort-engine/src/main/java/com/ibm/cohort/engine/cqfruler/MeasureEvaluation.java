@@ -374,7 +374,7 @@ public class MeasureEvaluation {
                     }
 
                     // Calculate actual measure score, Count(numerator) / Count(denominator)
-                    if (denominator != null && numerator != null && denominator.size() > 0) {
+                    if (denominator != null && numerator != null && !denominator.isEmpty()) {
                         reportGroup.setMeasureScore(new Quantity(numerator.size() / (double) denominator.size()));
                     }
 
@@ -444,7 +444,7 @@ public class MeasureEvaluation {
             });
             report.setEvaluatedResource(evaluatedResourceIds);
         }
-        if (sdeAccumulators.size() > 0) {
+        if (!sdeAccumulators.isEmpty()) {
             report = MeasureSupplementalDataEvaluation.processAccumulators(report, sdeAccumulators, isSingle, patients);
         }
 

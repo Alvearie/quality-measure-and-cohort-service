@@ -130,7 +130,7 @@ public class DefaultFhirClientBuilder implements FhirClientBuilder {
 		}
 
 		Map<String, String> additionalHeaders = config.getAdditionalHeaders();
-		if (additionalHeaders != null && additionalHeaders.size() > 0) {
+		if (additionalHeaders != null && !additionalHeaders.isEmpty()) {
 			/**
 			 * https://hapifhir.io/hapi-fhir/docs/interceptors/built_in_client_interceptors.html#section4
 			 */

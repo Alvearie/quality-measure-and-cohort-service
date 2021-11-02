@@ -86,7 +86,7 @@ public class R4RestFhirRetrieveProvider extends RestFhirRetrieveProvider {
 				}
 
 				List<List<IQueryParameterType>> value = entry.getValue();
-				if (value == null || value.size() == 0) {
+				if (value == null || value.isEmpty()) {
 					continue;
 				}
 
@@ -94,7 +94,7 @@ public class R4RestFhirRetrieveProvider extends RestFhirRetrieveProvider {
 
 				for (List<IQueryParameterType> subList : value) {
 
-					if (subList == null || subList.size() == 0) {
+					if (subList == null || subList.isEmpty()) {
 						continue;
 					}
 
