@@ -7,7 +7,8 @@ package com.ibm.cohort.fhir.client.config;
 
 import java.util.Map;
 
-import org.apache.commons.collections4.MapUtils;
+
+import org.apache.commons.collections.MapUtils;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IClientInterceptor;
