@@ -25,6 +25,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.cqframework.cql.elm.execution.ExpressionDef;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.ListResource;
@@ -216,7 +218,7 @@ public class MeasureEvaluation {
         reportBuilder.buildType(type);
         reportBuilder.buildMeasureReference(
                 measure.getIdElement().getResourceType() + "/" + measure.getIdElement().getIdPart());
-        if (type == MeasureReport.MeasureReportType.INDIVIDUAL && !patients.isEmpty()) {
+        if (type == MeasureReport.MeasureReportType.INDIVIDUAL && CollectionUtils.isNotEmpty(patients)) {
             IdType patientId = patients.get(0).getIdElement();
             reportBuilder.buildPatientReference(patientId.getResourceType() + "/" + patientId.getIdPart());
         }
@@ -374,7 +376,7 @@ public class MeasureEvaluation {
                     }
 
                     // Calculate actual measure score, Count(numerator) / Count(denominator)
-                    if (denominator != null && numerator != null && denominator.size() > 0) {
+                    if (numerator != null && MapUtils.isNotEmpty(denominator)) {
                         reportGroup.setMeasureScore(new Quantity(numerator.size() / (double) denominator.size()));
                     }
 
@@ -437,14 +439,14 @@ public class MeasureEvaluation {
             }
         }
 
-        if (!resources.isEmpty()) {
+        if (MapUtils.isNotEmpty(resources)) {
             List<Reference> evaluatedResourceIds = new ArrayList<>();
             resources.forEach((key, resource) -> {
                 evaluatedResourceIds.add(new Reference(resource.getId()));
             });
             report.setEvaluatedResource(evaluatedResourceIds);
         }
-        if (sdeAccumulators.size() > 0) {
+        if (MapUtils.isNotEmpty(sdeAccumulators)) {
             report = MeasureSupplementalDataEvaluation.processAccumulators(report, sdeAccumulators, isSingle, patients);
         }
 
@@ -453,7 +455,7 @@ public class MeasureEvaluation {
 
     protected void populateResourceMap(Context context, MeasurePopulationType type, Map<String, Resource> resources,
             Map<String, Set<String>> codeToResourceMap, boolean includeEvaluatedResources) {
-        if (context.getEvaluatedResources().isEmpty()) {
+        if (CollectionUtils.isEmpty(context.getEvaluatedResources())) {
             return;
         }
 

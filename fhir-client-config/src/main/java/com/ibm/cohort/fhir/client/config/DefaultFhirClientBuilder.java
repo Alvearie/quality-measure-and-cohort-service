@@ -7,6 +7,9 @@ package com.ibm.cohort.fhir.client.config;
 
 import java.util.Map;
 
+
+import org.apache.commons.collections.MapUtils;
+
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IClientInterceptor;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
@@ -130,7 +133,7 @@ public class DefaultFhirClientBuilder implements FhirClientBuilder {
 		}
 
 		Map<String, String> additionalHeaders = config.getAdditionalHeaders();
-		if (additionalHeaders != null && additionalHeaders.size() > 0) {
+		if (MapUtils.isNotEmpty(additionalHeaders)) {
 			/**
 			 * https://hapifhir.io/hapi-fhir/docs/interceptors/built_in_client_interceptors.html#section4
 			 */
