@@ -8,4 +8,5 @@
   - [FHIR Server Installation & Configuration](user-guide/fhir-server-config.md)
   - [FHIR Clinical Quality Measure Evaluation](user-guide/quality-measure-guide.md)
   - [Parameter Formats](user-guide/parameter-formats.md)
+  - [Using the Java APIs](user-guide/java-api-dev-guide.md)
   - [FHIR Resource Tooling](user-guide/fhir-resource-tooling.md)
