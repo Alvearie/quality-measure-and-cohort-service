@@ -31,7 +31,6 @@
 	<rule ref="category/java/codestyle.xml/DuplicateImports" />
 	<rule ref="category/java/codestyle.xml/PackageCase" />
 	<rule ref="category/java/codestyle.xml/UnnecessaryFullyQualifiedName" />
-	<rule ref="category/java/bestpractices.xml/UseCollectionIsEmpty" />
 
 	<rule ref="category/java/errorprone.xml/AvoidBranchingStatementAsLastInLoop" />
 	<rule ref="category/java/errorprone.xml/AvoidDecimalLiteralsInBigDecimalConstructor" />
@@ -44,6 +43,39 @@
 	<rule ref="category/java/errorprone.xml/EmptyFinallyBlock" />
 	<rule ref="category/java/errorprone.xml/ImportFromSamePackage" />
 	<rule ref="category/java/errorprone.xml/OverrideBothEqualsAndHashcode" />
+
+
+	<rule name="UseCollectionIsEmpty"
+		  language="java"
+		  since="3.9"
+		  message="Substitute calls to size() == 0 (or size() != 0, size() &gt; 0, size() &lt; 1) with calls to CollectionUtils.isEmpty()"
+		  class="net.sourceforge.pmd.lang.java.rule.bestpractices.UseCollectionIsEmptyRule"
+		  externalInfoUrl="${pmd.website.baseurl}/pmd_rules_java_bestpractices.html#usecollectionisempty">
+		<description>
+			The isEmpty() method on java.util.Collection is provided to determine if a collection has any elements.
+			Comparing the value of size() to 0 does not convey intent as well as the isEmpty() method.
+			Use CollectionUtils.isEmpty or CollectionUtils.isNotEmpty to more appropriately convey intent.
+		</description>
+		<priority>3</priority>
+		<example>
+			<![CDATA[
+public class Foo {
+    void good() {
+        List foo = getList();
+        if (CollectionUtils.isEmpty(foo)) {
+            // blah
+        }
+    }
+    void bad() {
+        List foo = getList();
+        if (foo.size() == 0) {
+            // blah
+        }
+    }
+}
+]]>
+		</example>
+	</rule>
 
 	<!-- See https://pmd.github.io/pmd-6.21.0/pmd_rules_java.html for additional 
 		rule options -->
