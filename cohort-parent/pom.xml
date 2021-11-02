@@ -452,6 +452,12 @@
  				<version>${jetty.version}</version>
  				<scope>test</scope>
 			</dependency>
+			<dependency>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-util</artifactId>
+ 				<version>${jetty.version}</version>
+ 				<scope>test</scope>
+			</dependency>
 
 			<dependency>
 				<groupId>junit</groupId>
@@ -552,6 +558,12 @@
 				<groupId>org.apache.hadoop</groupId>
 				<artifactId>hadoop-common</artifactId>
 				<version>${hadoop.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>io.netty</groupId>
+						<artifactId>netty</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>io.delta</groupId>
@@ -768,6 +780,52 @@
 				<groupId>io.dropwizard.metrics</groupId>
 				<artifactId>metrics-core</artifactId>
 				<version>4.1.1</version>
+			</dependency>
+			<!-- override version pulled in by spark-sql_2.12 version 3.2 for AsoC issue -->
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-all</artifactId>
+				<version>4.1.61.Final</version>
+			</dependency>
+			<dependency>
+				<groupId>log4j</groupId>
+				<artifactId>log4j</artifactId>
+				<version>1.2.17</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.hadoop</groupId>
+				<artifactId>hadoop-project-dist</artifactId>
+				<version>3.2.2</version>
+			</dependency>
+			<!-- override version pulled in by spark-sql_2.12 version 3.2 for AsoC issue -->
+			<dependency>
+				<groupId>org.apache.hadoop</groupId>
+				<artifactId>hadoop-hdfs-client</artifactId>
+				<version>3.2.2</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.hadoop</groupId>
+				<artifactId>hadoop-client</artifactId>
+				<version>3.2.2</version>
+			</dependency>
+			<!-- override version pulled in by hadoop-common version 3.2 for AsoC issue -->
+			<dependency>
+				<groupId>org.apache.zookeeper</groupId>
+				<artifactId>zookeeper</artifactId>
+				<version>3.4.14</version>
+			</dependency>
+			<!-- override version pulled in by hadoop-common version 3.2 for AsoC issue -->
+			<dependency>
+				<groupId>com.nimbusds</groupId>
+				<artifactId>nimbus-jose-jwt</artifactId>
+				<version>7.9</version>
+			</dependency>
+			<!-- override version pulled in by spark-sql_2.12 version 3.2 for AsoC issue -->
+			<dependency>
+				<groupId>org.glassfish.jersey.core</groupId>
+				<artifactId>jersey-common</artifactId>
+				<version>2.34</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
