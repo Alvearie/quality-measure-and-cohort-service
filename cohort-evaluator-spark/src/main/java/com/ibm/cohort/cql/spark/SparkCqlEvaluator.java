@@ -28,6 +28,7 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -394,7 +395,7 @@ public class SparkCqlEvaluator implements Serializable {
         if( context.getRelationships() != null ) {
             for( Join join : context.getRelationships() ) {
                 Set<StringMatcher> joinFields = pathsByDataType.get(join.getRelatedDataType());
-                if( joinFields != null && joinFields.size() > 0 ) {
+                if( CollectionUtils.isNotEmpty(joinFields) ) {
                     joinFields.add(new EqualsStringMatcher(join.getRelatedKeyColumn()));
                     
                     // if the join key is not the primary key of the primary data table, then we need to add in the alternate key

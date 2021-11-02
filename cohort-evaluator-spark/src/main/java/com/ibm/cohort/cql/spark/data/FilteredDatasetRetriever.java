@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -41,7 +42,7 @@ public class FilteredDatasetRetriever implements DatasetRetriever {
         Dataset<Row> result = null;
         
         Collection<StringMatcher> columnNameMatchers = dataTypeFilters.get(dataType);
-        if( columnNameMatchers != null && columnNameMatchers.size() > 0 ) {
+        if( CollectionUtils.isNotEmpty(columnNameMatchers) ) {
             Dataset<Row> sourceDataset = retriever.readDataset(dataType, path);
             
             List<Column> cols = new ArrayList<>();
