@@ -2,7 +2,6 @@ name: Run sonar on spark branch
 on:
   push:
     branches:
-      - sonar_spark
       - cql-spark-evaluator
 jobs:
   sonar:
