@@ -6,11 +6,12 @@
 
 package com.ibm.cohort.cql.spark.optimizer;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 
 import javax.xml.namespace.QName;
 
@@ -33,7 +34,7 @@ import org.slf4j.LoggerFactory;
 public class PathCaptureContext {
     private static final Logger LOG = LoggerFactory.getLogger(PathCaptureContext.class);
     
-    private Stack<ExpressionContext> expressionContextStack = new Stack<ExpressionContext>();
+    private Deque<ExpressionContext> expressionContextStack = new ArrayDeque<ExpressionContext>();
     public void enterExpressionContext(VersionedIdentifier libraryIdentifier, ExpressionDef elm) {
         ExpressionContext queryContext = new ExpressionContext(libraryIdentifier, elm);
         expressionContextStack.push(queryContext);
@@ -60,7 +61,11 @@ public class PathCaptureContext {
     }
     
     public void reportProperty(Property elm) {
-        LOG.trace("Property {} source {}", elm.getPath(), elm.getSource() != null ? elm.getSource().getClass().getSimpleName() : null);
+        // Log guarding to prevent some of the parameter resolution logic from getting called unnecessarily
+        if( LOG.isTraceEnabled() ) {
+            LOG.trace("Property {} source {}", elm.getPath(), elm.getSource() != null ? elm.getSource().getClass().getSimpleName() : null);
+        }
+        
         Set<QName> modelTypeNames = null;
         if( elm.getScope() != null || elm.getSource() instanceof AliasRef ) {
             String aliasName = (elm.getScope() != null) ? elm.getScope() : ((AliasRef)elm.getSource()).getName();

@@ -6,7 +6,8 @@
 
 package com.ibm.cohort.cql.spark.optimizer;
 
-import java.util.Stack;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 import org.hl7.elm.r1.ExpressionDef;
 import org.hl7.elm.r1.Query;
@@ -33,7 +34,7 @@ public class ExpressionContext {
         return expression;
     }
     
-    private Stack<QueryContext> queryContextStack = new Stack<QueryContext>();
+    private Deque<QueryContext> queryContextStack = new ArrayDeque<>();
     public void enterQueryContext(Query query) {
         QueryContext queryContext = new QueryContext(query);
         queryContextStack.push(queryContext);

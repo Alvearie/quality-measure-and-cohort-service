@@ -6,10 +6,11 @@
 
 package com.ibm.cohort.cql.spark.optimizer;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Stack;
 
 import javax.xml.bind.JAXB;
 
@@ -44,7 +45,7 @@ public class GraphWalkingElmVisitor<R, C> extends ElmBaseLibraryVisitor <R, C> {
     
     private static final Logger LOG = LoggerFactory.getLogger(GraphWalkingElmVisitor.class);
     
-    private Stack<VersionedIdentifier> libraryStack = new Stack<VersionedIdentifier>();
+    private Deque<VersionedIdentifier> libraryStack = new ArrayDeque<>();
     private Set<Element> visited = new HashSet<>();
     private CqlLibraryProvider libraryProvider;
     
@@ -62,7 +63,7 @@ public class GraphWalkingElmVisitor<R, C> extends ElmBaseLibraryVisitor <R, C> {
         libraryStack.pop();
     }
     public VersionedIdentifier getCurrentLibraryIdentifier() {
-        if (libraryStack.empty()) {
+        if (libraryStack.isEmpty()) {
             throw new IllegalArgumentException("Not in a library context");
         }
 

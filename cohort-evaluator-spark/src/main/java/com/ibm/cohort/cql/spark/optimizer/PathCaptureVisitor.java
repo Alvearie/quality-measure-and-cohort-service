@@ -44,43 +44,60 @@ public class PathCaptureVisitor <C extends PathCaptureContext> extends GraphWalk
 
     @Override
     public Object visitRetrieve(Retrieve elm, C context) {
+        LOG.trace("Retrieve [{}:{}] {}", getCurrentLibraryIdentifier().getId(), elm.getLocator(), elm.getDataType());
         context.reportRetrieve(elm);
         return super.visitRetrieve(elm, context);
     }
 
     @Override
     public Object visitQuery(Query elm, C context) {
+        Object result;
+        LOG.trace("--> QUERY [{}:{}]", getCurrentLibraryIdentifier().getId(), elm.getLocator());
+        
         context.getCurrentExpressionContext().enterQueryContext(elm);
         try {
-             return super.visitQuery(elm, context);
+             result = super.visitQuery(elm, context);
         } finally {
             context.getCurrentExpressionContext().exitQueryContext();
         }
+        LOG.trace("<-- QUERY [{}:{}]", getCurrentLibraryIdentifier().getId(), elm.getLocator());
+        return result;
     }
     
     @Override
     public Object visitAliasedQuerySource(AliasedQuerySource elm, C context) {
+        Object result;
+        LOG.trace("--> ALIAS [{}:{}] {}", getCurrentLibraryIdentifier().getId(), elm.getLocator(), elm.getAlias());
+
         context.getCurrentQueryContext().enterAliasDefinitionContext(elm);
         try {
-            return super.visitAliasedQuerySource(elm, context);
+            result = super.visitAliasedQuerySource(elm, context);
         } finally {
             context.getCurrentQueryContext().exitAliasDefinitionContext();
         }
+        LOG.trace("<-- ALIAS [{}:{}] {}", getCurrentLibraryIdentifier().getId(), elm.getLocator(), elm.getAlias());
+        return result;
     }
 
     @Override
     public Object visitLetClause(LetClause elm, C context) {
+        Object result;
+        LOG.trace("--> LET [{}:{}] {}", getCurrentLibraryIdentifier().getId(), elm.getLocator(), elm.getIdentifier());
+        
         context.getCurrentQueryContext().enterLetDefinitionContext(elm);
         try {
-            return super.visitLetClause(elm, context);
+            result = super.visitLetClause(elm, context);
         } finally {
             context.getCurrentQueryContext().exitLetDefinitionContext();
         }
+        
+        LOG.trace("<-- LET [{}:{}] {}", getCurrentLibraryIdentifier().getId(), elm.getLocator(), elm.getIdentifier());
+        return result;
     }
 
     @Override
     public Object visitExpressionDef(ExpressionDef elm, C context) {
-        LOG.trace("--> {}:{}", getCurrentLibraryIdentifier().getId(), elm.getName());
+        LOG.trace("--> EXPR [{}:{}] {}", getCurrentLibraryIdentifier().getId(), elm.getLocator(), elm.getName());
         context.enterExpressionContext(getCurrentLibraryIdentifier(), elm);
         Object result;
         try {
@@ -88,7 +105,7 @@ public class PathCaptureVisitor <C extends PathCaptureContext> extends GraphWalk
         } finally {
             context.exitExpressionContext();
         }
-        LOG.trace("<-- {}:{}", getCurrentLibraryIdentifier().getId(), elm.getName());
+        LOG.trace("<-- EXPR [{}:{}] {}", getCurrentLibraryIdentifier().getId(), elm.getLocator(), elm.getName());
         return result;
     }
     

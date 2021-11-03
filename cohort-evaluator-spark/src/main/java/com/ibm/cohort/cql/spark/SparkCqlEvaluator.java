@@ -379,7 +379,7 @@ public class SparkCqlEvaluator implements Serializable {
         
         Map<String,Set<StringMatcher>> pathsByDataType = new HashMap<>();
         for( Map.Entry<CqlLibraryDescriptor, Set<String>> entry : expressionsByLibrary.entrySet() ) {
-            LOG.debug("Extracting data requirements for {}", entry.getKey().toString());
+            LOG.debug("Extracting data requirements for {}", entry.getKey());
             
             DataTypeRequirementsProcessor.DataTypeRequirements requirements = requirementsProcessor.getDataRequirements(libraryProvider, entry.getKey(), entry.getValue());            
 
