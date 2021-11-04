@@ -224,11 +224,32 @@ public class SparkDataRowTest extends BaseSparkTest {
     }
     
     @Test
+    public void testColumnNotFound() {
+        Java8API useJava8API = Java8API.ENABLED;
+        SparkSession session = initializeSession(useJava8API);
+
+        SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
+
+        List<UnhandledTypesPOJO> data = new ArrayList<>();
+
+        int expectedFieldCount = 4;
+        UnhandledTypesPOJO pojo = new UnhandledTypesPOJO();
+        data.add( pojo );
+
+        Dataset<Row> df = session.createDataFrame(data, UnhandledTypesPOJO.class);
+        assertEquals(1, df.count());
+        assertEquals(expectedFieldCount, df.schema().names().length);
+
+        SparkDataRow sdr = new SparkDataRow(typeConverter, df.head());
+        assertThrows(IllegalArgumentException.class, () -> sdr.getValue("unknown") );
+    }
+    
+    @Test
     public void testConversionSemanticsAsCodeAllFields() {
         Metadata codeMetadata = new MetadataBuilder()
-                .putBoolean(SparkDataRow.IS_CODE_COL, Boolean.TRUE)
-                .putString(SparkDataRow.SYSTEM_COL, "system")
-                .putString(SparkDataRow.DISPLAY_COL, "display")
+                .putBoolean(MetadataUtils.IS_CODE_COL, Boolean.TRUE)
+                .putString(MetadataUtils.SYSTEM_COL, "system")
+                .putString(MetadataUtils.DISPLAY_COL, "display")
                 .build();
 
         CodeWithMetadataPOJO pojo = new CodeWithMetadataPOJO("123", SNOMED, "A Code");
@@ -245,10 +266,10 @@ public class SparkDataRowTest extends BaseSparkTest {
     @Test
     public void testConversionSemanticsAsCodeCodeAndDefaultSystem() {
         Metadata codeMetadata = new MetadataBuilder()
-                .putBoolean(SparkDataRow.IS_CODE_COL, Boolean.TRUE)
-                .putString(SparkDataRow.SYSTEM, SNOMED)
-                .putString(SparkDataRow.SYSTEM_COL, null)
-                .putString(SparkDataRow.DISPLAY_COL, null)
+                .putBoolean(MetadataUtils.IS_CODE_COL, Boolean.TRUE)
+                .putString(MetadataUtils.SYSTEM, SNOMED)
+                .putString(MetadataUtils.SYSTEM_COL, null)
+                .putString(MetadataUtils.DISPLAY_COL, null)
                 .build();
 
         CodeWithMetadataPOJO pojo = new CodeWithMetadataPOJO("123", null, null);
@@ -269,7 +290,7 @@ public class SparkDataRowTest extends BaseSparkTest {
         CodeWithMetadataPOJO pojo = new CodeWithMetadataPOJO("123", SNOMED, "A Code");
 
         Metadata codeMetadata = new MetadataBuilder()
-                .putBoolean(SparkDataRow.IS_CODE_COL, Boolean.TRUE)
+                .putBoolean(MetadataUtils.IS_CODE_COL, Boolean.TRUE)
                 .build();
 
         
@@ -288,7 +309,7 @@ public class SparkDataRowTest extends BaseSparkTest {
         CodeWithMetadataPOJO pojo = new CodeWithMetadataPOJO("123", SNOMED, "A Code");
 
         Metadata codeMetadata = new MetadataBuilder()
-                .putBoolean(SparkDataRow.IS_CODE_COL, Boolean.FALSE)
+                .putBoolean(MetadataUtils.IS_CODE_COL, Boolean.FALSE)
                 .build();
 
         SparkDataRow sdr = runMetadataTest(pojo, codeMetadata);

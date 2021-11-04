@@ -39,11 +39,6 @@ import com.ibm.cohort.datarow.model.DataRow;
  */
 public class SparkDataRow implements DataRow {
 
-    public static final String IS_CODE_COL = "isCodeCol";
-    public static final String SYSTEM_COL = "systemCol";
-    public static final String DISPLAY_COL = "displayCol";
-    public static final String SYSTEM = "system";
-
     private final SparkTypeConverter typeConverter;
     private final Row sparkRow;
 
@@ -69,34 +64,27 @@ public class SparkDataRow implements DataRow {
              * The following logic uses column metadata fields provided in the Spark schema
              * to identify columns
              */
-            Metadata metadata = sparkRow.schema().fields()[sparkRow.schema().fieldIndex(fieldName)].metadata();
-            if (metadata.contains(IS_CODE_COL)) {
-                isCode = metadata.getBoolean(IS_CODE_COL);
-                if (isCode) {
+            Metadata metadata = MetadataUtils.getColumnMetadata(sparkRow.schema(), fieldName);
+            isCode = MetadataUtils.isCodeCol(metadata);
+            if (isCode) {
                     Code code = new Code().withCode((String) sparkVal);
                     
-                    if( metadata.contains(SYSTEM) ) {
-                        code.withSystem( metadata.getString(SYSTEM) );
+                    String system = MetadataUtils.getDefaultSystem(metadata);
+                    if( system != null ) {
+                        code.withSystem( system );
                     }
  
-                    if (metadata.contains(SYSTEM_COL)) {
-                        String systemField = metadata.getString(SYSTEM_COL);
-                        if (systemField != null) {
-                            code.withSystem(sparkRow.getAs(systemField));
-                        }
+                    String systemCol = MetadataUtils.getSystemCol(metadata);
+                    if (systemCol != null) {
+                        code.withSystem(sparkRow.getAs(systemCol));
                     }
 
-                    if (metadata.contains(DISPLAY_COL)) {
-                        String displayField = metadata.getString(DISPLAY_COL);
-                        if (displayField != null) {
-                            code.withDisplay(sparkRow.getAs(displayField));
-                        }
+                    String displayCol = MetadataUtils.getDisplayCol(metadata);
+                    if (displayCol != null) {
+                        code.withDisplay(sparkRow.getAs(displayCol));
                     }
 
                     result = code;
-                } else {
-                    result = doDefaultConversion(sparkVal);
-                }
             } else {
                 result = doDefaultConversion(sparkVal);
             }

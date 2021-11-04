@@ -10,6 +10,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 /**
  * Encapsulates the contents of a particular CQL library in 
@@ -53,9 +54,9 @@ public class CqlLibrary {
     
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .append(descriptor.toString())
-                .append(content)
+        return new ToStringBuilder(this, ToStringStyle.JSON_STYLE)
+                .append("descriptor", descriptor.toString())
+                .append("content", content)
                 .build();
     }
 }

@@ -32,6 +32,11 @@ Usage: SparkCqlEvaluator [options]
       Delimiter to use when a result column is named using the default naming
       rule of `LIBRARY_ID + delimiter + DEFINE_NAME`.
       Default: |
+    --disable-column-filter
+      Disable CQL-based column filtering. When specified, all columns of the 
+      Spark input data are read regardless of whether or not they are needed 
+      by the CQL queries being evaluated.
+      Default: false
     -e, --expression
       One or more expression names, as defined in the context-definitions
       file, that should be run in this evaluation. Defaults to all
@@ -147,6 +152,8 @@ There are potentially many input files needed for the CQL evaluation each repres
 The data being read can be in any format that Spark understands, but all data is assumed to be provided in a single, consistent format. The default format for Spark is parquet. Users can adjust the input format by setting the `spark.sql.datasources.default` configuration property when invoking the Spark application or by using the `--input-format` option to the application. The sample Dockerfile that is provided has support for all the basic formats supported natively by Spark and also Deltalake format. Users that want additional formats, such as Apache Iceberg, can use the `--packages` option to spark submit or extend the Docker image to add the additional needed JARs.
 
 While all types of Spark input formats are supported, we recommend the use of formats that are encoded with a schema (e.g. Parquet) to best utilize the full feature set of the CQL engine.
+
+By default, the program attempts to intelligently select the data needed for CQL evaluation rather than read the entire dataset from Spark. As a fail-safe in case column filtering cannot correctly identify the data requirements for the CQL evaluation, an option is provided `--disable-column-filter` that will cause the application to read all available data from the input sources.
 
 Output is configured almost identically to input except it uses `-o` options and the key in the key=value pairs is the context name of a context aggregation defined in the `context-definitions.json` file. More on that later. Output format is, again, available in any supported spark format as specified by the `--output-format` program option, whatever is configured in the `spark.sql.sources.default` Spark configuration option, or parquet if no other configuration is specified.
 

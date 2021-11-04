@@ -1,3 +1,4 @@
+library "short-circuit-and-or"
 //Or
 define TrueOrTrue : true or true
 define TrueOrFalse : true or false

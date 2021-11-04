@@ -17,6 +17,7 @@ import javax.validation.Valid;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
@@ -103,7 +104,7 @@ public class CqlEvaluationRequest {
     
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
+        return new ToStringBuilder(this, ToStringStyle.JSON_STYLE)
                 .append("descriptor", descriptor)
                 .append("expressions", expressions)
                 .append("parameters", parameters)

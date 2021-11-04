@@ -35,38 +35,30 @@ public class TranslatingCqlLibraryProvider implements CqlLibraryProvider {
     
     @Override
     public CqlLibrary getLibrary(CqlLibraryDescriptor libraryDescriptor) {
-        return translations.computeIfAbsent( libraryDescriptor, key -> {
-            CqlLibraryDescriptor elmDescriptor = new CqlLibraryDescriptor()
-                    .setLibraryId(key.getLibraryId())
-                    .setVersion(key.getVersion())
-                    .setFormat(Format.ELM);
-            
-            CqlLibrary library = backingLibraryProvider.getLibrary(elmDescriptor);
-            if( library == null ) {
-                CqlLibraryDescriptor cqlDescriptor = new CqlLibraryDescriptor()
-                        .setLibraryId( key.getLibraryId() )
-                        .setVersion( key.getVersion() )
-                        .setFormat( CqlLibraryDescriptor.Format.CQL );
+        if( libraryDescriptor.getFormat().equals(Format.CQL) ) {
+            return backingLibraryProvider.getLibrary(libraryDescriptor);
+        } else {
+            return translations.computeIfAbsent( libraryDescriptor, key -> {
+                CqlLibraryDescriptor elmDescriptor = new CqlLibraryDescriptor()
+                        .setLibraryId(key.getLibraryId())
+                        .setVersion(key.getVersion())
+                        .setFormat(Format.ELM);
                 
-                library = backingLibraryProvider.getLibrary(cqlDescriptor);
-                if( library != null ) {
-                    CqlTranslationResult translationResult = translator.translate(library, sourceId -> {
-                        CqlLibraryDescriptor descriptor = new CqlLibraryDescriptor()
-                                .setLibraryId( sourceId.getId() )
-                                .setVersion( sourceId.getVersion() )
-                                .setFormat( CqlLibraryDescriptor.Format.CQL );
-                        
-                        CqlLibrary sourceLibrary = backingLibraryProvider.getLibrary( descriptor );
-                        if( sourceLibrary != null  ) {
-                            return sourceLibrary.getContentAsStream();
-                        } else {
-                            throw new IllegalArgumentException(String.format("Missing required library '%s' version '%s' format '%s' not found", sourceId.getId(), sourceId.getVersion(), Format.CQL.name()));
-                        }
-                    });
-                    return translationResult.getMainLibrary();
+                CqlLibrary library = backingLibraryProvider.getLibrary(elmDescriptor);
+                if( library == null ) {
+                    CqlLibraryDescriptor cqlDescriptor = new CqlLibraryDescriptor()
+                            .setLibraryId( key.getLibraryId() )
+                            .setVersion( key.getVersion() )
+                            .setFormat( CqlLibraryDescriptor.Format.CQL );
+                    
+                    library = backingLibraryProvider.getLibrary(cqlDescriptor);
+                    if( library != null ) {
+                        CqlTranslationResult translationResult = translator.translate(library, new DefaultCqlLibrarySourceProvider(backingLibraryProvider));
+                        return translationResult.getMainLibrary();
+                    }
                 }
-            }
-            return library;
-        });
+                return library;
+            });
+        }
     }
 }
