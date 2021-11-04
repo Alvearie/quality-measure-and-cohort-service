@@ -224,6 +224,27 @@ public class SparkDataRowTest extends BaseSparkTest {
     }
     
     @Test
+    public void testColumnNotFound() {
+        Java8API useJava8API = Java8API.ENABLED;
+        SparkSession session = initializeSession(useJava8API);
+
+        SparkTypeConverter typeConverter = new SparkTypeConverter(useJava8API.getValue());
+
+        List<UnhandledTypesPOJO> data = new ArrayList<>();
+
+        int expectedFieldCount = 4;
+        UnhandledTypesPOJO pojo = new UnhandledTypesPOJO();
+        data.add( pojo );
+
+        Dataset<Row> df = session.createDataFrame(data, UnhandledTypesPOJO.class);
+        assertEquals(1, df.count());
+        assertEquals(expectedFieldCount, df.schema().names().length);
+
+        SparkDataRow sdr = new SparkDataRow(typeConverter, df.head());
+        assertThrows(IllegalArgumentException.class, () -> sdr.getValue("unknown") );
+    }
+    
+    @Test
     public void testConversionSemanticsAsCodeAllFields() {
         Metadata codeMetadata = new MetadataBuilder()
                 .putBoolean(MetadataUtils.IS_CODE_COL, Boolean.TRUE)
