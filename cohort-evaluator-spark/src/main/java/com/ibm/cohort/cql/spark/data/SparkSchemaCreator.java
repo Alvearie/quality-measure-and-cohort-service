@@ -17,7 +17,7 @@ import javax.xml.namespace.QName;
 import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
-import org.cqframework.cql.cql2elm.ModelInfoLoader;
+import org.cqframework.cql.cql2elm.ModelManager;
 import org.cqframework.cql.elm.execution.ExpressionDef;
 import org.cqframework.cql.elm.execution.Library;
 import org.hl7.elm.r1.VersionedIdentifier;
@@ -31,8 +31,10 @@ import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
 import com.ibm.cohort.cql.library.CqlLibrary;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
+import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
+import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 
 import scala.Tuple2;
 
@@ -72,12 +74,14 @@ public class SparkSchemaCreator {
 	private CqlEvaluationRequests requests;
 	private ContextDefinitions contextDefinitions;
 	private SparkOutputColumnEncoder sparkOutputColumnEncoder;
+	private CqlToElmTranslator translator;
 
-	public SparkSchemaCreator(CqlLibraryProvider libraryProvider, CqlEvaluationRequests requests, ContextDefinitions contextDefinitions, SparkOutputColumnEncoder sparkOutputColumnEncoder) {
+	public SparkSchemaCreator(CqlLibraryProvider libraryProvider, CqlEvaluationRequests requests, ContextDefinitions contextDefinitions, SparkOutputColumnEncoder sparkOutputColumnEncoder, CqlToElmTranslator translator) {
 		this.libraryProvider = libraryProvider;
 		this.requests = requests;
 		this.contextDefinitions = contextDefinitions;
 		this.sparkOutputColumnEncoder = sparkOutputColumnEncoder;
+		this.translator = translator;
 	}
 
 	public Map<String, StructType> calculateSchemasForContexts(List<String> contextNames) throws Exception {
@@ -105,7 +109,8 @@ public class SparkSchemaCreator {
 			String libraryId = descriptor.getLibraryId();
 
 			for (String expression : filteredRequest.getExpressionNames()) {
-				CqlLibrary providedLibrary = libraryProvider.getLibrary(new CqlLibraryDescriptor().setLibraryId(libraryId).setVersion(descriptor.getVersion()));
+				CqlLibrary providedLibrary = libraryProvider.getLibrary(new CqlLibraryDescriptor().setLibraryId(libraryId).setVersion(descriptor.getVersion()).setFormat(Format.ELM));
+
 				if( providedLibrary == null ) {
 					throw new IllegalArgumentException("Library not found: " + descriptor.getLibraryId() + "-" + descriptor.getVersion());
 				}
@@ -164,11 +169,13 @@ public class SparkSchemaCreator {
 
 		DataType keyType = null;
 
+		ModelManager modelManager = translator.newModelManager();
+		
 		// Check the model info for each non-system using statement from the libraries run for this context.
 		// Try to find the key column's type information from a single model info.
 		for (Tuple2<String, String> usingInfo : usingInfos) {
 			VersionedIdentifier modelInfoIdentifier = new VersionedIdentifier().withId(usingInfo._1()).withVersion(usingInfo._2());
-			ModelInfo modelInfo = ModelInfoLoader.getModelInfoProvider(modelInfoIdentifier).load();
+			ModelInfo modelInfo = modelManager.getModelInfoLoader().getModelInfo(modelInfoIdentifier);
 
 			// Look for a ClassInfo element matching primaryDataType for the context
 			List<ClassInfo> classInfos = modelInfo.getTypeInfo().stream()

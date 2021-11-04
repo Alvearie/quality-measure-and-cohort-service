@@ -50,9 +50,17 @@ import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.cql.evaluation.parameters.StringParameter;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
+import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
+import com.ibm.cohort.cql.spark.data.DatasetRetriever;
+import com.ibm.cohort.cql.spark.data.DefaultDatasetRetriever;
+import com.ibm.cohort.cql.spark.data.FilteredDatasetRetriever;
 import com.ibm.cohort.cql.spark.data.Patient;
+import com.ibm.cohort.cql.translation.CqlToElmTranslator;
+import com.ibm.cohort.cql.util.EqualsStringMatcher;
+import com.ibm.cohort.cql.util.StringMatcher;
 
+@SuppressWarnings("serial")
 public class SparkCqlEvaluatorTest extends BaseSparkTest {
     private static final long serialVersionUID = 1L;
 
@@ -155,6 +163,110 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         validateOutputCountsAndColumns(bFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureB|cohort")), 575, "parquet");
         validateOutputCountsAndColumns(cFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureC|cohort")), 600, "parquet");
         validateOutputCountsAndColumns(dFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureD|cohort")), 567, "parquet");
+    }
+    
+    @Test
+    public void testAllTypesEvaluationFilteredDataSuccess() throws Exception {
+        File inputDir = new File("src/test/resources/alltypes/");
+        File outputDir = new File("target/output/alltypes/");
+
+        File patientFile = new File(outputDir, "Patient_cohort");
+
+        String [] args = new String[] {
+          "-d", "src/test/resources/alltypes/metadata/context-definitions.json",
+          "-j", "src/test/resources/alltypes/metadata/parent-child-jobs.json",
+          "-m", "src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml",
+          "-c", "src/test/resources/alltypes/cql",
+          "--input-format", "parquet",
+          "-i", "A=" + new File(inputDir, "testdata/test-A.parquet").toURI().toString(),
+          "-i", "B=" + new File(inputDir, "testdata/test-B.parquet").toURI().toString(),
+          "-i", "C=" + new File(inputDir, "testdata/test-C.parquet").toURI().toString(),
+          "-i", "D=" + new File(inputDir, "testdata/test-D.parquet").toURI().toString(),
+          "-o", "Patient=" + patientFile.toURI().toString(),
+          "-a", "Patient",
+          "-n", "1",
+          "--output-format", "parquet",
+          "--overwrite-output-for-contexts",
+          "--disable-column-filter"
+        };
+
+        SparkCqlEvaluator.main(args);
+
+        validateOutputCountsAndColumns(patientFile.toURI().toString(), new HashSet<>(Arrays.asList("pat_id", "Parent|cohort")), 100, "parquet");
+    }
+    
+    @Test
+    public void testColumnFilteringIsDisabled__usesDefaultRetriever() throws Exception {
+        File inputDir = new File("src/test/resources/alltypes/");
+        File outputDir = new File("target/output/alltypes/");
+
+        File patientFile = new File(outputDir, "Patient_cohort");
+
+        SparkCqlEvaluatorArgs args = new SparkCqlEvaluatorArgs();
+        args.contextDefinitionPath = "src/test/resources/alltypes/metadata/context-definitions.json";
+        args.jobSpecPath = "src/test/resources/alltypes/metadata/parent-child-jobs.json";
+        args.modelInfoPaths = Arrays.asList("src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml");
+        args.cqlPath = "src/test/resources/alltypes/cql";
+        args.inputFormat = "parquet";
+        args.inputPaths = new HashMap<>();
+        args.inputPaths.put("A", new File(inputDir, "testdata/test-A.parquet").toURI().toString());
+        args.inputPaths.put("B", new File(inputDir, "testdata/test-B.parquet").toURI().toString());
+        args.inputPaths.put("C", new File(inputDir, "testdata/test-C.parquet").toURI().toString());
+        args.inputPaths.put("D", new File(inputDir, "testdata/test-D.parquet").toURI().toString());
+        args.outputPaths = new HashMap<>();
+        args.outputPaths.put("Patient", patientFile.toURI().toString());
+        args.aggregations = Arrays.asList("Patient");
+        args.outputPartitions = 1;
+        args.outputFormat = "parquet";
+        args.overwriteResults = true;
+        args.disableColumnFiltering = true;
+
+        SparkCqlEvaluator evaluator = new SparkCqlEvaluator(args);
+        evaluator.hadoopConfiguration = new SerializableConfiguration(SparkHadoopUtil.get().conf());
+        
+        ContextDefinitions cd = evaluator.readContextDefinitions(args.contextDefinitionPath);
+        ContextDefinition c = cd.getContextDefinitionByName(args.aggregations.iterator().next());
+        
+        spark = initializeSession(Java8API.ENABLED);
+        DatasetRetriever retriever = evaluator.getDatasetRetrieverForContext(spark, c);
+        assertTrue( retriever instanceof DefaultDatasetRetriever );
+    }
+    
+    @Test
+    public void testColumnFilteringIsEnabled__usesFilteredRetriever() throws Exception {
+        File inputDir = new File("src/test/resources/alltypes/");
+        File outputDir = new File("target/output/alltypes/");
+
+        File patientFile = new File(outputDir, "Patient_cohort");
+
+        SparkCqlEvaluatorArgs args = new SparkCqlEvaluatorArgs();
+        args.contextDefinitionPath = "src/test/resources/alltypes/metadata/context-definitions.json";
+        args.jobSpecPath = "src/test/resources/alltypes/metadata/parent-child-jobs.json";
+        args.modelInfoPaths = Arrays.asList("src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml");
+        args.cqlPath = "src/test/resources/alltypes/cql";
+        args.inputFormat = "parquet";
+        args.inputPaths = new HashMap<>();
+        args.inputPaths.put("A", new File(inputDir, "testdata/test-A.parquet").toURI().toString());
+        args.inputPaths.put("B", new File(inputDir, "testdata/test-B.parquet").toURI().toString());
+        args.inputPaths.put("C", new File(inputDir, "testdata/test-C.parquet").toURI().toString());
+        args.inputPaths.put("D", new File(inputDir, "testdata/test-D.parquet").toURI().toString());
+        args.outputPaths = new HashMap<>();
+        args.outputPaths.put("Patient", patientFile.toURI().toString());
+        args.aggregations = Arrays.asList("Patient");
+        args.outputPartitions = 1;
+        args.outputFormat = "parquet";
+        args.overwriteResults = true;
+        args.disableColumnFiltering = false;
+
+        SparkCqlEvaluator evaluator = new SparkCqlEvaluator(args);
+        evaluator.hadoopConfiguration = new SerializableConfiguration(SparkHadoopUtil.get().conf());
+
+        ContextDefinitions cd = evaluator.readContextDefinitions(args.contextDefinitionPath);
+        ContextDefinition c = cd.getContextDefinitionByName(args.aggregations.iterator().next());
+        
+        spark = initializeSession(Java8API.ENABLED);
+        DatasetRetriever retriever = evaluator.getDatasetRetrieverForContext(spark, c);
+        assertTrue( retriever instanceof FilteredDatasetRetriever );
     }
 
     @Test
@@ -437,8 +549,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         Dataset<Row> expectedDataFrame = spark.createDataFrame(expectedRows, schema)
                 .select(actualColumns[0], Arrays.copyOfRange(actualColumns, 1, actualColumns.length));
 
-        assertEquals(0, expectedDataFrame.except(actualDataFrame).count());
-        assertEquals(0, actualDataFrame.except(expectedDataFrame).count());
+        assertEquals("Rows exist in expected dataframe that are not in actual dataframe", 0, expectedDataFrame.except(actualDataFrame).count());
+        assertEquals("Rows exist in actual dataframe that are not in expected dataframe", 0, actualDataFrame.except(expectedDataFrame).count());
 
     }
     
@@ -665,19 +777,23 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
     }
 
     @Test
-    public void testGetFilteredRequestsOverwriteEvaluations() {
+    public void testGetFilteredRequestsFilterEvaluations() {
         CqlEvaluationRequests requests = new CqlEvaluationRequests();
 
         CqlEvaluationRequest request = makeEvaluationRequest("context", "lib1", "1.0.0");
-        request.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohortOrig")));
+        request.setExpressionsByNames(new HashSet<>(Arrays.asList("cohortOrig", "expr1")));
 
 
         CqlEvaluationRequest request2 = makeEvaluationRequest("context", "lib2", "1.0.0");
-        request2.setExpressionsByNames(new HashSet<>(Collections.singletonList("cohortOrig")));
+        request2.setExpressionsByNames(new HashSet<>(Arrays.asList("cohortOrig", "expr2")));
 
+        CqlEvaluationRequest request3 = makeEvaluationRequest("context", "lib3", "1.0.0");
+        request3.setExpressionsByNames(new HashSet<>(Arrays.asList("cohortOrig")));
+        
         List<CqlEvaluationRequest> evaluations = Arrays.asList(
                 request,
-                request2
+                request2,
+                request3
         );
 
         requests.setEvaluations(evaluations);
@@ -685,6 +801,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         Map<String, String> libs = new HashMap<String, String>() {{
             put("lib1", "1.0.0");
             put("lib2", "1.0.0");
+            put("lib3", "1.0.0");
         }};
 
         Set<String> expressions = new HashSet<>(Arrays.asList("expr1", "expr2"));
@@ -696,13 +813,11 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 expressions
         );
 
-        assertEquals(2, actual.getEvaluations().size());
-        for (CqlEvaluationRequest evaluation : actual.getEvaluations()) {
-            assertEquals(2, evaluation.getExpressions().size());
-            for (String expressionName : evaluation.getExpressionNames()) {
-                assertTrue(expressions.contains(expressionName));
-            }
-        }
+        assertEquals(3, actual.getEvaluations().size());
+        assertEquals(Collections.singleton("expr1"), actual.getEvaluations().get(0).getExpressionNames());
+        assertEquals(Collections.singleton("expr2"), actual.getEvaluations().get(1).getExpressionNames());
+        assertEquals(Collections.emptySet(), actual.getEvaluations().get(2).getExpressionNames());
+
     }
 
     @Test
@@ -799,6 +914,28 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         assertEquals(3, contextDefinitions.getContextDefinitions().get(0).getRelationships().size());
     }
 
+    @Test
+    public void testGetFiltersForContext() throws Exception {
+        evaluator.args.cqlPath = "src/test/resources/alltypes/cql";
+        evaluator.args.contextDefinitionPath = "src/test/resources/alltypes/metadata/context-definitions.json";
+        evaluator.args.jobSpecPath = "src/test/resources/alltypes/metadata/parent-child-jobs.json";
+        evaluator.args.modelInfoPaths = Arrays.asList("src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml");
+        evaluator.hadoopConfiguration = new SerializableConfiguration(spark.sparkContext().hadoopConfiguration());
+
+        CqlToElmTranslator cqlTranslator = new CqlToElmTranslator();
+        cqlTranslator.registerModelInfo(new File("src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml"));
+        
+        ContextDefinitions definitions = evaluator.readContextDefinitions(evaluator.args.contextDefinitionPath);
+        ContextDefinition context = definitions.getContextDefinitionByName("Patient");
+        
+        Map<String,Set<StringMatcher>> actual = evaluator.getDataRequirementsForContext(context);
+        
+        Map<String,Set<StringMatcher>> expected = new HashMap<>();
+        expected.put("A", new HashSet<>(Arrays.asList(new EqualsStringMatcher("pat_id"),
+                new EqualsStringMatcher("code_col"), new EqualsStringMatcher("boolean_col"))));
+        
+        assertEquals( expected, actual );
+    }
 
     public static void assertStackTraceContainsMessage(Throwable th, String message) {
         boolean found = false;

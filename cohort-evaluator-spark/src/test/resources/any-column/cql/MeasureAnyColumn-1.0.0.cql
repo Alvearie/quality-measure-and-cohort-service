@@ -2,6 +2,7 @@ library "MeasureAnyColumn" version '1.0.0'
 
 using "CohortTest" version '0.0.1'
 include "CohortHelpers" version '1.0.0'
+include "AnyColumnChild" version '1.0.0'
 
 codesystem "SNOMED": 'http://snomed.info/sct'
 codesystem "OTHER": 'http://system.other'
@@ -17,8 +18,9 @@ context A
 define "cohort":
   exists("Passes all checks")
 
-define function AnyColumn(key Choice<Any>, key String) returns List<Any> : external
-
 define "Passes all checks":
   [A] typeA where
     exists(CohortHelpers.AnyColumn(typeA, 'code_col') intersect "MyConcept".codes)
+
+define "Passes child checks":
+	Exists(AnyColumnChild.FilteredB) and Exists(AnyColumnChild.FilteredC)

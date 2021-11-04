@@ -32,6 +32,9 @@ public class SparkCqlEvaluatorArgs implements Serializable {
     @Parameter(names = { "--input-format" }, description = "Spark SQL format identifier for input files. If not provided, the value of spark.sql.datasources.default is used.", required = false)
     public String inputFormat;
     
+    @Parameter(names = { "--disable-column-filter" }, description = "Disable CQL-based column filtering. When specified, all columns of the Spark input data are read regardless of whether or not they are needed by the CQL queries being evaluated.", required = false)
+    public boolean disableColumnFiltering = false;
+    
     @DynamicParameter(names = { "-i",
             "--input-path" }, description = "Key-value pair of resource=URI controlling where Spark should read resources referenced in the context definitions file will be read from. Specify multiple files by providing a separate option for each input.", required = true)
     public Map<String, String> inputPaths = new HashMap<>();

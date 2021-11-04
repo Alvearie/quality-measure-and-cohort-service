@@ -24,6 +24,7 @@ import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 
 import junit.framework.TestCase;
 
+@SuppressWarnings("serial")
 public class ContextColumnNameEncoderTest {
 
 	@Test

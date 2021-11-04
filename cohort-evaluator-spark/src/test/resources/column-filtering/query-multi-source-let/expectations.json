@@ -1,0 +1,5 @@
+{
+	"A" : [],
+	"B" : ["integer", "decimal"],
+	"D" : ["long", "short"]
+}

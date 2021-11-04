@@ -1,3 +1,9 @@
+/*
+ * (C) Copyright IBM Corp. 2021, 2021
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.ibm.cohort.cql.functions;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -14,7 +20,8 @@ import org.junit.Test;
 
 import com.ibm.cohort.datarow.model.DataRow;
 
-public class AnyColumnTest {
+@SuppressWarnings("unchecked")
+public class AnyColumnFunctionsTest {
 
     @Test
     public void testAnyColumnNoMatches() {
@@ -25,7 +32,7 @@ public class AnyColumnTest {
         doReturn(allFields).when(row).getFieldNames();
 
         String prefix = "prefix";
-        List<Object> actual = (List<Object>) AnyColumn.AnyColumn(row, prefix);
+        List<Object> actual = (List<Object>) AnyColumnFunctions.AnyColumn(row, prefix);
         assertThat(actual, empty());
     }
 
@@ -48,7 +55,7 @@ public class AnyColumnTest {
         doReturn("nonMatchingValue").when(row).getValue(nonMatchingField);
 
         String prefix = "matchingField";
-        List<Object> actual = (List<Object>) AnyColumn.AnyColumn(row, prefix);
+        List<Object> actual = (List<Object>) AnyColumnFunctions.AnyColumn(row, prefix);
         assertThat(actual, containsInAnyOrder(expectedValue1, expectedValue2));
     }
 
@@ -65,7 +72,7 @@ public class AnyColumnTest {
         doReturn("nonMatchingValue").when(row).getValue("nonMatchingField");
 
         String regex = "prefix[0-9]+";
-        List<Object> actual = (List<Object>) AnyColumn.AnyColumnRegex(row, regex);
+        List<Object> actual = (List<Object>) AnyColumnFunctions.AnyColumnRegex(row, regex);
         assertThat(actual, empty());
     }
 
@@ -88,7 +95,7 @@ public class AnyColumnTest {
         doReturn("nonMatchingValue").when(row).getValue(nonMatchingField);
 
         String regex = "matchingField[0-9]+";
-        List<Object> actual = (List<Object>) AnyColumn.AnyColumnRegex(row, regex);
+        List<Object> actual = (List<Object>) AnyColumnFunctions.AnyColumnRegex(row, regex);
         assertThat(actual, containsInAnyOrder("matchingValue1", "matchingValue2"));
     }
 }

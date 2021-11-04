@@ -40,6 +40,11 @@ public class TranslatingCqlLibraryProviderTest {
                 .setFormat(Format.CQL);
         
         CqlLibrary library = provider.getLibrary(descriptor);
+        assertEquals( Format.CQL, library.getDescriptor().getFormat() );
+        assertTrue( library.getContent().startsWith("library") );
+        
+        descriptor.setFormat(Format.ELM);
+        library = provider.getLibrary(descriptor);
         assertEquals( Format.ELM, library.getDescriptor().getFormat() );
         assertTrue( library.getContent().startsWith("<?xml") );
     }

@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <library xmlns="urn:hl7-org:elm:r1" xmlns:t="urn:hl7-org:elm-types:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:fhir="http://hl7.org/fhir" xmlns:qdm43="urn:healthit-gov:qdm:v4_3" xmlns:qdm53="urn:healthit-gov:qdm:v5_3" xmlns:a="urn:hl7-org:cql-annotations:r1">
    <annotation translatorOptions="EnableAnnotations,EnableLocators,DisableListDemotion,DisableListPromotion" xsi:type="a:CqlToElmInfo"/>
+   <annotation xsi:type="a:Annotation">
+      <a:s r="17">
+         <a:s>library &quot;Test&quot; version '1.0.0'</a:s>
+      </a:s>
+   </annotation>
    <identifier id="Test" version="1.0.0"/>
    <schemaIdentifier id="urn:hl7-org:elm" version="r1"/>
    <usings>
@@ -8,7 +13,11 @@
       <def localId="1" locator="2:1-2:28" localIdentifier="FHIR" uri="http://hl7.org/fhir" version="4.0.0">
          <annotation xsi:type="a:Annotation">
             <a:s r="1">
-               <a:s>using &quot;FHIR&quot; version '4.0.0'</a:s>
+               <a:s>using </a:s>
+               <a:s>
+                  <a:s>&quot;FHIR&quot;</a:s>
+               </a:s>
+               <a:s> version '4.0.0'</a:s>
             </a:s>
          </annotation>
       </def>
@@ -25,7 +34,7 @@
       <def localId="7" locator="4:1-5:32" name="Female" context="Patient" accessLevel="Public">
          <annotation xsi:type="a:Annotation">
             <a:s r="7">
-               <a:s>define &quot;Female&quot;:&#xd;
+               <a:s>define &quot;Female&quot;:
 	</a:s>
                <a:s r="6">
                   <a:s r="4">
@@ -62,7 +71,7 @@
       <def localId="13" locator="6:1-7:30" name="Male" context="Patient" accessLevel="Public">
          <annotation xsi:type="a:Annotation">
             <a:s r="13">
-               <a:s>define &quot;Male&quot;:&#xd;
+               <a:s>define &quot;Male&quot;:
 	</a:s>
                <a:s r="12">
                   <a:s r="10">
@@ -99,7 +108,7 @@
       <def localId="17" locator="8:1-9:19" name="Over the hill" context="Patient" accessLevel="Public">
          <annotation xsi:type="a:Annotation">
             <a:s r="17">
-               <a:s>define &quot;Over the hill&quot;:&#xd;
+               <a:s>define &quot;Over the hill&quot;:
 	</a:s>
                <a:s r="16">
                   <a:s r="14">
