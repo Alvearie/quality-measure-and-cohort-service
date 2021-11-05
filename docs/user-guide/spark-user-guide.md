@@ -336,50 +336,30 @@ By default Spark is configured to disallow overwrites of data files. However, it
 
 Depending on a number of factors including the amount of data in the input, how the input data is organized, and how spark parallelism is configured, output tables might end up with a large amount of partitions yielding a large number of output files. In these cases, it might be desirable to compact data prior to writing it to storage. A program option `-n` is provided that, when specified, will cause output data to be compacted into the specified number of partitions.
 
-#### Optional Output
+#### Metadata Output
 
-There are options that, if specified, may result in additional files being output once the Spark program finishes execution.
-
-Using the
-`--batch-summary-path` option will prevent the Spark program from failing due to errors during CQL evaluations.
-Instead, a file named `cql-evaluation-summary.json` will be written out in the directory specified for the argument.
-The file will contain information about any errors that occurred during CQL evaluations along with identifying
-information (context name, context id, output column being calculated) for each error. If no errors occur, the summary
-file will be created, but the list of errors in the file will be empty.
-
-
-Example file with errors:
-```json
-{
-  "errorList" : [
-    {
-      "contextName" : "ContextA",
-      "contextId" : "id_123",
-      "outputColumn" : "cohort",
-      "exception" : "Expected a list with at most one element, but found a list with multiple elements."
-    },
-    {
-      "contextName" : "ContextB",
-      "contextId" : "xxxyyyzzz",
-      "outputColumn" : "CqlDefinition-1.0.0|InDenominator",
-      "exception" : "CQL Exception: Bad format for Integer literal"
-    }
-  ]
-}
-```
-
-Example file without errors:
-```json
-{
-  "errorList" : []
-}
-```
-
-The `--success-marker-path` option may also result in an additional marker file being output by the Spark program.
+The Spark program will write out metadata files to the folder specified by the `--metadata-output-path` argument.
 If all CQL evaluations finish successfully and without any errors during evaluation, then a blank file named `_SUCCESS`
-will be written in the directory specified for the `--success-marker-path` option. No `_SUCCESS` file will be written
-if either 1) The `--success-marker-path` is not used when running the Spark program, or 2) one or more errors occur
-during CQL evaluation.
+is written to the specified folder. This marker file can be used by other processes as a way to easily check that the
+CQL evaluations performed were all successful.
+
+A batch summary file is also written out to the metadata folder with a name of the format `batch_summary-<SPARK_APPLICATION_ID>`.
+This file contains various pieces of information about the performed run. The current contents of the file are:
+
+* `applicationId`: The spark application id. This value will match the application id on a Spark History server (if as history server is in use).
+* `startTimeMillis`: The starting timestamp of the Spark job in milliseconds.
+* `endTimeMillis`: The ending timestamp of the Spark job in milliseconds.
+* `totalContexts`: The total number of contexts processed.
+* `executionsPerContext`: A map containing an entry of `ContextName -> TotalCqlExecutions` for each context processed.
+* `errorList`: If one or more CQL evaluation errors occured during the run, then this field contains an entry per error
+               detailing the context name, context id, output column being calculated, and the exception that was encountered.
+               If no errors were encountered during the run, the `errorList` is omitted.
+
+**Note**: The default behavior of the Spark program is to gather any errors that occur during CQL evaluation and report
+them in the batch summary file rather than to have the program halt when it hits an error during CQL evaluation.
+This behavior can be changed by using the `--halt-on-error` option at runtime. When this option is used, the program
+will fail outright if an error is hit during CQL evaluation. This allows programs to "fail fast" if that behavior is
+needed rather than waiting until the end of a run to see if there are any errors reported.
 
 ### Debugging
 
