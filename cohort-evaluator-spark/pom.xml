@@ -128,7 +128,6 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
-			<scope>compile</scope>
 		</dependency>
 		
 		<dependency>
@@ -198,7 +197,6 @@
 		<dependency>
 			<groupId>commons-collections</groupId>
 			<artifactId>commons-collections</artifactId>
-			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
