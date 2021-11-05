@@ -10,9 +10,10 @@ import org.apache.commons.collections.CollectionUtils;
 
 public abstract class BaseOutputMetadataWriter implements OutputMetadataWriter{
     
-    public static String SUCCESS_MARKER = "_SUCCESS";
-    public static String BATCH_SUMMARY_PREFIX = "batch_summary-";
+    public static final String SUCCESS_MARKER = "_SUCCESS";
+    public static final String BATCH_SUMMARY_PREFIX = "batch_summary-";
 
+    @Override
     public void writeMetadata(EvaluationSummary evaluationSummary) {
         if (isSuccessfulRun(evaluationSummary)) {
             createSuccessMarker();
