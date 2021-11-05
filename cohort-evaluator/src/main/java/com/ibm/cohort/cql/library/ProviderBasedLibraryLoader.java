@@ -8,10 +8,10 @@ package com.ibm.cohort.cql.library;
 
 import org.cqframework.cql.elm.execution.Library;
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
-import org.opencds.cqf.cql.engine.execution.CqlLibraryReader;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
+import com.ibm.cohort.engine.elm.execution.OptimizedCqlLibraryReader;
 
 public class ProviderBasedLibraryLoader implements LibraryLoader {
 
@@ -46,7 +46,7 @@ public class ProviderBasedLibraryLoader implements LibraryLoader {
     protected Library deserializeLibrary(CqlLibrary cqlLibrary) throws CqlLibraryDeserializationException {
         Library library;
         try { 
-            library = CqlLibraryReader.read(cqlLibrary.getContentAsStream());
+            library = OptimizedCqlLibraryReader.read(cqlLibrary.getContentAsStream());
         } catch( Exception ex ) {
             throw new CqlLibraryDeserializationException(ex);
         }

@@ -7,12 +7,14 @@
  */
 package com.ibm.cohort.engine.elm.execution;
 
+import java.io.InputStream;
 import java.io.StringReader;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.stream.StreamSource;
 
 import org.cqframework.cql.elm.execution.Library;
 
@@ -41,4 +43,11 @@ public class OptimizedCqlLibraryReader {
 
 		return ((JAXBElement<Library>)result).getValue();
 	}
+
+    @SuppressWarnings("unchecked")
+    public static synchronized Library read(InputStream stream) throws JAXBException {
+        Object result = getUnmarshaller().unmarshal(new StreamSource(stream));
+
+        return ((JAXBElement<Library>)result).getValue();
+    }
 }
