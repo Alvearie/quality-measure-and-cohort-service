@@ -8,7 +8,7 @@ package com.ibm.cohort.cql.spark.metadata;
 
 import org.apache.commons.collections.CollectionUtils;
 
-public abstract class BaseOutputMetadataWriter {
+public abstract class BaseOutputMetadataWriter implements OutputMetadataWriter{
     
     public static String SUCCESS_MARKER = "_SUCCESS";
     public static String BATCH_SUMMARY_PREFIX = "batch_summary-";

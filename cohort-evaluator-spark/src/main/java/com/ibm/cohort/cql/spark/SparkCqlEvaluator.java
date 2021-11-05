@@ -80,6 +80,7 @@ import com.ibm.cohort.cql.spark.data.SparkTypeConverter;
 import com.ibm.cohort.cql.spark.errors.EvaluationError;
 import com.ibm.cohort.cql.spark.metadata.EvaluationSummary;
 import com.ibm.cohort.cql.spark.metadata.HadoopPathOutputMetadataWriter;
+import com.ibm.cohort.cql.spark.metadata.OutputMetadataWriter;
 import com.ibm.cohort.cql.spark.metrics.CustomMetricSparkPlugin;
 import com.ibm.cohort.cql.spark.optimizer.DataTypeRequirementsProcessor;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
@@ -205,6 +206,10 @@ public class SparkCqlEvaluator implements Serializable {
         }
         return filteredRequests;
     }
+    
+    public OutputMetadataWriter getOutputMetadataWriter() {
+    	return new HadoopPathOutputMetadataWriter(new Path(args.metadataOutputPath), hadoopConfiguration.value());
+	}
 
     /**
      * @param requests     Request object to filter.
@@ -342,15 +347,13 @@ public class SparkCqlEvaluator implements Serializable {
             evaluationSummary.setEndTimeMillis(System.currentTimeMillis());
 
             if (args.metadataOutputPath != null) {
-                Path metadataPath = new Path(args.metadataOutputPath);
-
                 if (errorAccumulator != null) {
                     evaluationSummary.setErrorList(errorAccumulator.value());
                 }
 
                 evaluationSummary.setTotalContexts(contextAccum.value());
 
-                HadoopPathOutputMetadataWriter writer = new HadoopPathOutputMetadataWriter(metadataPath, hadoopConfiguration.value());
+                OutputMetadataWriter writer = getOutputMetadataWriter();
                 writer.writeMetadata(evaluationSummary);
             }
             
