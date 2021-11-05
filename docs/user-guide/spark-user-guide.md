@@ -20,11 +20,6 @@ Usage: SparkCqlEvaluator [options]
       One or more context names, as defined in the context-definitions file,
       that should be run in this evaluation. Defaults to all evaluations.
       Default: []
-    --batch-summary-path
-      Directory where a batch summary file (cql-evaluation-summary.json) that 
-      contains any CQL evaluation errors will be written. When this option is 
-      provided, errors during CQL evaluation will not cause the overall 
-      program to fail.
   * -d, --context-definitions
       Filesystem path to the context-definitions file.
   * -c, --cql-path
@@ -47,6 +42,11 @@ Usage: SparkCqlEvaluator [options]
       file, that should be run in this evaluation. Defaults to all
       expressions.
       Default: []
+    --halt-on-error
+      If set, errors during CQL evaluations will cause the program to halt. 
+      Otherwise, errors are collected and reported in the program's batch 
+      summary file and will not cause the program to halt.
+      Default: false
     -h, --help
       Print help text
     --input-format
@@ -67,6 +67,9 @@ Usage: SparkCqlEvaluator [options]
       separate option for each library.
       Syntax: -lkey=value
       Default: {}
+  * --metadata-output-path
+      Folder where program output metadata (a batch summary file and possible 
+      _SUCCESS marker file) will be written.
   * -m, --model-info
       Filesystem path(s) to custom model-info files that may be required for
       CQL translation.
@@ -86,9 +89,6 @@ Usage: SparkCqlEvaluator [options]
       WARNING: NOT RECOMMENDED FOR PRODUCTION USE. If option is set, program
       overwrites existing output when writing result data.
       Default: false
-    --success-marker-path
-      Directory where a _SUCCESS marker file will be written to if there are 
-      no errors during CQL evaluation
     -t, --terminology-path
       Filesystem path to the location containing the ValueSet definitions in 
       FHIR XML or JSON format.
