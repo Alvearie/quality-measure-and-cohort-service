@@ -20,6 +20,11 @@ Usage: SparkCqlEvaluator [options]
       One or more context names, as defined in the context-definitions file,
       that should be run in this evaluation. Defaults to all evaluations.
       Default: []
+    --batch-summary-path
+      Directory where a batch summary file (cql-evaluation-summary.json) that 
+      contains any CQL evaluation errors will be written. When this option is 
+      provided, errors during CQL evaluation will not cause the overall 
+      program to fail.
   * -d, --context-definitions
       Filesystem path to the context-definitions file.
   * -c, --cql-path
@@ -81,6 +86,12 @@ Usage: SparkCqlEvaluator [options]
       WARNING: NOT RECOMMENDED FOR PRODUCTION USE. If option is set, program
       overwrites existing output when writing result data.
       Default: false
+    --success-marker-path
+      Directory where a _SUCCESS marker file will be written to if there are 
+      no errors during CQL evaluation
+    -t, --terminology-path
+      Filesystem path to the location containing the ValueSet definitions in 
+      FHIR XML or JSON format.
 ```
 
 The typical mode of invocation is to run the program using the spark-submit script from SPARK_HOME\bin to submit a job to a target Spark cluster. The simplest invocation for a Windows user will look like this...
@@ -324,6 +335,51 @@ The type information for output columns is read directly from the translated CQL
 By default Spark is configured to disallow overwrites of data files. However, it can be useful for testing purposes to write to the same data path more than one time. If users wish to use overwrite behavior, they can specify the `--overwrite-output-for-contexts` program option.
 
 Depending on a number of factors including the amount of data in the input, how the input data is organized, and how spark parallelism is configured, output tables might end up with a large amount of partitions yielding a large number of output files. In these cases, it might be desirable to compact data prior to writing it to storage. A program option `-n` is provided that, when specified, will cause output data to be compacted into the specified number of partitions.
+
+#### Optional Output
+
+There are options that, if specified, may result in additional files being output once the Spark program finishes execution.
+
+Using the
+`--batch-summary-path` option will prevent the Spark program from failing due to errors during CQL evaluations.
+Instead, a file named `cql-evaluation-summary.json` will be written out in the directory specified for the argument.
+The file will contain information about any errors that occurred during CQL evaluations along with identifying
+information (context name, context id, output column being calculated) for each error. If no errors occur, the summary
+file will be created, but the list of errors in the file will be empty.
+
+
+Example file with errors:
+```json
+{
+  "errorList" : [
+    {
+      "contextName" : "ContextA",
+      "contextId" : "id_123",
+      "outputColumn" : "cohort",
+      "exception" : "Expected a list with at most one element, but found a list with multiple elements."
+    },
+    {
+      "contextName" : "ContextB",
+      "contextId" : "xxxyyyzzz",
+      "outputColumn" : "CqlDefinition-1.0.0|InDenominator",
+      "exception" : "CQL Exception: Bad format for Integer literal"
+    }
+  ]
+}
+```
+
+Example file without errors:
+```json
+{
+  "errorList" : []
+}
+```
+
+The `--success-marker-path` option may also result in an additional marker file being output by the Spark program.
+If all CQL evaluations finish successfully and without any errors during evaluation, then a blank file named `_SUCCESS`
+will be written in the directory specified for the `--success-marker-path` option. No `_SUCCESS` file will be written
+if either 1) The `--success-marker-path` is not used when running the Spark program, or 2) one or more errors occur
+during CQL evaluation.
 
 ### Debugging
 
