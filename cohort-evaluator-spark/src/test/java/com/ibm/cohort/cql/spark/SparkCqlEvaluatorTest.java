@@ -7,13 +7,17 @@
 package com.ibm.cohort.cql.spark;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -26,7 +30,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.spark.SparkException;
 import org.apache.spark.deploy.SparkHadoopUtil;
 import org.apache.spark.sql.Dataset;
@@ -41,6 +47,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
 import com.ibm.cohort.cql.evaluation.parameters.DateParameter;
@@ -56,6 +63,8 @@ import com.ibm.cohort.cql.spark.data.DatasetRetriever;
 import com.ibm.cohort.cql.spark.data.DefaultDatasetRetriever;
 import com.ibm.cohort.cql.spark.data.FilteredDatasetRetriever;
 import com.ibm.cohort.cql.spark.data.Patient;
+import com.ibm.cohort.cql.spark.metadata.EvaluationSummary;
+import com.ibm.cohort.cql.spark.metadata.HadoopPathOutputMetadataWriter;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.util.EqualsStringMatcher;
 import com.ibm.cohort.cql.util.StringMatcher;
@@ -115,7 +124,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
           "-i", "Patient=" + new File("src/test/resources/simple-job/testdata/patient").toURI().toString(),
           "-o", "Patient=" + new File(outputLocation).toURI().toString(),
           "--output-format", "delta",
-          "--overwrite-output-for-contexts"
+          "--overwrite-output-for-contexts",
+          "--metadata-output-path", outputLocation
         };
 
         SparkCqlEvaluator.main(args);
@@ -134,6 +144,10 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         File cFile = new File(outputDir, "C_cohort");
         File dFile = new File(outputDir, "D_cohort");
 
+        File metadataDir = new File(outputDir, "evaluation_success");
+        
+        Set<Path> summaryFilesBefore = getSummaryFilesInPath(metadataDir.toPath());
+
         String [] args = new String[] {
           "-d", "src/test/resources/alltypes/metadata/context-definitions.json",
           "-j", "src/test/resources/alltypes/metadata/cql-jobs.json",
@@ -151,7 +165,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
           "-o", "D=" + dFile.toURI().toString(),
           "-n", "10",
           "--output-format", "parquet",
-          "--overwrite-output-for-contexts"
+          "--overwrite-output-for-contexts",
+          "--metadata-output-path", metadataDir.toURI().toString()
         };
 
         SparkCqlEvaluator.main(args);
@@ -163,6 +178,34 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         validateOutputCountsAndColumns(bFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureB|cohort")), 575, "parquet");
         validateOutputCountsAndColumns(cFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureC|cohort")), 600, "parquet");
         validateOutputCountsAndColumns(dFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureD|cohort")), 567, "parquet");
+
+        assertTrue(new File(metadataDir, HadoopPathOutputMetadataWriter.SUCCESS_MARKER).exists());
+
+        Set<Path> summaryFilesAfter = getSummaryFilesInPath(metadataDir.toPath());
+
+        summaryFilesAfter.removeAll(summaryFilesBefore);
+        assertEquals(1, summaryFilesAfter.size());
+
+        try(FileInputStream fileInputStream = new FileInputStream(summaryFilesAfter.iterator().next().toFile())) {
+            ObjectMapper mapper = new ObjectMapper();
+            EvaluationSummary evaluationSummary = mapper.readValue(fileInputStream, EvaluationSummary.class);
+            assertTrue(CollectionUtils.isEmpty(evaluationSummary.getErrorList()));
+        }
+    }
+
+    /*
+     * Some tests need to check for a batch summary file. The local Spark engine
+     * will not respect a configured app id, so this utility function can be used
+     * to assist tests in figuring out which summary files exist before/after a run.
+     */
+    private Set<Path> getSummaryFilesInPath(Path path) throws IOException {
+        Set<Path> pathSet = new HashSet<>();
+        if (path.toFile().exists()) {
+            pathSet = Files.list(path)
+                    .filter(x -> x.getFileName().toString().startsWith(HadoopPathOutputMetadataWriter.BATCH_SUMMARY_PREFIX))
+                    .collect(Collectors.toSet());
+        }
+        return pathSet;
     }
     
     @Test
@@ -187,7 +230,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
           "-n", "1",
           "--output-format", "parquet",
           "--overwrite-output-for-contexts",
-          "--disable-column-filter"
+          "--disable-column-filter",
+          "--metadata-output-path", outputDir.toURI().toString()
         };
 
         SparkCqlEvaluator.main(args);
@@ -286,7 +330,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
             "-o", "A=" + aFile.toURI(),
             "-n", "10",
             "--output-format", "parquet",
-            "--overwrite-output-for-contexts"
+            "--overwrite-output-for-contexts",
+            "--metadata-output-path", outputDir.toURI().toString()
         };
 
         SparkCqlEvaluator.main(args);
@@ -353,7 +398,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 "-o", "Context2Id=" + context2IdFile.toURI().toString(),
                 "-o", "Patient=" + patientFile.toURI().toString(),
                 "--output-format", "delta",
-                "--overwrite-output-for-contexts"
+                "--overwrite-output-for-contexts",
+                "--metadata-output-path", outputDir.toURI().toString()
         };
 
         SparkCqlEvaluator.main(args);
@@ -432,7 +478,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 "-l", "Context1Id=1.0.0",
                 "-o", "Context1Id=" + context1IdFile.toURI().toString(),
                 "--output-format", "parquet",
-                "--overwrite-output-for-contexts"
+                "--overwrite-output-for-contexts",
+                "--metadata-output-path", outputDir.toURI().toString()
         };
 
         SparkCqlEvaluator.main(args);
@@ -472,7 +519,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 "-a", "Context1Id",
                 "-o", "Context1Id=" + context1IdFile.toURI().toString(),
                 "--output-format", "parquet",
-                "--overwrite-output-for-contexts"
+                "--overwrite-output-for-contexts",
+                "--metadata-output-path", outputDir.toURI().toString()
         };
 
         SparkCqlEvaluator.main(args);
@@ -510,7 +558,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 "-i", "Patient=" + new File(inputDir, "testdata/Patient").toURI().toString(),
                 "-o", "Patient=" + patientFile.toURI().toString(),
                 "--output-format", "parquet",
-                "--overwrite-output-for-contexts"
+                "--overwrite-output-for-contexts",
+                "--metadata-output-path", outputDir.toURI().toString()
         };
 
         SparkCqlEvaluator.main(args);
@@ -571,7 +620,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 "-i", "A=" + new File(inputDir, "testdata/test-A.parquet").toURI().toString(),
                 "-o", "A=" + aFile.toURI().toString(),
                 "-n", "10",
-                "--overwrite-output-for-contexts"
+                "--overwrite-output-for-contexts",
+                "--metadata-output-path", outputDir.toURI().toString()
         };
 
         Exception ex = assertThrows( IllegalArgumentException.class, () -> SparkCqlEvaluator.main(args) );
@@ -595,7 +645,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 "-i", "A=" + new File(inputDir, "testdata/test-A.parquet").toURI().toString(),
                 "-o", "A=" + aFile.toURI().toString(),
                 "-n", "10",
-                "--overwrite-output-for-contexts"
+                "--overwrite-output-for-contexts",
+                "--metadata-output-path", outputDir.toURI().toString()
         };
 
         Exception ex = assertThrows( IllegalArgumentException.class, () -> SparkCqlEvaluator.main(args) );
@@ -629,7 +680,9 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
           "-o", "C=" + cFile.toURI().toString(),
           "-o", "D=" + dFile.toURI().toString(),
           "-n", "10",
-          "--overwrite-output-for-contexts"
+          "--overwrite-output-for-contexts",
+          "--metadata-output-path", outputDir.toURI().toString(),
+          "--halt-on-error"
         };
 
         Exception ex = assertThrows( IllegalArgumentException.class, () -> SparkCqlEvaluator.main(args) );
@@ -663,11 +716,62 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
           "-o", "C=" + cFile.toURI().toString(),
           "-o", "D=" + dFile.toURI().toString(),
           "-n", "10",
-          "--overwrite-output-for-contexts"
+          "--overwrite-output-for-contexts",
+          "--metadata-output-path", outputDir.toURI().toString(),
+          "--halt-on-error"
         };
 
         Throwable th = assertThrows( SparkException.class, () -> SparkCqlEvaluator.main(args) );
         assertStackTraceContainsMessage(th, "CQL evaluation failed");
+    }
+
+    @Test
+    public void testCQLEngineErrorsAccumulated() throws Exception {
+        File inputDir = new File("src/test/resources/alltypes/");
+        File outputDir = new File("target/output/alltypes/");
+
+        File patientFile = new File(outputDir, "Patient_cohort");
+        File aFile = new File(outputDir, "A_cohort");
+        File bFile = new File(outputDir, "B_cohort");
+        File cFile = new File(outputDir, "C_cohort");
+        File dFile = new File(outputDir, "D_cohort");
+
+        File metadataDir = new File(outputDir, "errors_accum_run_summary");
+        Set<Path> summaryFilesBefore = getSummaryFilesInPath(metadataDir.toPath());
+
+        String [] args = new String[] {
+                "-d", "src/test/resources/alltypes/metadata/context-definitions.json",
+                "-j", "src/test/resources/alltypes/metadata/throws-exception-cql-jobs.json",
+                "-m", "src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml",
+                "-c", "src/test/resources/alltypes/cql",
+                "--input-format", "parquet",
+                "-i", "A=" + new File(inputDir, "testdata/test-A.parquet").toURI().toString(),
+                "-i", "B=" + new File(inputDir, "testdata/test-B.parquet").toURI().toString(),
+                "-i", "C=" + new File(inputDir, "testdata/test-C.parquet").toURI().toString(),
+                "-i", "D=" + new File(inputDir, "testdata/test-D.parquet").toURI().toString(),
+                "-o", "Patient=" + patientFile.toURI().toString(),
+                "-o", "A=" + aFile.toURI().toString(),
+                "-o", "B=" + bFile.toURI().toString(),
+                "-o", "C=" + cFile.toURI().toString(),
+                "-o", "D=" + dFile.toURI().toString(),
+                "-n", "10",
+                "--overwrite-output-for-contexts",
+                "--metadata-output-path", metadataDir.toURI().toString()
+        };
+
+        SparkCqlEvaluator.main(args);
+
+        assertFalse(new File(metadataDir, HadoopPathOutputMetadataWriter.SUCCESS_MARKER).exists());
+
+        Set<Path> summaryFilesAfter = getSummaryFilesInPath(metadataDir.toPath());
+        summaryFilesAfter.removeAll(summaryFilesBefore);
+        assertEquals(1, summaryFilesAfter.size());
+
+        try(FileInputStream fileInputStream = new FileInputStream(summaryFilesAfter.iterator().next().toFile())) {
+            ObjectMapper mapper = new ObjectMapper();
+            EvaluationSummary evaluationSummary = mapper.readValue(fileInputStream, EvaluationSummary.class);
+            assertTrue(CollectionUtils.isNotEmpty(evaluationSummary.getErrorList()));
+        }
     }
     
     private CqlEvaluationRequest makeEvaluationRequest(String contextName, String libraryName, String libraryVersion) {

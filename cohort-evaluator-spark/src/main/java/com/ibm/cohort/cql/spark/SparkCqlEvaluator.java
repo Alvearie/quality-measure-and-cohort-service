@@ -14,6 +14,7 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -38,6 +39,7 @@ import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.StructType;
+import org.apache.spark.util.CollectionAccumulator;
 import org.apache.spark.util.LongAccumulator;
 import org.apache.spark.util.SerializableConfiguration;
 import org.opencds.cqf.cql.engine.data.ExternalFunctionProvider;
@@ -52,6 +54,7 @@ import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
 import com.ibm.cohort.cql.evaluation.CqlEvaluator;
+import com.ibm.cohort.cql.evaluation.CqlExpressionConfiguration;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.cql.functions.AnyColumnFunctions;
 import com.ibm.cohort.cql.functions.CohortExternalFunctionProvider;
@@ -74,6 +77,9 @@ import com.ibm.cohort.cql.spark.data.SparkDataRow;
 import com.ibm.cohort.cql.spark.data.SparkOutputColumnEncoder;
 import com.ibm.cohort.cql.spark.data.SparkSchemaCreator;
 import com.ibm.cohort.cql.spark.data.SparkTypeConverter;
+import com.ibm.cohort.cql.spark.errors.EvaluationError;
+import com.ibm.cohort.cql.spark.metadata.EvaluationSummary;
+import com.ibm.cohort.cql.spark.metadata.HadoopPathOutputMetadataWriter;
 import com.ibm.cohort.cql.spark.metrics.CustomMetricSparkPlugin;
 import com.ibm.cohort.cql.spark.optimizer.DataTypeRequirementsProcessor;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
@@ -258,12 +264,15 @@ public class SparkCqlEvaluator implements Serializable {
     }
     
     public void run(PrintStream out) throws Exception {
-
+        EvaluationSummary evaluationSummary = new EvaluationSummary();
+        evaluationSummary.setStartTimeMillis(System.currentTimeMillis());
+        
         SparkSession.Builder sparkBuilder = SparkSession.builder();
         try (SparkSession spark = sparkBuilder.getOrCreate()) {
             boolean useJava8API = Boolean.valueOf(spark.conf().get("spark.sql.datetime.java8API.enabled"));
             this.typeConverter = new SparkTypeConverter(useJava8API);
             this.hadoopConfiguration = new SerializableConfiguration(spark.sparkContext().hadoopConfiguration());
+            evaluationSummary.setApplicationId(spark.sparkContext().applicationId());
 
             CqlToElmTranslator cqlTranslator = getCqlTranslator();
             
@@ -290,6 +299,8 @@ public class SparkCqlEvaluator implements Serializable {
 
             final LongAccumulator contextAccum = spark.sparkContext().longAccumulator("Context");
             final LongAccumulator perContextAccum = spark.sparkContext().longAccumulator("PerContext");
+            final CollectionAccumulator<EvaluationError> errorAccumulator = args.haltOnError ? null : spark.sparkContext().collectionAccumulator("EvaluationErrors");
+            
             CustomMetricSparkPlugin.contextAccumGauge.setAccumulator(contextAccum);
             CustomMetricSparkPlugin.perContextAccumGauge.setAccumulator(perContextAccum);
             CustomMetricSparkPlugin.totalContextsToProcessCounter.inc(filteredContexts.size());
@@ -315,17 +326,36 @@ public class SparkCqlEvaluator implements Serializable {
 
                     CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.getValue() + 1);
                     JavaPairRDD<Object, Map<String, Object>> resultsByContext = rowsByContextId
-                            .mapToPair(x -> evaluate(contextName, x, perContextAccum));
+                            .mapToPair(x -> evaluate(contextName, x, perContextAccum, errorAccumulator));
                     
                     writeResults(spark, resultsSchema, resultsByContext, outputPath);
 
                     LOG.info(String.format("Wrote results for context %s to %s", contextName, outputPath));
+                    
+                    evaluationSummary.addContextCount(contextName, perContextAccum.value());
 
                     contextAccum.add(1);
                     perContextAccum.reset();
                 }
             }
+            
+            evaluationSummary.setEndTimeMillis(System.currentTimeMillis());
+
+            if (args.metadataOutputPath != null) {
+                Path metadataPath = new Path(args.metadataOutputPath);
+
+                if (errorAccumulator != null) {
+                    evaluationSummary.setErrorList(errorAccumulator.value());
+                }
+
+                evaluationSummary.setTotalContexts(contextAccum.value());
+
+                HadoopPathOutputMetadataWriter writer = new HadoopPathOutputMetadataWriter(metadataPath, hadoopConfiguration.value());
+                writer.writeMetadata(evaluationSummary);
+            }
+            
             CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(0);
+            
             try {
                 Boolean metricsEnabledStr = Boolean.valueOf(spark.conf().get("spark.ui.prometheus.enabled"));
                 if(metricsEnabledStr) {
@@ -444,6 +474,7 @@ public class SparkCqlEvaluator implements Serializable {
      * @param rowsByContext   Data for a single evaluation context
      * @param perContextAccum Spark accumulator that tracks each individual context
      *                        evaluation
+     * @param errorAccum Spark accumulator that tracks CQL evaluation errors
      * @return Evaluation results for all expressions evaluated keyed by the context
      *         ID. Expression names are automatically namespaced according to the
      *         library name to avoid issues arising for expression names matching
@@ -452,7 +483,7 @@ public class SparkCqlEvaluator implements Serializable {
      *                   reason
      */
     protected Tuple2<Object, Map<String, Object>> evaluate(String contextName, Tuple2<Object, List<Row>> rowsByContext,
-            LongAccumulator perContextAccum) throws Exception {
+            LongAccumulator perContextAccum, CollectionAccumulator<EvaluationError> errorAccum) throws Exception {
         CqlLibraryProvider provider = libraryProvider.get();
         if (provider == null) {
             provider = createLibraryProvider();
@@ -471,7 +502,7 @@ public class SparkCqlEvaluator implements Serializable {
             functionProvider.set(funProvider);
         }
 
-        return evaluate(provider, termProvider, funProvider, contextName, rowsByContext, perContextAccum);
+        return evaluate(provider, termProvider, funProvider, contextName, rowsByContext, perContextAccum, errorAccum);
     }
 
 
@@ -486,6 +517,7 @@ public class SparkCqlEvaluator implements Serializable {
      * @param rowsByContext   Data for a single evaluation context
      * @param perContextAccum Spark accumulator that tracks each individual context
      *                        evaluation
+     * @param errorAccum      Spark accumulator that tracks CQL evaluation errors
      * @return Evaluation results for all expressions evaluated keyed by the context
      *         ID. Expression names are automatically namespaced according to the
      *         library name to avoid issues arising for expression names matching
@@ -496,7 +528,8 @@ public class SparkCqlEvaluator implements Serializable {
                                                            CqlTerminologyProvider termProvider,
                                                            ExternalFunctionProvider funProvider,
                                                            String contextName, Tuple2<Object, List<Row>> rowsByContext,
-                                                           LongAccumulator perContextAccum) throws Exception {
+                                                           LongAccumulator perContextAccum,
+                                                           CollectionAccumulator<EvaluationError> errorAccum) throws Exception {
 
         // Convert the Spark objects to the cohort Java model
         List<DataRow> datarows = rowsByContext._2().stream().map(getDataRowFactory()).collect(Collectors.toList());
@@ -521,7 +554,7 @@ public class SparkCqlEvaluator implements Serializable {
 
         SparkOutputColumnEncoder columnEncoder = getSparkOutputColumnEncoder();
 
-        return evaluate(rowsByContext, contextName, evaluator, requests, columnEncoder, perContextAccum);
+        return evaluate(rowsByContext, contextName, evaluator, requests, columnEncoder, perContextAccum, errorAccum);
     }
 
     /**
@@ -538,28 +571,44 @@ public class SparkCqlEvaluator implements Serializable {
      *                        evaluation results
      * @param perContextAccum Spark accumulator that tracks each individual context
      *                        evaluation
+     * @param errorAccum       Spark accumulator that tracks CQL evaluation errors
      * @return Evaluation results for all expressions evaluated keyed by the context
      *         ID. Expression names are automatically namespaced according to the
      *         library name to avoid issues arising for expression names matching
      *         between libraries (e.g. LibraryName.ExpressionName).
      */
-    protected Tuple2<Object, Map<String, Object>> evaluate(Tuple2<Object, List<Row>> rowsByContext,
-            String contextName, CqlEvaluator evaluator, CqlEvaluationRequests requests, SparkOutputColumnEncoder columnEncoder, LongAccumulator perContextAccum) {
+    protected Tuple2<Object, Map<String, Object>> evaluate(Tuple2<Object,
+                                                           List<Row>> rowsByContext,
+                                                           String contextName,
+                                                           CqlEvaluator evaluator,
+                                                           CqlEvaluationRequests requests,
+                                                           SparkOutputColumnEncoder columnEncoder,
+                                                           LongAccumulator perContextAccum,
+                                                           CollectionAccumulator<EvaluationError> errorAccum) {
         perContextAccum.add(1);
         
         List<CqlEvaluationRequest> requestsForContext = requests.getEvaluationsForContext(contextName);
         
         Map<String, Object> expressionResults = new HashMap<>();
         for (CqlEvaluationRequest request : requestsForContext) {
-            try {
-                CqlEvaluationResult result = evaluator.evaluate(request, args.debug ? CqlDebug.DEBUG : CqlDebug.NONE);
-                for (Map.Entry<String, Object> entry : result.getExpressionResults().entrySet()) {
-                    String outputColumnKey = columnEncoder.getColumnName(request, entry.getKey());
-                    expressionResults.put(outputColumnKey, typeConverter.toSparkType(entry.getValue()));
+            for (CqlExpressionConfiguration expression : request.getExpressions()) {
+                CqlEvaluationRequest singleRequest = new CqlEvaluationRequest(request);
+                singleRequest.setExpressions(Collections.singleton(expression));
+                try {
+                    CqlEvaluationResult result = evaluator.evaluate(singleRequest, args.debug ? CqlDebug.DEBUG : CqlDebug.NONE);
+                    for (Map.Entry<String, Object> entry : result.getExpressionResults().entrySet()) {
+                        String outputColumnKey = columnEncoder.getColumnName(request, entry.getKey());
+                        expressionResults.put(outputColumnKey, typeConverter.toSparkType(entry.getValue()));
+                    }
+                } catch (Throwable th) {
+                    if (errorAccum != null) {
+                        Object contextId = rowsByContext._1();
+                        errorAccum.add(new EvaluationError(contextName, contextId, singleRequest.getExpressionNames().iterator().next(), th.getMessage()));
+                    }
+                    else {
+                        throw new RuntimeException("CQL evaluation failed: ", th);
+                    }
                 }
-            } catch( Throwable th ) {
-                Object contextValue = rowsByContext._1();
-                throw new RuntimeException( String.format("CQL evaluation failed for ContextKey: %s, ContextValue: %s, Request: %s", request.getContextKey(), String.valueOf(contextValue), request.toString()), th );
             }
         }
 
