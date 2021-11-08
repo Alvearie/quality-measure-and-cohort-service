@@ -42,6 +42,11 @@ Usage: SparkCqlEvaluator [options]
       file, that should be run in this evaluation. Defaults to all
       expressions.
       Default: []
+    --halt-on-error
+      If set, errors during CQL evaluations will cause the program to halt. 
+      Otherwise, errors are collected and reported in the program's batch 
+      summary file and will not cause the program to halt.
+      Default: false
     -h, --help
       Print help text
     --input-format
@@ -62,6 +67,9 @@ Usage: SparkCqlEvaluator [options]
       separate option for each library.
       Syntax: -lkey=value
       Default: {}
+  * --metadata-output-path
+      Folder where program output metadata (a batch summary file and possible 
+      _SUCCESS marker file) will be written.
   * -m, --model-info
       Filesystem path(s) to custom model-info files that may be required for
       CQL translation.
@@ -81,6 +89,9 @@ Usage: SparkCqlEvaluator [options]
       WARNING: NOT RECOMMENDED FOR PRODUCTION USE. If option is set, program
       overwrites existing output when writing result data.
       Default: false
+    -t, --terminology-path
+      Filesystem path to the location containing the ValueSet definitions in 
+      FHIR XML or JSON format.
 ```
 
 The typical mode of invocation is to run the program using the spark-submit script from SPARK_HOME\bin to submit a job to a target Spark cluster. The simplest invocation for a Windows user will look like this...
@@ -324,6 +335,31 @@ The type information for output columns is read directly from the translated CQL
 By default Spark is configured to disallow overwrites of data files. However, it can be useful for testing purposes to write to the same data path more than one time. If users wish to use overwrite behavior, they can specify the `--overwrite-output-for-contexts` program option.
 
 Depending on a number of factors including the amount of data in the input, how the input data is organized, and how spark parallelism is configured, output tables might end up with a large amount of partitions yielding a large number of output files. In these cases, it might be desirable to compact data prior to writing it to storage. A program option `-n` is provided that, when specified, will cause output data to be compacted into the specified number of partitions.
+
+#### Metadata Output
+
+The Spark program will write out metadata files to the folder specified by the `--metadata-output-path` argument.
+If all CQL evaluations finish successfully and without any errors during evaluation, then a blank file named `_SUCCESS`
+is written to the specified folder. This marker file can be used by other processes as a way to easily check that the
+CQL evaluations performed were all successful.
+
+A batch summary file is also written out to the metadata folder with a name of the format `batch_summary-<SPARK_APPLICATION_ID>`.
+This file contains various pieces of information about the performed run. The current contents of the file are:
+
+* `applicationId`: The spark application id. This value will match the application id on a Spark History server (if as history server is in use).
+* `startTimeMillis`: The starting timestamp of the Spark job in milliseconds.
+* `endTimeMillis`: The ending timestamp of the Spark job in milliseconds.
+* `totalContexts`: The total number of contexts processed.
+* `executionsPerContext`: A map containing an entry of `ContextName -> TotalCqlExecutions` for each context processed.
+* `errorList`: If one or more CQL evaluation errors occured during the run, then this field contains an entry per error
+               detailing the context name, context id, output column being calculated, and the exception that was encountered.
+               If no errors were encountered during the run, the `errorList` is omitted.
+
+**Note**: The default behavior of the Spark program is to gather any errors that occur during CQL evaluation and report
+them in the batch summary file rather than to have the program halt when it hits an error during CQL evaluation.
+This behavior can be changed by using the `--halt-on-error` option at runtime. When this option is used, the program
+will fail outright if an error is hit during CQL evaluation. This allows programs to "fail fast" if that behavior is
+needed rather than waiting until the end of a run to see if there are any errors reported.
 
 ### Debugging
 
