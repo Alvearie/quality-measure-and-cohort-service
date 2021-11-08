@@ -609,9 +609,9 @@ public class SparkCqlEvaluator implements Serializable {
                         errorAccum.add(new EvaluationError(contextName, contextId, singleRequest.getExpressionNames().iterator().next(), th.getMessage()));
                     }
                     else {
-                        throw new RuntimeException(String.format("CQL evaluation failed for ContextName: %s, Request: %s",
+                        throw new RuntimeException(String.format("CQL evaluation failed for ContextName: %s, OutputColumn: %s",
                                                                  String.valueOf(contextName),
-                                                                 singleRequest.toString()), th);
+                                                                 singleRequest.getExpressionNames()), th);
                     }
                 }
             }
