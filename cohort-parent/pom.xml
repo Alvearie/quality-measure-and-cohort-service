@@ -27,6 +27,7 @@
 		<module>../tests</module>
 		<module>../reports</module>
 		<module>../cohort-engine-distribution</module>
+		<module>../cohort-cql-optimizations</module>
 	</modules>
 
 	<licenses>

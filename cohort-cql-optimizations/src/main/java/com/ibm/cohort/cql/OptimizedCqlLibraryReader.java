@@ -1,11 +1,9 @@
 /*
+ * (C) Copyright IBM Corp. 2021, 2021
  *
- *  * (C) Copyright IBM Corp. 2021
- *  *
- *  * SPDX-License-Identifier: Apache-2.0
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.cohort.engine.elm.execution;
+package com.ibm.cohort.cql;
 
 import java.io.InputStream;
 import java.io.StringReader;

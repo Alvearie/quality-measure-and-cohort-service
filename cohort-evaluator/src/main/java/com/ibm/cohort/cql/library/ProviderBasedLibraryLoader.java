@@ -10,8 +10,8 @@ import org.cqframework.cql.elm.execution.Library;
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 
+import com.ibm.cohort.cql.OptimizedCqlLibraryReader;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
-import com.ibm.cohort.engine.elm.execution.OptimizedCqlLibraryReader;
 
 public class ProviderBasedLibraryLoader implements LibraryLoader {
 
