@@ -83,6 +83,12 @@ public class SparkCqlEvaluatorArgs implements Serializable {
     "--terminology-path" }, description = "Filesystem path to the location containing the ValueSet definitions in FHIR XML or JSON format.")
     public String terminologyPath;
 
+    @Parameter(names = {"--metadata-output-path"}, description = "Folder where program output metadata (a batch summary file and possible _SUCCESS marker file) will be written.", required = true)
+    public String metadataOutputPath = null;
+
+    @Parameter(names = {"--halt-on-error"}, description = "If set, errors during CQL evaluations will cause the program to halt. Otherwise, errors are collected and reported in the program's batch summary file and will not cause the program to halt.")
+    public Boolean haltOnError = false;
+    
     @Parameter(names = { "--debug" }, description = "Enables CQL debug logging")
     public boolean debug = false;
 }
