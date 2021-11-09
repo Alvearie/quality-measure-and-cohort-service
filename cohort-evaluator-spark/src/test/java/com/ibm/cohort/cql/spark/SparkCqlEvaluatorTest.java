@@ -1041,6 +1041,29 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         assertEquals( expected, actual );
     }
 
+    @Test
+    public void testGetFiltersForContextOnlyJoinColumns() throws Exception {
+        evaluator.args.cqlPath = "src/test/resources/alltypes/cql";
+        evaluator.args.contextDefinitionPath = "src/test/resources/alltypes/metadata/context-definitions-related-column.json";
+        evaluator.args.jobSpecPath = "src/test/resources/alltypes/metadata/join-only.json";
+        evaluator.args.modelInfoPaths = Arrays.asList("src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml");
+        evaluator.hadoopConfiguration = new SerializableConfiguration(spark.sparkContext().hadoopConfiguration());
+
+        CqlToElmTranslator cqlTranslator = new CqlToElmTranslator();
+        cqlTranslator.registerModelInfo(new File("src/test/resources/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml"));
+
+        ContextDefinitions definitions = evaluator.readContextDefinitions(evaluator.args.contextDefinitionPath);
+        ContextDefinition context = definitions.getContextDefinitionByName("Patient");
+
+        Map<String,Set<StringMatcher>> actual = evaluator.getDataRequirementsForContext(context);
+
+        Map<String,Set<StringMatcher>> expected = new HashMap<>();
+        expected.put("A", new HashSet<>(Collections.singletonList(new EqualsStringMatcher("id_col"))));
+        expected.put("B", new HashSet<>(Collections.singletonList(new EqualsStringMatcher("string"))));
+
+        assertEquals( expected, actual );
+    }
+
     public static void assertStackTraceContainsMessage(Throwable th, String message) {
         boolean found = false;
         while( th != null ) {
