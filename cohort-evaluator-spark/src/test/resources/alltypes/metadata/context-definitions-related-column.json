@@ -11,7 +11,8 @@
 		{
 			"type": "OneToMany",
 			"relatedDataType": "C",
-			"relatedKeyColumn": "pat_id"
+			"relatedKeyColumn": "pat_id",
+			"primaryDataTypeColumn": "pat_id"
 		},
 		{
 			"type": "OneToMany",

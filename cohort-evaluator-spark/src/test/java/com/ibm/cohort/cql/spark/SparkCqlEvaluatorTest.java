@@ -1058,8 +1058,9 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         Map<String,Set<StringMatcher>> actual = evaluator.getDataRequirementsForContext(context);
 
         Map<String,Set<StringMatcher>> expected = new HashMap<>();
-        expected.put("A", new HashSet<>(Collections.singletonList(new EqualsStringMatcher("id_col"))));
+        expected.put("A", new HashSet<>(Arrays.asList(new EqualsStringMatcher("id_col"), new EqualsStringMatcher("pat_id"))));
         expected.put("B", new HashSet<>(Collections.singletonList(new EqualsStringMatcher("string"))));
+        expected.put("C", new HashSet<>(Collections.singletonList(new EqualsStringMatcher("pat_id"))));
 
         assertEquals( expected, actual );
     }
