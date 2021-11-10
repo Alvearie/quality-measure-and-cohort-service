@@ -1,0 +1,23 @@
+{
+	"contextDefinitions": [{
+		"name": "Patient",
+		"primaryDataType": "A",
+		"primaryKeyColumn": "id_col",
+		"relationships": [{
+			"type": "OneToMany",
+			"relatedDataType": "B",
+			"relatedKeyColumn": "string"
+		},
+		{
+			"type": "OneToMany",
+			"relatedDataType": "C",
+			"relatedKeyColumn": "pat_id",
+			"primaryDataTypeColumn": "pat_id"
+		},
+		{
+			"type": "OneToMany",
+			"relatedDataType": "D",
+			"relatedKeyColumn": "pat_id"
+		}]
+	}]
+}
