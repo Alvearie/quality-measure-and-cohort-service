@@ -9,8 +9,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -55,7 +57,7 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 	
 	private static final FhirContext fhirContext = FhirContext.forR4();
 	
-	private Map<VersionedIdentifier, ValueSet> valueSetCache = new HashMap<>();
+	private Map<VersionedIdentifier, HashSet<HashedCode>> valueSetCodeCache = new HashMap<>();
 	
 	public R4FileSystemFhirTerminologyProvider(Path terminologyDirectory, Configuration configuration) {
 		super();
@@ -73,19 +75,10 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 	@Override
 	public boolean in(Code code, ValueSetInfo valueSetInfo) {
 		LOG.debug("Entry: in() ValueSet.getId=[{}] version=[{}]", valueSetInfo.getId(), valueSetInfo.getVersion());
-		ValueSet valueSetFhirR4 = loadFromFile(valueSetInfo);
-
-		// Check and see if the input code is in the ValueSet
-		if (valueSetFhirR4 != null) {
-			for (ConceptSetComponent csc : valueSetFhirR4.getCompose().getInclude()) {
-				for (ConceptReferenceComponent cfc : csc.getConcept()) {
-					if ( ( code.getSystem() == null || (code.getSystem() != null && csc.getSystem().equalsIgnoreCase(code.getSystem())))
-							&& code.getCode().equalsIgnoreCase(cfc.getCode())) {
-						LOG.debug( "Exit: in() ValueSet.getId=[{}] version=[{}]", valueSetInfo.getId(), valueSetInfo.getVersion());
-						return true;
-					}
-				}
-			}
+		
+		Set<HashedCode> codeSet = loadFromFile(valueSetInfo);
+		if(codeSet != null) {
+			return codeSet.contains(new HashedCode(code));
 		}
 
 		LOG.debug("Exit: in() ValueSet.getId=[{}] version=[{}]", valueSetInfo.getId(), valueSetInfo.getVersion());
@@ -102,20 +95,13 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 	 */
 	@Override
 	public Iterable<Code> expand(ValueSetInfo valueSetInfo) {
-		LOG.debug("Entry: expand() ValueSet.getId=[{}] version=[{}]", valueSetInfo.getId(), valueSetInfo.getVersion());
-		ValueSet valueSetFhirR4 = loadFromFile(valueSetInfo);
+		LOG.debug("Entry: expand() ValueSet.getId=[{}] version=[{}]", valueSetInfo.getId(), valueSetInfo.getVersion());		
 		List<Code> codes = new ArrayList<>();
-
-		// Check and see if the input code is in the ValuSet
-		if (valueSetFhirR4 != null) {
-			for (ConceptSetComponent csc : valueSetFhirR4.getCompose().getInclude()) {
-				for (ConceptReferenceComponent cfc : csc.getConcept()) {
-
-					Code code = new Code().withCode(cfc.getCode()).withDisplay(cfc.getDisplay())
-							.withSystem(csc.getSystem()).withVersion(csc.getVersion());
-
-					codes.add(code);
-				}
+		
+		Set<HashedCode> codeSet = loadFromFile(valueSetInfo);
+		if(codeSet != null) {
+			for (HashedCode hashedCode : codeSet) {
+				codes.add(hashedCode.getCodeObject());
 			}
 		}
 
@@ -147,7 +133,7 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 	 * @param valueSetInfo contains information for teh VlaueSet we want to load
 	 * @return A ValueSet object populated from the file definition or null if no valueset file was found
 	 */
-	protected ValueSet loadFromFile(ValueSetInfo valueSetInfo) throws RuntimeException {
+	protected Set<HashedCode> loadFromFile(ValueSetInfo valueSetInfo) throws RuntimeException {
 		LOG.debug("Entry: loadFromFile() ValueSet.getId=[{}] version=[{}]", valueSetInfo.getId(), valueSetInfo.getVersion());
 		String valueSetId;
 		
@@ -166,9 +152,9 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 		VersionedIdentifier valueSetIdentifier = new VersionedIdentifier().withId(valueSetId)
 				.withVersion(valueSetVersion);
 		
-		//get the value from the cache if it is there
-		ValueSet valueSetFhirR4 = valueSetCache.get(valueSetIdentifier);
-		if (valueSetFhirR4 == null) {
+		//get the valueSet codes from the cache if it is there
+		HashSet<HashedCode> hashedCodes = valueSetCodeCache.get(valueSetIdentifier);
+		if (hashedCodes == null) {
 			LOG.debug("loadFromFile() valueSetId={} not found in cache, attempting to load from file", valueSetId);
 			FileStatus[] valueSetFiles;
 			FileSystem fileSystem;
@@ -199,6 +185,7 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 							valueSetId, terminologyDirectory.toString(), valueSetFiles[0].toString());
 				}
 
+				ValueSet valueSetFhirR4 = null;
 				try {
 					//Use the fhir parsers to convert file contents back into ValueSet fhir object
 					if (valueSetFiles[0].getPath().getName().toLowerCase().endsWith(".xml")) {
@@ -210,8 +197,17 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 								.parseResource(new InputStreamReader(fileSystem.open(valueSetFiles[0].getPath())));
 						LOG.info("Unmarshalled json {}", valueSetFhirR4.getId());
 					}
+					
+					//Add the codes to a HashSet using a wrapper object with the correct hashCode/equals behavior
+					//This improves performance for code lookup in large valuesets
+					hashedCodes = new HashSet<>();
+					for (ConceptSetComponent csc : valueSetFhirR4.getCompose().getInclude()) {
+						for (ConceptReferenceComponent cfc : csc.getConcept()) {
+							hashedCodes.add(new HashedCode(new Code().withCode(cfc.getCode()).withDisplay(cfc.getDisplay()).withSystem(csc.getSystem()).withVersion(csc.getVersion())));
+						}
+					}
 
-					valueSetCache.put(valueSetIdentifier, valueSetFhirR4);
+					valueSetCodeCache.put(valueSetIdentifier, hashedCodes);
 				} catch (ConfigurationException | DataFormatException | IOException e) {
 					LOG.error("Error attempting to deserialize ValueSet "+ valueSetFiles[0].getPath().toString(), e);
 					throw new RuntimeException("Error attempting to deserialize ValueSet "+ valueSetFiles[0].getPath().toString(), e);
@@ -220,6 +216,6 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 		}
 		
 		LOG.debug("Exit: loadFromFile() ValueSet.getId=[{}] version=[{}]", valueSetInfo.getId(), valueSetInfo.getVersion());
-		return valueSetFhirR4;
+		return hashedCodes;
 	}
 }

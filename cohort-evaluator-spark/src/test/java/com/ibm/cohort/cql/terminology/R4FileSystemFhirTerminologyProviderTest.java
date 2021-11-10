@@ -85,6 +85,18 @@ public class R4FileSystemFhirTerminologyProviderTest {
 		boolean result = provider.in(code, info);
 		assertTrue(result);
 	}
+	
+	@Test
+	public void inOperationReturnsTrueWithCodeOnly() throws Exception {
+		ValueSetInfo info = new ValueSetInfo();
+		info.setId(setId);
+
+		Code code = new Code();
+		code.setCode(TEST_CODE);
+
+		boolean result = provider.in(code, info);
+		assertTrue(result);
+	}
 
 	@Test
 	public void inOperationReturnsFalse() throws Exception {
@@ -95,6 +107,18 @@ public class R4FileSystemFhirTerminologyProviderTest {
 		code.setSystem(TEST_SYSTEM);
 		code.setCode("Bad_Code");
 		code.setDisplay(TEST_DISPLAY);
+
+		boolean result = provider.in(code, info);
+		assertFalse(result);
+	}
+	
+	@Test
+	public void inOperationReturnsFalseWithOnlyCode() throws Exception {
+		ValueSetInfo info = new ValueSetInfo();
+		info.setId(setId);
+
+		Code code = new Code();
+		code.setCode("Bad_Code");
 
 		boolean result = provider.in(code, info);
 		assertFalse(result);
