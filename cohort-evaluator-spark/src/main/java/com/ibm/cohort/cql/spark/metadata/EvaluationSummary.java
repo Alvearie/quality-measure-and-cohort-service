@@ -13,20 +13,19 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.ibm.cohort.cql.spark.errors.EvaluationError;
 
-@JsonPropertyOrder({"applicationId", "startTimeMillis", "endTimeMillis", "runtimeSeconds", "totalContexts", "executionsPerContext", "secondsPerContext", "errorList"})
+@JsonPropertyOrder({"applicationId", "startTimeMillis", "endTimeMillis", "runtimeMillis", "totalContexts", "executionsPerContext", "runtimeMillisPerContext", "errorList"})
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class EvaluationSummary {
 	private List<EvaluationError> errorList;
 	private long startTimeMillis;
 	private long endTimeMillis;
-	private long runtimeSeconds;
+	private long runtimeMillis;
 	private long totalContexts;
 	private Map<String, Long> executionsPerContext = new HashMap<>();
-	private Map<String, Long> secondsPerContext = new HashMap<>();
+	private Map<String, Long> runtimeMillisPerContext = new HashMap<>();
 	private String applicationId;
 	
 	public EvaluationSummary() {
@@ -56,14 +55,13 @@ public class EvaluationSummary {
 	public void setEndTimeMillis(long endTimeMillis) {
 		this.endTimeMillis = endTimeMillis;
 	}
-	
-	@JsonProperty("runtimeSeconds")
-	private long getRuntimeSeconds() {
-		return (getEndTimeMillis() - getStartTimeMillis()) / 1000;
+
+	public long getRuntimeMillis() {
+		return runtimeMillis;
 	}
 
-	public void setRuntimeSeconds(long runtimeSeconds) {
-		this.runtimeSeconds = runtimeSeconds;
+	public void setRuntimeMillis(long runtimeMillis) {
+		this.runtimeMillis = runtimeMillis;
 	}
 
 	public long getTotalContexts() {
@@ -82,12 +80,12 @@ public class EvaluationSummary {
 		this.executionsPerContext = executionsPerContext;
 	}
 
-	public Map<String, Long> getSecondsPerContext() {
-		return secondsPerContext;
+	public Map<String, Long> getRuntimeMillisPerContext() {
+		return runtimeMillisPerContext;
 	}
 
-	public void setSecondsPerContext(Map<String, Long> secondsPerContext) {
-		this.secondsPerContext = secondsPerContext;
+	public void setRuntimeMillisPerContext(Map<String, Long> runtimeMillisPerContext) {
+		this.runtimeMillisPerContext = runtimeMillisPerContext;
 	}
 
 	public String getApplicationId() {
@@ -103,7 +101,7 @@ public class EvaluationSummary {
 	}
 
 	public void addContextRuntime(String contextName, long startTimeMillis, long endTimeMillis) {
-		secondsPerContext.put(contextName, (endTimeMillis - startTimeMillis) / 1000);
+		runtimeMillisPerContext.put(contextName, (endTimeMillis - startTimeMillis) / 1000);
 	}
 
 	@Override
@@ -117,11 +115,11 @@ public class EvaluationSummary {
 		return new EqualsBuilder()
 				.append(startTimeMillis, that.startTimeMillis)
 				.append(endTimeMillis, that.endTimeMillis)
-				.append(runtimeSeconds, that.runtimeSeconds)
+				.append(runtimeMillis, that.runtimeMillis)
 				.append(totalContexts, that.totalContexts)
 				.append(errorList, that.errorList)
 				.append(executionsPerContext, that.executionsPerContext)
-				.append(secondsPerContext, that.secondsPerContext)
+				.append(runtimeMillisPerContext, that.runtimeMillisPerContext)
 				.append(applicationId, that.applicationId)
 				.isEquals();
 	}
@@ -132,10 +130,10 @@ public class EvaluationSummary {
 				.append(errorList)
 				.append(startTimeMillis)
 				.append(endTimeMillis)
-				.append(runtimeSeconds)
+				.append(runtimeMillis)
 				.append(totalContexts)
 				.append(executionsPerContext)
-				.append(secondsPerContext)
+				.append(runtimeMillisPerContext)
 				.append(applicationId)
 				.toHashCode();
 	}
@@ -146,10 +144,10 @@ public class EvaluationSummary {
 		sb.append("errorList=").append(errorList);
 		sb.append(", startTimeMillis=").append(startTimeMillis);
 		sb.append(", endTimeMillis=").append(endTimeMillis);
-		sb.append(", runtimeSeconds=").append(runtimeSeconds);
+		sb.append(", runtimeMillis=").append(runtimeMillis);
 		sb.append(", totalContexts=").append(totalContexts);
 		sb.append(", executionsPerContext=").append(executionsPerContext);
-		sb.append(", secondsPerContext=").append(secondsPerContext);
+		sb.append(", runtimeMillisPerContext=").append(runtimeMillisPerContext);
 		sb.append(", applicationId='").append(applicationId).append('\'');
 		sb.append('}');
 		return sb.toString();

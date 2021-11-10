@@ -21,17 +21,15 @@ public class EvaluationSummaryTest {
 		evaluationSummaryOrig.setStartTimeMillis(1000);
 		evaluationSummaryOrig.setEndTimeMillis(50000);
 		evaluationSummaryOrig.setTotalContexts(1);
+		evaluationSummaryOrig.setRuntimeMillis(49000);
 		evaluationSummaryOrig.setErrorList(Collections.singletonList(new EvaluationError()));
 		evaluationSummaryOrig.setExecutionsPerContext(new HashMap<String, Long>(){{put("contextA", 2L);}});
-		evaluationSummaryOrig.setSecondsPerContext(new HashMap<String, Long>(){{put("contextA", 40L);}});
+		evaluationSummaryOrig.setRuntimeMillisPerContext(new HashMap<String, Long>(){{put("contextA", 40000L);}});
 
 		ObjectMapper mapper = new ObjectMapper();
 		String stringVal = mapper.writeValueAsString(evaluationSummaryOrig);
 		EvaluationSummary evaluationSummaryNew = mapper.readValue(stringVal, EvaluationSummary.class);
-		
-		// We expect runtimeSeconds to be set after serializing/deserializing
-		evaluationSummaryOrig.setRuntimeSeconds(49);
-		
+
 		assertEquals(evaluationSummaryOrig, evaluationSummaryNew);
 	}
 }
