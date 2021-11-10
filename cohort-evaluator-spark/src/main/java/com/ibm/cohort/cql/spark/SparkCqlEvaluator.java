@@ -270,7 +270,8 @@ public class SparkCqlEvaluator implements Serializable {
     
     public void run(PrintStream out) throws Exception {
         EvaluationSummary evaluationSummary = new EvaluationSummary();
-        evaluationSummary.setStartTimeMillis(System.currentTimeMillis());
+        long startTimeMillis = System.currentTimeMillis();
+        evaluationSummary.setStartTimeMillis(startTimeMillis);
         
         SparkSession.Builder sparkBuilder = SparkSession.builder();
         try (SparkSession spark = sparkBuilder.getOrCreate()) {
@@ -346,8 +347,10 @@ public class SparkCqlEvaluator implements Serializable {
                     perContextAccum.reset();
                 }
             }
-            
-            evaluationSummary.setEndTimeMillis(System.currentTimeMillis());
+
+            long endTimeMillis = System.currentTimeMillis();
+            evaluationSummary.setEndTimeMillis(endTimeMillis);
+            evaluationSummary.setRuntimeMillis(endTimeMillis - startTimeMillis);
 
             if (args.metadataOutputPath != null) {
                 if (errorAccumulator != null) {
