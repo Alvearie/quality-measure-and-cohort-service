@@ -341,7 +341,7 @@ public class SparkCqlEvaluator implements Serializable {
                     LOG.info(String.format("Wrote results for context %s to %s", contextName, outputPath));
                     
                     evaluationSummary.addContextCount(contextName, perContextAccum.value());
-                    evaluationSummary.addContextRuntime(contextName, contextStartMillis, contextEndMillis);
+                    evaluationSummary.addContextRuntime(contextName, contextEndMillis - contextStartMillis);
 
                     contextAccum.add(1);
                     perContextAccum.reset();

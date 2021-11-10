@@ -100,8 +100,8 @@ public class EvaluationSummary {
 		executionsPerContext.put(contextName, count);
 	}
 
-	public void addContextRuntime(String contextName, long startTimeMillis, long endTimeMillis) {
-		runtimeMillisPerContext.put(contextName, (endTimeMillis - startTimeMillis) / 1000);
+	public void addContextRuntime(String contextName, long runtimeMillis) {
+		runtimeMillisPerContext.put(contextName, runtimeMillis);
 	}
 
 	@Override
