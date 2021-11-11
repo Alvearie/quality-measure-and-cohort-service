@@ -269,7 +269,8 @@ public class SparkCqlEvaluator implements Serializable {
     
     public void run(PrintStream out) throws Exception {
         EvaluationSummary evaluationSummary = new EvaluationSummary();
-        evaluationSummary.setStartTimeMillis(System.currentTimeMillis());
+        long startTimeMillis = System.currentTimeMillis();
+        evaluationSummary.setStartTimeMillis(startTimeMillis);
         
         SparkSession.Builder sparkBuilder = SparkSession.builder();
         try (SparkSession spark = sparkBuilder.getOrCreate()) {
@@ -323,6 +324,7 @@ public class SparkCqlEvaluator implements Serializable {
                 }
                 else {
                     LOG.info("Evaluating context " + contextName);
+                    long contextStartMillis = System.currentTimeMillis();
 
                     final String outputPath = MapUtils.getRequiredKey(args.outputPaths, context.getName(), "outputPath");
 
@@ -333,17 +335,21 @@ public class SparkCqlEvaluator implements Serializable {
                             .mapToPair(x -> evaluate(contextName, x, perContextAccum, errorAccumulator));
                     
                     writeResults(spark, resultsSchema, resultsByContext, outputPath);
+                    long contextEndMillis = System.currentTimeMillis();
 
                     LOG.info(String.format("Wrote results for context %s to %s", contextName, outputPath));
                     
                     evaluationSummary.addContextCount(contextName, perContextAccum.value());
+                    evaluationSummary.addContextRuntime(contextName, contextEndMillis - contextStartMillis);
 
                     contextAccum.add(1);
                     perContextAccum.reset();
                 }
             }
-            
-            evaluationSummary.setEndTimeMillis(System.currentTimeMillis());
+
+            long endTimeMillis = System.currentTimeMillis();
+            evaluationSummary.setEndTimeMillis(endTimeMillis);
+            evaluationSummary.setRuntimeMillis(endTimeMillis - startTimeMillis);
 
             if (args.metadataOutputPath != null) {
                 if (errorAccumulator != null) {

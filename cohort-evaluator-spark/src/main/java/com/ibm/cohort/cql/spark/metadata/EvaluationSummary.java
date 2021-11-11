@@ -16,14 +16,16 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.ibm.cohort.cql.spark.errors.EvaluationError;
 
-@JsonPropertyOrder({"applicationId", "startTimeMillis", "endTimeMillis", "totalContexts", "executionsPerContext", "errorList"})
+@JsonPropertyOrder({"applicationId", "startTimeMillis", "endTimeMillis", "runtimeMillis", "totalContexts", "executionsPerContext", "runtimeMillisPerContext", "errorList"})
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class EvaluationSummary {
 	private List<EvaluationError> errorList;
 	private long startTimeMillis;
 	private long endTimeMillis;
+	private long runtimeMillis;
 	private long totalContexts;
 	private Map<String, Long> executionsPerContext = new HashMap<>();
+	private Map<String, Long> runtimeMillisPerContext = new HashMap<>();
 	private String applicationId;
 	
 	public EvaluationSummary() {
@@ -54,6 +56,14 @@ public class EvaluationSummary {
 		this.endTimeMillis = endTimeMillis;
 	}
 
+	public long getRuntimeMillis() {
+		return runtimeMillis;
+	}
+
+	public void setRuntimeMillis(long runtimeMillis) {
+		this.runtimeMillis = runtimeMillis;
+	}
+
 	public long getTotalContexts() {
 		return totalContexts;
 	}
@@ -70,6 +80,14 @@ public class EvaluationSummary {
 		this.executionsPerContext = executionsPerContext;
 	}
 
+	public Map<String, Long> getRuntimeMillisPerContext() {
+		return runtimeMillisPerContext;
+	}
+
+	public void setRuntimeMillisPerContext(Map<String, Long> runtimeMillisPerContext) {
+		this.runtimeMillisPerContext = runtimeMillisPerContext;
+	}
+
 	public String getApplicationId() {
 		return applicationId;
 	}
@@ -80,6 +98,10 @@ public class EvaluationSummary {
 
 	public void addContextCount(String contextName, long count) {
 		executionsPerContext.put(contextName, count);
+	}
+
+	public void addContextRuntime(String contextName, long runtimeMillis) {
+		runtimeMillisPerContext.put(contextName, runtimeMillis);
 	}
 
 	@Override
@@ -93,9 +115,11 @@ public class EvaluationSummary {
 		return new EqualsBuilder()
 				.append(startTimeMillis, that.startTimeMillis)
 				.append(endTimeMillis, that.endTimeMillis)
+				.append(runtimeMillis, that.runtimeMillis)
 				.append(totalContexts, that.totalContexts)
 				.append(errorList, that.errorList)
 				.append(executionsPerContext, that.executionsPerContext)
+				.append(runtimeMillisPerContext, that.runtimeMillisPerContext)
 				.append(applicationId, that.applicationId)
 				.isEquals();
 	}
@@ -106,9 +130,26 @@ public class EvaluationSummary {
 				.append(errorList)
 				.append(startTimeMillis)
 				.append(endTimeMillis)
+				.append(runtimeMillis)
 				.append(totalContexts)
 				.append(executionsPerContext)
+				.append(runtimeMillisPerContext)
 				.append(applicationId)
 				.toHashCode();
+	}
+
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder("EvaluationSummary{");
+		sb.append("errorList=").append(errorList);
+		sb.append(", startTimeMillis=").append(startTimeMillis);
+		sb.append(", endTimeMillis=").append(endTimeMillis);
+		sb.append(", runtimeMillis=").append(runtimeMillis);
+		sb.append(", totalContexts=").append(totalContexts);
+		sb.append(", executionsPerContext=").append(executionsPerContext);
+		sb.append(", runtimeMillisPerContext=").append(runtimeMillisPerContext);
+		sb.append(", applicationId='").append(applicationId).append('\'');
+		sb.append('}');
+		return sb.toString();
 	}
 }

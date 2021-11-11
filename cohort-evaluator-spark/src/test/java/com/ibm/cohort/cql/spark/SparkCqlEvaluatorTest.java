@@ -186,11 +186,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         summaryFilesAfter.removeAll(summaryFilesBefore);
         assertEquals(1, summaryFilesAfter.size());
 
-        try(FileInputStream fileInputStream = new FileInputStream(summaryFilesAfter.iterator().next().toFile())) {
-            ObjectMapper mapper = new ObjectMapper();
-            EvaluationSummary evaluationSummary = mapper.readValue(fileInputStream, EvaluationSummary.class);
-            assertTrue(CollectionUtils.isEmpty(evaluationSummary.getErrorList()));
-        }
+        checkEvaluationSummaryFieldsPopulated(summaryFilesAfter.iterator().next(), 5, false);
     }
 
     /*
@@ -731,10 +727,6 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         File outputDir = new File("target/output/alltypes/");
 
         File patientFile = new File(outputDir, "Patient_cohort");
-        File aFile = new File(outputDir, "A_cohort");
-        File bFile = new File(outputDir, "B_cohort");
-        File cFile = new File(outputDir, "C_cohort");
-        File dFile = new File(outputDir, "D_cohort");
 
         File metadataDir = new File(outputDir, "errors_accum_run_summary");
         Set<Path> summaryFilesBefore = getSummaryFilesInPath(metadataDir.toPath());
@@ -750,10 +742,6 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 "-i", "C=" + new File(inputDir, "testdata/test-C.parquet").toURI().toString(),
                 "-i", "D=" + new File(inputDir, "testdata/test-D.parquet").toURI().toString(),
                 "-o", "Patient=" + patientFile.toURI().toString(),
-                "-o", "A=" + aFile.toURI().toString(),
-                "-o", "B=" + bFile.toURI().toString(),
-                "-o", "C=" + cFile.toURI().toString(),
-                "-o", "D=" + dFile.toURI().toString(),
                 "-n", "10",
                 "--overwrite-output-for-contexts",
                 "--metadata-output-path", metadataDir.toURI().toString()
@@ -767,10 +755,28 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         summaryFilesAfter.removeAll(summaryFilesBefore);
         assertEquals(1, summaryFilesAfter.size());
 
-        try(FileInputStream fileInputStream = new FileInputStream(summaryFilesAfter.iterator().next().toFile())) {
+        checkEvaluationSummaryFieldsPopulated(summaryFilesAfter.iterator().next(), 1, true);
+    }
+    
+    private void checkEvaluationSummaryFieldsPopulated(Path summaryPath, int totalContexts, boolean hasErrors) throws IOException {
+        try(FileInputStream fileInputStream = new FileInputStream(summaryPath.toFile())) {
             ObjectMapper mapper = new ObjectMapper();
             EvaluationSummary evaluationSummary = mapper.readValue(fileInputStream, EvaluationSummary.class);
-            assertTrue(CollectionUtils.isNotEmpty(evaluationSummary.getErrorList()));
+            
+            assertNotNull(evaluationSummary.getApplicationId());
+            assertTrue(evaluationSummary.getStartTimeMillis() > 0);
+            assertTrue(evaluationSummary.getEndTimeMillis() > 0);
+            assertTrue(evaluationSummary.getRuntimeMillis() > 0);
+            assertEquals(totalContexts, evaluationSummary.getTotalContexts());
+            assertEquals(totalContexts, evaluationSummary.getExecutionsPerContext().size());
+            assertEquals(totalContexts, evaluationSummary.getRuntimeMillisPerContext().size());
+
+            if (hasErrors) {
+                assertTrue(CollectionUtils.isNotEmpty(evaluationSummary.getErrorList()));
+            }
+            else {
+                assertTrue(CollectionUtils.isEmpty(evaluationSummary.getErrorList()));
+            }
         }
     }
     
