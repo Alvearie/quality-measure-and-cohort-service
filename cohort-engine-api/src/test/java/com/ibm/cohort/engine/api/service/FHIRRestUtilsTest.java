@@ -10,6 +10,7 @@ import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInA
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -363,8 +364,10 @@ public class FHIRRestUtilsTest {
 		Extension extension = new Extension();
 		extension.setUrl("http://ibm.com/fhir/cdm/StructureDefinition/default-value");
 		Period period = new Period();
-		period.setStart(Date.from(LocalDate.of(2020,1,1).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-		period.setEnd(Date.from(LocalDate.of(2021,1,1).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+		Date startDate = Date.from(LocalDate.of(2020,1,1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+		Date endDate = Date.from(LocalDate.of(2021,1,1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+		period.setStart(startDate);
+		period.setEnd(endDate);
 		extension.setValue(period);
 
 		List<Extension> extensions = new ArrayList<>();
@@ -373,8 +376,8 @@ public class FHIRRestUtilsTest {
 		definition.setExtension(extensions);
 
 		String defaultResult = FHIRRestUtils.complicatedDefaultConstructor(definition);
-
-		assertEquals("{\"start\":\"2020-01-01T00:00:00-05:00\",\"end\":\"2021-01-01T00:00:00-05:00\"}",defaultResult);
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
+		assertEquals("{\"start\":\"" + formatter.format(startDate) + "\",\"end\":\"" + formatter.format(endDate) + "\"}",defaultResult);
 	}
 
 	@Test
