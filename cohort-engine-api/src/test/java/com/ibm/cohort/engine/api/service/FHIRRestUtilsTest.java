@@ -10,14 +10,22 @@ import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInA
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.core.HttpHeaders;
 
+import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Measure;
+import org.hl7.fhir.r4.model.ParameterDefinition;
+import org.hl7.fhir.r4.model.Period;
+import org.hl7.fhir.r4.model.Quantity;
+import org.hl7.fhir.r4.model.Range;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -320,6 +328,73 @@ public class FHIRRestUtilsTest {
 		expectedParamInfo.defaultValue("42");
 
 		assertThat(parameterInfoList, containsInAnyOrder(expectedParamInfo));
+	}
+
+	@Test
+	public void testConstructAppropriateJsonRange(){
+		ParameterDefinition definition = new ParameterDefinition();
+		definition.setType("Range");
+		Extension extension = new Extension();
+		extension.setUrl("http://ibm.com/fhir/cdm/StructureDefinition/default-value");
+		Range range = new Range();
+		Quantity lowQuantity = new Quantity();
+		lowQuantity.setUnit("year");
+		lowQuantity.setValue(10);
+		Quantity highQuantity = new Quantity();
+		highQuantity.setUnit("year");
+		highQuantity.setValue(100);
+		range.setLow(lowQuantity);
+		range.setHigh(highQuantity);
+		extension.setValue(range);
+
+		List<Extension> extensions = new ArrayList<>();
+		extensions.add(extension);
+
+		definition.setExtension(extensions);
+		String defaultResult = FHIRRestUtils.complicatedDefaultConstructor(definition);
+
+		assertEquals("{\"low\":{\"value\":10,\"unit\":\"year\"},\"high\":{\"value\":100,\"unit\":\"year\"}}",defaultResult);
+	}
+
+	@Test
+	public void testConstructAppropriateJsonPeriod(){
+		ParameterDefinition definition = new ParameterDefinition();
+		definition.setType("Period");
+		Extension extension = new Extension();
+		extension.setUrl("http://ibm.com/fhir/cdm/StructureDefinition/default-value");
+		Period period = new Period();
+		period.setStart(Date.from(LocalDate.of(2020,1,1).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+		period.setEnd(Date.from(LocalDate.of(2021,1,1).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+		extension.setValue(period);
+
+		List<Extension> extensions = new ArrayList<>();
+		extensions.add(extension);
+
+		definition.setExtension(extensions);
+
+		String defaultResult = FHIRRestUtils.complicatedDefaultConstructor(definition);
+
+		assertEquals("{\"start\":\"2020-01-01T00:00:00-05:00\",\"end\":\"2021-01-01T00:00:00-05:00\"}",defaultResult);
+	}
+
+	@Test
+	public void testConstructAppropriateJsonQuantity(){
+		ParameterDefinition definition = new ParameterDefinition();
+		definition.setType("Quantity");
+		Extension extension = new Extension();
+		extension.setUrl("http://ibm.com/fhir/cdm/StructureDefinition/default-value");
+		Quantity quantity = new Quantity();
+		quantity.setUnit("year");
+		quantity.setValue(10);
+		extension.setValue(quantity);
+
+		List<Extension> extensions = new ArrayList<>();
+		extensions.add(extension);
+
+		definition.setExtension(extensions);
+		String defaultResult = FHIRRestUtils.complicatedDefaultConstructor(definition);
+
+		assertEquals("{\"value\":10,\"unit\":\"year\"}",defaultResult);
 	}
 
 	private Measure createMeasure(String inputString) throws JsonProcessingException {

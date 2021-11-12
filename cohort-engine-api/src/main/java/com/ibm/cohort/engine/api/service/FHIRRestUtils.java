@@ -5,6 +5,7 @@
  */
 package com.ibm.cohort.engine.api.service;
 
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +18,10 @@ import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.ParameterDefinition;
 import org.hl7.fhir.r4.model.ParameterDefinition.ParameterUse;
+import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.Period;
+import org.hl7.fhir.r4.model.Quantity;
+import org.hl7.fhir.r4.model.Range;
 
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.measure.RestFhirMeasureResolutionProvider;
@@ -25,6 +30,7 @@ import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
 
 import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 
@@ -33,6 +39,7 @@ import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
  *
  */
 public class FHIRRestUtils {
+
 
 	/**
 	 * @param fhirEndpoint The REST endpoint for the FHIR server
@@ -172,7 +179,13 @@ public class FHIRRestUtils {
 	}
 
 	private static MeasureParameterInfo toMeasureParameterInfo(ParameterDefinition parameterDefinition) {
+		List<String> complicatedTypes = new ArrayList<>();
+		complicatedTypes.add("Period");
+		complicatedTypes.add("Range");
+		complicatedTypes.add("Quantity");
 		MeasureParameterInfo retVal = new MeasureParameterInfo();
+		String defaultValue = complicatedTypes.contains(parameterDefinition.getType())? complicatedDefaultConstructor(parameterDefinition) : null;
+
 		retVal.name(parameterDefinition.getName())
 				.type(parameterDefinition.getType())
 				.min(parameterDefinition.getMin())
@@ -186,12 +199,45 @@ public class FHIRRestUtils {
 		parameterDefinition.getExtension().stream()
 				.filter(MeasureEvaluationSeeder::isDefaultValue).findFirst() // only zero or one per IG
 				.map(Extension::getValue)
-				.map(Object::toString)
+				.map(x -> {if(defaultValue != null){return defaultValue;} else return x.toString();})
 				.ifPresent(retVal::setDefaultValue);
 
 		return retVal;
 	}
-	
+
+	static String complicatedDefaultConstructor(ParameterDefinition parameterDefinition){
+		FhirContext context = FhirContext.forR4();
+		IParser parser = context.newJsonParser();
+		String retVal;
+		String intermediateValue;
+		Patient patient = new Patient();
+		Extension extension = new Extension();
+		switch (parameterDefinition.getType()){
+			case "Period":
+				Period period = (Period) parameterDefinition.getExtension().get(0).getValue();
+				extension.setValue(period);
+				patient.addExtension(extension);
+				break;
+			case "Range":
+				Range range = (Range) parameterDefinition.getExtension().get(0).getValue();
+				extension.setValue(range);
+				patient.addExtension(extension);
+				break;
+			case "Quantity":
+				Quantity quantity = (Quantity) parameterDefinition.getExtension().get(0).getValue();
+				extension.setValue(quantity);
+				patient.addExtension(extension);
+				break;
+			default:
+				throw new RuntimeException("Complicated Type" + parameterDefinition.getType() + " not yet implemented");
+		}
+		intermediateValue = parser.encodeResourceToString(patient);
+		intermediateValue = intermediateValue.replaceAll("\\{\"resourceType\":\"Patient\",\"extension\":\\[\\{\"url\":null,\"value.+?\":", "");
+		retVal = intermediateValue.replace("}]}", "");
+
+		return retVal;
+	}
+
 	/**
 	 * @param httpHeaders The HttpHeaders from the request we want to parse
 	 * @return String[] containing username as first element and password as second
