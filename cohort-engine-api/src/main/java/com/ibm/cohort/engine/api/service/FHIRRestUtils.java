@@ -40,7 +40,6 @@ import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
  */
 public class FHIRRestUtils {
 
-
 	/**
 	 * @param fhirEndpoint The REST endpoint for the FHIR server
 	 * @param fhirTenantIdHeader the header used by FHIR to identify the tenant
