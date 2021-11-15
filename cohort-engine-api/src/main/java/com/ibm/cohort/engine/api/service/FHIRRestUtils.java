@@ -183,7 +183,7 @@ public class FHIRRestUtils {
 		complicatedTypes.add("Range");
 		complicatedTypes.add("Quantity");
 		MeasureParameterInfo retVal = new MeasureParameterInfo();
-		String defaultValue = complicatedTypes.contains(parameterDefinition.getType())? complicatedDefaultConstructor(parameterDefinition) : null;
+		String defaultValue = complicatedTypes.contains(parameterDefinition.getType())? complicatedTypeValueConstructor(parameterDefinition) : null;
 
 		retVal.name(parameterDefinition.getName())
 				.type(parameterDefinition.getType())
@@ -204,7 +204,7 @@ public class FHIRRestUtils {
 		return retVal;
 	}
 
-	static String complicatedDefaultConstructor(ParameterDefinition parameterDefinition){
+	static String complicatedTypeValueConstructor(ParameterDefinition parameterDefinition){
 		FhirContext context = FhirContext.forR4();
 		IParser parser = context.newJsonParser();
 		String retVal;

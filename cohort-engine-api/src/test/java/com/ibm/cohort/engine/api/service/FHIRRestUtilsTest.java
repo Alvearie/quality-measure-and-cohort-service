@@ -354,7 +354,7 @@ public class FHIRRestUtilsTest {
 		extensions.add(extension);
 
 		definition.setExtension(extensions);
-		String defaultResult = FHIRRestUtils.complicatedDefaultConstructor(definition);
+		String defaultResult = FHIRRestUtils.complicatedTypeValueConstructor(definition);
 
 		assertEquals("{\"low\":{\"value\":10,\"unit\":\"year\"},\"high\":{\"value\":100,\"unit\":\"year\"}}",defaultResult);
 	}
@@ -382,7 +382,7 @@ public class FHIRRestUtilsTest {
 
 		definition.setExtension(extensions);
 
-		String defaultResult = FHIRRestUtils.complicatedDefaultConstructor(definition);
+		String defaultResult = FHIRRestUtils.complicatedTypeValueConstructor(definition);
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 		assertEquals("{\"start\":\"" + formatter.format(startDate) + "\",\"end\":\"" + formatter.format(endDate) + "\"}",defaultResult);
 	}
@@ -402,7 +402,7 @@ public class FHIRRestUtilsTest {
 		extensions.add(extension);
 
 		definition.setExtension(extensions);
-		String defaultResult = FHIRRestUtils.complicatedDefaultConstructor(definition);
+		String defaultResult = FHIRRestUtils.complicatedTypeValueConstructor(definition);
 
 		assertEquals("{\"value\":10,\"unit\":\"year\"}",defaultResult);
 	}
