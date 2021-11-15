@@ -17,8 +17,8 @@ import org.cqframework.cql.elm.execution.Library;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.DefaultConsole;
+import com.ibm.cohort.cql.OptimizedCqlLibraryReader;
 import com.ibm.cohort.engine.DirectoryLibrarySourceProvider;
-import com.ibm.cohort.engine.elm.execution.OptimizedCqlLibraryReader;
 import com.ibm.cohort.translator.provider.CqlTranslationProvider;
 import com.ibm.cohort.translator.provider.InJVMCqlTranslationProvider;
 

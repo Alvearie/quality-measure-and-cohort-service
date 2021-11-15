@@ -1,12 +1,10 @@
 /*
+ * (C) Copyright IBM Corp. 2021, 2021
  *
- *  * (C) Copyright IBM Corp. 2021
- *  *
- *  * SPDX-License-Identifier: Apache-2.0
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.ibm.cohort.engine.elm.execution;
+package com.ibm.cohort.cql.evaluator;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -23,6 +21,7 @@ import org.junit.Test;
 import org.mockito.verification.VerificationMode;
 import org.opencds.cqf.cql.engine.execution.Context;
 
+import com.ibm.cohort.cql.OptimizedCqlLibraryReader;
 import com.ibm.cohort.translator.provider.InJVMCqlTranslationProvider;
 
 
@@ -33,7 +32,7 @@ public class ShortCircuitEvaluatorTest {
 	@Before
 	public void setUp() throws Exception {
 		InJVMCqlTranslationProvider provider = new InJVMCqlTranslationProvider();
-		String elm = provider.translate(this.getClass().getClassLoader().getResourceAsStream("cql/override/short-circuit-and-or.cql"));
+		String elm = provider.translate(this.getClass().getClassLoader().getResourceAsStream("cql/short-circuit-and-or.cql"));
 		library = OptimizedCqlLibraryReader.read(elm);
 	}
 
