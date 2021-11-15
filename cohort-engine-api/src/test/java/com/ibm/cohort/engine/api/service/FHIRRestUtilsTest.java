@@ -15,11 +15,13 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.core.HttpHeaders;
 
+import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Measure;
@@ -46,6 +48,7 @@ import com.ibm.cohort.engine.measure.RestFhirMeasureResolutionProvider;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 
 import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 /**
@@ -364,10 +367,15 @@ public class FHIRRestUtilsTest {
 		Extension extension = new Extension();
 		extension.setUrl("http://ibm.com/fhir/cdm/StructureDefinition/default-value");
 		Period period = new Period();
+
 		Date startDate = Date.from(LocalDate.of(2020,1,1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+		DateTimeType startElement = new DateTimeType(startDate, TemporalPrecisionEnum.DAY);
+
 		Date endDate = Date.from(LocalDate.of(2021,1,1).atStartOfDay(ZoneId.systemDefault()).toInstant());
-		period.setStart(startDate);
-		period.setEnd(endDate);
+		DateTimeType endElement = new DateTimeType(endDate, TemporalPrecisionEnum.DAY);
+
+		period.setStartElement(startElement);
+		period.setEndElement(endElement);
 		extension.setValue(period);
 
 		List<Extension> extensions = new ArrayList<>();
@@ -376,7 +384,7 @@ public class FHIRRestUtilsTest {
 		definition.setExtension(extensions);
 
 		String defaultResult = FHIRRestUtils.complicatedDefaultConstructor(definition);
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 		assertEquals("{\"start\":\"" + formatter.format(startDate) + "\",\"end\":\"" + formatter.format(endDate) + "\"}",defaultResult);
 	}
 
