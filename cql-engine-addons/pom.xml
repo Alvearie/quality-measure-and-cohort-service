@@ -10,7 +10,7 @@
 		<relativePath>../cohort-parent</relativePath>
 	</parent>
 
-	<artifactId>cohort-cql-optimizations</artifactId>
+	<artifactId>cql-engine-addons</artifactId>
 	<packaging>jar</packaging>
 
 	<scm>

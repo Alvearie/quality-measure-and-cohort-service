@@ -22,7 +22,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-cql-optimizations</artifactId>
+			<artifactId>cql-engine-addons</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
