@@ -1,11 +1,9 @@
 /*
+ * (C) Copyright IBM Corp. 2021, 2021
  *
- *  * (C) Copyright IBM Corp. 2021
- *  *
- *  * SPDX-License-Identifier: Apache-2.0
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.cohort.engine.elm.execution;
+package com.ibm.cohort.cql;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

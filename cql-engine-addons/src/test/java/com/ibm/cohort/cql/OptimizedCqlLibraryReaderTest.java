@@ -1,11 +1,9 @@
 /*
+ * (C) Copyright IBM Corp. 2021, 2021
  *
- *  * (C) Copyright IBM Corp. 2021
- *  *
- *  * SPDX-License-Identifier: Apache-2.0
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.cohort.engine.elm.execution;
+package com.ibm.cohort.cql;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -25,11 +23,14 @@ import org.cqframework.cql.elm.execution.ExpressionDef;
 import org.cqframework.cql.elm.execution.Library;
 import org.junit.Test;
 
+import com.ibm.cohort.cql.evaluator.ShortAndEvaluator;
+import com.ibm.cohort.cql.evaluator.ShortOrEvaluator;
+
 public class OptimizedCqlLibraryReaderTest {
 	@Test
 	public void testOverrideAndOrEvaluators() throws JAXBException {
 
-		InputStream is = this.getClass().getClassLoader().getResourceAsStream("cql/override/short-circuit-and-or.xml");
+		InputStream is = this.getClass().getClassLoader().getResourceAsStream("cql/short-circuit-and-or.xml");
 		String xml = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))
 				.lines()
 				.collect(Collectors.joining(System.lineSeparator()));

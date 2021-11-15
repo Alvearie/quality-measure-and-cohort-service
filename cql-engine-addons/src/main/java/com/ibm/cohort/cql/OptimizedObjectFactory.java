@@ -1,11 +1,9 @@
 /*
+ * (C) Copyright IBM Corp. 2021, 2021
  *
- *  * (C) Copyright IBM Corp. 2021
- *  *
- *  * SPDX-License-Identifier: Apache-2.0
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
-package com.ibm.cohort.engine.elm.execution;
+package com.ibm.cohort.cql;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlElementDecl;
@@ -16,6 +14,8 @@ import org.cqframework.cql.elm.execution.*;
 import org.opencds.cqf.cql.engine.elm.execution.ObjectFactoryEx;
 
 import com.ibm.cohort.annotations.Generated;
+import com.ibm.cohort.cql.evaluator.ShortAndEvaluator;
+import com.ibm.cohort.cql.evaluator.ShortOrEvaluator;
 
 @SuppressWarnings("RedundantMethodOverride")
 @Generated

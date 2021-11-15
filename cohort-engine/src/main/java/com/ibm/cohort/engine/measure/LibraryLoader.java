@@ -16,7 +16,7 @@ import org.hl7.fhir.r4.model.Attachment;
 import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.execution.CqlLibraryReader;
 
-import com.ibm.cohort.engine.elm.execution.OptimizedCqlLibraryReader;
+import com.ibm.cohort.cql.OptimizedCqlLibraryReader;
 import com.ibm.cohort.translator.provider.CqlTranslationProvider;
 
 
