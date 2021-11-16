@@ -29,7 +29,7 @@ import org.opencds.cqf.cql.engine.runtime.Code;
 import org.opencds.cqf.cql.engine.terminology.CodeSystemInfo;
 import org.opencds.cqf.cql.engine.terminology.ValueSetInfo;
 
-import com.ibm.icu.impl.Assert;
+import org.junit.Assert;
 
 @RunWith(Parameterized.class)
 public class R4FileSystemFhirTerminologyProviderTest {

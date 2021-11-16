@@ -198,7 +198,6 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 						LOG.info("Unmarshalled json {}", valueSetFhirR4.getId());
 					}
 					
-					//Add the codes to a HashSet using a wrapper object with the correct hashCode/equals behavior
 					//This improves performance for the in() method for code lookup in large valuesets
 					codesToCodeSystems = new HashMap<String, Set<String>>();
 					//cache the list of code objects for the expand method
