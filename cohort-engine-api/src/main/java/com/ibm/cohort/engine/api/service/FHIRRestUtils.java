@@ -33,6 +33,7 @@ import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
 
 import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.context.FhirVersionEnum;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
@@ -43,6 +44,12 @@ import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
  */
 public class FHIRRestUtils {
 
+	private static final List<String> complicatedTypes = new ArrayList<>();
+	static {
+		complicatedTypes.add("Period");
+		complicatedTypes.add("Range");
+		complicatedTypes.add("Quantity");
+	}
 	/**
 	 * @param fhirEndpoint The REST endpoint for the FHIR server
 	 * @param fhirTenantIdHeader the header used by FHIR to identify the tenant
@@ -181,10 +188,7 @@ public class FHIRRestUtils {
 	}
 
 	private static MeasureParameterInfo toMeasureParameterInfo(ParameterDefinition parameterDefinition) {
-		List<String> complicatedTypes = new ArrayList<>();
-		complicatedTypes.add("Period");
-		complicatedTypes.add("Range");
-		complicatedTypes.add("Quantity");
+
 		MeasureParameterInfo retVal = new MeasureParameterInfo();
 		String defaultValue = complicatedTypes.contains(parameterDefinition.getType())? complicatedTypeValueConstructor(parameterDefinition) : null;
 
@@ -208,7 +212,7 @@ public class FHIRRestUtils {
 	}
 
 	static String complicatedTypeValueConstructor(ParameterDefinition parameterDefinition) {
-		FhirContext context = FhirContext.forR4();
+		FhirContext context = FhirContext.forCached(FhirVersionEnum.R4);
 		IParser parser = context.newJsonParser();
 		String valueKey;
 		//In order to use the hapi parser, we cannot translate an extension by itself. The patient object wraps the extension
