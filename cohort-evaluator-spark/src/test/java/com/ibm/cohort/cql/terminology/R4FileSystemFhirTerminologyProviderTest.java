@@ -209,7 +209,6 @@ public class R4FileSystemFhirTerminologyProviderTest {
 		code.setCode(TEST_CODE_MULTIPLE_CODE_SYSTEMS);
 
 		boolean result = provider.in(code, info);
-		assertTrue(result);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
