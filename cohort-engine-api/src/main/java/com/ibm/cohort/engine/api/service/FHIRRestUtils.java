@@ -23,6 +23,9 @@ import org.hl7.fhir.r4.model.Period;
 import org.hl7.fhir.r4.model.Quantity;
 import org.hl7.fhir.r4.model.Range;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.measure.RestFhirMeasureResolutionProvider;
 import com.ibm.cohort.engine.measure.seed.MeasureEvaluationSeeder;
@@ -204,37 +207,45 @@ public class FHIRRestUtils {
 		return retVal;
 	}
 
-	static String complicatedTypeValueConstructor(ParameterDefinition parameterDefinition){
+	static String complicatedTypeValueConstructor(ParameterDefinition parameterDefinition) {
 		FhirContext context = FhirContext.forR4();
 		IParser parser = context.newJsonParser();
-		String retVal;
-		String intermediateValue;
+		String valueKey;
+		//In order to use the hapi parser, we cannot translate an extension by itself. The patient object wraps the extension
 		Patient patient = new Patient();
 		Extension extension = new Extension();
-		switch (parameterDefinition.getType()){
+		switch (parameterDefinition.getType()) {
 			case "Period":
 				Period period = (Period) parameterDefinition.getExtension().get(0).getValue();
 				extension.setValue(period);
 				patient.addExtension(extension);
+				valueKey = "valuePeriod";
 				break;
 			case "Range":
 				Range range = (Range) parameterDefinition.getExtension().get(0).getValue();
 				extension.setValue(range);
 				patient.addExtension(extension);
+				valueKey = "valueRange";
 				break;
 			case "Quantity":
 				Quantity quantity = (Quantity) parameterDefinition.getExtension().get(0).getValue();
 				extension.setValue(quantity);
 				patient.addExtension(extension);
+				valueKey = "valueQuantity";
 				break;
 			default:
 				throw new RuntimeException("Complicated Type" + parameterDefinition.getType() + " not yet implemented");
 		}
-		intermediateValue = parser.encodeResourceToString(patient);
-		intermediateValue = intermediateValue.replaceAll("\\{\"resourceType\":\"Patient\",\"extension\":\\[\\{\"url\":null,\"value.+?\":", "");
-		retVal = intermediateValue.replace("}]}", "");
-
-		return retVal;
+		String intermediateValue = parser.encodeResourceToString(patient);
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			JsonNode root = mapper.readTree(intermediateValue);
+			JsonNode nameNode = root.path("extension");
+			return nameNode.get(0).path(valueKey).toString();
+		}
+		catch (JsonProcessingException e){
+			throw new RuntimeException("There was an issue with json translation", e);
+		}
 	}
 
 	/**

@@ -407,7 +407,7 @@ public class FHIRRestUtilsTest {
 		assertEquals("{\"value\":10,\"unit\":\"year\"}",defaultResult);
 	}
 
-	private Measure createMeasure(String inputString) throws JsonProcessingException {
+	private Measure createMeasure(String inputString) {
 		// Instantiate a new parser
 		ca.uhn.fhir.parser.IParser parser = ctx.newJsonParser();
 		// Parse it
