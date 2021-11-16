@@ -7,7 +7,28 @@
 	<status value="active"></status>
 	<compose>
 		<include>
+			<system value="http://loinc.org"></system>
+			<version value="2021-09"></version>
+			<concept>
+				<code value="10901-8"></code>
+				<display value="Display for 10901-8 LOINC"></display>
+			</concept>
+		</include>
+		<include>
 			<system value="http://snomed.info/sct"></system>
+			<version value="2021-09"></version>
+			<concept>
+				<code value="10901-7"></code>
+				<display value="Display for 2021-09"></display>
+			</concept>
+			<concept>
+				<code value="10901-8"></code>
+				<display value="Display for 10901-8"></display>
+			</concept>
+		</include>
+		<include>
+			<system value="http://snomed.info/sct"></system>
+			<version value="2020-09"></version>
 			<concept>
 				<code value="10901-7"></code>
 				<display value="Display"></display>

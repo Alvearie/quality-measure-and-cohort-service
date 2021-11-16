@@ -29,12 +29,17 @@ import org.opencds.cqf.cql.engine.runtime.Code;
 import org.opencds.cqf.cql.engine.terminology.CodeSystemInfo;
 import org.opencds.cqf.cql.engine.terminology.ValueSetInfo;
 
+import com.ibm.icu.impl.Assert;
+
 @RunWith(Parameterized.class)
 public class R4FileSystemFhirTerminologyProviderTest {
 	private static final String TEST_DISPLAY = "Display";
+	private static final String TEST_DISPLAY_FOR_VERSION2 = "Display for 2021-09";
 	private static final String TEST_CODE = "10901-7";
 	private static final String TEST_SYSTEM = "http://snomed.info/sct";
-	private static final String TEST_SYSTEM_VERSION = "2020-09";
+	private static final String TEST_SYSTEM_VERSION1 = "2020-09";
+	private static final String TEST_SYSTEM_VERSION2 = "2021-09";
+	private static final String TEST_CODE_MULTIPLE_CODE_SYSTEMS = "10901-8";
 	private static R4FileSystemFhirTerminologyProvider provider = null;
 	private String setId;
 	
@@ -67,9 +72,23 @@ public class R4FileSystemFhirTerminologyProviderTest {
 		Iterable<Code> codes = provider.expand(info);
 
 		List<Code> list = StreamSupport.stream(codes.spliterator(), false).collect(Collectors.toList());
-		assertEquals(list.size(), 1);
-		assertEquals(list.get(0).getSystem(), TEST_SYSTEM);
-		assertEquals(list.get(0).getCode(), TEST_CODE);
+		assertEquals(list.size(), 4);
+		
+		for(Code code : list) {
+			if(code.getCode() == null || code.getCode().isEmpty()) {
+				Assert.fail("Code not present");
+			}
+			if(code.getSystem() == null || code.getSystem().isEmpty()) {
+				Assert.fail("CodeSystem not present");
+			}
+			if(code.getVersion() == null || code.getVersion().isEmpty()) {
+				Assert.fail("Version not present");
+			}
+			if(code.getDisplay() == null || code.getDisplay().isEmpty()) {
+				Assert.fail("Display not present");
+			}
+				
+		}
 	}
 
 	@Test
@@ -81,6 +100,36 @@ public class R4FileSystemFhirTerminologyProviderTest {
 		code.setSystem(TEST_SYSTEM);
 		code.setCode(TEST_CODE);
 		code.setDisplay(TEST_DISPLAY);
+
+		boolean result = provider.in(code, info);
+		assertTrue(result);
+	}
+	
+	@Test
+	public void inOperationReturnsTrueWithVersion1() throws Exception {
+		ValueSetInfo info = new ValueSetInfo();
+		info.setId(setId);
+
+		Code code = new Code();
+		code.setSystem(TEST_SYSTEM);
+		code.setCode(TEST_CODE);
+		code.setDisplay(TEST_DISPLAY);
+		code.setVersion(TEST_SYSTEM_VERSION1);
+
+		boolean result = provider.in(code, info);
+		assertTrue(result);
+	}
+	
+	@Test
+	public void inOperationReturnsTrueWithVersion2() throws Exception {
+		ValueSetInfo info = new ValueSetInfo();
+		info.setId(setId);
+
+		Code code = new Code();
+		code.setSystem(TEST_SYSTEM);
+		code.setCode(TEST_CODE);
+		code.setDisplay(TEST_DISPLAY_FOR_VERSION2);
+		code.setVersion(TEST_SYSTEM_VERSION2);
 
 		boolean result = provider.in(code, info);
 		assertTrue(result);
@@ -123,6 +172,20 @@ public class R4FileSystemFhirTerminologyProviderTest {
 		boolean result = provider.in(code, info);
 		assertFalse(result);
 	}
+	
+	@Test
+	public void inOperationReturnsFalseWithBadCodeSystem() throws Exception {
+		ValueSetInfo info = new ValueSetInfo();
+		info.setId(setId);
+
+		Code code = new Code();
+		code.setSystem("bad system");
+		code.setCode(TEST_CODE);
+		code.setDisplay(TEST_DISPLAY);
+
+		boolean result = provider.in(code, info);
+		assertFalse(result);
+	}
 
 	@Test
 	public void inOperationHandlesNullSystem() throws Exception {
@@ -136,12 +199,24 @@ public class R4FileSystemFhirTerminologyProviderTest {
 		boolean result = provider.in(code, info);
 		assertTrue(result);
 	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void inOperationHandlesMultipleCodeSystemCode() throws Exception {
+		ValueSetInfo info = new ValueSetInfo();
+		info.setId(setId);
+
+		Code code = new Code();
+		code.setCode(TEST_CODE_MULTIPLE_CODE_SYSTEMS);
+
+		boolean result = provider.in(code, info);
+		assertTrue(result);
+	}
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void lookupOperationSuccess() throws Exception {
 		CodeSystemInfo info = new CodeSystemInfo();
 		info.setId(TEST_SYSTEM);
-		info.setVersion(TEST_SYSTEM_VERSION);
+		info.setVersion(TEST_SYSTEM_VERSION1);
 
 		Code code = new Code();
 		code.setCode(TEST_CODE);
