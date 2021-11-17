@@ -1,1 +1,39 @@
-{"resourceType":"ValueSet","id":"Test","url":"http://cts.nlm.nih.gov/fhir/ValueSet/Test","version":"20200331","name":"Test Codeset","title":"Test Codeset","status":"active","compose":{"include":[{"system":"http://snomed.info/sct","concept":[{"code":"10901-7","display":"Display"}]}]}}
+{
+	"resourceType": "ValueSet",
+	"id": "Test",
+	"url": "http://cts.nlm.nih.gov/fhir/ValueSet/Test",
+	"version": "20200331",
+	"name": "Test Codeset",
+	"title": "Test Codeset",
+	"status": "active",
+	"compose": {
+		"include": [{
+			"system": "http://loinc.org",
+			"version": "2021-09",
+			"concept": [{
+				"code": "10901-8",
+				"display": "Display for 10901-8 LOINC"
+			}]
+		},
+		{
+			"system": "http://snomed.info/sct",
+			"version": "2021-09",
+			"concept": [{
+				"code": "10901-7",
+				"display": "Display for 2021-09"
+			},
+			{
+				"code": "10901-8",
+				"display": "Display for 10901-8"
+			}]
+		},
+		{
+			"system": "http://snomed.info/sct",
+			"version": "2020-09",
+			"concept": [{
+				"code": "10901-7",
+				"display": "Display"
+			}]
+		}]
+	}
+}
