@@ -136,6 +136,21 @@ public class R4FileSystemFhirTerminologyProviderTest {
 	}
 	
 	@Test
+	public void inOperationReturnsFalseWithBadVersion() throws Exception {
+		ValueSetInfo info = new ValueSetInfo();
+		info.setId(setId);
+
+		Code code = new Code();
+		code.setSystem(TEST_SYSTEM);
+		code.setCode(TEST_CODE);
+		code.setDisplay(TEST_DISPLAY_FOR_VERSION2);
+		code.setVersion("Bad Version");
+
+		boolean result = provider.in(code, info);
+		assertTrue(result);
+	}
+	
+	@Test
 	public void inOperationReturnsTrueWithCodeOnly() throws Exception {
 		ValueSetInfo info = new ValueSetInfo();
 		info.setId(setId);
@@ -208,7 +223,7 @@ public class R4FileSystemFhirTerminologyProviderTest {
 		Code code = new Code();
 		code.setCode(TEST_CODE_MULTIPLE_CODE_SYSTEMS);
 
-		boolean result = provider.in(code, info);
+		provider.in(code, info);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)

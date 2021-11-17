@@ -85,16 +85,20 @@ public class R4FileSystemFhirTerminologyProvider implements CqlTerminologyProvid
 		if(codesToCodeSystems != null) {
 			Set<String> systems = codesToCodeSystems.get(code.getCode());
 			
+			//if systems is null/empty, then the code isn't in the valueset
 			if(systems != null && !systems.isEmpty()) {
-				//per the cql spec https://cql.hl7.org/09-b-cqlreference.html#in-valueset, if there
-				//are codes with more than 1 codesystem present in the valueset, throw an error
-				if( systems.size() > 1) {
-					throw new IllegalArgumentException("Ambiguous code lookup of code[" + code.getCode()+ "] under valueset[" + valueSetIdentifier.getId()+"]"); 
-				} else if( (code.getSystem() != null && systems.contains(code.getSystem())) ||  
-							code.getSystem() == null ){
-					return true;
+				if( code.getSystem() == null) {
+					//per the cql spec https://cql.hl7.org/09-b-cqlreference.html#in-valueset, if there
+					//are codes with more than 1 codesystem present in the valueset, throw an error
+					if( systems.size() > 1) {
+						throw new IllegalArgumentException("Ambiguous code lookup of code[" + code.getCode()+ "] under valueset[" + valueSetIdentifier.getId()+"]"); 
+					} else {
+						return true;
+					}
+				} else {
+					return systems.contains(code.getSystem());
 				}
-			}
+			} 
 		}
 		
 
