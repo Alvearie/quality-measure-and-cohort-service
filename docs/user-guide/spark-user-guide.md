@@ -17,19 +17,19 @@ The entry point to the Spark application is the `com.ibm.cohort.cql.spark.SparkC
 Usage: SparkCqlEvaluator [options]
   Options:
     -a, --aggregation
-      One or more context names, as defined in the context-definitions file,
+      One or more context names, as defined in the context-definitions file, 
       that should be run in this evaluation. Defaults to all evaluations.
       Default: []
   * -d, --context-definitions
       Filesystem path to the context-definitions file.
   * -c, --cql-path
-      Filesystem path to the location containing the CQL libraries referenced
+      Filesystem path to the location containing the CQL libraries referenced 
       in the jobs file.
     --debug
       Enables CQL debug logging
       Default: false
     --default-output-column-delimiter
-      Delimiter to use when a result column is named using the default naming
+      Delimiter to use when a result column is named using the default naming 
       rule of `LIBRARY_ID + delimiter + DEFINE_NAME`.
       Default: |
     --disable-column-filter
@@ -37,10 +37,14 @@ Usage: SparkCqlEvaluator [options]
       Spark input data are read regardless of whether or not they are needed 
       by the CQL queries being evaluated.
       Default: false
+    --disable-result-grouping
+      Disable use of CQL parameters to group context results into separate 
+      rows 
+      Default: false
     -e, --expression
-      One or more expression names, as defined in the context-definitions
-      file, that should be run in this evaluation. Defaults to all
-      expressions.
+      One or more expression names, as defined in the context-definitions 
+      file, that should be run in this evaluation. Defaults to all 
+      expressions. 
       Default: []
     --halt-on-error
       If set, errors during CQL evaluations will cause the program to halt. 
@@ -50,20 +54,23 @@ Usage: SparkCqlEvaluator [options]
     -h, --help
       Print help text
     --input-format
-      Spark SQL format identifier for input files. If not provided, the value
+      Spark SQL format identifier for input files. If not provided, the value 
       of spark.sql.datasources.default is used.
   * -i, --input-path
-      Key-value pair of resource=URI controlling where Spark should read
-      resources referenced in the context definitions file will be read from.
+      Key-value pair of resource=URI controlling where Spark should read 
+      resources referenced in the context definitions file will be read from. 
       Specify multiple files by providing a separate option for each input.
       Syntax: -ikey=value
       Default: {}
   * -j, --jobs
       Filesystem path to the CQL job file
+    --key-parameter
+      One or more parameter names that should be included in the parameters 
+      column for output rows that are generated.
     -l, --library
-      One or more library=version key-value pair(s), as defined in the jobs
-      file, that describe the libraries that should be run in this evaluation.
-      Defaults to all libraries. Specify multiple libraries by providing a
+      One or more library=version key-value pair(s), as defined in the jobs 
+      file, that describe the libraries that should be run in this evaluation. 
+      Defaults to all libraries. Specify multiple libraries by providing a 
       separate option for each library.
       Syntax: -lkey=value
       Default: {}
@@ -71,22 +78,22 @@ Usage: SparkCqlEvaluator [options]
       Folder where program output metadata (a batch summary file and possible 
       _SUCCESS marker file) will be written.
   * -m, --model-info
-      Filesystem path(s) to custom model-info files that may be required for
+      Filesystem path(s) to custom model-info files that may be required for 
       CQL translation.
       Default: []
     --output-format
-      Spark SQL format identifier for output files. If not provided, the value
+      Spark SQL format identifier for output files. If not provided, the value 
       of spark.sql.datasources.default is used.
     -n, --output-partitions
       Number of partitions to use when storing data
   * -o, --output-path
-      Key-value pair of context=URI controlling where Spark should write the
-      results of CQL evaluation requests. Specify multiple files by providing
+      Key-value pair of context=URI controlling where Spark should write the 
+      results of CQL evaluation requests. Specify multiple files by providing 
       a separate option for each output.
       Syntax: -okey=value
       Default: {}
     --overwrite-output-for-contexts
-      WARNING: NOT RECOMMENDED FOR PRODUCTION USE. If option is set, program
+      WARNING: NOT RECOMMENDED FOR PRODUCTION USE. If option is set, program 
       overwrites existing output when writing result data.
       Default: false
     -t, --terminology-path
@@ -326,9 +333,13 @@ If the user wishes to limit which jobs are evaluated during a specific applicati
 
 ### Program Output
 
-For each aggregation context, a separate output table is created. The storage path for the output table is configured using `-o` options as described above. The records of the context output table consist of the unique key for the specific context record (sharing the same name as the field in the model definition) and a column for each CQL expression that is evaluated. The default column name for the CQL evaluation columns is `<Library Name>|<Expression Name>`. The pipe delimiter can be changed using the `--default-output-column-delimiter` program option or users can provide their own column name alongside the expression in the `cql-jobs.json` file. An output column name for an expression is defined using the format `{"name": "<Expression Name>", "outputColumn": "<Output Column Name>"}` in the `expressions` list rather than using a plain string for an expression. If more than one column ends up with the same name, a runtime error will be thrown.
+For each aggregation context, a separate output table is created. The storage path for the output table is configured using `-o` options as described above. The output table will contain one or more context records per input context ID with a context ID column (sharing the same name as the field in the model definition), a parameters column, and a column for each CQL expression that is evaluated. The default column name for the CQL expression result is `<Library Name>|<Expression Name>`. The pipe delimiter can be changed using the `--default-output-column-delimiter` program option or users can provide their own column name alongside the expression in the `cql-jobs.json` file. An output column name for an expression is defined using the format `{"name": "<Expression Name>", "outputColumn": "<Output Column Name>"}` in the `expressions` list rather than using a plain string for an expression. If more than one column ends up with the same name, a runtime error will be thrown.
 
-Because output is written to single columns and due to the complexity of serializing arbitrarily-shaped data, there is currently a limitation on the data types that may be produced by a CQL expression that will be written to the output table. List data, map/tuple data, domain objects, etc. are not supported. Expressions should return System.Boolean, System.Integer, System.Decimal, System.String, System.Long, System.Date, or System.DateTime data.
+The parameters column contains JSON data representing the CQL parameters that were used in the evaluation of the column results. The format of the JSON data is the same as the parameter data in the jobs file. This column allows the results of a single context evaluation to be split into multiple rows of related columns. For example, an input parameter might be `EndDate` for the logic and the desired result is for there to be a separate record in the output for each CQL context + end date.
+
+Row grouping by parameters is enabled by default or can be disabled using the `--disable-row-grouping` flag. When enabled, all parameter values are used as the grouping key. In the case where there are more CQL parameter values than are needed for the grouping key, the `--key-parameter` program argument can be used to limit which parameter values are used as the grouping key. This parameter can be repeated as many times as needed to define the exact set of parameters needed.
+
+For column data, because output is written to single columns and due to the complexity of serializing arbitrarily-shaped data, there is currently a limitation on the data types that may be produced by a CQL expression that will be written to the output table. List data, map/tuple data, domain objects, etc. are not supported. Expressions should return System.Boolean, System.Integer, System.Decimal, System.String, System.Long, System.Date, or System.DateTime data.
 
 The type information for output columns is read directly from the translated CQL (aka Execution Logical Model / ELM) and requires that the `result-types` [option](https://github.com/cqframework/clinical_quality_language/blob/master/Src/java/cql-to-elm/OVERVIEW.md#usage) is passed to the CQL translator during CQL translation. The Spark CQL Evaluator can do CQL translation inline during program execution and automatically sets this option. Users doing their own CQL translation outside the running application must set the option themselves.
 

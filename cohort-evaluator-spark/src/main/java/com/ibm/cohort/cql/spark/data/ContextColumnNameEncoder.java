@@ -14,6 +14,7 @@ import java.util.Set;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.evaluation.CqlExpressionConfiguration;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
+import com.ibm.cohort.cql.spark.util.CqlEvaluationRequestUtil;
 
 /**
  * Calculates output column names for expressions defined in a List of CqlEvaluationRequest objects.
@@ -24,14 +25,24 @@ import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
  * unique or else an IllegalArgumentException is thrown.
  */
 public class ContextColumnNameEncoder implements SparkOutputColumnEncoder {
-	public static ContextColumnNameEncoder create(List<CqlEvaluationRequest> contextRequests, String defaultColumnDelimiter) {
+    
+    public static ContextColumnNameEncoder create(List<CqlEvaluationRequest> contextRequests, String defaultColumnDelimiter) {
+        return create(contextRequests, null, defaultColumnDelimiter);
+    }
+    
+	public static ContextColumnNameEncoder create(List<CqlEvaluationRequest> contextRequests, Set<String> keyParameterNames, String defaultColumnDelimiter) {
 		Map<Integer, Map<String, String>> requestToDefineToOutputColumn = new HashMap<>();
-		Set<String> outputColumnNames = new HashSet<>();
+		Map<String, Set<String>> outputColumnNamesByParameters = new HashMap<>();
 		
 		for (CqlEvaluationRequest contextRequest : contextRequests) {
-			Map<String, String> defineToOutputNameMap = getDefineToOutputNameMap(contextRequest, defaultColumnDelimiter);
+		    //The global parameters need to be present in the request at this point. They are applied automatically by
+		    //the getFilteredRequestsByContext() method, so we are good, but FYI.
+		    String parametersJson = CqlEvaluationRequestUtil.getKeyParametersColumnData(contextRequest, keyParameterNames);
+		    Set<String> outputColumnNames = outputColumnNamesByParameters.computeIfAbsent(parametersJson, x -> new HashSet<>());
+
+		    Map<String, String> defineToOutputNameMap = getDefineToOutputNameMap(contextRequest, defaultColumnDelimiter);
 			
-			// Make sure output names are unique across requests
+			// Make sure output names per unique parameter combination are unique across requests
 			for (String value : defineToOutputNameMap.values()) {
 				if (outputColumnNames.contains(value)) {
 					throw new IllegalArgumentException("Duplicate outputColumn " + value + " defined for context " + contextRequest.getContextKey());
@@ -46,7 +57,10 @@ public class ContextColumnNameEncoder implements SparkOutputColumnEncoder {
 			requestToDefineToOutputColumn.put(requestId, defineToOutputNameMap);
 		}
 		
-		return new ContextColumnNameEncoder(requestToDefineToOutputColumn, outputColumnNames);
+		Set<String> mergedOutputColumns = outputColumnNamesByParameters.values().stream()
+		        .reduce(new HashSet<>(), (all,perParams) -> { all.addAll(perParams); return all; });
+		
+		return new ContextColumnNameEncoder(requestToDefineToOutputColumn, mergedOutputColumns);
 	}
 	
 	protected static Map<String, String> getDefineToOutputNameMap(CqlEvaluationRequest request, String defaultColumnDelimiter) {

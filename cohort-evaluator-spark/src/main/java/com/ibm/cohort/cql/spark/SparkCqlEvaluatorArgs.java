@@ -91,4 +91,10 @@ public class SparkCqlEvaluatorArgs implements Serializable {
     
     @Parameter(names = { "--debug" }, description = "Enables CQL debug logging")
     public boolean debug = false;
+
+    @Parameter(names = { "--disable-result-grouping" }, description = "Disable use of CQL parameters to group context results into separate rows", required = false)
+    public boolean disableResultGrouping = false;
+    
+    @Parameter(names = { "--key-parameter" }, description = "One or more parameter names that should be included in the parameters column for output rows that are generated.", required = false)
+    public Set<String> keyParameterNames;
 }

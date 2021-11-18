@@ -85,6 +85,7 @@ public class SparkSchemaCreatorTest {
 
 		StructType expectedSchema = new StructType()
 				.add("id", DataTypes.IntegerType, false)
+				.add("parameters", DataTypes.StringType, false)
 				.add("Context1Id.define_integer", DataTypes.IntegerType, true)
 				.add("Context1Id.define_boolean", DataTypes.BooleanType, true)
 				.add("Context1Id.define_string", DataTypes.StringType, true)
@@ -168,9 +169,11 @@ public class SparkSchemaCreatorTest {
 		Map<String, Tuple2<String, StructType>> expectedSchemas = new HashMap<String, Tuple2<String, StructType>>() {{
 			put("Context1Id", new Tuple2<>("id", new StructType()
 					.add("id", DataTypes.IntegerType, false)
+					.add("parameters", DataTypes.StringType, false)
 					.add("Context1Id.define_integer", DataTypes.IntegerType, true)));
 			put("Context2Id", new Tuple2<>("id", new StructType()
 					.add("id", DataTypes.IntegerType, false)
+					.add("parameters", DataTypes.StringType, false)
 					.add("Context2Id.define_date", DataTypes.DateType, true)
 					.add("Context2Id.define_datetime", DataTypes.TimestampType, true)));
 		}};

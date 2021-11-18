@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -33,6 +34,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.spark.SparkException;
 import org.apache.spark.deploy.SparkHadoopUtil;
 import org.apache.spark.sql.Dataset;
@@ -50,6 +52,7 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
+import com.ibm.cohort.cql.evaluation.CqlExpressionConfiguration;
 import com.ibm.cohort.cql.evaluation.parameters.DateParameter;
 import com.ibm.cohort.cql.evaluation.parameters.DecimalParameter;
 import com.ibm.cohort.cql.evaluation.parameters.IntegerParameter;
@@ -130,7 +133,246 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         SparkCqlEvaluator.main(args);
         
-        validateOutputCountsAndColumns(outputLocation, new HashSet<>(Arrays.asList("id", "SampleLibrary|IsFemale")), 10, "delta");
+        validateOutputCountsAndColumns(outputLocation, new HashSet<>(Arrays.asList("id", "parameters", "SampleLibrary|IsFemale")), 10, "delta");
+    }
+    
+    @Test
+    public void testParameterMatrixOutputSimpleSuccess() throws Exception {
+        String outputLocation = "target/output/param-matrix/patient_cohort";
+
+        CqlEvaluationRequest template = new CqlEvaluationRequest();
+        template.setDescriptor(new CqlLibraryDescriptor().setLibraryId("SampleLibrary").setVersion("1.0.0"));
+        template.setExpressionsByNames(Collections.singleton("IsFemale"));
+        template.setContextKey("Patient");
+        template.setContextValue("NA");
+        
+        CqlEvaluationRequests requests = new CqlEvaluationRequests();
+        requests.setEvaluations(new ArrayList<>());
+        
+        List<Integer> ages = Arrays.asList(15, 17, 18);
+        for( Integer age : ages ) {
+            Map<String,Parameter> parameters = new HashMap<>();
+            parameters.put("MinimumAge",new IntegerParameter(age));
+            
+            CqlEvaluationRequest request = new CqlEvaluationRequest(template);
+            request.setParameters(parameters);
+            requests.getEvaluations().add( request );
+        }
+        
+        ObjectMapper om = new ObjectMapper();
+        File jobsFile = new File("target/output/param-matrix-simple/cql-jobs.json");
+        if( ! jobsFile.exists() ) {
+            jobsFile.getParentFile().mkdirs();
+        }
+        FileUtils.write(jobsFile, om.writeValueAsString(requests), StandardCharsets.UTF_8);
+        try {
+            String [] args = new String[] {
+              "-d", "src/test/resources/simple-job/context-definitions.json",
+              "-j", jobsFile.getPath(),
+              "-m", "src/test/resources/simple-job/modelinfo/simple-modelinfo-1.0.0.xml",
+              "-c", "src/test/resources/simple-job/cql",
+              "-i", "Patient=" + new File("src/test/resources/simple-job/testdata/patient").toURI().toString(),
+              "-o", "Patient=" + new File(outputLocation).toURI().toString(),
+              "--output-format", "delta",
+              "--overwrite-output-for-contexts",
+              "--metadata-output-path", outputLocation
+            };
+    
+            SparkCqlEvaluator.main(args);
+
+            validateOutputCountsAndColumns(outputLocation, new HashSet<>(Arrays.asList("id", "parameters", "SampleLibrary|IsFemale"))
+                    , 10 * ages.size(), "delta");
+        } finally {
+            jobsFile.delete();
+        }
+    }
+    
+    @Test
+    public void testParameterMatrixOutputDisabledRowsGroupingSuccess() throws Exception {
+        String outputLocation = "target/output/param-matrix-group-disabled/patient_cohort";
+
+        CqlEvaluationRequest template = new CqlEvaluationRequest();
+        template.setDescriptor(new CqlLibraryDescriptor().setLibraryId("SampleLibrary").setVersion("1.0.0"));
+        template.setExpressionsByNames(Collections.singleton("IsFemale"));
+        template.setContextKey("Patient");
+        template.setContextValue("NA");
+        
+        CqlEvaluationRequests requests = new CqlEvaluationRequests();
+        requests.setEvaluations(new ArrayList<>());
+        
+        List<Integer> ages = Arrays.asList(15, 17, 18);
+        for( Integer age : ages ) {
+            Map<String,Parameter> parameters = new HashMap<>();
+            parameters.put("MinimumAge",new IntegerParameter(age));
+            
+            
+            CqlExpressionConfiguration renamed = new CqlExpressionConfiguration();
+            renamed.setName("IsFemale");
+            renamed.setOutputColumn("IsFemale"+age);
+            
+            CqlEvaluationRequest request = new CqlEvaluationRequest(template);
+            request.setExpressions(Collections.singleton(renamed));
+            request.setParameters(parameters);
+            requests.getEvaluations().add( request );
+        }
+        
+        ObjectMapper om = new ObjectMapper();
+        File jobsFile = new File("target/output/param-matrix-simple/cql-jobs.json");
+        if( ! jobsFile.exists() ) {
+            jobsFile.getParentFile().mkdirs();
+        }
+        FileUtils.write(jobsFile, om.writeValueAsString(requests), StandardCharsets.UTF_8);
+        try {
+            String [] args = new String[] {
+              "-d", "src/test/resources/simple-job/context-definitions.json",
+              "-j", jobsFile.getPath(),
+              "-m", "src/test/resources/simple-job/modelinfo/simple-modelinfo-1.0.0.xml",
+              "-c", "src/test/resources/simple-job/cql",
+              "-i", "Patient=" + new File("src/test/resources/simple-job/testdata/patient").toURI().toString(),
+              "-o", "Patient=" + new File(outputLocation).toURI().toString(),
+              "--output-format", "delta",
+              "--overwrite-output-for-contexts",
+              "--metadata-output-path", outputLocation,
+              "--disable-result-grouping"
+            };
+    
+            SparkCqlEvaluator.main(args);
+
+            validateOutputCountsAndColumns(outputLocation, new HashSet<>(Arrays.asList("id", "parameters", "IsFemale15", "IsFemale17", "IsFemale18"))
+                    , 10, "delta");
+        } finally {
+            jobsFile.delete();
+        }
+    }
+    
+    @Test
+    public void testParameterMatrixOutputNonOverlappingParamsSuccess() throws Exception {
+        String outputLocation = "target/output/param-matrix-non-overlap/patient_cohort";
+
+        CqlEvaluationRequest template = new CqlEvaluationRequest();
+        template.setDescriptor(new CqlLibraryDescriptor().setLibraryId("SampleLibrary").setVersion("1.0.0"));
+        template.setExpressionsByNames(Collections.singleton("IsFemale"));
+        template.setContextKey("Patient");
+        template.setContextValue("NA");
+        
+        CqlEvaluationRequests requests = new CqlEvaluationRequests();
+        requests.setEvaluations(new ArrayList<>());
+        
+        List<Integer> ages = Arrays.asList(15, 17, 18);
+        for( Integer age : ages ) {
+            Map<String,Parameter> parameters = new HashMap<>();
+            parameters.put("MinimumAge",new IntegerParameter(age));
+            
+            CqlEvaluationRequest request = new CqlEvaluationRequest(template);
+            request.setParameters(parameters);
+            requests.getEvaluations().add( request );
+            
+            CqlExpressionConfiguration renamed = new CqlExpressionConfiguration();
+            renamed.setName("IsFemale");
+            renamed.setOutputColumn("Renamed");
+            
+            Map<String,Parameter> parametersWithExtraneous = new HashMap<>(parameters);
+            parametersWithExtraneous.put("Extraneous", new IntegerParameter(0));
+            
+            request = new CqlEvaluationRequest(template);
+            request.setExpressions(Collections.singleton(renamed));
+            request.setParameters(parametersWithExtraneous);
+            requests.getEvaluations().add(request);
+        }
+        
+        ObjectMapper om = new ObjectMapper();
+        File jobsFile = new File("target/output/param-matrix/cql-jobs.json");
+        if( ! jobsFile.exists() ) {
+            jobsFile.getParentFile().mkdirs();
+        }
+        FileUtils.write(jobsFile, om.writeValueAsString(requests), StandardCharsets.UTF_8);
+        try {
+            String [] args = new String[] {
+              "-d", "src/test/resources/simple-job/context-definitions.json",
+              "-j", jobsFile.getPath(),
+              "-m", "src/test/resources/simple-job/modelinfo/simple-modelinfo-1.0.0.xml",
+              "-c", "src/test/resources/simple-job/cql",
+              "-i", "Patient=" + new File("src/test/resources/simple-job/testdata/patient").toURI().toString(),
+              "-o", "Patient=" + new File(outputLocation).toURI().toString(),
+              "--output-format", "delta",
+              "--overwrite-output-for-contexts",
+              "--metadata-output-path", outputLocation
+            };
+    
+            SparkCqlEvaluator.main(args);
+            
+            // Because we've got a mismatch in the parameters in the first and second columns, each context
+            // has a set of rows for the first parameter set where one column is populated and the other is null
+            // and another set of rows where the first column is null and the second is populated. 
+            validateOutputCountsAndColumns(outputLocation, new HashSet<>(Arrays.asList("id", "parameters", "SampleLibrary|IsFemale", "Renamed"))
+                    , 10 * ages.size() * /*outputColumns=*/2, "delta");
+        } finally {
+            jobsFile.delete();
+        }
+    }
+    
+    @Test
+    public void testParameterMatrixOutputWithKeyParametersSpecifiedSuccess() throws Exception {
+        String outputLocation = "target/output/param-matrix-key-params/patient_cohort";
+
+        CqlEvaluationRequest template = new CqlEvaluationRequest();
+        template.setDescriptor(new CqlLibraryDescriptor().setLibraryId("SampleLibrary").setVersion("1.0.0"));
+        template.setExpressionsByNames(Collections.singleton("IsFemale"));
+        template.setContextKey("Patient");
+        template.setContextValue("NA");
+        
+        CqlEvaluationRequests requests = new CqlEvaluationRequests();
+        requests.setEvaluations(new ArrayList<>());
+        
+        List<Integer> ages = Arrays.asList(15, 17, 18);
+        for( Integer age : ages ) {
+            Map<String,Parameter> parameters = new HashMap<>();
+            parameters.put("MinimumAge",new IntegerParameter(age));
+            
+            CqlEvaluationRequest request = new CqlEvaluationRequest(template);
+            request.setParameters(parameters);
+            requests.getEvaluations().add( request );
+            
+            CqlExpressionConfiguration renamed = new CqlExpressionConfiguration();
+            renamed.setName("IsFemale");
+            renamed.setOutputColumn("Renamed");
+            
+            Map<String,Parameter> parametersWithExtraneous = new HashMap<>(parameters);
+            parametersWithExtraneous.put("Extraneous", new IntegerParameter(0));
+            
+            request = new CqlEvaluationRequest(template);
+            request.setExpressions(Collections.singleton(renamed));
+            request.setParameters(parametersWithExtraneous);
+            requests.getEvaluations().add(request);
+        }
+        
+        ObjectMapper om = new ObjectMapper();
+        File jobsFile = new File("target/param-matrix/cql-jobs.json");
+        if( ! jobsFile.exists() ) {
+            jobsFile.getParentFile().mkdirs();
+        }
+        FileUtils.write(jobsFile, om.writeValueAsString(requests), StandardCharsets.UTF_8);
+        try {
+            String [] args = new String[] {
+              "-d", "src/test/resources/simple-job/context-definitions.json",
+              "-j", jobsFile.getPath(),
+              "-m", "src/test/resources/simple-job/modelinfo/simple-modelinfo-1.0.0.xml",
+              "-c", "src/test/resources/simple-job/cql",
+              "-i", "Patient=" + new File("src/test/resources/simple-job/testdata/patient").toURI().toString(),
+              "-o", "Patient=" + new File(outputLocation).toURI().toString(),
+              "--output-format", "delta",
+              "--overwrite-output-for-contexts",
+              "--metadata-output-path", outputLocation,
+              "--key-parameter", "MinimumAge"
+            };
+    
+            SparkCqlEvaluator.main(args);
+            
+            validateOutputCountsAndColumns(outputLocation, new HashSet<>(Arrays.asList("id", "parameters", "SampleLibrary|IsFemale", "Renamed"))
+                    , 10 * ages.size(), "delta");
+        } finally {
+            jobsFile.delete();
+        }
     }
 
     @Test
@@ -173,11 +415,11 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         // Expected rows per context were derived from inspecting the input data
         // by hand and counting the unique values for each context's key column.
-        validateOutputCountsAndColumns(patientFile.toURI().toString(), new HashSet<>(Arrays.asList("pat_id", "MeasureAB|cohort")), 100, "parquet");
-        validateOutputCountsAndColumns(aFile.toURI().toString(), new HashSet<>(Arrays.asList("id_col", "MeasureA|cohort")), 572, "parquet");
-        validateOutputCountsAndColumns(bFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureB|cohort")), 575, "parquet");
-        validateOutputCountsAndColumns(cFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureC|cohort")), 600, "parquet");
-        validateOutputCountsAndColumns(dFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "MeasureD|cohort")), 567, "parquet");
+        validateOutputCountsAndColumns(patientFile.toURI().toString(), new HashSet<>(Arrays.asList("pat_id", "parameters", "MeasureAB|cohort")), 100, "parquet");
+        validateOutputCountsAndColumns(aFile.toURI().toString(), new HashSet<>(Arrays.asList("id_col", "parameters", "MeasureA|cohort")), 572, "parquet");
+        validateOutputCountsAndColumns(bFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "parameters", "MeasureB|cohort")), 575, "parquet");
+        validateOutputCountsAndColumns(cFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "parameters", "MeasureC|cohort")), 600, "parquet");
+        validateOutputCountsAndColumns(dFile.toURI().toString(), new HashSet<>(Arrays.asList("id", "parameters", "MeasureD|cohort")), 567, "parquet");
 
         assertTrue(new File(metadataDir, HadoopPathOutputMetadataWriter.SUCCESS_MARKER).exists());
 
@@ -232,7 +474,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         SparkCqlEvaluator.main(args);
 
-        validateOutputCountsAndColumns(patientFile.toURI().toString(), new HashSet<>(Arrays.asList("pat_id", "Parent|cohort")), 100, "parquet");
+        validateOutputCountsAndColumns(patientFile.toURI().toString(), new HashSet<>(Arrays.asList("pat_id", "parameters", "Parent|cohort")), 100, "parquet");
     }
     
     @Test
@@ -332,10 +574,11 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         SparkCqlEvaluator.main(args);
 
-        validateOutputCountsAndColumns(aFile.toURI().toString(), new HashSet<>(Arrays.asList("id_col", "MeasureAnyColumn|cohort")), 572, "parquet");
+        validateOutputCountsAndColumns(aFile.toURI().toString(), new HashSet<>(Arrays.asList("id_col", "parameters", "MeasureAnyColumn|cohort")), 572, "parquet");
 
         StructType outputSchema = new StructType()
             .add("id_col", DataTypes.StringType, false)
+            .add("parameters", DataTypes.StringType, false)
             .add("MeasureAnyColumn|cohort", DataTypes.BooleanType, true);
         List<Row> expectedRows = jsonToRows("src/test/resources/any-column/output/expected.json", outputSchema);
 
@@ -361,15 +604,15 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         Dataset<Row> results = spark.read().format(expectedFormat).load(filename);
         validateColumnNames(results.schema(), columnNames);
 
-        assertEquals(numExpectedRows, results.count());
+        assertEquals("Unexpected number of rows in result", numExpectedRows, results.count());
     }
     
 
     private void validateColumnNames(StructType schema, Set<String> columnNames) {
         for (String field : schema.fieldNames()) {
-            assertTrue(columnNames.contains(field));
+            assertTrue(String.format("Schema contains unexpected field %s", field), columnNames.contains(field));
         }
-        assertEquals(columnNames.size(), schema.fields().length);
+        assertEquals("Unexpected number of columns in schema", columnNames.size(), schema.fields().length);
     }
     
     @Test
@@ -404,14 +647,15 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         validateOutput(
                 context1IdFile.toURI().toString(),
                 Arrays.asList(
-                        RowFactory.create(0, null, null, null, false),
-                        RowFactory.create(1, null, null, null, false),
-                        RowFactory.create(2, 33, "string1", new BigDecimal(9.989), true),
-                        RowFactory.create(3, 22, "string2", new BigDecimal(-2.816), true),
-                        RowFactory.create(4, 22, "string1", new BigDecimal(-4.926), true)
+                        RowFactory.create(0, "{}", null, null, null, false),
+                        RowFactory.create(1, "{}", null, null, null, false),
+                        RowFactory.create(2, "{}", 33, "string1", new BigDecimal(9.989), true),
+                        RowFactory.create(3, "{}", 22, "string2", new BigDecimal(-2.816), true),
+                        RowFactory.create(4, "{}", 22, "string1", new BigDecimal(-4.926), true)
                 ),
                 new StructType()
                         .add("id", DataTypes.IntegerType, false)
+                        .add("parameters", DataTypes.StringType, false)
                         .add("Context1Id|define_integer", DataTypes.IntegerType, true)
                         .add("Context1Id|define_string", DataTypes.StringType, true)
                         // Decimal precision currently hardcoded in QNameToDataTypeConverter
@@ -425,14 +669,15 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 Arrays.asList(
                         // Expected Instants derived from reading the input files and printing out
                         // the datetime column using UTC
-                        RowFactory.create(0, LocalDate.of(2002, 9, 27), Instant.parse("2002-05-31T13:19:08.512Z")),
-                        RowFactory.create(1, LocalDate.of(2002, 3, 10), Instant.parse("2002-05-07T09:19:19.31Z")),
-                        RowFactory.create(2, LocalDate.of(2002, 5, 29), Instant.parse("2002-03-13T13:00:52.859Z")),
-                        RowFactory.create(3, null, null),
-                        RowFactory.create(4, LocalDate.of(2002, 5, 21), Instant.parse("2002-02-17T08:59:43.793Z"))
+                        RowFactory.create(0, "{}", LocalDate.of(2002, 9, 27), Instant.parse("2002-05-31T13:19:08.512Z")),
+                        RowFactory.create(1, "{}", LocalDate.of(2002, 3, 10), Instant.parse("2002-05-07T09:19:19.31Z")),
+                        RowFactory.create(2, "{}", LocalDate.of(2002, 5, 29), Instant.parse("2002-03-13T13:00:52.859Z")),
+                        RowFactory.create(3, "{}", null, null),
+                        RowFactory.create(4, "{}", LocalDate.of(2002, 5, 21), Instant.parse("2002-02-17T08:59:43.793Z"))
                 ),
                 new StructType()
                         .add("id", DataTypes.IntegerType, false)
+                        .add("parameters", DataTypes.StringType, false)
                         .add("Context2Id|define_date", DataTypes.DateType, true)
                         .add("Context2Id|define_datetime", DataTypes.TimestampType, true),
                 "delta"
@@ -443,14 +688,15 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 Arrays.asList(
                         // Expected Instants derived from reading the input files and printing out
                         // the datetime column using UTC
-                        RowFactory.create(0, false),
-                        RowFactory.create(1, false),
-                        RowFactory.create(2, true),
-                        RowFactory.create(3, false),
-                        RowFactory.create(4, true)
+                        RowFactory.create(0, "{}", false),
+                        RowFactory.create(1, "{}", false),
+                        RowFactory.create(2, "{}", true),
+                        RowFactory.create(3, "{}", false),
+                        RowFactory.create(4, "{}", true)
                 ),
                 new StructType()
                         .add("id", DataTypes.IntegerType, false)
+                        .add("parameters", DataTypes.StringType, false)
                         .add("PatientMeasure|cohort", DataTypes.BooleanType, true),
                 "delta"
         );
@@ -484,14 +730,15 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         validateOutput(
                 context1IdFile.toURI().toString(),
                 Arrays.asList(
-                        RowFactory.create(0, null),
-                        RowFactory.create(1, null),
-                        RowFactory.create(2, 33),
-                        RowFactory.create(3, 22),
-                        RowFactory.create(4, 22)
+                        RowFactory.create(0, "{}", null),
+                        RowFactory.create(1, "{}", null),
+                        RowFactory.create(2, "{}", 33),
+                        RowFactory.create(3, "{}", 22),
+                        RowFactory.create(4, "{}", 22)
                 ),
                 new StructType()
                         .add("id", DataTypes.IntegerType, false)
+                        .add("parameters", DataTypes.StringType, false)
                         .add("Context1Id|define_integer", DataTypes.IntegerType, true),
                 "parquet"
         );
@@ -525,14 +772,15 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         validateOutput(
                 context1IdFile.toURI().toString(),
                 Arrays.asList(
-                        RowFactory.create(0, null),
-                        RowFactory.create(1, null),
-                        RowFactory.create(2, 33),
-                        RowFactory.create(3, 22),
-                        RowFactory.create(4, 22)
+                        RowFactory.create(0, "{}", null),
+                        RowFactory.create(1, "{}", null),
+                        RowFactory.create(2, "{}", 33),
+                        RowFactory.create(3, "{}", 22),
+                        RowFactory.create(4, "{}", 22)
                 ),
                 new StructType()
                         .add("id", DataTypes.IntegerType, false)
+                        .add("parameters", DataTypes.StringType, false)
                         .add("Context1Id|define_integer", DataTypes.IntegerType, true),
                 "parquet"
         );
@@ -560,18 +808,33 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
         SparkCqlEvaluator.main(args);
 
+        final String expectedParameters1 = "{\"NumberToCheck\":{\"type\":\"integer\",\"value\":1}}";
+        final String expectedParameters5 = "{\"NumberToCheck\":{\"type\":\"integer\",\"value\":5}}";
+        final String expectedParameters10 = "{\"NumberToCheck\":{\"type\":\"integer\",\"value\":10}}";
 
         validateOutput(
                 patientFile.toURI().toString(),
                 Arrays.asList(
-                        RowFactory.create(0, 5, 10, 1),
-                        RowFactory.create(1, 5, 10, 1),
-                        RowFactory.create(2, 5, 10, 1),
-                        RowFactory.create(3, 5, 10, 1),
-                        RowFactory.create(4, 5, 10, 1)
+                        RowFactory.create(0, expectedParameters5, 5, null, null),
+                        RowFactory.create(0, expectedParameters10, null, 10, null),
+                        RowFactory.create(0, expectedParameters1, null, null, 1),
+                        RowFactory.create(1, expectedParameters5, 5, null, null),
+                        RowFactory.create(1, expectedParameters10, null, 10, null),
+                        RowFactory.create(1, expectedParameters1, null, null, 1),
+                        RowFactory.create(2, expectedParameters5, 5, null, null),
+                        RowFactory.create(2, expectedParameters10, null, 10, null),
+                        RowFactory.create(2, expectedParameters1, null, null, 1),
+                        RowFactory.create(3, expectedParameters5, 5, null, null),
+                        RowFactory.create(3, expectedParameters10, null, 10, null),
+                        RowFactory.create(3, expectedParameters1, null, null, 1),
+                        RowFactory.create(4, expectedParameters5, 5, null, null),
+                        RowFactory.create(4, expectedParameters10, null, 10, null),
+                        RowFactory.create(4, expectedParameters1, null, null, 1)
+                        
                 ),
                 new StructType()
                         .add("id", DataTypes.IntegerType, false)
+                        .add("parameters", DataTypes.StringType, false)
                         .add("all5", DataTypes.IntegerType, true)
                         .add("all10", DataTypes.IntegerType, true)
                         .add("ParameterMeasure|cohort", DataTypes.IntegerType, true),
@@ -588,7 +851,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         List<String> columnList = Arrays.asList(actualDataFrame.columns());
         String[] actualColumns = columnList.toArray(new String[columnList.size()]);
 
-        assertEquals(schema.fields().length, actualColumns.length);
+        assertEquals("Unexpected number of columns", schema.fields().length, actualColumns.length);
 
         // Make sure columns are in the same order in both dataframes
         Dataset<Row> expectedDataFrame = spark.createDataFrame(expectedRows, schema)
