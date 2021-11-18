@@ -10,14 +10,24 @@ import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInA
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import javax.ws.rs.core.HttpHeaders;
 
+import org.hl7.fhir.r4.model.DateTimeType;
+import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Measure;
+import org.hl7.fhir.r4.model.ParameterDefinition;
+import org.hl7.fhir.r4.model.Period;
+import org.hl7.fhir.r4.model.Quantity;
+import org.hl7.fhir.r4.model.Range;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,6 +47,7 @@ import com.ibm.cohort.engine.measure.RestFhirMeasureResolutionProvider;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 
 import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 /**
@@ -322,7 +333,81 @@ public class FHIRRestUtilsTest {
 		assertThat(parameterInfoList, containsInAnyOrder(expectedParamInfo));
 	}
 
-	private Measure createMeasure(String inputString) throws JsonProcessingException {
+	@Test
+	public void testConstructAppropriateJsonRange(){
+		ParameterDefinition definition = new ParameterDefinition();
+		definition.setType("Range");
+		Extension extension = new Extension();
+		extension.setUrl("http://ibm.com/fhir/cdm/StructureDefinition/default-value");
+		Range range = new Range();
+		Quantity lowQuantity = new Quantity();
+		lowQuantity.setUnit("year");
+		lowQuantity.setValue(10);
+		Quantity highQuantity = new Quantity();
+		highQuantity.setUnit("year");
+		highQuantity.setValue(100);
+		range.setLow(lowQuantity);
+		range.setHigh(highQuantity);
+		extension.setValue(range);
+
+		List<Extension> extensions = new ArrayList<>();
+		extensions.add(extension);
+
+		definition.setExtension(extensions);
+		String defaultResult = FHIRRestUtils.complicatedTypeValueConstructor(definition);
+
+		assertEquals("{\"low\":{\"value\":10,\"unit\":\"year\"},\"high\":{\"value\":100,\"unit\":\"year\"}}",defaultResult);
+	}
+
+	@Test
+	public void testConstructAppropriateJsonPeriod(){
+		ParameterDefinition definition = new ParameterDefinition();
+		definition.setType("Period");
+		Extension extension = new Extension();
+		extension.setUrl("http://ibm.com/fhir/cdm/StructureDefinition/default-value");
+		Period period = new Period();
+
+		Date startDate = Date.from(LocalDate.of(2020,1,1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+		DateTimeType startElement = new DateTimeType(startDate, TemporalPrecisionEnum.DAY);
+
+		Date endDate = Date.from(LocalDate.of(2021,1,1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+		DateTimeType endElement = new DateTimeType(endDate, TemporalPrecisionEnum.DAY);
+
+		period.setStartElement(startElement);
+		period.setEndElement(endElement);
+		extension.setValue(period);
+
+		List<Extension> extensions = new ArrayList<>();
+		extensions.add(extension);
+
+		definition.setExtension(extensions);
+
+		String defaultResult = FHIRRestUtils.complicatedTypeValueConstructor(definition);
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		assertEquals("{\"start\":\"" + formatter.format(startDate) + "\",\"end\":\"" + formatter.format(endDate) + "\"}",defaultResult);
+	}
+
+	@Test
+	public void testConstructAppropriateJsonQuantity(){
+		ParameterDefinition definition = new ParameterDefinition();
+		definition.setType("Quantity");
+		Extension extension = new Extension();
+		extension.setUrl("http://ibm.com/fhir/cdm/StructureDefinition/default-value");
+		Quantity quantity = new Quantity();
+		quantity.setUnit("year");
+		quantity.setValue(10);
+		extension.setValue(quantity);
+
+		List<Extension> extensions = new ArrayList<>();
+		extensions.add(extension);
+
+		definition.setExtension(extensions);
+		String defaultResult = FHIRRestUtils.complicatedTypeValueConstructor(definition);
+
+		assertEquals("{\"value\":10,\"unit\":\"year\"}",defaultResult);
+	}
+
+	private Measure createMeasure(String inputString) {
 		// Instantiate a new parser
 		ca.uhn.fhir.parser.IParser parser = ctx.newJsonParser();
 		// Parse it
