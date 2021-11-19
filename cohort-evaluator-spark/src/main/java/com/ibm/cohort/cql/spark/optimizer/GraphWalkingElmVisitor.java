@@ -82,32 +82,27 @@ public class GraphWalkingElmVisitor<R, C> extends ElmBaseLibraryVisitor <R, C> {
     
     @Override
     public R visitExpressionRef(ExpressionRef ref, C context) {
-        R result = defaultResult();
+        R result;
+        
         if( ref instanceof FunctionRef ) {
             result = visitFunctionRef((FunctionRef)ref, context);
         } else {
-            if( ! visited.contains(ref) ) {
-                visited.add(ref);
-                
-                Library library = prepareLibraryVisit(getCurrentLibraryIdentifier(), ref.getLibraryName(), context);
-                try {
-                    // The TranslatedLibrary class that the CqlTranslator produces has this already indexed. If we want to 
-                    // use any ELM without relying on the translator, we need to do the lookup ourselves. It is worth
-                    // considering whether or not we build our own indexing helper instead.
-                    ExpressionDef ed = library.getStatements().getDef().stream().filter( def -> def.getName().equals(ref.getName()) ).findAny().get();
-                    result = visitElement(ed,context);
-                } finally {
-                    unprepareLibraryVisit(ref.getLibraryName());
-                }
-            }
+            result = visitRef(ref, context, defaultResult());
         }
+        
         return result;
     }
-    
+
     @Override
     public R visitFunctionRef(FunctionRef ref, C context) {
         R result = super.visitFunctionRef(ref, context);
-        if( ! visited.contains(ref) ) {
+        
+        return visitRef(ref, context, result);
+    }
+    
+    protected R visitRef(ExpressionRef ref, C context, R defaultResult) {
+    	R result = defaultResult;
+    	if( ! visited.contains(ref) ) {
             visited.add(ref);
             
             Library library = prepareLibraryVisit(getCurrentLibraryIdentifier(), ref.getLibraryName(), context);
@@ -115,8 +110,14 @@ public class GraphWalkingElmVisitor<R, C> extends ElmBaseLibraryVisitor <R, C> {
                 // The TranslatedLibrary class that the CqlTranslator produces has this already indexed. If we want to 
                 // use any ELM without relying on the translator, we need to do the lookup ourselves. It is worth
                 // considering whether or not we build our own indexing helper instead.
-                ExpressionDef ed = library.getStatements().getDef().stream().filter( def -> def.getName().equals(ref.getName()) ).findAny().get();
-                result = visitElement(ed,context);
+            	Optional<ExpressionDef> optionalEd = library.getStatements().getDef().stream().filter( def -> def.getName().equals(ref.getName()) ).findAny();
+            	
+            	if(optionalEd.isPresent()) {
+            		result = visitElement(optionalEd.get(), context);
+            	}
+            	else {
+            		throw new IllegalArgumentException("Could not find definition for reference " + ref.getName());
+            	}
             } finally {
                 unprepareLibraryVisit(ref.getLibraryName());
             }
