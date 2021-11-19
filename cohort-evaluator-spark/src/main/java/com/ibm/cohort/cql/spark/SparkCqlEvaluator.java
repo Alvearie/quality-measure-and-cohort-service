@@ -14,6 +14,7 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -188,7 +189,7 @@ public class SparkCqlEvaluator implements Serializable {
      * 
      * 
      * @return CqlEvaluationRequests object containing requests with optional
-     *         filtering and overrides described in {@link #getFilteredRequests(CqlEvaluationRequests, Map, Set)}.
+     *         filtering and overrides described in {@link #getFilteredRequests(CqlEvaluationRequests, Map, Collection)}.
      *         Each remaining CqlEvaluationRequest is assigned a unique integer id.
      *         
      * @throws Exception if there was an error reading the job specification.
@@ -229,7 +230,7 @@ public class SparkCqlEvaluator implements Serializable {
      *         Individual requests will also will also have any global
      *         parameters set on each individual CqlEvaluationRequest.
      */
-    protected CqlEvaluationRequests getFilteredRequests(CqlEvaluationRequests requests, Map<String, String> libraries, Set<String> expressions) {
+    protected CqlEvaluationRequests getFilteredRequests(CqlEvaluationRequests requests, Map<String, String> libraries, Collection<String> expressions) {
         if (requests != null) {
             List<CqlEvaluationRequest> evaluations = requests.getEvaluations();
             if (libraries != null && !libraries.isEmpty()) {
@@ -275,7 +276,9 @@ public class SparkCqlEvaluator implements Serializable {
         if( args.disableResultGrouping ) {
             result = Collections.emptySet();
         } else {
-            result = args.keyParameterNames;
+            if( args.keyParameterNames != null ) {
+                result = new HashSet<>(args.keyParameterNames);
+            }
         }
         return result;
     }
@@ -299,8 +302,8 @@ public class SparkCqlEvaluator implements Serializable {
             ContextDefinitions contexts = readContextDefinitions(args.contextDefinitionPath);
 
             List<ContextDefinition> filteredContexts = contexts.getContextDefinitions();
-            if (args.aggregations != null && !args.aggregations.isEmpty()) {
-                filteredContexts = filteredContexts.stream().filter(def -> args.aggregations.contains(def.getName()))
+            if (args.aggregationContexts != null && !args.aggregationContexts.isEmpty()) {
+                filteredContexts = filteredContexts.stream().filter(def -> args.aggregationContexts.contains(def.getName()))
                         .collect(Collectors.toList());
             }
             if (filteredContexts.isEmpty()) {
@@ -779,7 +782,7 @@ public class SparkCqlEvaluator implements Serializable {
         );
 
         if (args.outputPartitions != null) {
-        	dataFrame = dataFrame.repartition(args.outputPartitions);
+            dataFrame = dataFrame.repartition(args.outputPartitions);
         }
 
         dataFrame.write()

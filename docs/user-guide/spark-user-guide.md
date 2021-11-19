@@ -16,7 +16,7 @@ The entry point to the Spark application is the `com.ibm.cohort.cql.spark.SparkC
 ```
 Usage: SparkCqlEvaluator [options]
   Options:
-    -a, --aggregation
+    -a, --aggregation-contexts
       One or more context names, as defined in the context-definitions file, 
       that should be run in this evaluation. Defaults to all evaluations.
       Default: []
@@ -41,7 +41,7 @@ Usage: SparkCqlEvaluator [options]
       Disable use of CQL parameters to group context results into separate 
       rows 
       Default: false
-    -e, --expression
+    -e, --expressions
       One or more expression names, as defined in the context-definitions 
       file, that should be run in this evaluation. Defaults to all 
       expressions. 
@@ -64,7 +64,7 @@ Usage: SparkCqlEvaluator [options]
       Default: {}
   * -j, --jobs
       Filesystem path to the CQL job file
-    --key-parameter
+    --key-parameters
       One or more parameter names that should be included in the parameters 
       column for output rows that are generated.
     -l, --library
@@ -221,7 +221,7 @@ The `.contextDefinitions[].name` field is user assigned and will be referenced b
 
 For the initial pilot implementation of the Spark application, join logic is limited to the one-to-many and many-to-many scenarios described above. More complex join logic involving compound primary keys (more than one column required to uniquely identify a record) or related data beyond a single table relationship (with or without an association table in between) are unsupported. These will come in a future release.
 
-If the user wishes to limit which aggregation contexts are evaluated during an application run, there is a program option `-a` that can be specified one or more times that lists the contextKey value for each aggregation context that should be evaluated.
+If the user wishes to limit which aggregation contexts are evaluated during an application run, there is a program option `-a` that can be used to specify one or contextKey values for the aggregation contexts that should be evaluated.
 
 ### CQL and ModelInfo
 CQL files should be stored in a single folder which is indicated by the `-c` program option. Filenames of files contained in that folder should correspond to the library statement and version specified in the contents of the file. For example, a CQL with `library "SampleLibrary" version '1.0.0'` should be named `SampleLibrary-1.0.0.cql` (or SampleLibrary-1.0.0.xml if already translated to ELM).
@@ -337,7 +337,7 @@ For each aggregation context, a separate output table is created. The storage pa
 
 The parameters column contains JSON data representing the CQL parameters that were used in the evaluation of the column results. The format of the JSON data is the same as the parameter data in the jobs file. This column allows the results of a single context evaluation to be split into multiple rows of related columns. For example, an input parameter might be `EndDate` for the logic and the desired result is for there to be a separate record in the output for each CQL context + end date.
 
-Row grouping by parameters is enabled by default or can be disabled using the `--disable-row-grouping` flag. When enabled, all parameter values are used as the grouping key. In the case where there are more CQL parameter values than are needed for the grouping key, the `--key-parameter` program argument can be used to limit which parameter values are used as the grouping key. This parameter can be repeated as many times as needed to define the exact set of parameters needed.
+Row grouping by parameters is enabled by default or can be disabled using the `--disable-row-grouping` flag. When enabled, all parameter values are used as the grouping key. In the case where there are more CQL parameter values than are needed for the grouping key, the `--key-parameters` program argument can be used to limit which parameter values are used as the grouping key. Multiple values can be provided in a comma-separate list or this parameter can be repeated as many times as needed to define the exact set of parameters needed.
 
 For column data, because output is written to single columns and due to the complexity of serializing arbitrarily-shaped data, there is currently a limitation on the data types that may be produced by a CQL expression that will be written to the output table. List data, map/tuple data, domain objects, etc. are not supported. Expressions should return System.Boolean, System.Integer, System.Decimal, System.String, System.Long, System.Date, or System.DateTime data.
 

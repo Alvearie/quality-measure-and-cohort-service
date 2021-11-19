@@ -363,7 +363,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
               "--output-format", "delta",
               "--overwrite-output-for-contexts",
               "--metadata-output-path", outputLocation,
-              "--key-parameter", "MinimumAge"
+              "--key-parameters", "MinimumAge"
             };
     
             SparkCqlEvaluator.main(args);
@@ -497,7 +497,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         args.inputPaths.put("D", new File(inputDir, "testdata/test-D.parquet").toURI().toString());
         args.outputPaths = new HashMap<>();
         args.outputPaths.put("Patient", patientFile.toURI().toString());
-        args.aggregations = Arrays.asList("Patient");
+        args.aggregationContexts = Arrays.asList("Patient");
         args.outputPartitions = 1;
         args.outputFormat = "parquet";
         args.overwriteResults = true;
@@ -507,7 +507,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         evaluator.hadoopConfiguration = new SerializableConfiguration(SparkHadoopUtil.get().conf());
         
         ContextDefinitions cd = evaluator.readContextDefinitions(args.contextDefinitionPath);
-        ContextDefinition c = cd.getContextDefinitionByName(args.aggregations.iterator().next());
+        ContextDefinition c = cd.getContextDefinitionByName(args.aggregationContexts.iterator().next());
         
         spark = initializeSession(Java8API.ENABLED);
         DatasetRetriever retriever = evaluator.getDatasetRetrieverForContext(spark, c);
@@ -534,7 +534,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         args.inputPaths.put("D", new File(inputDir, "testdata/test-D.parquet").toURI().toString());
         args.outputPaths = new HashMap<>();
         args.outputPaths.put("Patient", patientFile.toURI().toString());
-        args.aggregations = Arrays.asList("Patient");
+        args.aggregationContexts = Arrays.asList("Patient");
         args.outputPartitions = 1;
         args.outputFormat = "parquet";
         args.overwriteResults = true;
@@ -544,7 +544,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         evaluator.hadoopConfiguration = new SerializableConfiguration(SparkHadoopUtil.get().conf());
 
         ContextDefinitions cd = evaluator.readContextDefinitions(args.contextDefinitionPath);
-        ContextDefinition c = cd.getContextDefinitionByName(args.aggregations.iterator().next());
+        ContextDefinition c = cd.getContextDefinitionByName(args.aggregationContexts.iterator().next());
         
         spark = initializeSession(Java8API.ENABLED);
         DatasetRetriever retriever = evaluator.getDatasetRetrieverForContext(spark, c);

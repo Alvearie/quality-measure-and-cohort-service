@@ -8,10 +8,8 @@ package com.ibm.cohort.cql.spark;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
@@ -58,16 +56,16 @@ public class SparkCqlEvaluatorArgs implements Serializable {
     public String cqlPath;
 
     @Parameter(names = { "-a",
-            "--aggregation" }, description = "One or more context names, as defined in the context-definitions file, that should be run in this evaluation. Defaults to all evaluations.", required = false)
-    public List<String> aggregations = new ArrayList<>();
+            "--aggregation-contexts" }, description = "One or more context names, as defined in the context-definitions file, that should be run in this evaluation. Defaults to all evaluations.", required = false)
+    public List<String> aggregationContexts = new ArrayList<>();
 
     @DynamicParameter(names = { "-l",
             "--library" }, description = "One or more library=version key-value pair(s), as defined in the jobs file, that describe the libraries that should be run in this evaluation. Defaults to all libraries. Specify multiple libraries by providing a separate option for each library.", required = false)
     public Map<String, String> libraries = new HashMap<>();
 
     @Parameter(names = { "-e",
-            "--expression" }, description = "One or more expression names, as defined in the context-definitions file, that should be run in this evaluation. Defaults to all expressions.", required = false)
-    public Set<String> expressions = new HashSet<>();
+            "--expressions" }, description = "One or more expression names, as defined in the context-definitions file, that should be run in this evaluation. Defaults to all expressions.", required = false)
+    public List<String> expressions = new ArrayList<>();
 
     @Parameter(names = { "-n",
             "--output-partitions" }, description = "Number of partitions to use when storing data", required = false)
@@ -95,6 +93,6 @@ public class SparkCqlEvaluatorArgs implements Serializable {
     @Parameter(names = { "--disable-result-grouping" }, description = "Disable use of CQL parameters to group context results into separate rows", required = false)
     public boolean disableResultGrouping = false;
     
-    @Parameter(names = { "--key-parameter" }, description = "One or more parameter names that should be included in the parameters column for output rows that are generated.", required = false)
-    public Set<String> keyParameterNames;
+    @Parameter(names = { "--key-parameters" }, description = "One or more parameter names that should be included in the parameters column for output rows that are generated.", required = false)
+    public List<String> keyParameterNames = null;
 }
