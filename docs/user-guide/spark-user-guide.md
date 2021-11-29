@@ -221,7 +221,7 @@ The `.contextDefinitions[].name` field is user assigned and will be referenced b
 
 For the initial pilot implementation of the Spark application, join logic is limited to the one-to-many and many-to-many scenarios described above. More complex join logic involving compound primary keys (more than one column required to uniquely identify a record) or related data beyond a single table relationship (with or without an association table in between) are unsupported. These will come in a future release.
 
-If the user wishes to limit which aggregation contexts are evaluated during an application run, there is a program option `-a` that can be used to specify one or contextKey values for the aggregation contexts that should be evaluated.
+If the user wishes to limit which aggregation contexts are evaluated during an application run, there is a program option `-a` that can be used to specify one or more contextKey values for the aggregation contexts that should be evaluated.
 
 ### CQL and ModelInfo
 CQL files should be stored in a single folder which is indicated by the `-c` program option. Filenames of files contained in that folder should correspond to the library statement and version specified in the contents of the file. For example, a CQL with `library "SampleLibrary" version '1.0.0'` should be named `SampleLibrary-1.0.0.cql` (or SampleLibrary-1.0.0.xml if already translated to ELM).
