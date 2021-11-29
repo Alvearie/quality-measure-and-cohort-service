@@ -84,7 +84,7 @@ import com.ibm.cohort.cql.spark.metadata.HadoopPathOutputMetadataWriter;
 import com.ibm.cohort.cql.spark.metadata.OutputMetadataWriter;
 import com.ibm.cohort.cql.spark.metrics.CustomMetricSparkPlugin;
 import com.ibm.cohort.cql.spark.optimizer.DataTypeRequirementsProcessor;
-import com.ibm.cohort.cql.spark.util.CqlEvaluationRequestUtil;
+import com.ibm.cohort.cql.spark.util.EncodedParametersCache;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import com.ibm.cohort.cql.terminology.R4FileSystemFhirTerminologyProvider;
 import com.ibm.cohort.cql.terminology.UnsupportedTerminologyProvider;
@@ -140,6 +140,12 @@ public class SparkCqlEvaluator implements Serializable {
     protected static ThreadLocal<CqlTerminologyProvider> terminologyProvider = new ThreadLocal<>();
 
     protected static ThreadLocal<ExternalFunctionProvider> functionProvider = new ThreadLocal<>();
+    
+    /**
+     * Cache the JSON-encoded value of the request parameters for each request so that 
+     * we don't have to recreate this value for each context evaluation.
+     */
+    protected EncodedParametersCache encodedParametersCache;
 
     /**
      * Auto-detect an output schema for 1 or more contexts using program metadata files
@@ -172,6 +178,9 @@ public class SparkCqlEvaluator implements Serializable {
 
     public SparkCqlEvaluator(SparkCqlEvaluatorArgs args) {
         this.args = args;
+        this.encodedParametersCache = new EncodedParametersCache()
+                .setRowGroupingDisabled(args.disableResultGrouping)
+                .setKeyParameterNames(args.keyParameterNames);
     }
     
     public CqlEvaluationRequests getJobSpecification() throws Exception {
@@ -265,22 +274,10 @@ public class SparkCqlEvaluator implements Serializable {
         SparkOutputColumnEncoder columnEncoder = sparkOutputColumnEncoder.get();
         if (columnEncoder == null) {
             columnEncoder = ConfigurableOutputColumnNameEncoder.create(getFilteredJobSpecificationWithIds()
-                    , getKeyParameterNames(), args.defaultOutputColumnDelimiter);
+                    , encodedParametersCache, args.defaultOutputColumnDelimiter);
             sparkOutputColumnEncoder.set(columnEncoder);
         }
         return columnEncoder;
-    }
-    
-    public Set<String> getKeyParameterNames() {
-        Set<String> result = null;
-        if( args.disableResultGrouping ) {
-            result = Collections.emptySet();
-        } else {
-            if( args.keyParameterNames != null ) {
-                result = new HashSet<>(args.keyParameterNames);
-            }
-        }
-        return result;
     }
     
     public void run(PrintStream out) throws Exception {
@@ -621,7 +618,7 @@ public class SparkCqlEvaluator implements Serializable {
         Map<String,Map<String, Object>> expressionResultsByParameters = new HashMap<>();
         for (CqlEvaluationRequest request : requestsForContext) {
             
-            String parametersJson = CqlEvaluationRequestUtil.getKeyParametersColumnData(request, getKeyParameterNames());
+            String parametersJson = encodedParametersCache.getKeyParametersColumnData(request);
             
             Map<String,Object> expressionResults = expressionResultsByParameters.computeIfAbsent(parametersJson, x -> new HashMap<>());
             for (CqlExpressionConfiguration expression : request.getExpressions()) {

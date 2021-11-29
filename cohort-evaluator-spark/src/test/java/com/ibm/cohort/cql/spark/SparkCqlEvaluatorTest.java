@@ -68,7 +68,6 @@ import com.ibm.cohort.cql.spark.data.FilteredDatasetRetriever;
 import com.ibm.cohort.cql.spark.data.Patient;
 import com.ibm.cohort.cql.spark.metadata.EvaluationSummary;
 import com.ibm.cohort.cql.spark.metadata.HadoopPathOutputMetadataWriter;
-import com.ibm.cohort.cql.spark.util.CqlEvaluationRequestUtil;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.util.EqualsStringMatcher;
 import com.ibm.cohort.cql.util.StringMatcher;
@@ -91,9 +90,6 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         SparkCqlEvaluator.libraryProvider.remove();
         SparkCqlEvaluator.terminologyProvider.remove();
         SparkCqlEvaluator.sparkOutputColumnEncoder.remove();
-        
-        CqlEvaluationRequestUtil.clearCache();
-
     }
 
     /**

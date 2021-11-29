@@ -58,7 +58,7 @@ Usage: SparkCqlEvaluator [options]
       of spark.sql.datasources.default is used.
   * -i, --input-path
       Key-value pair of resource=URI controlling where Spark should read 
-      resources referenced in the context definitions file will be read from. 
+      resources referenced in the context definitions file. 
       Specify multiple files by providing a separate option for each input.
       Syntax: -ikey=value
       Default: {}
@@ -335,10 +335,6 @@ If the user wishes to limit which jobs are evaluated during a specific applicati
 
 For each aggregation context, a separate output table is created. The storage path for the output table is configured using `-o` options as described above. The output table will contain one or more context records per input context ID with a context ID column (sharing the same name as the field in the model definition), a parameters column, and a column for each CQL expression that is evaluated. The default column name for the CQL expression result is `<Library Name>|<Expression Name>`. The pipe delimiter can be changed using the `--default-output-column-delimiter` program option or users can provide their own column name alongside the expression in the `cql-jobs.json` file. An output column name for an expression is defined using the format `{"name": "<Expression Name>", "outputColumn": "<Output Column Name>"}` in the `expressions` list rather than using a plain string for an expression. If more than one column ends up with the same name, a runtime error will be thrown.
 
-The parameters column contains JSON data representing the CQL parameters that were used in the evaluation of the column results. The format of the JSON data is the same as the parameter data in the jobs file. This column allows the results of a single context evaluation to be split into multiple rows of related columns. For example, an input parameter might be `EndDate` for the logic and the desired result is for there to be a separate record in the output for each CQL context + end date.
-
-Row grouping by parameters is enabled by default or can be disabled using the `--disable-row-grouping` flag. When enabled, all parameter values are used as the grouping key. In the case where there are more CQL parameter values than are needed for the grouping key, the `--key-parameters` program argument can be used to limit which parameter values are used as the grouping key. Multiple values can be provided in a comma-separate list or this parameter can be repeated as many times as needed to define the exact set of parameters needed.
-
 For column data, because output is written to single columns and due to the complexity of serializing arbitrarily-shaped data, there is currently a limitation on the data types that may be produced by a CQL expression that will be written to the output table. List data, map/tuple data, domain objects, etc. are not supported. Expressions should return System.Boolean, System.Integer, System.Decimal, System.String, System.Long, System.Date, or System.DateTime data.
 
 The type information for output columns is read directly from the translated CQL (aka Execution Logical Model / ELM) and requires that the `result-types` [option](https://github.com/cqframework/clinical_quality_language/blob/master/Src/java/cql-to-elm/OVERVIEW.md#usage) is passed to the CQL translator during CQL translation. The Spark CQL Evaluator can do CQL translation inline during program execution and automatically sets this option. Users doing their own CQL translation outside the running application must set the option themselves.
@@ -346,6 +342,29 @@ The type information for output columns is read directly from the translated CQL
 By default Spark is configured to disallow overwrites of data files. However, it can be useful for testing purposes to write to the same data path more than one time. If users wish to use overwrite behavior, they can specify the `--overwrite-output-for-contexts` program option.
 
 Depending on a number of factors including the amount of data in the input, how the input data is organized, and how spark parallelism is configured, output tables might end up with a large amount of partitions yielding a large number of output files. In these cases, it might be desirable to compact data prior to writing it to storage. A program option `-n` is provided that, when specified, will cause output data to be compacted into the specified number of partitions.
+
+### Parameters and row grouping
+
+The parameters column in the program output contains JSON data representing the CQL parameters that were used in the evaluation of the column results. The format of the JSON data is the same as the parameter data in the jobs file. This column allows the results of a single context evaluation to be split into multiple rows of related columns. For example, an input parameter might be `EndDate` for the logic and the desired result is for there to be a separate record in the output for each CQL context + end date.
+
+Row grouping by parameters is enabled by default or, if desired, it can be disabled using the `--disable-row-grouping` flag. When enabled, all parameter values are used as the grouping key. In the case where there are more CQL parameter values than are needed for the grouping key, the `--key-parameters` program argument can be used to limit which parameter values are used as the grouping key. Multiple values can be provided in a comma-separate list or this parameter can be repeated as many times as needed to define the exact set of parameters needed.
+
+With row grouping enabled for a job definition that includes two CQL evaluations for the expression `TestExpression` and two distinct parameter values `V1` and `V2` for a single string parameter `P1`, the grouped output would look something like the following.
+
+|contextID|parameters|TestExpression|
+|---------|----------|-------------|
+|1|{ "P1": { type: "string", value: "V1" } }|Result1|
+|1|{ "P1": { type: "string", value: "V2" } }|Result2|
+|...|
+|_n_|{ "P1": { type: "string", value: "V1" } }|Result1|
+|_n_|{ "P1": { type: "string", value: "V2" } }|Result2|
+
+With row grouping disabled, the jobs definition would need to name each output column differently and then you would end up with something like the following output.
+
+|contextID|parameters|TestExpressionV1|TestExpressionV2|
+|---------|----------|-------------|-------------|
+|1|{}|Result1|Result2|
+|_n_|{}|Result1|Result2|
 
 #### Metadata Output
 

@@ -34,7 +34,7 @@ public class SparkCqlEvaluatorArgs implements Serializable {
     public boolean disableColumnFiltering = false;
     
     @DynamicParameter(names = { "-i",
-            "--input-path" }, description = "Key-value pair of resource=URI controlling where Spark should read resources referenced in the context definitions file will be read from. Specify multiple files by providing a separate option for each input.", required = true)
+            "--input-path" }, description = "Key-value pair of resource=URI controlling where Spark should read resources referenced in the context definitions file. Specify multiple files by providing a separate option for each input.", required = true)
     public Map<String, String> inputPaths = new HashMap<>();
 
     @Parameter(names = { "--output-format" }, description = "Spark SQL format identifier for output files. If not provided, the value of spark.sql.datasources.default is used.", required = false)

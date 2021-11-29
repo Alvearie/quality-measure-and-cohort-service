@@ -14,7 +14,7 @@ import java.util.Set;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.evaluation.CqlExpressionConfiguration;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
-import com.ibm.cohort.cql.spark.util.CqlEvaluationRequestUtil;
+import com.ibm.cohort.cql.spark.util.EncodedParametersCache;
 
 /**
  * Calculates output column names for expressions defined in a List of CqlEvaluationRequest objects.
@@ -27,17 +27,17 @@ import com.ibm.cohort.cql.spark.util.CqlEvaluationRequestUtil;
 public class ContextColumnNameEncoder implements SparkOutputColumnEncoder {
     
     public static ContextColumnNameEncoder create(List<CqlEvaluationRequest> contextRequests, String defaultColumnDelimiter) {
-        return create(contextRequests, null, defaultColumnDelimiter);
+        return create(contextRequests, new EncodedParametersCache(), defaultColumnDelimiter);
     }
     
-	public static ContextColumnNameEncoder create(List<CqlEvaluationRequest> contextRequests, Set<String> keyParameterNames, String defaultColumnDelimiter) {
+	public static ContextColumnNameEncoder create(List<CqlEvaluationRequest> contextRequests, EncodedParametersCache paramCache, String defaultColumnDelimiter) {
 		Map<Integer, Map<String, String>> requestToDefineToOutputColumn = new HashMap<>();
 		Map<String, Set<String>> outputColumnNamesByParameters = new HashMap<>();
 		
 		for (CqlEvaluationRequest contextRequest : contextRequests) {
 		    //The global parameters need to be present in the request at this point. They are applied automatically by
 		    //the getFilteredRequestsByContext() method, so we are good, but FYI.
-		    String parametersJson = CqlEvaluationRequestUtil.getKeyParametersColumnData(contextRequest, keyParameterNames);
+		    String parametersJson = paramCache.getKeyParametersColumnData(contextRequest);
 		    Set<String> outputColumnNames = outputColumnNamesByParameters.computeIfAbsent(parametersJson, x -> new HashSet<>());
 
 		    Map<String, String> defineToOutputNameMap = getDefineToOutputNameMap(contextRequest, defaultColumnDelimiter);
