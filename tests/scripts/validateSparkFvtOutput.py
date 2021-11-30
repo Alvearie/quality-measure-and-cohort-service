@@ -13,6 +13,7 @@ os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
 from pyspark.sql import SparkSession
 from pyspark.sql import Row
 from pyspark.sql.types import BooleanType
+from pyspark.sql.types import StringType
 from pyspark.sql.types import IntegerType
 from pyspark.sql.types import StructType
 from pyspark.sql.types import StructField
@@ -45,19 +46,20 @@ def validateDeviceCohortEval():
 	actual_df = spark.read.parquet("spark-cos/fvt-output/Device_cohort")
 
 	expected_data = [
-           Row(1, False),
-           Row(2, True),
-           Row(3, False),
-		   Row(4, False),
-		   Row(5, False),
-		   Row(6, False),
-		   Row(7, False),
-		   Row(8, True),
-		   Row(9, True),
-		   Row(10, True)
+           Row(1, "{}", False),
+           Row(2, "{}", True),
+           Row(3, "{}", False),
+		   Row(4, "{}", False),
+		   Row(5, "{}", False),
+		   Row(6, "{}", False),
+		   Row(7, "{}", False),
+		   Row(8, "{}", True),
+		   Row(9, "{}", True),
+		   Row(10, "{}", True)
 	]
 
 	sch = StructType([StructField("id", IntegerType(), False),\
+		  StructField("parameters", StringType(), False),\
           StructField("DeviceMeasureFVT|cohort", BooleanType(), True)])
 
 	expected_df = spark.createDataFrame(expected_data, sch)
@@ -70,8 +72,8 @@ def validateDeviceCohortEval():
 	actual_df.sort(["id"]).show()
 
     #Do the validation of actual results to expected results
-	exp_to_act_cnt=expected_df.exceptAll(actual_df.select(["id", "DeviceMeasureFVT|cohort"])).count()
-	act_to_exp_cnt=actual_df.exceptAll(expected_df.select(["id", "DeviceMeasureFVT|cohort"])).count()
+	exp_to_act_cnt=expected_df.exceptAll(actual_df.select(["id", "parameters", "DeviceMeasureFVT|cohort"])).count()
+	act_to_exp_cnt=actual_df.exceptAll(expected_df.select(["id", "parameters", "DeviceMeasureFVT|cohort"])).count()
 
 	if((exp_to_act_cnt == 0) and (act_to_exp_cnt == 0)):
 		print("Actual results match the Expected results for the evaluated Device Cohort.")
@@ -91,19 +93,20 @@ def validateObservationCohortEval():
 	actual_df = spark.read.parquet("spark-cos/fvt-output/Observation_cohort")
 
 	expected_data = [
-           Row(1, True),
-           Row(2, False),
-           Row(3, False),
-		   Row(4, False),
-		   Row(5, False),
-		   Row(6, False),
-		   Row(7, False),
-		   Row(8, True),
-		   Row(9, True),
-		   Row(10, False)
+           Row(1, "{}", True),
+           Row(2, "{}", False),
+           Row(3, "{}", False),
+		   Row(4, "{}", False),
+		   Row(5, "{}", False),
+		   Row(6, "{}", False),
+		   Row(7, "{}", False),
+		   Row(8, "{}", True),
+		   Row(9, "{}", True),
+		   Row(10, "{}", False)
 	]
 
 	sch = StructType([StructField("id", IntegerType(), False),\
+		  StructField("parameters", StringType(), False),\
           StructField("Observation_Cohort", BooleanType(), True)])
 
 	expected_df = spark.createDataFrame(expected_data, sch)
@@ -116,8 +119,8 @@ def validateObservationCohortEval():
 	actual_df.sort(["id"]).show()
 
     #Do the validation of actual results to expected results
-	exp_to_act_cnt=expected_df.exceptAll(actual_df.select(["id", "Observation_Cohort"])).count()
-	act_to_exp_cnt=actual_df.exceptAll(expected_df.select(["id", "Observation_Cohort"])).count()
+	exp_to_act_cnt=expected_df.exceptAll(actual_df.select(["id", "parameters", "Observation_Cohort"])).count()
+	act_to_exp_cnt=actual_df.exceptAll(expected_df.select(["id", "parameters", "Observation_Cohort"])).count()
 
 	if((exp_to_act_cnt == 0) and (act_to_exp_cnt == 0)):
 		print("Actual results match the Expected results for the evaluated Observation Cohort.")
@@ -137,12 +140,13 @@ def validatePatientCohortEval():
 	actual_df = spark.read.parquet("spark-cos/fvt-output/Patient_cohort")
 
 	expected_data = [
-           Row(1, False),
-           Row(2, True),
-           Row(3, False)
+           Row(1, "{}", False),
+           Row(2, "{}", True),
+           Row(3, "{}", False)
 	]
 
 	sch = StructType([StructField("id", IntegerType(), False),\
+		  StructField("parameters", StringType(), False),\
           StructField("Patient_Cohort", BooleanType(), True)])
 
 	expected_df = spark.createDataFrame(expected_data, sch)
@@ -155,8 +159,8 @@ def validatePatientCohortEval():
 	actual_df.sort(["id"]).show()
 
     #Do the validation of actual results to expected results
-	exp_to_act_cnt=expected_df.exceptAll(actual_df.select(["id", "Patient_Cohort"])).count()
-	act_to_exp_cnt=actual_df.exceptAll(expected_df.select(["id", "Patient_Cohort"])).count()
+	exp_to_act_cnt=expected_df.exceptAll(actual_df.select(["id", "parameters", "Patient_Cohort"])).count()
+	act_to_exp_cnt=actual_df.exceptAll(expected_df.select(["id", "parameters", "Patient_Cohort"])).count()
 
 	if((exp_to_act_cnt == 0) and (act_to_exp_cnt == 0)):
 		print("Actual results match the Expected results for the evaluated Patient Cohort.")
@@ -176,19 +180,20 @@ def validatePractitionerCohortEval():
 	actual_df = spark.read.parquet("spark-cos/fvt-output/Practitioner_cohort")
 	
 	expected_data = [
-           Row(1, False),
-           Row(2, False),
-           Row(3, True),
-		   Row(4, True),
-		   Row(5, True),
-		   Row(6, True),
-		   Row(7, False),
-		   Row(8, True),
-		   Row(9, True),
-		   Row(10, False)
+           Row(1, "{}", False),
+           Row(2, "{}", False),
+           Row(3, "{}", True),
+		   Row(4, "{}", True),
+		   Row(5, "{}", True),
+		   Row(6, "{}", True),
+		   Row(7, "{}", False),
+		   Row(8, "{}", True),
+		   Row(9, "{}", True),
+		   Row(10, "{}", False)
 	]
 
 	sch = StructType([StructField("id", IntegerType(), False),\
+		  StructField("parameters", StringType(), False),\
           StructField("PractitionerMeasureFVT|cohort", BooleanType(), True)])
 
 	expected_df = spark.createDataFrame(expected_data, sch)
@@ -201,8 +206,8 @@ def validatePractitionerCohortEval():
 	actual_df.sort(["id"]).show()
 
     #Do the validation of actual results to expected results
-	exp_to_act_cnt=expected_df.exceptAll(actual_df.select(["id", "PractitionerMeasureFVT|cohort"])).count()
-	act_to_exp_cnt=actual_df.exceptAll(expected_df.select(["id", "PractitionerMeasureFVT|cohort"])).count()
+	exp_to_act_cnt=expected_df.exceptAll(actual_df.select(["id", "parameters", "PractitionerMeasureFVT|cohort"])).count()
+	act_to_exp_cnt=actual_df.exceptAll(expected_df.select(["id", "parameters", "PractitionerMeasureFVT|cohort"])).count()
 
 	if((exp_to_act_cnt == 0) and (act_to_exp_cnt == 0)):
 		print("Actual results match the Expected results for the evaluated Practitioner Cohort.")
