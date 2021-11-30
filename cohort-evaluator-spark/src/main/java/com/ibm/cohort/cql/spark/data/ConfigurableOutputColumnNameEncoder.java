@@ -12,6 +12,7 @@ import java.util.Map;
 
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
+import com.ibm.cohort.cql.spark.util.EncodedParametersCache;
 
 /**
  * Goal of this class is to parse CqlEvaluationRequests and calculate the output
@@ -27,7 +28,11 @@ import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
  * referenced in the CqlEvaluationRequests object's list of requests.
  */
 public class ConfigurableOutputColumnNameEncoder implements SparkOutputColumnEncoder {
-	public static ConfigurableOutputColumnNameEncoder create(CqlEvaluationRequests evaluationRequests, String defaultNameDelimiter) {
+    public static ConfigurableOutputColumnNameEncoder create(CqlEvaluationRequests evaluationRequests, String defaultNameDelimiter) {
+        return create(evaluationRequests, new EncodedParametersCache(), defaultNameDelimiter);
+    }
+    
+	public static ConfigurableOutputColumnNameEncoder create(CqlEvaluationRequests evaluationRequests, EncodedParametersCache paramCache, String defaultNameDelimiter) {
 		Map<String, List<CqlEvaluationRequest>> requestsByContext = new HashMap<>();
 		
 		// Gather requests by context
@@ -40,7 +45,7 @@ public class ConfigurableOutputColumnNameEncoder implements SparkOutputColumnEnc
 		Map<String, ContextColumnNameEncoder> contextKeyToContextNameEncoder = new HashMap<>();
 
 		for (String contextKey : requestsByContext.keySet()) {
-			ContextColumnNameEncoder nameEncoder = ContextColumnNameEncoder.create(requestsByContext.get(contextKey), defaultNameDelimiter);
+			ContextColumnNameEncoder nameEncoder = ContextColumnNameEncoder.create(requestsByContext.get(contextKey), paramCache, defaultNameDelimiter);
 			contextKeyToContextNameEncoder.put(contextKey, nameEncoder);
 		}
 
