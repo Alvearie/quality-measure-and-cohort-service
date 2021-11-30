@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.apache.spark.sql.types.DataType;
+import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.cqframework.cql.cql2elm.ModelManager;
@@ -70,11 +71,14 @@ import scala.Tuple2;
  *  null result types.
  */
 public class SparkSchemaCreator {
+    public static final String DEFAULT_PARAMETERS_COLUMN_NAME = "parameters";
+    
 	private CqlLibraryProvider libraryProvider;
 	private CqlEvaluationRequests requests;
 	private ContextDefinitions contextDefinitions;
 	private SparkOutputColumnEncoder sparkOutputColumnEncoder;
 	private CqlToElmTranslator translator;
+    private String parametersColumnName = DEFAULT_PARAMETERS_COLUMN_NAME;
 
 	public SparkSchemaCreator(CqlLibraryProvider libraryProvider, CqlEvaluationRequests requests, ContextDefinitions contextDefinitions, SparkOutputColumnEncoder sparkOutputColumnEncoder, CqlToElmTranslator translator) {
 		this.libraryProvider = libraryProvider;
@@ -143,14 +147,21 @@ public class SparkSchemaCreator {
 					throw new IllegalArgumentException("Expression " + expression + " has a null result type: "
 															   + descriptor.getLibraryId() + "-" + descriptor.getVersion());
 				}
-				resultsSchema = resultsSchema.add(sparkOutputColumnEncoder.getColumnName(filteredRequest, expression), QNameToDataTypeConverter.getFieldType(resultTypeName), true);
+				
+				// The column name encoder already performed duplicate checking. We just need to make sure 
+				// we add each uniquely named column to the output one time.
+				String columnName = sparkOutputColumnEncoder.getColumnName(filteredRequest, expression);
+				if( resultsSchema.getFieldIndex(columnName).isEmpty() ) {
+				    resultsSchema = resultsSchema.add(columnName, QNameToDataTypeConverter.getFieldType(resultTypeName), true);
+				}
 			}
 		}
 
 		if (resultsSchema.fields().length > 0) {
 			Tuple2<String, DataType> keyInformation = getDataTypeForContextKey(contextName, usingInfo);
 			StructType fullSchema = new StructType()
-					.add(keyInformation._1(), keyInformation._2(), false);
+					.add(keyInformation._1(), keyInformation._2(), false)
+					.add(getParametersColumnName(), DataTypes.StringType, false);
 
 			for (StructField field : resultsSchema.fields()) {
 				fullSchema = fullSchema.add(field);
@@ -223,6 +234,14 @@ public class SparkSchemaCreator {
 		}
 		return new Tuple2<>(contextDefinition.getPrimaryKeyColumn(), keyType);
 	}
+	
+	public String getParametersColumnName() {
+	    return this.parametersColumnName;
+	}
+	
+	public void setParametersColumnName(String parametersColumnName) {
+        this.parametersColumnName = parametersColumnName;
+    }
 	
 	private DataType getSparkTypeForSystemValue(String elementType) {
 		DataType dataType = null;
