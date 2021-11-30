@@ -21,6 +21,7 @@ public abstract class Join {
     private String primaryDataTypeColumn;
     private String relatedDataType;
     private String relatedKeyColumn;
+    private String whereClause;
     private int minRows = 0;
     private int maxRows = -1;
     
@@ -55,6 +56,12 @@ public abstract class Join {
     public void setMaxRows(int maxRows) {
         this.maxRows = maxRows;
     }
+    public String getWhereClause() {
+        return whereClause;
+    }
+    public void setWhereClause(String whereClause) {
+        this.whereClause = whereClause;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -70,6 +77,7 @@ public abstract class Join {
                 .append(primaryDataTypeColumn, join.primaryDataTypeColumn)
                 .append(relatedDataType, join.relatedDataType)
                 .append(relatedKeyColumn, join.relatedKeyColumn)
+                .append(whereClause, join.whereClause)
                 .isEquals();
     }
 
@@ -81,6 +89,7 @@ public abstract class Join {
                 .append(relatedKeyColumn)
                 .append(minRows)
                 .append(maxRows)
+                .append(whereClause)
                 .toHashCode();
     }
 }

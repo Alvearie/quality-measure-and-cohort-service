@@ -18,7 +18,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +61,6 @@ import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.cql.functions.AnyColumnFunctions;
 import com.ibm.cohort.cql.functions.CohortExternalFunctionProvider;
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
-import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.library.HadoopBasedCqlLibraryProvider;
@@ -70,12 +68,9 @@ import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.aggregation.ContextRetriever;
-import com.ibm.cohort.cql.spark.aggregation.Join;
-import com.ibm.cohort.cql.spark.aggregation.ManyToMany;
+import com.ibm.cohort.cql.spark.context.ColumnRuleCreator;
 import com.ibm.cohort.cql.spark.data.ConfigurableOutputColumnNameEncoder;
-import com.ibm.cohort.cql.spark.data.DatasetRetriever;
 import com.ibm.cohort.cql.spark.data.DefaultDatasetRetriever;
-import com.ibm.cohort.cql.spark.data.FilteredDatasetRetriever;
 import com.ibm.cohort.cql.spark.data.SparkDataRow;
 import com.ibm.cohort.cql.spark.data.SparkOutputColumnEncoder;
 import com.ibm.cohort.cql.spark.data.SparkSchemaCreator;
@@ -85,16 +80,13 @@ import com.ibm.cohort.cql.spark.metadata.EvaluationSummary;
 import com.ibm.cohort.cql.spark.metadata.HadoopPathOutputMetadataWriter;
 import com.ibm.cohort.cql.spark.metadata.OutputMetadataWriter;
 import com.ibm.cohort.cql.spark.metrics.CustomMetricSparkPlugin;
-import com.ibm.cohort.cql.spark.optimizer.DataTypeRequirementsProcessor;
 import com.ibm.cohort.cql.spark.util.EncodedParametersCache;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import com.ibm.cohort.cql.terminology.R4FileSystemFhirTerminologyProvider;
 import com.ibm.cohort.cql.terminology.UnsupportedTerminologyProvider;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
-import com.ibm.cohort.cql.util.EqualsStringMatcher;
 import com.ibm.cohort.cql.util.MapUtils;
-import com.ibm.cohort.cql.util.StringMatcher;
 import com.ibm.cohort.datarow.engine.DataRowDataProvider;
 import com.ibm.cohort.datarow.engine.DataRowRetrieveProvider;
 import com.ibm.cohort.datarow.model.DataRow;
@@ -331,11 +323,20 @@ public class SparkCqlEvaluator implements Serializable {
             CustomMetricSparkPlugin.totalContextsToProcessCounter.inc(filteredContexts.size());
             CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(0);
 
+            ColumnRuleCreator columnRuleCreator = new ColumnRuleCreator(
+                    getFilteredJobSpecificationWithIds().getEvaluations(),
+                    getCqlTranslator(),
+                    createLibraryProvider()
+            );
+
             for (ContextDefinition context : filteredContexts) {
                 final String contextName = context.getName();
                 
-                DatasetRetriever datasetRetriever = getDatasetRetrieverForContext(spark, context); 
-                ContextRetriever contextRetriever = new ContextRetriever(args.inputPaths, datasetRetriever);
+                ContextRetriever contextRetriever = new ContextRetriever(
+                        args.inputPaths,
+                        new DefaultDatasetRetriever(spark, args.inputFormat),
+                        columnRuleCreator.getColumnRulesForContexts(context, args.disableColumnFiltering)
+                );
 
                 StructType resultsSchema = resultSchemas.get(contextName);
                 
@@ -402,77 +403,7 @@ public class SparkCqlEvaluator implements Serializable {
         }
     }
 
-    public DatasetRetriever getDatasetRetrieverForContext(SparkSession spark, ContextDefinition context) throws Exception {
-        DatasetRetriever defaultDatasetRetriever = new DefaultDatasetRetriever(spark, args.inputFormat);
-        DatasetRetriever datasetRetriever = defaultDatasetRetriever;
-        if( ! args.disableColumnFiltering ) {
-            Map<String, Set<StringMatcher>> pathsByDataType = getDataRequirementsForContext(context);
-            datasetRetriever = new FilteredDatasetRetriever(defaultDatasetRetriever, pathsByDataType);
-        }
-        return datasetRetriever;
-    }
-
-    /**
-     * Retrieve the merged set of data type and column filters for all CQL jobs that will
-     * be evaluated for a given aggregation context.
-     * 
-     * @param context ContextDefinition whose CQL jobs will be interrogated for data requirements
-     * @return Map of data type to the fields in that datatype that are used by the CQL jobs
-     * @throws Exception any failure
-     */
-    protected Map<String, Set<StringMatcher>> getDataRequirementsForContext(ContextDefinition context)
-            throws Exception {
-        
-        List<CqlEvaluationRequest> requests = getFilteredJobSpecificationWithIds().getEvaluations();
-        
-        Map<CqlLibraryDescriptor,Set<String>> expressionsByLibrary = new HashMap<>();
-        for( CqlEvaluationRequest request : requests ) {
-            Set<String> expressions = expressionsByLibrary.computeIfAbsent( request.getDescriptor(), desc -> new HashSet<>() );
-            request.getExpressions().stream().forEach( exp -> expressions.add(exp.getName()) );
-        }
-        
-        CqlToElmTranslator cqlTranslator = getCqlTranslator();
-        CqlLibraryProvider libraryProvider = createLibraryProvider();
-        DataTypeRequirementsProcessor requirementsProcessor = new DataTypeRequirementsProcessor(cqlTranslator);
-        
-        Map<String,Set<StringMatcher>> pathsByDataType = new HashMap<>();
-        for( Map.Entry<CqlLibraryDescriptor, Set<String>> entry : expressionsByLibrary.entrySet() ) {
-            LOG.debug("Extracting data requirements for {}", entry.getKey());
-            
-            DataTypeRequirementsProcessor.DataTypeRequirements requirements = requirementsProcessor.getDataRequirements(libraryProvider, entry.getKey(), entry.getValue());            
-
-            Map<String,Set<StringMatcher>> newPaths = requirements.allAsStringMatcher();
-            
-            newPaths.forEach( (key,value) -> {
-                pathsByDataType.merge(key, value, (prev,current) -> { prev.addAll(current); return prev; } );
-            });
-        }
-        
-        Set<StringMatcher> contextFields = pathsByDataType.computeIfAbsent(context.getPrimaryDataType(), dt -> new HashSet<>() );
-        contextFields.add(new EqualsStringMatcher(context.getPrimaryKeyColumn()));
-        if( context.getRelationships() != null ) {
-            for( Join join : context.getRelationships() ) {
-                Set<StringMatcher> joinFields = pathsByDataType.get(join.getRelatedDataType());
-                if( joinFields != null ) {
-                    joinFields.add(new EqualsStringMatcher(join.getRelatedKeyColumn()));
-                    
-                    // if the join key is not the primary key of the primary data table, then we need to add in the alternate key
-                    if( join.getPrimaryDataTypeColumn() != null ) {
-                        contextFields.add(new EqualsStringMatcher(join.getPrimaryDataTypeColumn()));
-                    }
-                    
-                    if( join instanceof ManyToMany ) {
-                        ManyToMany manyToMany = (ManyToMany) join;
-                        Set<StringMatcher> associationFields = pathsByDataType.computeIfAbsent(manyToMany.getAssociationDataType(), dt -> new HashSet<>());
-                        associationFields.add(new EqualsStringMatcher(manyToMany.getAssociationOneKeyColumn()));
-                        associationFields.add(new EqualsStringMatcher(manyToMany.getAssociationManyKeyColumn()));
-                    }
-                }
-            }
-        }
-        
-        return pathsByDataType;
-    }
+ 
 
     /**
      * Deserialize ContextDefinitions from JSON file.

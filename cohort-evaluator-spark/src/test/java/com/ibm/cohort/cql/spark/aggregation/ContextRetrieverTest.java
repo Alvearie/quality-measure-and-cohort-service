@@ -53,11 +53,13 @@ public class ContextRetrieverTest extends BaseSparkTest {
     private static final String INDIRECT_RELATED_KEY_COLUMN = "indirectRelatedKeyColumn";
     private static final String INDIRECT_RELATED_DATA_COLUMN = "indirectRelatedDataColumn";
     private static final String INDIRECT_RELATED_PATH = "indirectRelatedPath";
+    private static final String INDIRECT_RELATED_FILTER_COLUMN = "indirectRelatedFilterColumn";
 
     // The related table in a one to many join
     private static final String DIRECT_RELATED_DATA_TYPE = "directRelatedDataType";
     private static final String DIRECT_RELATED_KEY_COLUMN = "directRelatedKeyColumn";
     private static final String DIRECT_RELATED_DATA_COLUMN = "directRelatedDataColumn";
+    private static final String DIRECT_RELATED_FILTER_COLUMN = "directRelatedFilterColumn";
     private static final String DIRECT_RELATED_PATH = "directRelatedPath";
     
     private static SparkSession spark;
@@ -90,9 +92,24 @@ public class ContextRetrieverTest extends BaseSparkTest {
             DataTypes.createStructField(DIRECT_RELATED_KEY_COLUMN, DataTypes.IntegerType, false),
             DataTypes.createStructField(DIRECT_RELATED_DATA_COLUMN, DataTypes.StringType, false)
     ));
+
+    private final StructType directRelatedInputSchemaWithFilterColumn = DataTypes.createStructType(Arrays.asList(
+            DataTypes.createStructField(DIRECT_RELATED_KEY_COLUMN, DataTypes.IntegerType, false),
+            DataTypes.createStructField(DIRECT_RELATED_DATA_COLUMN, DataTypes.StringType, false),
+            DataTypes.createStructField(DIRECT_RELATED_FILTER_COLUMN, DataTypes.StringType, false)
+    ));
+    
     private final StructType directRelatedOutputSchema = DataTypes.createStructType(Arrays.asList(
             DataTypes.createStructField(DIRECT_RELATED_KEY_COLUMN, DataTypes.IntegerType, false),
             DataTypes.createStructField(DIRECT_RELATED_DATA_COLUMN, DataTypes.StringType, false),
+            DataTypes.createStructField(ContextRetriever.SOURCE_FACT_IDX, DataTypes.StringType, false),
+            DataTypes.createStructField(ContextRetriever.JOIN_CONTEXT_VALUE_IDX, DataTypes.IntegerType, false)
+    ));
+
+    private final StructType directRelatedOutputSchemaWithFilterColumn = DataTypes.createStructType(Arrays.asList(
+            DataTypes.createStructField(DIRECT_RELATED_KEY_COLUMN, DataTypes.IntegerType, false),
+            DataTypes.createStructField(DIRECT_RELATED_DATA_COLUMN, DataTypes.StringType, false),
+            DataTypes.createStructField(DIRECT_RELATED_FILTER_COLUMN, DataTypes.StringType, false),
             DataTypes.createStructField(ContextRetriever.SOURCE_FACT_IDX, DataTypes.StringType, false),
             DataTypes.createStructField(ContextRetriever.JOIN_CONTEXT_VALUE_IDX, DataTypes.IntegerType, false)
     ));
@@ -106,9 +123,24 @@ public class ContextRetrieverTest extends BaseSparkTest {
             DataTypes.createStructField(INDIRECT_RELATED_KEY_COLUMN, DataTypes.IntegerType, false),
             DataTypes.createStructField(INDIRECT_RELATED_DATA_COLUMN, DataTypes.StringType, false)
     ));
+
+    private final StructType indirectRelatedInputSchemaWithFilterColumn = DataTypes.createStructType(Arrays.asList(
+            DataTypes.createStructField(INDIRECT_RELATED_KEY_COLUMN, DataTypes.IntegerType, false),
+            DataTypes.createStructField(INDIRECT_RELATED_DATA_COLUMN, DataTypes.StringType, false),
+            DataTypes.createStructField(INDIRECT_RELATED_FILTER_COLUMN, DataTypes.StringType, false)
+    ));
+
     private final StructType indirectRelatedOutputSchema = DataTypes.createStructType(Arrays.asList(
             DataTypes.createStructField(INDIRECT_RELATED_KEY_COLUMN, DataTypes.IntegerType, false),
             DataTypes.createStructField(INDIRECT_RELATED_DATA_COLUMN, DataTypes.StringType, false),
+            DataTypes.createStructField(ContextRetriever.SOURCE_FACT_IDX, DataTypes.StringType, false),
+            DataTypes.createStructField(ContextRetriever.JOIN_CONTEXT_VALUE_IDX, DataTypes.IntegerType, false)
+    ));
+
+    private final StructType indirectRelatedOutputSchemaWithFilterColumn = DataTypes.createStructType(Arrays.asList(
+            DataTypes.createStructField(INDIRECT_RELATED_KEY_COLUMN, DataTypes.IntegerType, false),
+            DataTypes.createStructField(INDIRECT_RELATED_DATA_COLUMN, DataTypes.StringType, false),
+            DataTypes.createStructField(INDIRECT_RELATED_FILTER_COLUMN, DataTypes.StringType, false),
             DataTypes.createStructField(ContextRetriever.SOURCE_FACT_IDX, DataTypes.StringType, false),
             DataTypes.createStructField(ContextRetriever.JOIN_CONTEXT_VALUE_IDX, DataTypes.IntegerType, false)
     ));
@@ -146,7 +178,7 @@ public class ContextRetrieverTest extends BaseSparkTest {
         datasets.put(PRIMARY_PATH, primaryDataset);
 
         DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
-        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever);
+        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
 
         ContextDefinition contextDefinition = newContextDefinition(
                 PRIMARY_NAME,
@@ -194,7 +226,7 @@ public class ContextRetrieverTest extends BaseSparkTest {
         datasets.put(DIRECT_RELATED_PATH, directRelatedDataset);
 
         DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
-        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever);
+        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
 
         ContextDefinition contextDefinition = newContextDefinition(
                 PRIMARY_NAME,
@@ -220,6 +252,137 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 new Tuple2<>(3, Arrays.asList(
                         newRow(primaryOutputSchema, 3, 3, "primary3", PRIMARY_DATA_TYPE),
                         newRow(directRelatedOutputSchema, 3, "direct31", DIRECT_RELATED_DATA_TYPE, 3)
+                )),
+                new Tuple2<>(4, Arrays.asList(
+                        newRow(primaryOutputSchema, 4, 4, "primary4", PRIMARY_DATA_TYPE)
+                ))
+        );
+
+        assertOutput(expected, actual);
+    }
+
+    @Test
+    public void retrieveContext_oneToManyJoinWithFilteringInPrimaryTable() {
+        Dataset<Row> primaryDataset = newDataset(
+                primaryInputSchema,
+                RowFactory.create(1, 0, "primary1"),
+                RowFactory.create(2, 0, "primary2"),
+                RowFactory.create(3, 1, "primary3"),
+                RowFactory.create(4, 1, "primary4")
+        );
+
+        Dataset<Row> directRelatedDataset = newDataset(
+                directRelatedInputSchema,
+                RowFactory.create(1, "direct11"),
+                RowFactory.create(1, "direct12"),
+                RowFactory.create(1, "direct13"),
+                RowFactory.create(2, "direct21"),
+                RowFactory.create(2, "direct22"),
+                RowFactory.create(3, "direct31"),
+                RowFactory.create(98, "unrelated1"),
+                RowFactory.create(99, "unrelated2")
+        );
+
+        Map<String, Dataset<Row>> datasets = new HashMap<>();
+        datasets.put(PRIMARY_PATH, primaryDataset);
+        datasets.put(DIRECT_RELATED_PATH, directRelatedDataset);
+
+        DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
+        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
+
+        OneToMany join = newOneToMany(
+                null,
+                DIRECT_RELATED_DATA_TYPE,
+                DIRECT_RELATED_KEY_COLUMN,
+                PRIMARY_ALT_KEY_COLUMN + " = 1"
+        );
+
+        ContextDefinition contextDefinition = newContextDefinition(
+                PRIMARY_NAME,
+                PRIMARY_DATA_TYPE,
+                PRIMARY_KEY_COLUMN,
+                Collections.singletonList(join)
+        );
+
+        List<Tuple2<Object, List<Row>>> actual = contextRetriever.retrieveContext(contextDefinition).collect();
+
+        List<Tuple2<Object, List<Row>>> expected = Arrays.asList(
+                new Tuple2<>(1, Arrays.asList(
+                        newRow(primaryOutputSchema, 1, 0, "primary1", PRIMARY_DATA_TYPE)
+                )),
+                new Tuple2<>(2, Arrays.asList(
+                        newRow(primaryOutputSchema, 2, 0, "primary2", PRIMARY_DATA_TYPE)
+                )),
+                new Tuple2<>(3, Arrays.asList(
+                        newRow(primaryOutputSchema, 3, 1, "primary3", PRIMARY_DATA_TYPE),
+                        newRow(directRelatedOutputSchema, 3, "direct31", DIRECT_RELATED_DATA_TYPE, 3)
+                )),
+                new Tuple2<>(4, Arrays.asList(
+                        newRow(primaryOutputSchema, 4, 1, "primary4", PRIMARY_DATA_TYPE)
+                ))
+        );
+
+        assertOutput(expected, actual);
+    }
+
+    @Test
+    public void retrieveContext_oneToManyJoinWithFilteringRelatedTable() {
+        Dataset<Row> primaryDataset = newDataset(
+                primaryInputSchema,
+                RowFactory.create(1, 1, "primary1"),
+                RowFactory.create(2, 2, "primary2"),
+                RowFactory.create(3, 3, "primary3"),
+                RowFactory.create(4, 4, "primary4")
+        );
+
+        Dataset<Row> directRelatedDataset = newDataset(
+                directRelatedInputSchemaWithFilterColumn,
+                RowFactory.create(1, "direct11", "valid"),
+                RowFactory.create(1, "direct12", "valid"),
+                RowFactory.create(1, "direct13", "other"),
+                RowFactory.create(2, "direct21", "valid"),
+                RowFactory.create(2, "direct22", "other"),
+                RowFactory.create(3, "direct31", "valid"),
+                RowFactory.create(98, "unrelated1", "valid"),
+                RowFactory.create(99, "unrelated2", "valid")
+        );
+
+        Map<String, Dataset<Row>> datasets = new HashMap<>();
+        datasets.put(PRIMARY_PATH, primaryDataset);
+        datasets.put(DIRECT_RELATED_PATH, directRelatedDataset);
+
+        DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
+        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
+
+        Join join = newOneToMany(
+                null,
+                DIRECT_RELATED_DATA_TYPE,
+                DIRECT_RELATED_KEY_COLUMN,
+                DIRECT_RELATED_FILTER_COLUMN + " = 'valid'"
+        );
+
+        ContextDefinition contextDefinition = newContextDefinition(
+                PRIMARY_NAME,
+                PRIMARY_DATA_TYPE,
+                PRIMARY_KEY_COLUMN,
+                Collections.singletonList(join)
+        );
+
+        List<Tuple2<Object, List<Row>>> actual = contextRetriever.retrieveContext(contextDefinition).collect();
+
+        List<Tuple2<Object, List<Row>>> expected = Arrays.asList(
+                new Tuple2<>(1, Arrays.asList(
+                        newRow(primaryOutputSchema, 1, 1, "primary1", PRIMARY_DATA_TYPE),
+                        newRow(directRelatedOutputSchemaWithFilterColumn, 1, "direct11", "valid", DIRECT_RELATED_DATA_TYPE, 1),
+                        newRow(directRelatedOutputSchemaWithFilterColumn, 1, "direct12", "valid", DIRECT_RELATED_DATA_TYPE, 1)
+                )),
+                new Tuple2<>(2, Arrays.asList(
+                        newRow(primaryOutputSchema, 2, 2, "primary2", PRIMARY_DATA_TYPE),
+                        newRow(directRelatedOutputSchemaWithFilterColumn, 2, "direct21", "valid", DIRECT_RELATED_DATA_TYPE, 2)
+                )),
+                new Tuple2<>(3, Arrays.asList(
+                        newRow(primaryOutputSchema, 3, 3, "primary3", PRIMARY_DATA_TYPE),
+                        newRow(directRelatedOutputSchemaWithFilterColumn, 3, "direct31", "valid", DIRECT_RELATED_DATA_TYPE, 3)
                 )),
                 new Tuple2<>(4, Arrays.asList(
                         newRow(primaryOutputSchema, 4, 4, "primary4", PRIMARY_DATA_TYPE)
@@ -256,7 +419,7 @@ public class ContextRetrieverTest extends BaseSparkTest {
         datasets.put(DIRECT_RELATED_PATH, directRelatedDataset);
 
         DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
-        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever);
+        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
 
         ContextDefinition contextDefinition = newContextDefinition(
                 PRIMARY_NAME,
@@ -336,7 +499,7 @@ public class ContextRetrieverTest extends BaseSparkTest {
         datasets.put(INDIRECT_RELATED_PATH, indirectRelatedDataset);
 
         DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
-        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever);
+        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
 
         ContextDefinition contextDefinition = newContextDefinition(
                 PRIMARY_NAME,
@@ -366,6 +529,88 @@ public class ContextRetrieverTest extends BaseSparkTest {
                         newRow(indirectRelatedOutputSchema, 41, "indirect41", INDIRECT_RELATED_DATA_TYPE, 4),
                         newRow(indirectRelatedOutputSchema, 42, "indirect42", INDIRECT_RELATED_DATA_TYPE, 4),
                         newRow(indirectRelatedOutputSchema, 43, "indirect43", INDIRECT_RELATED_DATA_TYPE, 4)
+                ))
+        );
+
+        assertOutput(expected, actual);
+    }
+
+    @Test
+    public void retrieveContext_manyToManyJoinWithFilter() {
+        Dataset<Row> primaryDataset = newDataset(
+                primaryInputSchema,
+                RowFactory.create(1, 1, "primary1"),
+                RowFactory.create(2, 2, "primary2"),
+                RowFactory.create(3, 3, "primary3"),
+                RowFactory.create(4, 4, "primary4")
+        );
+
+        Dataset<Row> assocDataset = newDataset(
+                assocInputSchema,
+                RowFactory.create(2, 21),
+                RowFactory.create(3, 31),
+                RowFactory.create(3, 32),
+                RowFactory.create(4, 32),
+                RowFactory.create(4, 41),
+                RowFactory.create(4, 42),
+                RowFactory.create(4, 43),
+                RowFactory.create(98, 198),
+                RowFactory.create(99, 199)
+        );
+
+        Dataset<Row> indirectRelatedDataset = newDataset(
+                indirectRelatedInputSchemaWithFilterColumn,
+                RowFactory.create(21, "indirect21", "valid"),
+                RowFactory.create(31, "indirect31", "other"),
+                RowFactory.create(32, "indirect32", "other"),
+                RowFactory.create(41, "indirect41", "other"),
+                RowFactory.create(42, "indirect42", "other"),
+                RowFactory.create(43, "indirect43", "valid"),
+                RowFactory.create(198, "unrelated1", "valid"),
+                RowFactory.create(199, "unrelated2", "valid")
+        );
+
+        Map<String, Dataset<Row>> datasets = new HashMap<>();
+        datasets.put(PRIMARY_PATH, primaryDataset);
+        datasets.put(ASSOC_PATH, assocDataset);
+        datasets.put(INDIRECT_RELATED_PATH, indirectRelatedDataset);
+
+        DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
+        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
+
+        Join join = newManyToMany(
+                null,
+                INDIRECT_RELATED_DATA_TYPE,
+                INDIRECT_RELATED_KEY_COLUMN,
+                ASSOC_DATA_TYPE,
+                ASSOC_LEFT_COLUMN,
+                ASSOC_RIGHT_COLUMN,
+                INDIRECT_RELATED_FILTER_COLUMN + " = 'valid'"
+        );
+        
+        ContextDefinition contextDefinition = newContextDefinition(
+                PRIMARY_NAME,
+                PRIMARY_DATA_TYPE,
+                PRIMARY_KEY_COLUMN,
+                Collections.singletonList(join)
+        );
+
+        List<Tuple2<Object, List<Row>>> actual = contextRetriever.retrieveContext(contextDefinition).collect();
+
+        List<Tuple2<Object, List<Row>>> expected = Arrays.asList(
+                new Tuple2<>(1, Arrays.asList(
+                        newRow(primaryOutputSchema, 1, 1, "primary1", PRIMARY_DATA_TYPE)
+                )),
+                new Tuple2<>(2, Arrays.asList(
+                        newRow(primaryOutputSchema, 2, 2, "primary2", PRIMARY_DATA_TYPE),
+                        newRow(indirectRelatedOutputSchemaWithFilterColumn, 21, "indirect21", "valid", INDIRECT_RELATED_DATA_TYPE, 2)
+                )),
+                new Tuple2<>(3, Arrays.asList(
+                        newRow(primaryOutputSchema, 3, 3, "primary3", PRIMARY_DATA_TYPE)
+                )),
+                new Tuple2<>(4, Arrays.asList(
+                        newRow(primaryOutputSchema, 4, 4, "primary4", PRIMARY_DATA_TYPE),
+                        newRow(indirectRelatedOutputSchemaWithFilterColumn, 43, "indirect43", "valid", INDIRECT_RELATED_DATA_TYPE, 4)
                 ))
         );
 
@@ -427,7 +672,7 @@ public class ContextRetrieverTest extends BaseSparkTest {
         datasets.put(INDIRECT_RELATED_PATH, indirectRelatedDataset);
 
         DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
-        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever);
+        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
 
         ContextDefinition contextDefinition = newContextDefinition(
                 PRIMARY_NAME,
@@ -488,7 +733,7 @@ public class ContextRetrieverTest extends BaseSparkTest {
         datasets.put(DIRECT_RELATED_PATH, directRelatedDataset);
 
         DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
-        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever);
+        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
 
         Join customJoin = new Join() { };
         customJoin.setRelatedDataType(DIRECT_RELATED_DATA_TYPE);
@@ -513,7 +758,7 @@ public class ContextRetrieverTest extends BaseSparkTest {
         Map<String, Dataset<Row>> noDatasets = Collections.emptyMap();
 
         DatasetRetriever datasetRetriever = new TestDatasetRetriever(noDatasets);
-        ContextRetriever contextRetriever = new ContextRetriever(noPaths, datasetRetriever);
+        ContextRetriever contextRetriever = new ContextRetriever(noPaths, datasetRetriever, null);
 
         ContextDefinition contextDefinition = newContextDefinition(
                 PRIMARY_NAME,
@@ -575,11 +820,16 @@ public class ContextRetrieverTest extends BaseSparkTest {
     }
 
     private OneToMany newOneToMany(String primaryColumn, String relatedDataType, String relatedColumn) {
+        return newOneToMany(primaryColumn, relatedDataType, relatedColumn, null);
+    }
+
+    private OneToMany newOneToMany(String primaryColumn, String relatedDataType, String relatedColumn, String whereClause) {
         OneToMany retVal = new OneToMany();
 
         retVal.setPrimaryDataTypeColumn(primaryColumn);
         retVal.setRelatedDataType(relatedDataType);
         retVal.setRelatedKeyColumn(relatedColumn);
+        retVal.setWhereClause(whereClause);
 
         return retVal;
     }
@@ -591,15 +841,18 @@ public class ContextRetrieverTest extends BaseSparkTest {
             String assocLeft,
             String assocRight
     ) {
-        return newManyToMany(null, relatedDataType, relatedColumn, assocDataType, assocLeft, assocRight);
+        return newManyToMany(null, relatedDataType, relatedColumn, assocDataType, assocLeft, assocRight, null);
     }
+    
+    
     private ManyToMany newManyToMany(
             String primaryColumn,
             String relatedDataType,
             String relatedColumn,
             String assocDataType,
             String assocLeft,
-            String assocRight
+            String assocRight,
+            String whereClause
     ) {
         ManyToMany retVal = new ManyToMany();
         retVal.setPrimaryDataTypeColumn(primaryColumn);
@@ -608,6 +861,7 @@ public class ContextRetrieverTest extends BaseSparkTest {
         retVal.setAssociationDataType(assocDataType);
         retVal.setAssociationOneKeyColumn(assocLeft);
         retVal.setAssociationManyKeyColumn(assocRight);
+        retVal.setWhereClause(whereClause);
         return retVal;
     }
 

@@ -36,7 +36,7 @@ public class DefaultDatasetRetriever implements DatasetRetriever {
     }
 
     @Override
-    public Dataset<Row> readDataset(String dataType, String path) {
+    public Dataset<Row> readDataset(String path) {
         DataFrameReader reader = spark.read();
         if( inputFormat != null ) {
             reader = reader.format(inputFormat);

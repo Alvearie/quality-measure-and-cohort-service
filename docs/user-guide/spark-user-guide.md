@@ -188,6 +188,13 @@ The data tables that are used as input to the Spark CQL Evaluator application ar
 
 Aggregation contexts are defined in a JSON-formatted configuration file that we typically call `context-definitions.json` though the name isn't prescribed. In the `context-definitions.json` file, you define a primary data type and all of the relationships to related data that will be needed for CQL evaluation. Each record of the primary data type should be uniquely keyed and the related data types can be joined in using one-to-many or many-to-many semantics. In the one-to-many join scenario, data for a related data type is assumed to have a direct foreign key to the primary data type table. In the many-to-many join scenario, data for a related data type is assumed to be once removed from the primary data type table. Join logic is performed first on an "association" table and then again via a different key value on the true related data type.
 
+Both one-to-many and many-to-many joins may specify an optional `whereClause` field which is used to limit which 
+rows are included in the results of a join. For example, we may wish to join the primary data type to a related data
+type only where a particular column is equal to a given value. In that case, the join in the context definition could
+specify `"whereClause": "a_column = 'a_value'"`. The join would be performed as normal, and then filtered down to
+only the cases for which the `whereClause` is true. This feature is meant to cover some advanced use cases and will
+likely not be needed for a majority of joins.
+
 An example context-definitions.json file might look like this..
 ```json
 {
@@ -216,6 +223,16 @@ An example context-definitions.json file might look like this..
 					"relatedDataType": "Patient",
 					"relatedKeyColumn": "patient_id"
 				}]
+        },{
+                "name": "Encounter",
+                "primaryDataType": "Patient",
+                "primaryKeyColumn": "patient_id",
+                "relationships":[{
+                    "type": "OneToMany",
+                    "relatedDataType": "Encounter",
+                    "relatedKeyColumn": "patient_id",
+                    "whereClause": "status = 'COMPLETE'"
+                }]
         }]
 }
 ```
