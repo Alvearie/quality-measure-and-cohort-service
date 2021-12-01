@@ -5,6 +5,7 @@
     - [Client-Server Mode](user-guide/client-server-guide.md)
     - [Server-Only Mode using IBM FHIR](user-guide/server-only-guide.md)
     - [Big-Data Mode using Apache Spark](user-guide/spark-user-guide.md)
+      - [Application Performance](user-guide/spark-performance.md)
   - [FHIR Server Installation & Configuration](user-guide/fhir-server-config.md)
   - [FHIR Clinical Quality Measure Evaluation](user-guide/quality-measure-guide.md)
   - [Parameter Formats](user-guide/parameter-formats.md)

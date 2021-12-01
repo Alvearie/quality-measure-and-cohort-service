@@ -55,7 +55,7 @@ Usage: SparkCqlEvaluator [options]
       Print help text
     --input-format
       Spark SQL format identifier for input files. If not provided, the value 
-      of spark.sql.datasources.default is used.
+      of spark.sql.sources.default is used.
   * -i, --input-path
       Key-value pair of resource=URI controlling where Spark should read 
       resources referenced in the context definitions file. 
@@ -83,7 +83,7 @@ Usage: SparkCqlEvaluator [options]
       Default: []
     --output-format
       Spark SQL format identifier for output files. If not provided, the value 
-      of spark.sql.datasources.default is used.
+      of spark.sql.sources.default is used.
     -n, --output-partitions
       Number of partitions to use when storing data
   * -o, --output-path
@@ -167,7 +167,7 @@ The actual data that is used for CQL evaluation is accessed via Spark's Hadoop p
 
 There are potentially many input files needed for the CQL evaluation each representing a different flat data table. The physical location of these files is mapped to a logical data type name using one or more `-i` arguments to the Spark CQL Evaluator application. The `-i` arguments are expressed as datatype=uri pairs. For example, Patient data stored in an S3 endpoint would be expressed as `-i Patient=s3a://my-bucket/path/to/data`. The data type name here is important. This key is used downstream in the `context-definitions.json` file and also must correspond to a data type defined in the CQL modelinfo file.
 
-The data being read can be in any format that Spark understands, but all data is assumed to be provided in a single, consistent format. The default format for Spark is parquet. Users can adjust the input format by setting the `spark.sql.datasources.default` configuration property when invoking the Spark application or by using the `--input-format` option to the application. The sample Dockerfile that is provided has support for all the basic formats supported natively by Spark and also Deltalake format. Users that want additional formats, such as Apache Iceberg, can use the `--packages` option to spark submit or extend the Docker image to add the additional needed JARs.
+The data being read can be in any format that Spark understands, but all data is assumed to be provided in a single, consistent format. The default format for Spark is parquet. Users can adjust the input format by setting the `spark.sql.sources.default` configuration property when invoking the Spark application or by using the `--input-format` option to the application. The sample Dockerfile that is provided has support for all the basic formats supported natively by Spark and also Deltalake format. Users that want additional formats, such as Apache Iceberg, can use the `--packages` option to spark submit or extend the Docker image to add the additional needed JARs.
 
 While all types of Spark input formats are supported, we recommend the use of formats that are encoded with a schema (e.g. Parquet) to best utilize the full feature set of the CQL engine.
 
