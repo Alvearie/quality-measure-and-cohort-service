@@ -66,16 +66,20 @@ public class CqlContextFactory {
 
         @Override
         public boolean equals(Object o2) {
-            boolean isEqual = o2 != null && o2 instanceof ContextCacheKey;
-            if( isEqual ) {
+            boolean isEqual = false;
+
+            if( o2 instanceof ContextCacheKey ) {
                 ContextCacheKey k2 = (ContextCacheKey) o2;
+
                 isEqual = Objects.equals(topLevelLibrary, k2.topLevelLibrary) &&
                         Objects.equals( libraryProvider, k2.libraryProvider ) &&
                         Objects.equals( terminologyProvider, k2.terminologyProvider ) &&
                         Objects.equals( externalFunctionProvider, k2.externalFunctionProvider ) &&
                         Objects.equals( evaluationDateTime, k2.evaluationDateTime ) &&
                         Objects.equals( parameters, k2.parameters );
+
             }
+
             return isEqual;
         }
 

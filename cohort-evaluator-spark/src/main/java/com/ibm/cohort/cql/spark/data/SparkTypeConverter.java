@@ -206,7 +206,7 @@ public class SparkTypeConverter implements Serializable {
             if( obj instanceof BigDecimal ) {
                 result = (BigDecimal) obj;
             } else if( obj instanceof Number ) {
-                result = new BigDecimal(((Number) obj).doubleValue());
+                result = BigDecimal.valueOf(((Number)obj).doubleValue());
             }
         }
         return result;
