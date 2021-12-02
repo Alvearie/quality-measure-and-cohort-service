@@ -153,8 +153,8 @@ public class SparkDataRowTest extends BaseSparkTest {
             assertEquals( pojo.getShortField(), sdr.getValue("shortField") );
             assertEquals( pojo.getIntegerField(), sdr.getValue("integerField") );
             assertEquals( pojo.getLongField(), sdr.getValue("longField") );
-            assertEquals( pojo.getFloatField(), (BigDecimal) sdr.getValue("floatField") );
-            assertEquals( pojo.getDoubleField(), (BigDecimal) sdr.getValue("doubleField") );
+            assertEquals( pojo.getFloatField(), sdr.getValue("floatField") );
+            assertEquals( pojo.getDoubleField(), sdr.getValue("doubleField") );
             assertEquals( pojo.getDecimalField(), sdr.getValue("decimalField") );
             assertEquals( pojo.getInstantField(), sdr.getValue( "instantField" ));
             assertEquals( pojo.getLocalDateField(), sdr.getValue( "localDateField" ) );

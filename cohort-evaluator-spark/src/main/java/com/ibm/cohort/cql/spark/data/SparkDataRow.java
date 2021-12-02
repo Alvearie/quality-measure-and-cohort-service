@@ -99,7 +99,7 @@ public class SparkDataRow implements DataRow {
         try {
             result = typeConverter.toCqlType(sparkVal);
         } catch (IllegalArgumentException ex) {
-            throw new IllegalArgumentException(String.format("Failed to convert field '%s': %s", ex.getMessage()), ex);
+            throw new IllegalArgumentException(String.format("Failed to convert field '%s': %s", sparkVal, ex.getMessage()), ex);
         }
         return result;
     }
