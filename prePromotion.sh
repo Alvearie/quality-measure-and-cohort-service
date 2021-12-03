@@ -40,3 +40,30 @@ if [ "$UMBRELLA_REPO_PATH" == "https://github.ibm.com/watson-health-cohorting/wh
 else
   echo "This is not an Cohorting release for development. Moving on..."
 fi
+
+  echo "Promoting Spark image that doesn't have helm chart"
+# CDT login
+ibmcloud login -a "https://cloud.ibm.com/" --apikey "${CDTKEY}" -r us-south
+ibmcloud target --unset-resource-group
+ibmcloud cr login
+ibmcloud cr region-set dallas
+
+echo "Pulling spark image: ${SPARK_IMG}"
+docker pull ${SPARK_IMG}
+
+# CSP login
+ibmcloud login -a "https://cloud.ibm.com/" --apikey "${CSPKEY}" -r us-south
+ibmcloud target --unset-resource-group
+ibmcloud cr login
+ibmcloud cr region-set dallas
+
+src_ns=$(echo "${SPARK_IMG}" | awk -F'/' '{print $2}')
+dstimg=$(echo "${SPARK_IMG}" | sed "s/${src_ns}/${DST_NAMESPACE}/")
+
+if ibmcloud cr image-inspect $dstimg 2>&1 | grep "The image was not found."; then
+  echo "DSTIMG NOT found in OPS registry: $dstimg Image will now be tagged and pushed"
+  docker tag ${SPARK_IMG} $dstimg
+  docker push $dstimg
+else
+  echo "DSTIMG FOUND in OPS registry, not promoting: $dstimg"
+fi
