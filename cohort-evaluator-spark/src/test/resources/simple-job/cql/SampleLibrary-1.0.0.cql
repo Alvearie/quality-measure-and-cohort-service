@@ -6,3 +6,6 @@ context Patient
 
 define IsFemale:
 	Patient.gender = 'female'
+
+define getNow:
+    Now()
