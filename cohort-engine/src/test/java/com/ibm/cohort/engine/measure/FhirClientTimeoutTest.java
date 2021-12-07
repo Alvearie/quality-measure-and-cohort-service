@@ -29,7 +29,7 @@ public class FhirClientTimeoutTest extends BaseFhirTest {
 	
 	@Before
 	public void setup() {
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 		mockPatientRetrievalTimeout(PATIENT_ID, Enumerations.AdministrativeGender.OTHER, 22, PATIENT_RETRIEVAL_DELAY_MILLIS);
 	}
 	

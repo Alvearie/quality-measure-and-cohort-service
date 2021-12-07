@@ -248,7 +248,7 @@ public class CqlEvaluatorTest extends BasePatientTest {
 								.setSystem("http://terminology.hl7.org/CodeSystem/condition-clinical"))
 						.setText("Active"));
 
-		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", condition);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", condition);
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,
@@ -283,7 +283,7 @@ public class CqlEvaluatorTest extends BasePatientTest {
 		// the same parameter multiple times, so we do some regex work and try to make it 
 		// somewhat order independent while still readable.
 		// @see https://github.com/tomakehurst/wiremock/issues/398
-		MappingBuilder builder = get(urlMatching("/Condition\\?(recorded-date=[lg]e.*&){2}subject=Patient%2F123"));
+		MappingBuilder builder = get(urlMatching("/Condition\\?(recorded-date=[lg]e.*&){2}subject=Patient%2F123&_format=json"));
 		mockFhirResourceRetrieval(builder, condition);
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
@@ -321,7 +321,7 @@ public class CqlEvaluatorTest extends BasePatientTest {
 					System.out.println("Result: " + r);
 				}));
 		assertEquals(4, count.get());
-		verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
+		verify(1, getRequestedFor(urlEqualTo("/Patient/123?_format=json")));
 	}
 
 	@Test
@@ -338,7 +338,7 @@ public class CqlEvaluatorTest extends BasePatientTest {
 					System.out.println("Result: " + r);
 				}));
 		assertEquals(4, count.get());
-		verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
+		verify(1, getRequestedFor(urlEqualTo("/Patient/123?_format=json")));
 	}
 
 	@Test
@@ -361,7 +361,7 @@ public class CqlEvaluatorTest extends BasePatientTest {
 		}));
 		assertEquals("Missing expression result", true, found.get());
 
-		verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
+		verify(1, getRequestedFor(urlEqualTo("/Patient/123?_format=json")));
 	}
 
 	@Test
@@ -383,7 +383,7 @@ public class CqlEvaluatorTest extends BasePatientTest {
 			}
 		}));
 		assertEquals("Missing expression result", true, found.get());
-		verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
+		verify(1, getRequestedFor(urlEqualTo("/Patient/123?_format=json")));
 	}
 
 	@Test
@@ -405,7 +405,7 @@ public class CqlEvaluatorTest extends BasePatientTest {
 					}
 				});
 		assertEquals("Missing expression result", true, found.get());
-		verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
+		verify(1, getRequestedFor(urlEqualTo("/Patient/123?_format=json")));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -536,10 +536,10 @@ public class CqlEvaluatorTest extends BasePatientTest {
 		condition.getCode().addCoding().setSystem("SNOMED-CT").setCode("1234");
 
 		// This stub works for [Condition] c where c.code in "ValueSet"
-		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", condition);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", condition);
 		// These stub works for [Condition: "ValueSet"]
-		mockFhirResourceRetrieval("/Condition?code=SNOMED-CT%7C1234&subject=Patient%2F123", makeBundle(condition));
-		mockFhirResourceRetrieval("/Condition?code=SNOMED-CT%7C5678&subject=Patient%2F123", makeBundle());
+		mockFhirResourceRetrieval("/Condition?code=SNOMED-CT%7C1234&subject=Patient%2F123&_format=json", makeBundle(condition));
+		mockFhirResourceRetrieval("/Condition?code=SNOMED-CT%7C5678&subject=Patient%2F123&_format=json", makeBundle());
 		
 		mockValueSetRetrieval("https://cts.nlm.nih.gov/fhir/ValueSet/1.2.3.4", "SNOMED-CT", "1234");
 		mockValueSetRetrieval("https://cts.nlm.nih.gov/fhir/ValueSet/5.6.7.8", "SNOMED-CT", "5678");
@@ -601,7 +601,7 @@ public class CqlEvaluatorTest extends BasePatientTest {
 		condition.getCode().addCoding().setSystem("SNOMED-CT").setCode("1234");
 
 		// This stub works for [Condition] c where c.code in "ValueSet"
-		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", condition);		
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", condition);
 		
 		final AtomicInteger resultCount = new AtomicInteger(0);
 		CqlEvaluator wrapper = setupTestFor(patient, "cql/valueset/TestUnsupported-1.0.0.cql");

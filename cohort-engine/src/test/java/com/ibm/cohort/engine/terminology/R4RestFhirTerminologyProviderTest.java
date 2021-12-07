@@ -41,7 +41,7 @@ public class R4RestFhirTerminologyProviderTest extends BaseFhirTest {
 	@Before
 	public void initializeProvider() {
 		provider = new R4RestFhirTerminologyProvider(newClient());
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -88,7 +88,7 @@ public class R4RestFhirTerminologyProviderTest extends BaseFhirTest {
 		secondSet.setId("1");
 		secondSet.setUrl(info.getId());
 
-		mockFhirResourceRetrieval("/ValueSet?url=" + urlencode(info.getId()), makeBundle(firstSet, secondSet));
+		mockFhirResourceRetrieval("/ValueSet?url=" + urlencode(info.getId()) + "&_format=json", makeBundle(firstSet, secondSet));
 
 		provider.resolveByUrl(info);
 	}
@@ -98,7 +98,7 @@ public class R4RestFhirTerminologyProviderTest extends BaseFhirTest {
 		ValueSetInfo info = new ValueSetInfo();
 		info.setId("http://localhost/fhir/ValueSet/1.2.3.4");
 
-		mockFhirResourceRetrieval("/ValueSet?url=" + urlencode(info.getId()), makeBundle());
+		mockFhirResourceRetrieval("/ValueSet?url=" + urlencode(info.getId()) + "&_format=json", makeBundle());
 
 		provider.resolveByUrl(info);
 	}
@@ -115,7 +115,7 @@ public class R4RestFhirTerminologyProviderTest extends BaseFhirTest {
 		Parameters parameters = new Parameters();
 		parameters.getParameterFirstRep().setName("return").setResource(valueSet);
 
-		mockFhirResourceRetrieval("/ValueSet/Test/$expand", parameters);
+		mockFhirResourceRetrieval("/ValueSet/Test/$expand?_format=json", parameters);
 
 		Iterable<Code> codes = provider.expand(info);
 
@@ -139,7 +139,7 @@ public class R4RestFhirTerminologyProviderTest extends BaseFhirTest {
 		parameters.getParameterFirstRep().setName("result").setValue(new BooleanType(true));
 
 		mockFhirResourceRetrieval("/ValueSet/Test/$validate-code?code=" + urlencode(code.getCode()) + "&system="
-				+ urlencode(code.getSystem()), parameters);
+				+ urlencode(code.getSystem()) + "&_format=json", parameters);
 
 		boolean result = provider.in(code, info);
 		assertTrue(result);
@@ -159,7 +159,7 @@ public class R4RestFhirTerminologyProviderTest extends BaseFhirTest {
 		parameters.getParameterFirstRep().setName("result").setValue(new BooleanType(false));
 
 		mockFhirResourceRetrieval("/ValueSet/Test/$validate-code?code=" + urlencode(code.getCode()) + "&system="
-				+ urlencode(code.getSystem()), parameters);
+				+ urlencode(code.getSystem()) + "&_format=json", parameters);
 
 		boolean result = provider.in(code, info);
 		assertFalse(result);
@@ -177,7 +177,7 @@ public class R4RestFhirTerminologyProviderTest extends BaseFhirTest {
 		Parameters parameters = new Parameters();
 		parameters.getParameterFirstRep().setName("result").setValue(new BooleanType(true));
 
-		mockFhirResourceRetrieval("/ValueSet/Test/$validate-code?code=" + urlencode(code.getCode()), parameters);
+		mockFhirResourceRetrieval("/ValueSet/Test/$validate-code?code=" + urlencode(code.getCode()) + "&_format=json", parameters);
 
 		boolean result = provider.in(code, info);
 		assertTrue(result);
@@ -199,7 +199,7 @@ public class R4RestFhirTerminologyProviderTest extends BaseFhirTest {
 		parameters.addParameter().setName("version").setValue(new StringType(info.getVersion()));
 		parameters.addParameter().setName("display").setValue(new StringType(code.getDisplay()));
 
-		mockFhirResourceRetrieval(post(urlEqualTo("/CodeSystem/$lookup")), parameters);
+		mockFhirResourceRetrieval(post(urlEqualTo("/CodeSystem/$lookup?_format=json")), parameters);
 
 		Code result = provider.lookup(code, info);
 		assertNotNull(result);

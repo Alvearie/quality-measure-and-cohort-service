@@ -99,9 +99,11 @@ public class DefaultFhirClientBuilderTest {
 		config.setConnectTimeout(CONNECT_TIMEOUT);
 
 		IRestfulClientFactory mockClientFactory = mock(IRestfulClientFactory.class);
+		IGenericClient mockClient = mock(IGenericClient.class);
 
 		FhirContext mockContext = mock(FhirContext.class);
 		when(mockContext.getRestfulClientFactory()).thenReturn(mockClientFactory);
+		when(mockContext.newRestfulGenericClient(null)).thenReturn(mockClient);
 
 		DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(mockContext);
 
@@ -121,9 +123,11 @@ public class DefaultFhirClientBuilderTest {
 		FhirServerConfig config = new FhirServerConfig();
 
 		IRestfulClientFactory mockClientFactory = mock(IRestfulClientFactory.class);
+		IGenericClient mockClient = mock(IGenericClient.class);
 
 		FhirContext mockContext = mock(FhirContext.class);
 		when(mockContext.getRestfulClientFactory()).thenReturn(mockClientFactory);
+		when(mockContext.newRestfulGenericClient(null)).thenReturn(mockClient);
 
 		DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(mockContext);
 
@@ -146,9 +150,11 @@ public class DefaultFhirClientBuilderTest {
 		connectionRequestTimeoutConfig.setConnectionRequestTimeout(CONNECTION_REQUEST_TIMEOUT);
 
 		IRestfulClientFactory mockClientFactory = mock(IRestfulClientFactory.class);
+		IGenericClient mockClient = mock(IGenericClient.class);
 
 		FhirContext mockContext = mock(FhirContext.class);
 		when(mockContext.getRestfulClientFactory()).thenReturn(mockClientFactory);
+		when(mockContext.newRestfulGenericClient(null)).thenReturn(mockClient);
 
 		DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(mockContext);
 

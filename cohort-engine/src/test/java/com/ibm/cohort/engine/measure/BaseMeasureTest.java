@@ -111,9 +111,9 @@ public class BaseMeasureTest extends BaseFhirTest {
 			url += "&version=" + library.getVersion();
 		}
 		
-		mockFhirResourceRetrieval("/Library?url=" + url, bundle );
-		mockFhirResourceRetrieval("/Library?name%3Aexact=" + library.getName(), bundle);
-		mockFhirResourceRetrieval("/Library?name%3Aexact=" + library.getName() + "&version=" + library.getVersion(), bundle);
+		mockFhirResourceRetrieval("/Library?url=" + url + "&_format=json", bundle );
+		mockFhirResourceRetrieval("/Library?name%3Aexact=" + library.getName() + "&_format=json", bundle);
+		mockFhirResourceRetrieval("/Library?name%3Aexact=" + library.getName() + "&version=" + library.getVersion() + "&_format=json", bundle);
 		return library;
 	}
 	
@@ -124,10 +124,10 @@ public class BaseMeasureTest extends BaseFhirTest {
 		
 		String url = URLEncoder.encode( measure.getUrl(), StandardCharsets.UTF_8.toString() );
 		
-		mockFhirResourceRetrieval("/Measure?url=" + url, bundle );
-		mockFhirResourceRetrieval("/Measure?url=" + url + "&version=" + measure.getVersion(), bundle );
-		mockFhirResourceRetrieval("/Measure?name=" + measure.getName() + "&_sort=-date", bundle);
-		mockFhirResourceRetrieval("/Measure?name=" + measure.getName() + "&version=" + measure.getVersion() + "&_sort=-date", bundle);
+		mockFhirResourceRetrieval("/Measure?url=" + url + "&_format=json", bundle );
+		mockFhirResourceRetrieval("/Measure?url=" + url + "&version=" + measure.getVersion() + "&_format=json", bundle );
+		mockFhirResourceRetrieval("/Measure?name=" + measure.getName() + "&_sort=-date&_format=json", bundle);
+		mockFhirResourceRetrieval("/Measure?name=" + measure.getName() + "&version=" + measure.getVersion() + "&_sort=-date&_format=json", bundle);
 
 		return measure;
 	}

@@ -82,15 +82,15 @@ public class MeasureImporterTest extends BaseFhirTest {
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 		fhirConfig.setLogInfo(Arrays.asList(LogInfo.REQUEST_SUMMARY));
 		
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 		
-		stubFor(post(urlEqualTo("/")).willReturn(
+		stubFor(post(urlEqualTo("/?_format=json")).willReturn(
 				aResponse().withStatus(statusCode).withHeader("Content-Type", "application/json")
 					.withBody(expectedResponse)));
 		
 		consoleOutput = runTest(fhirConfig, inputPath, numExpectedErrors);
 		
-		verify( 1, postRequestedFor(urlEqualTo("/"))
+		verify( 1, postRequestedFor(urlEqualTo("/?_format=json"))
 				.withRequestBody(equalTo(expectedRequest)));
 		
 		return consoleOutput;

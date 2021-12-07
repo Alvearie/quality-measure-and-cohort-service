@@ -8,6 +8,7 @@ package com.ibm.cohort.fhir.client.config;
 import java.util.Map;
 
 
+import ca.uhn.fhir.rest.api.EncodingEnum;
 import org.apache.commons.collections.MapUtils;
 
 import ca.uhn.fhir.context.FhirContext;
@@ -66,6 +67,9 @@ public class DefaultFhirClientBuilder implements FhirClientBuilder {
 		fhirContext.getRestfulClientFactory().setConnectionRequestTimeout(validateAndGetTimeoutConfig(config.getConnectionRequestTimeout(), IRestfulClientFactory.DEFAULT_CONNECTION_REQUEST_TIMEOUT));
 
 		IGenericClient client = fhirContext.newRestfulGenericClient(config.getEndpoint());
+
+		// Force JSON encoding to ensure any data/errors passed directly to the client are in JSON
+		client.setEncoding(EncodingEnum.JSON);
 
 		if (config.getLogInfo() != null) {
 			/**

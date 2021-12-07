@@ -50,7 +50,7 @@ public class R4MeasureEvaluatorBuilderTest extends BaseMeasureTest {
 	public void setup() throws Exception {
 		super.setUp();
 
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 		
 		Patient p = getPatient(PATIENT_ID, AdministrativeGender.MALE, 22);
 		CodeableConcept married = new CodeableConcept();
@@ -68,10 +68,10 @@ public class R4MeasureEvaluatorBuilderTest extends BaseMeasureTest {
 		c.setSubject(new Reference(p));
 		c.getCode().getCoding().add(new Coding().setSystem(conditionSystem).setCode(conditionCode));
 		mockFhirResourceRetrieval(c);
-		mockFhirResourceRetrieval("/Condition?code=" + conditionSystem + "%7C" + conditionCode + "&subject=Patient%2F" + p.getId() + "&_count=1000", makeBundle(c));
-		mockFhirResourceRetrieval("/Condition?code=" + conditionSystem + "%7C" + conditionCode + "&subject=Patient%2F" + p.getId() + "&_count=500", makeBundle(c));
-		mockFhirResourceRetrieval("/Condition?code%3Ain=" + type2Diabetes.getId() + "&subject=Patient%2F" + p.getId() + "&_count=1000", makeBundle(c));
-		mockFhirResourceRetrieval("/Condition?code%3Ain=" + type2Diabetes.getId() + "&subject=Patient%2F" + p.getId() + "&_count=500", makeBundle(c));
+		mockFhirResourceRetrieval("/Condition?code=" + conditionSystem + "%7C" + conditionCode + "&subject=Patient%2F" + p.getId() + "&_count=1000&_format=json", makeBundle(c));
+		mockFhirResourceRetrieval("/Condition?code=" + conditionSystem + "%7C" + conditionCode + "&subject=Patient%2F" + p.getId() + "&_count=500&_format=json", makeBundle(c));
+		mockFhirResourceRetrieval("/Condition?code%3Ain=" + type2Diabetes.getId() + "&subject=Patient%2F" + p.getId() + "&_count=1000&_format=json", makeBundle(c));
+		mockFhirResourceRetrieval("/Condition?code%3Ain=" + type2Diabetes.getId() + "&subject=Patient%2F" + p.getId() + "&_count=500&_format=json", makeBundle(c));
 		
 		mockLibraryRetrieval("FHIRHelpers", "4.0.0", "cql/fhir-helpers/FHIRHelpers.cql");
 		Library library = mockLibraryRetrieval("TestAdultMalesSimple", "1.0.0", "cql/fhir-measure/test-adult-males-valuesets.cql");
@@ -139,7 +139,7 @@ public class R4MeasureEvaluatorBuilderTest extends BaseMeasureTest {
 		
 		verify(0, getRequestedFor(urlMatching("/ValueSet/Type2Diabetes/\\$expand.*")));
 		verify(0, getRequestedFor(urlMatching("/Condition\\?code=" + DIABETES_CODESYSTEM + ".*")));
-		verify(1, getRequestedFor(urlMatching("/Condition\\?code%3Ain=Type2Diabetes.*_count=500")));
+		verify(1, getRequestedFor(urlMatching("/Condition\\?code%3Ain=Type2Diabetes.*_count=500&_format=json")));
 	}
 	
 	@Test
@@ -156,8 +156,8 @@ public class R4MeasureEvaluatorBuilderTest extends BaseMeasureTest {
 		}
 		
 		verify(1, getRequestedFor(urlMatching("/ValueSet/Type2Diabetes/\\$expand.*")));
-		verify(1, getRequestedFor(urlMatching("/Condition\\?code=" + DIABETES_CODESYSTEM + ".*_count=500")));
-		verify(0, getRequestedFor(urlMatching("/Condition\\?code%3Ain=Type2Diabetes.*_count=500")));
+		verify(1, getRequestedFor(urlMatching("/Condition\\?code=" + DIABETES_CODESYSTEM + ".*_count=500&_format=json")));
+		verify(0, getRequestedFor(urlMatching("/Condition\\?code%3Ain=Type2Diabetes.*_count=500&_format=json")));
 	}
 
 	@Test(expected = IllegalArgumentException.class)

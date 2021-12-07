@@ -20,7 +20,7 @@ public class FHIRClientContextTest extends BaseFhirTest {
 
 	@Before
 	public void setup() throws Exception {
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 		mockPatientRetrieval(PATIENT_ID, AdministrativeGender.OTHER, 22);
 	}
 

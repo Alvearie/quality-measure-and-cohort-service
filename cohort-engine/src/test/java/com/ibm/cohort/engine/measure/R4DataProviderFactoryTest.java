@@ -32,7 +32,7 @@ public class R4DataProviderFactoryTest extends BaseFhirTest {
 
 	@Before
 	public void setup() {
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 		mockPatientRetrieval(PATIENT_ID, AdministrativeGender.OTHER, 22);
 	}
 

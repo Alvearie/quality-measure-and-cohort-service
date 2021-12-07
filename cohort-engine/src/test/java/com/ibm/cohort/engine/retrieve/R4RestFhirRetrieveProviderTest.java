@@ -36,63 +36,63 @@ public class R4RestFhirRetrieveProviderTest extends BaseFhirTest {
 		provider = new R4RestFhirRetrieveProvider(resolver, client);
 		provider.setTerminologyProvider(termProvider);
 		
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 	}
 	
 	@Test
 	public void when_no_expand_value_sets_and_modifier_in_search___then_in_modifier_is_included_in_url() {
 		
-		mockFhirResourceRetrieval("/Condition?code%3Ain=MyValueSet&subject=Patient%2F123", new Bundle());
+		mockFhirResourceRetrieval("/Condition?code%3Ain=MyValueSet&subject=Patient%2F123&_format=json", new Bundle());
 		
 		provider.setExpandValueSets(false);
 		provider.retrieve("Patient", "subject", "123", "Condition",
 				null, "code", null, "MyValueSet",
 				null, null, null, null);
 		
-		verify(getRequestedFor(urlMatching("/Condition\\?code%3Ain=MyValueSet&subject=Patient%2F123")));
+		verify(getRequestedFor(urlMatching("/Condition\\?code%3Ain=MyValueSet&subject=Patient%2F123&_format=json")));
 	}
 	
 	@Test
 	public void when_no_expand_value_sets_with_no_modifier___then_default_implementation_is_used() {
-		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", new Bundle());
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", new Bundle());
 		
 		provider.setExpandValueSets(false);
 		provider.retrieve("Patient", "subject", "123", "Condition",
 				null, "code", null, null,
 				null, null, null, null);
 		
-		verify(getRequestedFor(urlMatching("/Condition\\?subject=Patient%2F123")));
+		verify(getRequestedFor(urlMatching("/Condition\\?subject=Patient%2F123&_format=json")));
 	}
 	
 	@Test
 	public void when_expand_value_sets___then_term_provider_is_used() {
-		mockFhirResourceRetrieval("/ValueSet/MyValueSet/$expand", makeValueSet("MyValueSet", "http://snomed.info", "123"));
-		mockFhirResourceRetrieval("/Condition?code=http%3A%2F%2Fsnomed.info%7C123&subject=Patient%2F123", new Bundle());
+		mockFhirResourceRetrieval("/ValueSet/MyValueSet/$expand?_format=json", makeValueSet("MyValueSet", "http://snomed.info", "123"));
+		mockFhirResourceRetrieval("/Condition?code=http%3A%2F%2Fsnomed.info%7C123&subject=Patient%2F123&_format=json", new Bundle());
 		
 		provider.setExpandValueSets(true);
 		provider.retrieve("Patient", "subject", "123", "Condition",
 				null, "code", null, "MyValueSet",
 				null, null, null, null);
 		
-		verify(getRequestedFor(urlMatching("/ValueSet/MyValueSet/\\$expand")));
-		verify(getRequestedFor(urlMatching("/Condition\\?code=http%3A%2F%2Fsnomed.info%7C123&subject=Patient%2F123")));
+		verify(getRequestedFor(urlMatching("/ValueSet/MyValueSet/\\$expand\\?_format=json")));
+		verify(getRequestedFor(urlMatching("/Condition\\?code=http%3A%2F%2Fsnomed.info%7C123&subject=Patient%2F123&_format=json")));
 	}
 	
 	@Test
 	public void when_search_page_size_is_set___then_count_parameter_is_included_in_url() {
-		mockFhirResourceRetrieval("/Condition?code%3Ain=MyValueSet&subject=Patient%2F123", new Bundle());
+		mockFhirResourceRetrieval("/Condition?code%3Ain=MyValueSet&subject=Patient%2F123&_format=json", new Bundle());
 		
 		provider.setExpandValueSets(false);
 		provider.retrieve("Patient", "subject", "123", "Condition",
 				null, "code", null, "MyValueSet",
 				null, null, null, null);
 		
-		verify(getRequestedFor(urlMatching("/Condition\\?code%3Ain=MyValueSet&subject=Patient%2F123")));
+		verify(getRequestedFor(urlMatching("/Condition\\?code%3Ain=MyValueSet&subject=Patient%2F123&_format=json")));
 	}
 	
 	@Test
 	public void when_search_page_size_is_not_set___then_no_count_parameter_is_included_in_url() {
-		mockFhirResourceRetrieval("/Condition?code%3Ain=MyValueSet&subject=Patient%2F123", new Bundle());
+		mockFhirResourceRetrieval("/Condition?code%3Ain=MyValueSet&subject=Patient%2F123&_format=json", new Bundle());
 		
 		provider.setExpandValueSets(false);
 		provider.setSearchPageSize(null);
@@ -100,7 +100,7 @@ public class R4RestFhirRetrieveProviderTest extends BaseFhirTest {
 				null, "code", null, "MyValueSet",
 				null, null, null, null);
 		
-		verify(getRequestedFor(urlMatching("/Condition\\?code%3Ain=MyValueSet&subject=Patient%2F123")));
+		verify(getRequestedFor(urlMatching("/Condition\\?code%3Ain=MyValueSet&subject=Patient%2F123&_format=json")));
 	}
 	
 	protected ValueSet makeValueSet(String name, String system, String... codes) {

@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import com.ibm.cohort.engine.api.service.CohortError.ErrorSource;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
 import org.junit.Before;
@@ -78,8 +79,7 @@ public class CohortServiceExceptionMapperTest {
 		assertEquals(new Integer(400), serviceErrorList.getStatusCode());
 		assertEquals(2, serviceErrorList.getErrors().size());
 		assertEquals("Unexpected exception caught during execution", serviceErrorList.getErrors().get(0).getMessage());
-		assertEquals("Failed to resolve ValueSet", serviceErrorList.getErrors().get(1).getMessage());
-	}
+		assertEquals("Failed to resolve ValueSet", serviceErrorList.getErrors().get(1).getMessage());	}
 
 	@Test
 	public void testToResponseFhirClientConnectionException() throws Exception {
@@ -125,7 +125,7 @@ public class CohortServiceExceptionMapperTest {
 		assertEquals(1, serviceErrorList.getErrors().size());
 		
 		//System.out.println(serviceErrorList.getErrors().get(0).getDescription());
-		
+
 		assertTrue( "Missing resource ID in response", serviceErrorList.getErrors().get(0).getDescription().contains("Patient/something") );
 	}
 	
@@ -148,7 +148,7 @@ public class CohortServiceExceptionMapperTest {
 		json.put("issue", issues);
 
 		OperationOutcome outcome = parser.parseResource(OperationOutcome.class, json.toString());
-		
+
 		ResourceNotFoundException ex = new ResourceNotFoundException("Error", outcome);
 		ex.setResponseBody(json.toString());
 		
@@ -164,15 +164,18 @@ public class CohortServiceExceptionMapperTest {
 	
 	@Test
 	public void testToResponseResourceNotFoundExceptionNotOperationOutcome() throws Exception {
-		
-		Response response = new CohortServiceExceptionMapper().toResponse(new ResourceNotFoundException("Bad URL"));
+		ResourceNotFoundException ex = new ResourceNotFoundException("Bad URL");
+		ex.setResponseBody("Bad Body");
+
+		Response response = new CohortServiceExceptionMapper().toResponse(ex);
 		ServiceErrorList serviceErrorList = (ServiceErrorList) response.getEntity();
 		assertEquals(new Integer(400), serviceErrorList.getStatusCode());
 		assertEquals(1, serviceErrorList.getErrors().size());
+		// TODO: Verify the error source in all tests???
 		
 		//System.out.println("---" + serviceErrorList.getErrors().get(0).getDescription());
 		
-		assertTrue( "Missing resource ID in response", serviceErrorList.getErrors().get(0).getDescription().contains("Bad URL") );
+		assertTrue( "Missing resource ID in response", serviceErrorList.getErrors().get(0).getDescription().contains("Bad Body") );
 	}
 	
 	@Test
