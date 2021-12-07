@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -315,6 +316,8 @@ public class SparkCqlEvaluator implements Serializable {
                     cqlTranslator
             );
 
+            ZonedDateTime batchRunTime = ZonedDateTime.now();
+
             final LongAccumulator contextAccum = spark.sparkContext().longAccumulator("Context");
             final LongAccumulator perContextAccum = spark.sparkContext().longAccumulator("PerContext");
             final CollectionAccumulator<EvaluationError> errorAccumulator = args.haltOnError ? null : spark.sparkContext().collectionAccumulator("EvaluationErrors");
@@ -345,7 +348,7 @@ public class SparkCqlEvaluator implements Serializable {
 
                     CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.getValue() + 1);
                     JavaPairRDD<Object, Row> resultsByContext = rowsByContextId
-                            .flatMapToPair(x -> evaluate(contextName, resultsSchema, x, perContextAccum, errorAccumulator));
+                            .flatMapToPair(x -> evaluate(contextName, resultsSchema, x, perContextAccum, errorAccumulator, batchRunTime));
                     
                     writeResults(spark, resultsSchema, resultsByContext, outputPath);
                     long contextEndMillis = System.currentTimeMillis();
@@ -494,6 +497,7 @@ public class SparkCqlEvaluator implements Serializable {
      * @param perContextAccum Spark accumulator that tracks each individual context
      *                        evaluation
      * @param errorAccum Spark accumulator that tracks CQL evaluation errors
+     * @param batchRunTime    Single unified timestamp for all contexts
      * @return Evaluation results for all expressions evaluated keyed by the context
      *         ID. Expression names are automatically namespaced according to the
      *         library name to avoid issues arising for expression names matching
@@ -502,7 +506,7 @@ public class SparkCqlEvaluator implements Serializable {
      *                   reason
      */
     protected Iterator<Tuple2<Object, Row>> evaluate(String contextName, StructType resultsSchema, Tuple2<Object, List<Row>> rowsByContext,
-            LongAccumulator perContextAccum, CollectionAccumulator<EvaluationError> errorAccum) throws Exception {
+            LongAccumulator perContextAccum, CollectionAccumulator<EvaluationError> errorAccum, ZonedDateTime batchRunTime)throws Exception {
         CqlLibraryProvider provider = libraryProvider.get();
         if (provider == null) {
             provider = createLibraryProvider();
@@ -521,7 +525,7 @@ public class SparkCqlEvaluator implements Serializable {
             functionProvider.set(funProvider);
         }
 
-        return evaluate(provider, termProvider, funProvider, contextName, resultsSchema, rowsByContext, perContextAccum, errorAccum);
+        return evaluate(provider, termProvider, funProvider, contextName, resultsSchema, rowsByContext, perContextAccum, errorAccum, batchRunTime);
     }
 
 
@@ -539,6 +543,7 @@ public class SparkCqlEvaluator implements Serializable {
      * @param perContextAccum Spark accumulator that tracks each individual context
      *                        evaluation
      * @param errorAccum      Spark accumulator that tracks CQL evaluation errors
+     * @param batchRunTime    Single unified timestamp for all contexts
      * @return Evaluation results for all expressions evaluated keyed by the context
      *         ID. Expression names are automatically namespaced according to the
      *         library name to avoid issues arising for expression names matching
@@ -552,7 +557,8 @@ public class SparkCqlEvaluator implements Serializable {
                                                            StructType resultsSchema, 
                                                            Tuple2<Object, List<Row>> rowsByContext,
                                                            LongAccumulator perContextAccum,
-                                                           CollectionAccumulator<EvaluationError> errorAccum) throws Exception {
+                                                           CollectionAccumulator<EvaluationError> errorAccum,
+                                                           ZonedDateTime batchRunTime) throws Exception {
 
         // Convert the Spark objects to the cohort Java model
         List<DataRow> datarows = rowsByContext._2().stream().map(getDataRowFactory()).collect(Collectors.toList());
@@ -577,7 +583,7 @@ public class SparkCqlEvaluator implements Serializable {
 
         SparkOutputColumnEncoder columnEncoder = getSparkOutputColumnEncoder();
 
-        return evaluate(rowsByContext, contextName, resultsSchema, evaluator, requests, columnEncoder, perContextAccum, errorAccum);
+        return evaluate(rowsByContext, contextName, resultsSchema, evaluator, requests, columnEncoder, perContextAccum, errorAccum, batchRunTime);
     }
 
     /**
@@ -597,6 +603,7 @@ public class SparkCqlEvaluator implements Serializable {
      * @param perContextAccum Spark accumulator that tracks each individual context
      *                        evaluation
      * @param errorAccum       Spark accumulator that tracks CQL evaluation errors
+     * @param batchRunTime    Single unified timestamp for all contexts
      * @return Evaluation results for all expressions evaluated keyed by the context
      *         ID. Expression names are automatically namespaced according to the
      *         library name to avoid issues arising for expression names matching
@@ -609,7 +616,8 @@ public class SparkCqlEvaluator implements Serializable {
                                                            CqlEvaluationRequests requests,
                                                            SparkOutputColumnEncoder columnEncoder,
                                                            LongAccumulator perContextAccum,
-                                                           CollectionAccumulator<EvaluationError> errorAccum) {
+                                                           CollectionAccumulator<EvaluationError> errorAccum,
+                                                           ZonedDateTime batchRunTime) {
         perContextAccum.add(1);
         
         List<CqlEvaluationRequest> requestsForContext = requests.getEvaluationsForContext(contextName);
@@ -625,7 +633,7 @@ public class SparkCqlEvaluator implements Serializable {
                 CqlEvaluationRequest singleRequest = new CqlEvaluationRequest(request);
                 singleRequest.setExpressions(Collections.singleton(expression));
                 try {
-                    CqlEvaluationResult result = evaluator.evaluate(singleRequest, args.debug ? CqlDebug.DEBUG : CqlDebug.NONE);
+                    CqlEvaluationResult result = evaluator.evaluate(singleRequest, args.debug ? CqlDebug.DEBUG : CqlDebug.NONE, batchRunTime);
                     for (Map.Entry<String, Object> entry : result.getExpressionResults().entrySet()) {
                         String outputColumnKey = columnEncoder.getColumnName(request, entry.getKey());
                         expressionResults.put(outputColumnKey, typeConverter.toSparkType(entry.getValue()));
