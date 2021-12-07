@@ -16,7 +16,7 @@ import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
-import com.ibm.cohort.engine.api.service.CohortError.ErrorSource;
+import com.ibm.cohort.engine.api.service.model.ServiceErrorList.ErrorSource;
 import org.opencds.cqf.cql.engine.exception.CqlException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +45,7 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 		//and the status code for underlying services is captured in the serviceError objects
 		//within the list
 		ServiceErrorList serviceErrorList = new ServiceErrorList().errors(errorsList);
-		CohortError ce;
+		ServiceError se;
 		String description = "";
 		String reason = "";
 		int serviceErrorCode = 500;
@@ -70,8 +70,7 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 					reason = status.getReasonPhrase();
 				}
 				description = "Reason: FhirClientConnectionException";
-				// TODO: Is a connection error really the FHIR server's fault???
-				errorSource = ErrorSource.FHIR_SERVER;
+				errorSource = ErrorSource.COHORT_SERVICE;
 			}
 			//if we fail to authenticate with the FHIR server, a 401 Not authorized error
 			//is thrown from the FHIR client. We set our error code to 400 since they are not technically
@@ -85,17 +84,12 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 				errorSource = ErrorSource.FHIR_SERVER;
 			}
 			else if (ex instanceof ResourceNotFoundException) {
-				serviceErrorCode = Status.BAD_REQUEST.getStatusCode();
-				serviceErrorListCode = serviceErrorCode;
-				errorSource = ErrorSource.FHIR_SERVER;
 				ResourceNotFoundException rnfe = (ResourceNotFoundException) ex;
-				// TODO: What about the message from the exception???
-				// The localized message is `HTTP 404 Not Found`.
-				// This could be easier to parse for the client...but is determined by either the FHIR server or client.
-				// Having something we control would feel safer.
-				// Ask jeff for what he would prefer
-				reason = "Resource not found in the FHIR server - " + rnfe.getLocalizedMessage();
+				serviceErrorListCode = Status.BAD_REQUEST.getStatusCode();
+				serviceErrorCode = rnfe.getStatusCode();
+				reason = "FHIR Resource Not Found: " + rnfe.getLocalizedMessage();
 				description = rnfe.getResponseBody();
+				errorSource = ErrorSource.FHIR_SERVER;
 			}
 			//will get thrown is invalid measure ids are input or
 			//library ids don't resolve properly
@@ -150,30 +144,34 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 			if(reason.isEmpty()) {
 				reason = ex.getLocalizedMessage();
 			}
-			ce = new CohortError(serviceErrorCode, reason, errorSource);
-			ce.setDescription(description);
-			errorsList.add(ce);
+			se = new ServiceError(serviceErrorCode, reason);
+			se.setDescription(description);
+			errorsList.add(se);
 			//loop through the exception chain logging the cause of each one
 			//since these can contain valuable information about the root problems
 			createServiceErrorsForExceptions(ex, serviceErrorCode, errorsList);
-			serviceErrorList = serviceErrorList.statusCode(serviceErrorListCode);
+			serviceErrorList = serviceErrorList
+					.statusCode(serviceErrorListCode)
+					.errorSource(errorSource);
 
 			logger.error("HTTP Status: "+serviceErrorList.getStatusCode(), ex);
 		}
 		catch(Throwable nestedEx) {
 			// This should not really occur unless there is a bug in this code.
 			// Build a 500 ServiceError with some detail
-			ce = new CohortError(
+			se = new ServiceError(
 					Status.INTERNAL_SERVER_ERROR.getStatusCode(),
-					nestedEx.getLocalizedMessage(),
-					ErrorSource.COHORT_SERVICE
+					nestedEx.getLocalizedMessage()
 			);
-			ce.setDescription("Reason: Uncaught nested exception");
+			se.setDescription("Reason: Uncaught nested exception");
 
-			logger.error("HTTP Status: "+ce.getCode()+", Nested Exception", nestedEx);
+			logger.error("HTTP Status: "+se.getCode()+", Nested Exception", nestedEx);
 			logger.error("Original Exception", ex);
-			serviceErrorList = serviceErrorList.statusCode(ce.getCode());
-			errorsList.add(ce);
+			serviceErrorList = serviceErrorList
+					.statusCode(se.getCode())
+					.errorSource(ErrorSource.COHORT_SERVICE);
+
+			errorsList.add(se);
 		}
 
 		ResponseBuilder rb = Response.status(serviceErrorList.getStatusCode()).
@@ -191,7 +189,7 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 		//number of them through the UI, the full stack will get logged if needed in calling method
 		while(cause != null && causeCount < MAX_EXCEPTION_CAUSE_DEPTH) {
 			if(cause.getLocalizedMessage() != null && !cause.getLocalizedMessage().trim().isEmpty()) {
-				ServiceError error = new ServiceError().setCode(code).setMessage(cause.getLocalizedMessage());
+				ServiceError error = new ServiceError(code, cause.getLocalizedMessage());
 				errorsList.add(error);
 			}
 			cause = cause.getCause();
