@@ -135,6 +135,32 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         
         validateOutputCountsAndColumns(outputLocation, new HashSet<>(Arrays.asList("id", "parameters", "SampleLibrary|IsFemale")), 10, "delta");
     }
+
+    @Test
+    public void testNow() throws Exception {
+        String outputLocation = "target/output/batch_test/unified_timestamp";
+
+        String [] args = new String[] {
+                "-d", "src/test/resources/simple-job/context-definitions.json",
+                "-j", "src/test/resources/simple-job/cql-jobs-now.json",
+                "-m", "src/test/resources/simple-job/modelinfo/simple-modelinfo-1.0.0.xml",
+                "-c", "src/test/resources/simple-job/cql",
+                "-i", "Patient=" + new File("src/test/resources/simple-job/testdata/patient").toURI().toString(),
+                "-o", "Patient=" + new File(outputLocation).toURI().toString(),
+                "--output-format", "delta",
+                "--overwrite-output-for-contexts",
+                "--metadata-output-path", outputLocation
+        };
+
+        SparkCqlEvaluator.main(args);
+
+        DeltaLog.clearCache();
+        spark = initializeSession(Java8API.ENABLED);
+        Dataset<Row> results = spark.read().format("delta").load(outputLocation);
+
+        long numberOfNows = results.select("SampleLibrary|getNow").distinct().count();
+        assertEquals(1, numberOfNows);
+    }
     
     @Test
     public void testParameterMatrixOutputSimpleSuccess() throws Exception {

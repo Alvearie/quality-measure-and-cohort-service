@@ -6,6 +6,7 @@
 
 package com.ibm.cohort.cql.evaluation;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +40,8 @@ public class CqlEvaluator {
     
     public List<Pair<CqlEvaluationRequest,CqlEvaluationResult>> evaluate( CqlEvaluationRequests requests, CqlDebug debug ) {
         List<Pair<CqlEvaluationRequest,CqlEvaluationResult>> results = new ArrayList<>(requests.getEvaluations().size());
-        for( CqlEvaluationRequest request : requests.getEvaluations() ) { 
+        ZonedDateTime batchDateTime = ZonedDateTime.now();
+        for( CqlEvaluationRequest request : requests.getEvaluations() ) {
             
             
             Map<String,Parameter> parameters = new HashMap<>();
@@ -53,17 +55,21 @@ public class CqlEvaluator {
             CqlEvaluationRequest withGlobals = new CqlEvaluationRequest(request);
             withGlobals.setParameters(parameters);
             
-            results.add( Pair.of(request, evaluate( withGlobals, debug )) );
+            results.add( Pair.of(request, evaluate( withGlobals, debug, batchDateTime )) );
         }
         return results;
     }
     
     public CqlEvaluationResult evaluate( CqlEvaluationRequest request ) {
-        return evaluate( request.getDescriptor(), request.getParameters(), Pair.of(request.getContextKey(), request.getContextValue()), request.getExpressionNames(), DEFAULT_CQL_DEBUG );
+        return evaluate( request.getDescriptor(), request.getParameters(), Pair.of(request.getContextKey(), request.getContextValue()), request.getExpressionNames(), DEFAULT_CQL_DEBUG, null );
     }
     
     public CqlEvaluationResult evaluate( CqlEvaluationRequest request, CqlDebug debug ) {
-        return evaluate( request.getDescriptor(), request.getParameters(), Pair.of(request.getContextKey(), request.getContextValue()), request.getExpressionNames(), debug );
+        return evaluate( request.getDescriptor(), request.getParameters(), Pair.of(request.getContextKey(), request.getContextValue()), request.getExpressionNames(), debug, null );
+    }
+
+    public CqlEvaluationResult evaluate( CqlEvaluationRequest request, CqlDebug debug, ZonedDateTime batchDateTime ) {
+        return evaluate( request.getDescriptor(), request.getParameters(), Pair.of(request.getContextKey(), request.getContextValue()), request.getExpressionNames(), debug, batchDateTime );
     }
 
     public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary) throws CqlLibraryDeserializationException {
@@ -71,26 +77,26 @@ public class CqlEvaluator {
     }
     
     public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary, Pair<String,String> context) throws CqlLibraryDeserializationException {
-        return evaluate(topLevelLibrary, null, context, null, DEFAULT_CQL_DEBUG);
+        return evaluate(topLevelLibrary, null, context, null, DEFAULT_CQL_DEBUG, null);
     }
     
     public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary, Pair<String,String> context, Set<String> expressions) throws CqlLibraryDeserializationException {
-        return evaluate(topLevelLibrary, null, context, expressions, DEFAULT_CQL_DEBUG);
+        return evaluate(topLevelLibrary, null, context, expressions, DEFAULT_CQL_DEBUG, null);
     }
     
     public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary, Map<String,Parameter> parameters, Pair<String,String> context) throws CqlLibraryDeserializationException {
-        return evaluate(topLevelLibrary, parameters, context, null, DEFAULT_CQL_DEBUG);
+        return evaluate(topLevelLibrary, parameters, context, null, DEFAULT_CQL_DEBUG, null);
     }
 
     
     public CqlEvaluationResult evaluate(CqlLibraryDescriptor topLevelLibrary, Map<String, Parameter> parameters,
-            Pair<String, String> context, Set<String> expressions, CqlDebug debug)
+            Pair<String, String> context, Set<String> expressions, CqlDebug debug, ZonedDateTime batchDateTime)
             throws CqlLibraryDeserializationException {
         CqlContextFactory contextFactory = new CqlContextFactory();
         contextFactory.setExternalFunctionProvider(this.externalFunctionProvider);
 
         Context cqlContext = contextFactory.createContext(libraryProvider, topLevelLibrary,
-                terminologyProvider, dataProvider, null, context, parameters, debug);
+                terminologyProvider, dataProvider, batchDateTime, context, parameters, debug);
         
         if( expressions == null ) {
             expressions = cqlContext.getCurrentLibrary().getStatements().getDef().stream().map( d -> d.getName() ).collect(Collectors.toSet());
