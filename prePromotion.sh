@@ -41,7 +41,22 @@ else
   echo "This is not an Cohorting release for development. Moving on..."
 fi
 
-  echo "Promoting Spark image that doesn't have helm chart"
+
+# The following code is used to promote the spark image to the wh-common-rns so that other teams can get access to it.
+# The existing toolchain support only allows promotion of images that have an associated helm chart and our spark image
+# does not have a helm chart. New toolchain support for promoting non-helm chart apps is supposed to be added in toolchain version 3.6.0
+# due out in mid Jan 2022. Once that support is added, we can remove the scripting below which pulls a spark image and pushes it to wh-common-rns
+# and instead use the new toolchain support to promote the spark image
+
+echo "Promoting Spark image that doesn't have helm chart"
+  
+if [ -z ${SPARK_IMG+x} ]; then 
+  echo "SPARK_IMG is unset. Make sure you specify the spark image name (ie us.icr.io/vpc-dev-cohort-rns/cohort-evaluator-spark:xxxxx) from the CI pipeline build-docker-image step as a custom property set when running the promotion toolchain."
+  exit 1 # terminate and indicate error
+else 
+  echo "SPARK_IMG is set to '$SPARK_IMG'"
+fi
+
 # CDT login
 ibmcloud login -a "https://cloud.ibm.com/" --apikey "${CDTKEY}" -r us-south
 ibmcloud target --unset-resource-group
@@ -65,5 +80,6 @@ if ibmcloud cr image-inspect $dstimg 2>&1 | grep "The image was not found."; the
   docker tag ${SPARK_IMG} $dstimg
   docker push $dstimg
 else
-  echo "DSTIMG FOUND in OPS registry, not promoting: $dstimg"
+  echo "ERROR: DSTIMG ALREADY FOUND in OPS registry, not promoting: $dstimg"
+  exit 1 # terminate and indicate error
 fi
