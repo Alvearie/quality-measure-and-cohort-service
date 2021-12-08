@@ -27,7 +27,8 @@ public class EvaluationSummary {
 	private Map<String, Long> executionsPerContext = new HashMap<>();
 	private Map<String, Long> runtimeMillisPerContext = new HashMap<>();
 	private String applicationId;
-	
+	private String correlationId;
+
 	public EvaluationSummary() {
 		
 	}
@@ -96,6 +97,14 @@ public class EvaluationSummary {
 		this.applicationId = applicationId;
 	}
 
+	public String getCorrelationId() {
+		return correlationId;
+	}
+
+	public void setCorrelationId(String correlationId) {
+		this.correlationId = correlationId;
+	}
+
 	public void addContextCount(String contextName, long count) {
 		executionsPerContext.put(contextName, count);
 	}
@@ -107,7 +116,6 @@ public class EvaluationSummary {
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
-
 		if (o == null || getClass() != o.getClass()) return false;
 
 		EvaluationSummary that = (EvaluationSummary) o;
@@ -121,6 +129,7 @@ public class EvaluationSummary {
 				.append(executionsPerContext, that.executionsPerContext)
 				.append(runtimeMillisPerContext, that.runtimeMillisPerContext)
 				.append(applicationId, that.applicationId)
+				.append(correlationId, that.correlationId)
 				.isEquals();
 	}
 
@@ -135,6 +144,7 @@ public class EvaluationSummary {
 				.append(executionsPerContext)
 				.append(runtimeMillisPerContext)
 				.append(applicationId)
+				.append(correlationId)
 				.toHashCode();
 	}
 
@@ -149,6 +159,7 @@ public class EvaluationSummary {
 		sb.append(", executionsPerContext=").append(executionsPerContext);
 		sb.append(", runtimeMillisPerContext=").append(runtimeMillisPerContext);
 		sb.append(", applicationId='").append(applicationId).append('\'');
+		sb.append(", correlationId='").append(correlationId).append('\'');
 		sb.append('}');
 		return sb.toString();
 	}

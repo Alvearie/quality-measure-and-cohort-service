@@ -95,4 +95,7 @@ public class SparkCqlEvaluatorArgs implements Serializable {
     
     @Parameter(names = { "--key-parameters" }, description = "One or more parameter names that should be included in the parameters column for output rows that are generated.", required = false)
     public List<String> keyParameterNames = null;
+
+    @Parameter(names = { "--correlation-id" }, description = "This correlation ID will be written with any log messages created by the application and also to the batch summary file that is created ", required = false)
+    public String correlationId = null;
 }
