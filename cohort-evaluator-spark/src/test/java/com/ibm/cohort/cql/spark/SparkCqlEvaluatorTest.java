@@ -435,6 +435,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
           "-n", "10",
           "--output-format", "parquet",
           "--overwrite-output-for-contexts",
+          "--correlation-id", "Spark1234",
           "--metadata-output-path", metadataDir.toURI().toString()
         };
 
@@ -1033,6 +1034,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 "-i", "D=" + new File(inputDir, "testdata/test-D.parquet").toURI().toString(),
                 "-o", "Patient=" + patientFile.toURI().toString(),
                 "-n", "10",
+                "--correlation-id", "Spark1234",
                 "--overwrite-output-for-contexts",
                 "--metadata-output-path", metadataDir.toURI().toString()
         };
@@ -1054,6 +1056,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
             EvaluationSummary evaluationSummary = mapper.readValue(fileInputStream, EvaluationSummary.class);
             
             assertNotNull(evaluationSummary.getApplicationId());
+            assertNotNull(evaluationSummary.getCorrelationId());
             assertTrue(evaluationSummary.getStartTimeMillis() > 0);
             assertTrue(evaluationSummary.getEndTimeMillis() > 0);
             assertTrue(evaluationSummary.getRuntimeMillis() > 0);
