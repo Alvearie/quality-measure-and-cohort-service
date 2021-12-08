@@ -387,6 +387,7 @@ This file contains various pieces of information about the performed run. The cu
 * `errorList`: If one or more CQL evaluation errors occured during the run, then this field contains an entry per error
                detailing the context name, context id, output column being calculated, and the exception that was encountered.
                If no errors were encountered during the run, the `errorList` is omitted.
+* `correlationId`: The user-provided id that was specified at runtime that will preface all of the log lines for this job.
 
 **Note**: The default behavior of the Spark program is to gather any errors that occur during CQL evaluation and report
 them in the batch summary file rather than to have the program halt when it hits an error during CQL evaluation.
