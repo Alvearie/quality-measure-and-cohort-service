@@ -290,7 +290,7 @@ public class SparkCqlEvaluator implements Serializable {
         
         SparkSession.Builder sparkBuilder = SparkSession.builder();
         try (SparkSession spark = sparkBuilder.getOrCreate()) {
-            spark.sparkContext().setLocalProperty("mdc." + CORRELATION_ID, MDC.get("CorrelationId"));
+            spark.sparkContext().setLocalProperty("mdc." + CORRELATION_ID, MDC.get(CORRELATION_ID));
             boolean useJava8API = Boolean.valueOf(spark.conf().get("spark.sql.datetime.java8API.enabled"));
             this.typeConverter = new SparkTypeConverter(useJava8API);
             this.hadoopConfiguration = new SerializableConfiguration(spark.sparkContext().hadoopConfiguration());
