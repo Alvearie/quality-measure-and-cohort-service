@@ -857,7 +857,7 @@ public class SparkCqlEvaluator implements Serializable {
             }
         }
         finally {
-            MDC.remove("CorrelationId");
+            MDC.remove(CORRELATION_ID);
         }
     }
 }
