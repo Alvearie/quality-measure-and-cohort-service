@@ -47,6 +47,7 @@ import org.apache.spark.util.SerializableConfiguration;
 import org.opencds.cqf.cql.engine.data.ExternalFunctionProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import com.beust.jcommander.JCommander;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -108,6 +109,7 @@ import scala.Tuple2;
 public class SparkCqlEvaluator implements Serializable {
     private static final Logger LOG = LoggerFactory.getLogger(SparkCqlEvaluator.class);
     private static final long serialVersionUID = 1L;
+    private static final String CORRELATION_ID = "CorrelationId";
 
     protected SparkCqlEvaluatorArgs args;
 
@@ -288,6 +290,7 @@ public class SparkCqlEvaluator implements Serializable {
         
         SparkSession.Builder sparkBuilder = SparkSession.builder();
         try (SparkSession spark = sparkBuilder.getOrCreate()) {
+            spark.sparkContext().setLocalProperty("mdc." + CORRELATION_ID, MDC.get("CorrelationId"));
             boolean useJava8API = Boolean.valueOf(spark.conf().get("spark.sql.datetime.java8API.enabled"));
             this.typeConverter = new SparkTypeConverter(useJava8API);
             this.hadoopConfiguration = new SerializableConfiguration(spark.sparkContext().hadoopConfiguration());
@@ -840,11 +843,20 @@ public class SparkCqlEvaluator implements Serializable {
                 .build();
         commander.parse(args);
 
-        SparkCqlEvaluator evaluator = new SparkCqlEvaluator(programArgs);
-        if (programArgs.help) {
-            commander.usage();
-        } else {
-            evaluator.run(System.out);
+        try {
+            if (programArgs.correlationId != null) {
+                MDC.put(CORRELATION_ID, programArgs.correlationId);
+            }
+
+            SparkCqlEvaluator evaluator = new SparkCqlEvaluator(programArgs);
+            if (programArgs.help) {
+                commander.usage();
+            } else {
+                evaluator.run(System.out);
+            }
+        }
+        finally {
+            MDC.remove("CorrelationId");
         }
     }
 }

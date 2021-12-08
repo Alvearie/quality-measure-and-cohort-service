@@ -149,6 +149,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 "-o", "Patient=" + new File(outputLocation).toURI().toString(),
                 "--output-format", "delta",
                 "--overwrite-output-for-contexts",
+                "--correlation-id", "Spark1234",
                 "--metadata-output-path", outputLocation
         };
 
