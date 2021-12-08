@@ -99,6 +99,9 @@ Usage: SparkCqlEvaluator [options]
     -t, --terminology-path
       Filesystem path to the location containing the ValueSet definitions in 
       FHIR XML or JSON format.
+    --correlation-id
+      This correlation ID will be written with any log messages created by the 
+      application and also to the batch summary file that is created
 ```
 
 The typical mode of invocation is to run the program using the spark-submit script from SPARK_HOME\bin to submit a job to a target Spark cluster. The simplest invocation for a Windows user will look like this...
