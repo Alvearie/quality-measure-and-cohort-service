@@ -158,7 +158,7 @@ public class EvaluationSummary {
 		sb.append(", totalContexts=").append(totalContexts);
 		sb.append(", executionsPerContext=").append(executionsPerContext);
 		sb.append(", runtimeMillisPerContext=").append(runtimeMillisPerContext);
-		sb.append(", applicationId='").append(applicationId);
+		sb.append(", applicationId='").append(applicationId).append('\'');
 		sb.append(", correlationId='").append(correlationId).append('\'');
 		sb.append('}');
 		return sb.toString();
