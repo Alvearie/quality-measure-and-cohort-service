@@ -11,7 +11,6 @@ import static org.junit.Assert.fail;
 
 import javax.ws.rs.core.Response;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList.ErrorSource;
 import com.ibm.watson.service.base.model.ServiceError;
 import org.hl7.fhir.r4.model.OperationOutcome;
