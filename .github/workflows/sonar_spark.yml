@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - cql-spark-evaluator
+      - sonar-test
 jobs:
   sonar:
     runs-on: ubuntu-latest
