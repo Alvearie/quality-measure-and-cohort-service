@@ -1,0 +1,7 @@
+{
+	"A" : [],
+	"ChildBase": ["amount"],
+	"B" :["amount"],
+	"C" :["amount"],
+	"D" :["amount"]
+}

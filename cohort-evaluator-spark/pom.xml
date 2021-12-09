@@ -1,0 +1,342 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.ibm.cohort</groupId>
+		<artifactId>cohort-parent</artifactId>
+		<version>${revision}</version>
+		<relativePath>../cohort-parent</relativePath>
+	</parent>
+
+	<artifactId>cohort-evaluator-spark</artifactId>
+	<packaging>jar</packaging>
+
+	<scm>
+		<url>https://github.com/Alvearie/quality-measure-and-cohort-service</url>
+		<connection>scm:git:git@github.com:Alvearie/quality-measure-and-cohort-service.git</connection>
+		<developerConnection>scm:git:git@github.com:Alvearie/quality-measure-and-cohort-service.git</developerConnection>
+	</scm>
+
+    <properties>
+        <image.tag>us.icr.io/vpc-dev-cohort-rns/cohort-evaluator-spark:a-p3.4.3-tekton-20210907202747-a57c643820323a5c76ddb8392aa64c3eab27ba45</image.tag>
+        <config.volume>cohort-config</config.volume>
+        <data.bucket>kwasny-test</data.bucket>
+        <data.secret>spark-cos-secret</data.secret>
+        <job.name>simple-job</job.name>
+    </properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- We get jsp-api:2.1 transitively from our hadoop-common dependency. 
+				JSP 2.1 includes API classes for an early version of the javax.el unified 
+				expression language. That version conflicts with the newer version that is 
+				needed by recent Hibernate Validator implementations. Rather than backdate 
+				our Hibernate Validator all the way to 4.2.0.Final (which would be necessary 
+				to work with JSP 2.1), I am upgrading the JSP API to 2.2. -->
+			<dependency>
+				<groupId>javax.servlet.jsp</groupId>
+				<artifactId>jsp-api</artifactId>
+				<version>2.2</version>
+			</dependency>	
+		</dependencies>
+	</dependencyManagement>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-evaluator</artifactId>
+			<version>${project.version}</version>
+			<exclusions>
+				<!-- Spark ships with Jersey and Jersey uses an ever-so-slightly newer 
+					version of the validation API, so we are preferring the Jersey version. -->
+				<exclusion>
+					<groupId>javax.validation</groupId>
+					<artifactId>validation-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-model-datarow</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.opencds.cqf.cql</groupId>
+			<artifactId>engine</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>ca.uhn.hapi.fhir</groupId>
+			<artifactId>hapi-fhir-base</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>ca.uhn.hapi.fhir</groupId>
+			<artifactId>org.hl7.fhir.r4</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>ca.uhn.hapi.fhir</groupId>
+			<artifactId>hapi-fhir-structures-r4</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-sql_${spark.scala.version}</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.3.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-kubernetes_${spark.scala.version}</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>io.delta</groupId>
+			<artifactId>delta-core_${spark.scala.version}</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>xpp3</groupId>
+			<artifactId>xpp3</artifactId>
+			<version>1.1.4c</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-aws</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>jakarta.validation</groupId>
+			<artifactId>jakarta.validation-api</artifactId>
+			<version>2.0.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.validation</groupId>
+					<artifactId>validation-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.glassfish</groupId>
+			<artifactId>javax.el</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.beust</groupId>
+			<artifactId>jcommander</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>info.cqframework</groupId>
+			<artifactId>model</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>info.cqframework</groupId>
+			<artifactId>elm</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>info.cqframework</groupId>
+			<artifactId>cql-to-elm</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-common</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<!-- Required for custom spark metrics -->
+		<dependency>
+			<groupId>io.dropwizard.metrics</groupId>
+			<artifactId>metrics-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+			<version>1.3</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-core</artifactId>
+			<version>1.3</version>
+			<scope>test</scope>
+		</dependency>
+		
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>java</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<mainClass>org.apache.spark.deploy.SparkSubmit</mainClass>
+					<arguments>
+						<argument>--conf</argument>
+						<argument>spark.driver.memoryOverhead=512m</argument>
+						<argument>--conf</argument>
+						<argument>spark.driver-memory=1g</argument>
+						<argument>--conf</argument>
+						<argument>spark.master=k8s://https://c105.us-east.containers.cloud.ibm.com:32327</argument>
+						<argument>--conf</argument>
+                        <argument>spark.eventLog.dir=s3a://${data.bucket}/z-spark-history</argument>
+						<argument>--conf</argument>
+						<argument>spark.eventLog.enabled=true</argument>
+						<argument>--conf</argument>
+						<argument>spark.executor.instances=2</argument>
+						<argument>--conf</argument>
+						<argument>spark.hadoop.fs.s3a.endpoint=https://s3.us-east.cloud-object-storage.appdomain.cloud</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.namespace=dev</argument>
+						<argument>--conf</argument>
+                        <argument>spark.kubernetes.container.image=${image.tag}</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.authenticate.driver.serviceAccountName=spark</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.driver.secretKeyRef.AWS_SECRET_ACCESS_KEY=${data.secret}:AWS_SECRET_KEY</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.driver.secretKeyRef.AWS_ACCESS_KEY_ID=${data.secret}:AWS_ACCESS_KEY</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.executor.secretKeyRef.AWS_SECRET_ACCESS_KEY=${data.secret}:AWS_SECRET_KEY</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.executor.secretKeyRef.AWS_ACCESS_KEY_ID=${data.secret}:AWS_ACCESS_KEY</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.driver.podTemplateFile=pod-cohort-evaluator-spark.yaml</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.driver.volumes.persistentVolumeClaim.${config.volume}.options.claimName=${config.volume}</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.driver.volumes.persistentVolumeClaim.${config.volume}.mount.path=/${config.volume}</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.executor.podTemplateFile=pod-cohort-evaluator-spark.yaml</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.executor.volumes.persistentVolumeClaim.${config.volume}.options.claimName=${config.volume}</argument>
+						<argument>--conf</argument>
+						<argument>spark.kubernetes.executor.volumes.persistentVolumeClaim.${config.volume}.mount.path=/${config.volume}</argument>
+						<argument>--deploy-mode</argument>
+						<argument>cluster</argument>
+						<argument>--name</argument>
+						<argument>cohort-evaluator-spark</argument>
+						<argument>--class</argument>
+						<argument>com.ibm.cohort.cql.spark.SparkCqlEvaluator</argument>
+                        <argument>local:///opt/spark/jars/${project.artifactId}-${project.version}.jar</argument>
+						<argument>-d</argument>
+						<argument>/${config.volume}/${job.name}/context-definitions.json</argument>
+						<argument>-j</argument>
+						<argument>/${config.volume}/${job.name}/cql-jobs.json</argument>
+						<argument>-m</argument>
+						<argument>/${config.volume}/${job.name}/mock-modelinfo-1.0.0.xml</argument>
+						<argument>-c</argument>
+						<argument>/${config.volume}/${job.name}/cql</argument>
+						<argument>-i</argument>
+                        <argument>Patient=s3a://${data.bucket}/${job.name}/patient</argument>
+						<argument>-o</argument>
+                        <argument>Patient=s3a://${data.bucket}/${job.name}/output/patient_cohort</argument>
+						<!-- These are optional arguments you can pass if you need to subset the job execution
+						<argument>-a</argument>
+						<argument>Patient</argument>
+						<argument>-l</argument>
+						<argument>SimpleLibrary=1.0.0</argument>
+						<argument>-e</argument>
+						<argument>IsFemale</argument>
+						-->
+					</arguments>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

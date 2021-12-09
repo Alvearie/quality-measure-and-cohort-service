@@ -119,21 +119,20 @@ variable "spark_cos_secret_name" {
   type = string
   default = "spark-cos-secret"
 }
-
-variable "spark_cos_aws_secret_key" {
-  description = "AWS secret key value used to access Cloud Object Store"
+variable "spark_cos_resource_key_manager" {
+  description = "IBM Resource Key name for Manager role in COS configuration bucket"
   type = string
 }
-variable "spark_cos_aws_access_key" {
-  description = "AWS access key value used to access Cloud Object Store"
+variable "spark_cos_resource_key_writer" {
+  description = "IBM Resource Key name for Writer role in COS configuration bucket"
   type = string
 }
-variable "spark_cos_aws_endpoint" {
-  description = "AWS endpoint value used to access Cloud Object Store"
+variable "config_volume_claim_name" {
+  description = "Kubernetes PVC resource name for configuration data"
   type = string
 }
-variable "spark_cos_aws_location" {
-  description = "AWS location value used to access Cloud Object Store"
+variable "config_bucket_name" {
+  description = "COS bucket for configuration storing configuration data"
   type = string
 }
 

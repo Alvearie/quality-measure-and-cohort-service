@@ -1,9 +1,3 @@
-##### IHE
-Intelligent Health Engagement team, formerly know as Digital Clinical Conversation (DCC)
-
-##### DCC
-?> _deprecated:_ see `IHE`
-
 ##### JXSON
 !> _crispy warning:_ not an official JSON serialization format or term.
 
@@ -24,22 +18,22 @@ https://bonnie.healthit.gov/api
 ##### CMS
 Centers for Medicare and Medicaid Services
 
-##### eCQI 
+##### eCQI
 Electronic Clinical Quality Improvement
 
 Funded by CMS and ONC, Electronic clinical quality improvement (eCQI) provides common standards and shared technologies to monitor and analyze the quality of health care provided to patients and patient outcomes.
 
 https://ecqi.healthit.gov/
 
-##### DSTU 
+##### DSTU
 Draft Standard for Trial Use 
 
-##### ELM 
+##### ELM
 Expression Logical Model
 
 https://cql.hl7.org/elm.html
 
-##### FSH 
+##### FSH
 FHIR Shorthand
 
 https://build.fhir.org/ig/HL7/fhir-shorthand/index.html
@@ -87,7 +81,7 @@ The QUICK data model provides a logical view of clinical data from the perspecti
 
 http://hl7.org/fhir/us/qicore/2018Jan/quick/index.html
 
-The QUICK data model uses the QI-Core profiles to provide a physical representation for the data. 
+The QUICK data model uses the QI-Core profiles to provide a physical representation for the data.
 QUICK provides a logical model that enables knowledge authors to ignore certain details of the FHIR Physical representation, including:
 - The representation of primitives in FHIR using a "value" element of a complex type, rather than a true primitive
 - The representation of extensions in FHIR as first class elements in QUICK
@@ -97,7 +91,7 @@ To address the first issue, the QUICK model maps the FHIR base types to CQL prim
 
 To address the second issue, the QUICK model represents FHIR extensions as first-class attributes of the class. 
 
-To address the third issue, the QUICK model represents FHIR references as direct appearances of the referenced class or classes. 
+To address the third issue, the QUICK model represents FHIR references as direct appearances of the referenced class or classes.
 
 !> The third issue is still being worked out, so current QUICK documentation still uses the Reference type to model references.
 
@@ -107,10 +101,6 @@ Standard for Trial Use
 https://confluence.hl7.org/display/HL7/HL7+Balloting
 
 Standard for Trial Use (STU) ballots are used to vet content that is eventually intended to be binding on implementers.
-
-##### TREX 
-is a data integration component that advantage suite (aka Truven) offerings use for data ingestion into their pipeline.
-We are now decoupling it though as a component that has value for claims data integration for more than just Advantage offerings
 
 ##### VSAC
 Value Set Authority Center

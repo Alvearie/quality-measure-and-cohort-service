@@ -51,7 +51,7 @@ ENV SPARK_HOME=${SPARK_HOME}
 # Become root for the Spark installation process
 USER root
 # Perform a full update of all packages to minimize vulnerabilities
-RUN dnf update -y &&\
+RUN dnf update --nobest -y &&\
     # Install Java 11
     dnf install -y java-11-openjdk &&\
     # Clean dnf

@@ -5,6 +5,7 @@
  */
 package com.ibm.cohort.engine.api.service;
 
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +18,14 @@ import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.ParameterDefinition;
 import org.hl7.fhir.r4.model.ParameterDefinition.ParameterUse;
+import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.Period;
+import org.hl7.fhir.r4.model.Quantity;
+import org.hl7.fhir.r4.model.Range;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.measure.RestFhirMeasureResolutionProvider;
 import com.ibm.cohort.engine.measure.seed.MeasureEvaluationSeeder;
@@ -25,6 +33,8 @@ import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
 
 import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.context.FhirVersionEnum;
+import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 
@@ -34,6 +44,12 @@ import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
  */
 public class FHIRRestUtils {
 
+	private static final List<String> complicatedTypes = new ArrayList<>();
+	static {
+		complicatedTypes.add("Period");
+		complicatedTypes.add("Range");
+		complicatedTypes.add("Quantity");
+	}
 	/**
 	 * @param fhirEndpoint The REST endpoint for the FHIR server
 	 * @param fhirTenantIdHeader the header used by FHIR to identify the tenant
@@ -172,7 +188,10 @@ public class FHIRRestUtils {
 	}
 
 	private static MeasureParameterInfo toMeasureParameterInfo(ParameterDefinition parameterDefinition) {
+
 		MeasureParameterInfo retVal = new MeasureParameterInfo();
+		String defaultValue = complicatedTypes.contains(parameterDefinition.getType())? complicatedTypeValueConstructor(parameterDefinition) : null;
+
 		retVal.name(parameterDefinition.getName())
 				.type(parameterDefinition.getType())
 				.min(parameterDefinition.getMin())
@@ -186,12 +205,53 @@ public class FHIRRestUtils {
 		parameterDefinition.getExtension().stream()
 				.filter(MeasureEvaluationSeeder::isDefaultValue).findFirst() // only zero or one per IG
 				.map(Extension::getValue)
-				.map(Object::toString)
+				.map(x -> {if(defaultValue != null){return defaultValue;} else return x.toString();})
 				.ifPresent(retVal::setDefaultValue);
 
 		return retVal;
 	}
-	
+
+	static String complicatedTypeValueConstructor(ParameterDefinition parameterDefinition) {
+		FhirContext context = FhirContext.forCached(FhirVersionEnum.R4);
+		IParser parser = context.newJsonParser();
+		String valueKey;
+		//In order to use the hapi parser, we cannot translate an extension by itself. The patient object wraps the extension
+		Patient patient = new Patient();
+		Extension extension = new Extension();
+		switch (parameterDefinition.getType()) {
+			case "Period":
+				Period period = (Period) parameterDefinition.getExtension().get(0).getValue();
+				extension.setValue(period);
+				patient.addExtension(extension);
+				valueKey = "valuePeriod";
+				break;
+			case "Range":
+				Range range = (Range) parameterDefinition.getExtension().get(0).getValue();
+				extension.setValue(range);
+				patient.addExtension(extension);
+				valueKey = "valueRange";
+				break;
+			case "Quantity":
+				Quantity quantity = (Quantity) parameterDefinition.getExtension().get(0).getValue();
+				extension.setValue(quantity);
+				patient.addExtension(extension);
+				valueKey = "valueQuantity";
+				break;
+			default:
+				throw new RuntimeException("Complicated Type" + parameterDefinition.getType() + " not yet implemented");
+		}
+		String intermediateValue = parser.encodeResourceToString(patient);
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			JsonNode root = mapper.readTree(intermediateValue);
+			JsonNode nameNode = root.path("extension");
+			return nameNode.get(0).path(valueKey).toString();
+		}
+		catch (JsonProcessingException e){
+			throw new RuntimeException("There was an issue with json translation", e);
+		}
+	}
+
 	/**
 	 * @param httpHeaders The HttpHeaders from the request we want to parse
 	 * @return String[] containing username as first element and password as second

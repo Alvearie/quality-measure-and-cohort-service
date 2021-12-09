@@ -6,6 +6,7 @@
 
 package com.ibm.cohort.engine;
 
+import java.time.ZonedDateTime;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -254,11 +255,12 @@ public class CqlEvaluator {
 		Library library = libraryLoader.load(libraryId);
 		LibraryUtils.requireNoTranslationErrors(library);
 		LibraryUtils.requireValuesForNonDefaultParameters(library, parameters);
+		ZonedDateTime batchDateTime = ZonedDateTime.now();
 
 		for (String contextId : contextIds) {
 			callback.onContextBegin(contextId);
 
-			Context context = new CDMContext(library);
+			Context context = new CDMContext(library, batchDateTime);
 			for (Map.Entry<String, DataProvider> e : dataProviders.entrySet()) {
 				context.registerDataProvider(e.getKey(), e.getValue());
 			}
@@ -448,7 +450,7 @@ public class CqlEvaluator {
 		Map<String, Object> typedParameters = null;
 		if (parameters != null) {
 			typedParameters = parameters.entrySet().stream()
-					.map(entry -> new SimpleEntry<String,Object>(entry.getKey(), entry.getValue().toCqlType()))
+					.map(entry -> new SimpleEntry<>(entry.getKey(), entry.getValue().toCqlType()))
 					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 		}
 		return typedParameters;

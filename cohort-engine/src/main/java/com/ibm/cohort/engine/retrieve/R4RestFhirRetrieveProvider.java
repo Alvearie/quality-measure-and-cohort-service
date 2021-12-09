@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hl7.fhir.instance.model.api.IBaseBundle;
 import org.hl7.fhir.instance.model.api.IBaseCoding;
@@ -86,7 +87,7 @@ public class R4RestFhirRetrieveProvider extends RestFhirRetrieveProvider {
 				}
 
 				List<List<IQueryParameterType>> value = entry.getValue();
-				if (value == null || value.size() == 0) {
+				if (CollectionUtils.isEmpty(value)) {
 					continue;
 				}
 
@@ -94,7 +95,7 @@ public class R4RestFhirRetrieveProvider extends RestFhirRetrieveProvider {
 
 				for (List<IQueryParameterType> subList : value) {
 
-					if (subList == null || subList.size() == 0) {
+					if (CollectionUtils.isEmpty(subList)) {
 						continue;
 					}
 

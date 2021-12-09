@@ -1,0 +1,9 @@
+{
+  "contextDefinitions": [
+    {
+      "name": "Patient",
+      "primaryDataType": "Patient",
+      "primaryKeyColumn": "id"
+    }
+  ]
+}

@@ -31,6 +31,74 @@ populateRestApiTestYaml() {
   sed -i "/FHIR_SERVER_DETAILS_JSON/s|:.*$|: \"${KNOWLEDGE_TENANT}\"|" ${yamlfile}
   sed -i "/filename/s|:.*$|: \"${xmlfile}\"|" ${yamlfile}
 }
+
+runSparkTest() {
+  SPARK_ARGS=$1
+  SPARK_RESULTS_FILE=$2
+
+  #Give a name to the new pod that will be spun off to be used to execute spark-submit jobs for HI FVT testing.
+  SPARK_POD_NAME=engine-spark-fvt-test
+
+  # Call a script "create-sparkfvt-pod.sh" to prepare and then spin off the new pod to execute spark-submit job commands
+  bash tests/create-sparkfvt-pod.sh ${SPARK_POD_NAME}
+    
+  # Clean up any Spark Driver pod whose name starts with "cohortfvt-spark" that is hanging around from a previous spark-submit run before doing a new spark-submit.
+  DVRNAMEPREFIX="cohortfvt-spark"
+  olddriverpod=`kubectl -n ${CLUSTER_NAMESPACE} get pods --no-headers -o custom-columns=":metadata.name" | grep ${DVRNAMEPREFIX} | grep driver`
+  kubectl -n ${CLUSTER_NAMESPACE} delete pod ${olddriverpod}
+ 
+  # use kubectl to exec into engine-spark-fvt-test pod spun off earlier and run the spark-submit command providing it the SPARK_ARGS string
+  kubectl -n ${CLUSTER_NAMESPACE} exec ${SPARK_POD_NAME} -- bash -c "/opt/spark/bin/spark-submit ${SPARK_ARGS}"
+  
+  # call the check-spark-submit-status.sh script to find out the status of the spark-submit job.
+  bash tests/check-spark-submit-status.sh ${SPARK_POD_NAME}
+  sparksbmrc=$?
+  if [ ${sparksbmrc} != 0 ]; then
+    echo "Spark-submit job failed. Exiting..."
+    exit 1
+  fi
+  
+  # Check to see if python3.8 is available for executing the xmlCombiner.py script later to combine the Results xml files into single file. If not install python3.8.
+  pythonBinary=python3.8
+  pythonVersion=$(${pythonBinary} --version 2>/dev/null)
+  if [ -z "${pythonVersion}" ]
+  then
+    echo "Python check output: '${pythonVersion}'"
+    echo "Missing ${pythonBinary}, installing..."
+    sudo yum -y install python38
+    which python3.8
+    python3.8 --version
+    pythonBinary=python3.8
+  else 
+    echo "Found '${pythonBinary}' binary"
+  fi
+  
+  # Install the python requirements for use for validating test results for the Spark/COS based tests.
+  $pythonBinary -m pip install -r ${TEST_DIR}/requirements.txt
+  echo "Install of python requirements for validating spark fvt test results completed successfully."
+  
+  # Make sure results directory is empty from any previous tests
+  if [ -d "spark-cos/fvt-output" ]; then
+    rm -r spark-cos/fvt-output/*
+  fi
+  
+  # Copy over the fvt output folder along with all subfolders from COS locally. This is so that the validation script (validateSparkFvtOutput.py) can access the output 
+  # files locally without having to make calls into COS. The cohort-data-tenant2 COS bucket under which fvt-output exists is already mounted in the engine-spark-fvt-test 
+  # pod at /spark-cos
+  kubectl exec -n ${CLUSTER_NAMESPACE} ${SPARK_POD_NAME} -- tar cf - /spark-cos/fvt-output | tar xf - -C .
+  
+  # Call a Python script to validate the results of the spark fvt test by reading the parquet files from fvt-output folder copied earlier
+  $pythonBinary ${TEST_DIR}/scripts/validateSparkFvtOutput.py ${SPARK_RESULTS_FILE}
+  
+  # Check for existence of the file written out by the validateSparkFVTOutput.py python with validation results. If the file exists copy the file 
+  # into the ${OUTPUT_DIR}/Results directory to be later combined with other "results" xml files (from non Spark based tests) into a single fvttest.xml file by the 
+  # xmlCombiner.py script
+  if [ -f "${SPARK_RESULTS_FILE}" ]; then
+    cp ${SPARK_RESULTS_FILE} "${OUTPUT_DIR}/Results"
+  fi
+}
+
+
 . tests/setupEnvironmentVariables.sh
 
 POD_NAME=engine-cohort-fvt-test
@@ -95,25 +163,21 @@ kubectl -n ${CLUSTER_NAMESPACE} cp "${POD_NAME}:/bzt-configs/tests/results" "${O
 echo "Copying test results log files and screenshots to ${OUTPUT_DIR}/artifacts"
 kubectl -n ${CLUSTER_NAMESPACE} cp "${POD_NAME}:/tmp/artifacts" "${OUTPUT_DIR}/artifacts"
 
-# First Check to see if python3 is available for use with xmlCombiner.py script. If not first install python3.8 using yum.
-pythonBinary=python3
-pythonVersion=$(${pythonBinary} --version 2>/dev/null)
-if [ -z "${pythonVersion}" ]
-then
-  echo "Python check output: '${pythonVersion}'"
-  echo "Missing ${pythonBinary}, installing..."
-  sudo yum -y install python38
-  which python3.8
-  python3.8 --version
-  pythonBinary=python3.8
-else 
-  echo "Found '${pythonBinary}' binary"
-fi
+######################################### START of section specific to SPARK based fvt tests ######################################################
+
+test1Args="--deploy-mode cluster --name cohortfvt-spark --class com.ibm.cohort.cql.spark.SparkCqlEvaluator local:///opt/spark/jars/cohort-evaluator-spark-1.0.2-SNAPSHOT.jar -d /cohort-config/fvt/fvt-context-definitions.json -j /cohort-config/fvt/fvt-cql-jobs.json -m /cohort-config/fvt/fvt-model-info.xml -c /cohort-config/fvt/cql --input-format delta -i Device=s3a://cohort-data-tenant2/fvt-input-data/Device -i Observation=s3a://cohort-data-tenant2/fvt-input-data/Observation -i Patient=s3a://cohort-data-tenant2/fvt-input-data/Patient -i PatientDeviceJoin=s3a://cohort-data-tenant2/fvt-input-data/PatientDeviceJoin -i Practitioner=s3a://cohort-data-tenant2/fvt-input-data/Practitioner --overwrite-output-for-contexts -o Patient=s3a://cohort-data-tenant2/fvt-output/Patient_cohort -o Observation=s3a://cohort-data-tenant2/fvt-output/Observation_cohort -o Practitioner=s3a://cohort-data-tenant2/fvt-output/Practitioner_cohort -o Device=s3a://cohort-data-tenant2/fvt-output/Device_cohort --metadata-output-path /tmp"
+test1OutputFile="sparkFvtTest-local-configs.xml"
+runSparkTest "${test1Args}" "${test1OutputFile}"
+
+test2Args="--deploy-mode cluster --name cohortfvt-spark --class com.ibm.cohort.cql.spark.SparkCqlEvaluator local:///opt/spark/jars/cohort-evaluator-spark-1.0.2-SNAPSHOT.jar -d s3a://cohort-config/fvt/fvt-context-definitions.json -j s3a://cohort-config/fvt/fvt-cql-jobs.json -m s3a://cohort-config/fvt/fvt-model-info.xml -c s3a://cohort-config/fvt/cql --input-format delta -i Device=s3a://cohort-data-tenant2/fvt-input-data/Device -i Observation=s3a://cohort-data-tenant2/fvt-input-data/Observation -i Patient=s3a://cohort-data-tenant2/fvt-input-data/Patient -i PatientDeviceJoin=s3a://cohort-data-tenant2/fvt-input-data/PatientDeviceJoin -i Practitioner=s3a://cohort-data-tenant2/fvt-input-data/Practitioner --overwrite-output-for-contexts -o Patient=s3a://cohort-data-tenant2/fvt-output/Patient_cohort -o Observation=s3a://cohort-data-tenant2/fvt-output/Observation_cohort -o Practitioner=s3a://cohort-data-tenant2/fvt-output/Practitioner_cohort -o Device=s3a://cohort-data-tenant2/fvt-output/Device_cohort --metadata-output-path /tmp"
+test2OutputFile="sparkFvtTest-cos-configs.xml"
+runSparkTest "${test2Args}" "${test2OutputFile}"
+
+########################################### END of section specific to SPARK based fvt tests ###############################################################
 
 # Run the xmlCombiner.py script against all XML output copied to output/Results directory earlier.
 echo "Combining all XML output into single xml file called fvttest.xml"
 $pythonBinary ${TEST_DIR}/scripts/xmlCombiner.py ${OUTPUT_DIR}/Results/*.xml
 
-# Append the contents of the combined results xml file to the output XML file (fvttest.xml)
-echo "Generating final combined results xml file fvttest.xml for DevOps Insights Console to display"
+# Rename the contents of the combined xml file to fvttest.xml for reporting to the DevOps Insights Console.
 mv combinedResults.xml fvttest.xml

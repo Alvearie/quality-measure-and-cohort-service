@@ -1,9 +1,13 @@
 - User Guide
 
   - [Getting Started](user-guide/getting-started.md)
-  - [FHIR Server Configuration](user-guide/fhir-server-config.md)
+  - [Deployment Models](user-guide/deployment-models.md)
+    - [Client-Server Mode](user-guide/client-server-guide.md)
+    - [Server-Only Mode using IBM FHIR](user-guide/server-only-guide.md)
+    - [Big-Data Mode using Apache Spark](user-guide/spark-user-guide.md)
+      - [Application Performance](user-guide/spark-performance.md)
+  - [FHIR Server Installation & Configuration](user-guide/fhir-server-config.md)
+  - [FHIR Clinical Quality Measure Evaluation](user-guide/quality-measure-guide.md)
   - [Parameter Formats](user-guide/parameter-formats.md)
-
-- Index
-
-  - [Home](/)
+  - [Using the Java APIs](user-guide/java-api-dev-guide.md)
+  - [FHIR Resource Tooling](user-guide/fhir-resource-tooling.md)

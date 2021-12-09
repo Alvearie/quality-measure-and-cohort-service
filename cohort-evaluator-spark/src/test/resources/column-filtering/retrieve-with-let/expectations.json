@@ -1,0 +1,6 @@
+{
+	"A": [],
+	"B": [ "id", "boolean", "datetime", "integer" ],
+	"C": [ "float" ],
+	"D": [ "integer" ]
+}

@@ -1,0 +1,9 @@
+{
+	"globalParameters": {
+		"ParamWithMissingProperties": {
+			"type": "interval"
+		}
+	},
+	"evaluations": [
+	]
+}

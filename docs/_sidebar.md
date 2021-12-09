@@ -1,3 +1,5 @@
-- [User Guide](user-guide/getting-started.md)
+- Home
 
-- [Developer Guide](dev-guide/getting-started.md)
+  - [User Guide](user-guide/getting-started.md)
+  - [Developer Guide](dev-guide/getting-started.md)
+  - [Glossary](_glossary.md)

@@ -1,0 +1,15 @@
+{
+	"evaluations": [
+		{
+			"descriptor": {
+				"libraryId": "SampleLibrary",
+				"version": "1.0.0"
+			},
+			"expressions": [
+				"getNow"
+			],
+			"contextKey": "Patient",
+			"contextValue": "NA"
+		}
+	]
+}

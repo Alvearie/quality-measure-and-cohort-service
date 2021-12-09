@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.apache.poi.ss.usermodel.Row;
@@ -24,6 +25,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.ValueSet;
+import org.hl7.fhir.r4.model.ValueSet.ConceptReferenceComponent;
 
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
@@ -60,7 +62,7 @@ public class ValueSetUtil {
 		ValueSet valueSet = new ValueSet();
 		boolean inCodesSection = false;
 		valueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
-		HashMap<String, List<ValueSet.ConceptReferenceComponent>> codeSystemToCodes = new HashMap<>();
+		HashMap<CodeSystemKey, List<ValueSet.ConceptReferenceComponent>> codeSystemToCodes = new HashMap<>();
 		String url = "http://cts.nlm.nih.gov/fhir/ValueSet/";
 		String identifier = null;
 		for (Row currentRow : informationSheet) {
@@ -106,6 +108,7 @@ public class ValueSetUtil {
 			else if (inCodesSection) {
 				String display = currentRow.getCell(1).getStringCellValue();
 				String codeSystemEntry = currentRow.getCell(2).getStringCellValue();
+				String codeSystemVersion = currentRow.getCell(3).getStringCellValue();
 				String codeSystem;
 				if(codeSystemEntry.startsWith("http://") || codeSystemEntry.startsWith("https://")){
 					codeSystem = codeSystemEntry;
@@ -124,7 +127,7 @@ public class ValueSetUtil {
 				concept.setDisplay(display);
 
 				List<ValueSet.ConceptReferenceComponent> conceptsSoFar
-						= codeSystemToCodes.computeIfAbsent(codeSystem, x -> new ArrayList<>());
+						= codeSystemToCodes.computeIfAbsent(new CodeSystemKey(codeSystem,codeSystemVersion), x -> new ArrayList<>());
 
 				conceptsSoFar.add(concept);
 			}
@@ -137,9 +140,10 @@ public class ValueSetUtil {
 		valueSet.setId(identifier);
 		ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
 
-		for (Map.Entry<String, List<ValueSet.ConceptReferenceComponent>> singleInclude : codeSystemToCodes.entrySet()) {
+		for (Entry<CodeSystemKey, List<ConceptReferenceComponent>> singleInclude : codeSystemToCodes.entrySet()) {
 			ValueSet.ConceptSetComponent component = new ValueSet.ConceptSetComponent();
-			component.setSystem(singleInclude.getKey());
+			component.setSystem(singleInclude.getKey().getCodeSystem());
+			component.setVersion(singleInclude.getKey().getCodeSystemVersion());
 			component.setConcept(singleInclude.getValue());
 			compose.addInclude(component);
 		}

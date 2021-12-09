@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<library xmlns="urn:hl7-org:elm:r1" xmlns:t="urn:hl7-org:elm-types:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:fhir="http://hl7.org/fhir" xmlns:a="urn:hl7-org:cql-annotations:r1">
+   <annotation translatorOptions="EnableDateRangeOptimization" xsi:type="a:CqlToElmInfo"/>
+   <identifier id="MyCQL" version="1.0.0"/>
+   <schemaIdentifier id="urn:hl7-org:elm" version="r1"/>
+   <usings>
+      <def localIdentifier="System" uri="urn:hl7-org:elm-types:r1"/>
+      <def localIdentifier="FHIR" uri="http://hl7.org/fhir" version="4.0.1"/>
+   </usings>
+   <includes>
+      <def localIdentifier="FHIRHelpers" path="FHIRHelpers" version="4.0.1"/>
+   </includes>
+   <parameters>
+      <def name="MyParameter" accessLevel="Public">
+         <parameterTypeSpecifier xsi:type="IntervalTypeSpecifier">
+            <pointType name="t:DateTime" xsi:type="NamedTypeSpecifier"/>
+         </parameterTypeSpecifier>
+      </def>
+   </parameters>
+   <contexts>
+      <def name="Patient"/>
+   </contexts>
+   <statements>
+      <def name="Patient" context="Patient">
+         <expression xsi:type="SingletonFrom">
+            <operand dataType="fhir:Patient" templateId="http://hl7.org/fhir/StructureDefinition/Patient" xsi:type="Retrieve"/>
+         </expression>
+      </def>
+      <def name="MyDefine" context="Patient" accessLevel="Public">
+         <expression xsi:type="Query">
+            <source alias="p">
+               <expression dataType="fhir:Patient" templateId="http://hl7.org/fhir/StructureDefinition/Patient" dateProperty="deceased" xsi:type="Retrieve">
+                  <dateRange name="MyParameter" xsi:type="ParameterRef"/>
+               </expression>
+            </source>
+         </expression>
+      </def>
+   </statements>
+</library>
+
+

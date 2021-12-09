@@ -17,7 +17,7 @@ import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ibm.cohort.engine.elm.execution.OptimizedCqlLibraryReader;
+import com.ibm.cohort.cql.OptimizedCqlLibraryReader;
 import com.ibm.cohort.file.LibraryFormat;
 import com.ibm.cohort.translator.provider.CqlTranslationProvider;
 

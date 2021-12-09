@@ -17,7 +17,7 @@ import org.cqframework.cql.elm.execution.Library;
 import org.hl7.elm.r1.VersionedIdentifier;
 import org.junit.Test;
 
-import com.ibm.cohort.engine.elm.execution.OptimizedCqlLibraryReader;
+import com.ibm.cohort.cql.OptimizedCqlLibraryReader;
 import com.ibm.cohort.translator.provider.CqlTranslationProvider;
 import com.ibm.cohort.translator.provider.InJVMCqlTranslationProvider;
 

@@ -1,0 +1,11 @@
+{
+	"evaluations": [{
+		"descriptor": {
+			"libraryId": "Parent",
+			"version": "1.0.0"
+		},
+		"expressions": ["cohort"],
+		"contextKey": "Patient",
+		"contextValue": "NA"
+	}]
+}
