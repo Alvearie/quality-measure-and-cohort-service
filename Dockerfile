@@ -40,7 +40,7 @@ LABEL maintainer="IBM Quality Measure and Cohort Service Team" \
       name="cohorting-app" \
       vendor="Alvearie Open Source by IBM" \
       version="2.0.1" \
-      release="1" \
+      release="2" \
       summary="Quality Measure and Cohort Service" \
       description="Quality Measure and Cohort Service available via REST API"
 
