@@ -73,6 +73,17 @@ ENTRYPOINT [ "/opt/spark/entrypoint.sh" ]
 #################
 FROM spark-base as spark-history
 
+# Labels - certain labels are required if you want to have
+#          a Red Hat certified image (this is not a full set per se)
+LABEL maintainer="IBM Quality Measure and Cohort Service Team" \
+      description="Quality Measure and Cohort Service Spark History Server Image" \
+      name="spark-history-server" \
+      vendor="Alvearie Open Source by IBM" \
+      version="2.0.1" \ 
+      release="2" \
+      summary="Quality Measure and Cohort Service Spark History Server Image" \
+      description="Quality Measure and Cohort Service Spark History Server Image"
+
 # Become the root user
 USER root
 
