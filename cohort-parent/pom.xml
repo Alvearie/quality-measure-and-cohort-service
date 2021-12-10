@@ -38,7 +38,7 @@
 	</licenses>
 
 	<properties>
-		<base-version>2.0.0</base-version>
+ 		<base-version>2.0.0</base-version>
 		<revision>${base-version}</revision>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -837,6 +837,12 @@
 				<groupId>org.glassfish.jersey.core</groupId>
 				<artifactId>jersey-common</artifactId>
 				<version>2.34</version>
+			</dependency>
+			<!-- override version pulled in by hadoop-common version 3.2 for AsoC issue -->
+			<dependency>
+				<groupId>com.google.code.gson</groupId>
+				<artifactId>gson</artifactId>
+				<version>2.8.9</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
