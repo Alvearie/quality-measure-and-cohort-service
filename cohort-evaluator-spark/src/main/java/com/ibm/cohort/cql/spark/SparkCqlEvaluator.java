@@ -68,7 +68,7 @@ import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.aggregation.ContextRetriever;
-import com.ibm.cohort.cql.spark.context.ColumnRuleCreator;
+import com.ibm.cohort.cql.spark.aggregation.ColumnRuleCreator;
 import com.ibm.cohort.cql.spark.data.ConfigurableOutputColumnNameEncoder;
 import com.ibm.cohort.cql.spark.data.DefaultDatasetRetriever;
 import com.ibm.cohort.cql.spark.data.SparkDataRow;

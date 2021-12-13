@@ -1,4 +1,4 @@
-package com.ibm.cohort.cql.spark.context;
+package com.ibm.cohort.cql.spark.aggregation;
 
 
 import static junit.framework.TestCase.assertEquals;
@@ -16,6 +16,7 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
 import com.ibm.cohort.cql.library.DirectoryBasedCqlLibraryProvider;
+import com.ibm.cohort.cql.spark.aggregation.ColumnRuleCreator;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.aggregation.ContextRetriever;

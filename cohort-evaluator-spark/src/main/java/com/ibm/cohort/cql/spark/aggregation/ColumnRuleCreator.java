@@ -1,4 +1,4 @@
-package com.ibm.cohort.cql.spark.context;
+package com.ibm.cohort.cql.spark.aggregation;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,10 +12,6 @@ import org.slf4j.LoggerFactory;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
-import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
-import com.ibm.cohort.cql.spark.aggregation.ContextRetriever;
-import com.ibm.cohort.cql.spark.aggregation.Join;
-import com.ibm.cohort.cql.spark.aggregation.ManyToMany;
 import com.ibm.cohort.cql.spark.optimizer.DataTypeRequirementsProcessor;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.util.EqualsStringMatcher;
