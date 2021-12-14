@@ -65,6 +65,9 @@ public class ContextRetriever {
      */
     public JavaPairRDD<Object, List<Row>> retrieveContext(ContextDefinition contextDefinition) {
         List<JavaPairRDD<Object, Row>> rddList = gatherRDDs(contextDefinition);
+		if(rddList.isEmpty()){
+			throw new IllegalStateException("Provided context " + contextDefinition.getName() + " returned zero readable RDDs");
+		}
 
         JavaPairRDD<Object, Row> allData = unionPairRDDs(rddList);
 
