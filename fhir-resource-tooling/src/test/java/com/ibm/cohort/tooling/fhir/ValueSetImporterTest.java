@@ -40,24 +40,24 @@ public class ValueSetImporterTest extends BaseFhirTest {
 
 	private final String defaultInputFile = "src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx";
 	private final String valueSetIdentifier = "2.16.840.1.113762.1.4.1114.7";
-	private final String resourcePath = "/ValueSet?url=" + URLEncoder.encode("http://cts.nlm.nih.gov/fhir/ValueSet/") + valueSetIdentifier;
+	private final String resourcePath = "/ValueSet?url=" + URLEncoder.encode("http://cts.nlm.nih.gov/fhir/ValueSet/") + valueSetIdentifier + "&_format=json";
 	@Test
 	public void testImportAllNewResources() throws IOException {
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 		fhirConfig.setLogInfo(Collections.singletonList(FhirServerConfig.LogInfo.REQUEST_SUMMARY));
 
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 
 		String valueSetId = UUID.randomUUID().toString();
 		Bundle noResults = new Bundle();
 
 		mockFhirResourceRetrieval(resourcePath, noResults);
 
-		mockFhirResourcePost("/ValueSet", valueSetId, "1");
+		mockFhirResourcePost("/ValueSet?_format=json", valueSetId, "1");
 
 		runTest(fhirConfig, defaultInputFile);
 
-		verify( 1, postRequestedFor(urlEqualTo("/ValueSet")) );
+		verify( 1, postRequestedFor(urlEqualTo("/ValueSet?_format=json")) );
 	}
 
 	@Test
@@ -65,18 +65,18 @@ public class ValueSetImporterTest extends BaseFhirTest {
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 		fhirConfig.setLogInfo(Collections.singletonList(FhirServerConfig.LogInfo.REQUEST_SUMMARY));
 
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 
 		String valueSetId = UUID.randomUUID().toString();
 		Bundle noResults = new Bundle();
 		mockFhirResourceRetrieval(resourcePath, noResults);
 
-		mockFhirResourcePost("/ValueSet", valueSetId, "1");
+		mockFhirResourcePost("/ValueSet?_format=json", valueSetId, "1");
 
 		String inputFile = "src/test/resources/2.16.840.1.113762.1.4.1114.7-Comments.xlsx";
 		runTest(fhirConfig, inputFile);
 
-		verify( 1, postRequestedFor(urlEqualTo("/ValueSet")) );
+		verify( 1, postRequestedFor(urlEqualTo("/ValueSet?_format=json")) );
 	}
 
 	@Test
@@ -84,7 +84,7 @@ public class ValueSetImporterTest extends BaseFhirTest {
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 		fhirConfig.setLogInfo(Collections.singletonList(FhirServerConfig.LogInfo.REQUEST_SUMMARY));
 
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 
 		Bundle oneResult = new Bundle();
 		Bundle.BundleEntryComponent entryComponent = new Bundle.BundleEntryComponent();
@@ -99,7 +99,7 @@ public class ValueSetImporterTest extends BaseFhirTest {
 		runTest(fhirConfig, defaultInputFile);
 
 		verify( 1, getRequestedFor(urlEqualTo(resourcePath)) );
-		verify( exactly(0), postRequestedFor(urlEqualTo("/ValueSet")) );
+		verify( exactly(0), postRequestedFor(urlEqualTo("/ValueSet?_format=json")) );
 	}
 	
 	@Test

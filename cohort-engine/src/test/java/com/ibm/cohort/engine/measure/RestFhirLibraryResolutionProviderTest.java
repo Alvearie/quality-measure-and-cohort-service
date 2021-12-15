@@ -43,7 +43,7 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 	
 	@Test
 	public void resolveLibraryById___returns_library_when_found() throws Exception {
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 		
 		Library library = getLibrary("Test", DEFAULT_VERSION, "cql/basic/test.cql");
 		mockFhirResourceRetrieval( library );
@@ -55,7 +55,7 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 	
 	@Test
 	public void resolveLibraryById___null_when_not_found() throws Exception {
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 		
 		MappingBuilder builder = get(urlMatching("/Library.+"));
 		setAuthenticationParameters(getFhirServerConfig(), builder);
@@ -67,7 +67,7 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 	
 	@Test
 	public void resolveLibraryById_twice___returns_cached_data() throws Exception {
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 		
 		Library library = getLibrary("Test", DEFAULT_VERSION, "cql/basic/test.cql");
 		mockFhirResourceRetrieval( library );
@@ -83,7 +83,7 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 	
 	@Test
 	public void resolveLibraryByName___returns_library_when_found() throws Exception {
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 		
 		Library library = getLibrary("Test", DEFAULT_VERSION, "cql/basic/test.cql");
 		library.setVersion("1.0.0");
@@ -97,7 +97,7 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 	
 	@Test
 	public void resolveLibraryByName___null_when_not_found() throws Exception {
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 		
 		MappingBuilder mapping = get(urlMatching("/Library.+"));
 		mockFhirResourceRetrieval(mapping, makeBundle());
@@ -108,7 +108,7 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 	
 	@Test
 	public void resolveLibraryByName_twice___returns_cached_data() throws Exception {
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 		
 		Library library = getLibrary("Test", DEFAULT_VERSION, "cql/basic/test.cql");
 		library.setVersion("1.0.0");
@@ -171,7 +171,7 @@ public class RestFhirLibraryResolutionProviderTest extends BaseFhirTest {
 	}
 
 	protected Library runTest(String url, Bundle bundle) throws Exception {
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 		
 		MappingBuilder builder = get(urlMatching("/Library\\?url=.*"));
 		mockFhirResourceRetrieval(builder, bundle);

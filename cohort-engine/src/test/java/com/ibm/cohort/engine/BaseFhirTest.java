@@ -102,13 +102,13 @@ public class BaseFhirTest {
 	}
 
 	protected void mockFhirResourceRetrieval(Resource resource) {
-		String resourcePath = "/" + resource.getClass().getSimpleName() + "/" + resource.getId();
+		String resourcePath = "/" + resource.getClass().getSimpleName() + "/" + resource.getId() + "?_format=json";
 		mockFhirResourceRetrieval(resourcePath, getFhirParser(), resource);
 	}
 
 	protected void mockFhirSingletonBundleRetrieval(Resource resource) {
 		String resourceType = resource.getClass().getSimpleName();
-		String resourcePath = "/" + resourceType + "?url=%2F" + resourceType + "%2F" + resource.getId();
+		String resourcePath = "/" + resourceType + "?url=%2F" + resourceType + "%2F" + resource.getId() + "&_format=json";
 
 		BundleEntryComponent bundleEntryComponent = new BundleEntryComponent();
 		bundleEntryComponent.setResource(resource);
@@ -235,7 +235,7 @@ public class BaseFhirTest {
 	protected Patient mockPatientRetrievalTimeout(String id, AdministrativeGender gender, int ageInYears, int delayMillis) {
 		Patient patient = getPatient(id, gender, ageInYears);
 		mockeDelayedFhirResourceRetrieval(
-				get(urlEqualTo("/" + patient.getClass().getSimpleName() + "/" + patient.getId())),
+				get(urlEqualTo("/" + patient.getClass().getSimpleName() + "/" + patient.getId() + "?_format=json")),
 				getFhirParser(),
 				patient,
 				getFhirServerConfig(),
@@ -381,17 +381,17 @@ public class BaseFhirTest {
 		
 		// When you specify the VS as the right hand side of a retrieve (e.g. [Condition : "ValueSet"])
 		// the urn:oid prefix is stripped off
-		mockFhirResourceRetrieval("/ValueSet?url=" + theID, makeBundle(resource));
+		mockFhirResourceRetrieval("/ValueSet?url=" + theID + "&_format=json", makeBundle(resource));
 		
 		// When you specify the VS as the right hand side of an "in" expression (e.g. Condition.code in "ValueSet")
 		// the urn:oid prefix is preserved
 		String url = URLEncoder.encode( resource.getUrl(), StandardCharsets.UTF_8.toString() );
-		mockFhirResourceRetrieval("/ValueSet?url=" + url, makeBundle(resource));
+		mockFhirResourceRetrieval("/ValueSet?url=" + url + "&_format=json", makeBundle(resource));
 		if( version != null ) {
-			mockFhirResourceRetrieval("/ValueSet?url=" + url + "&version=" + resource.getVersion(), makeBundle(resource));
+			mockFhirResourceRetrieval("/ValueSet?url=" + url + "&version=" + resource.getVersion() + "&_format=json", makeBundle(resource));
 		}
 		
-		String expandUrl = "/ValueSet/" + theID + "/$expand";
+		String expandUrl = "/ValueSet/" + theID + "/$expand?_format=json";
 		mockFhirResourceRetrieval(expandUrl, resource);
 		mockFhirResourceRetrieval(post(urlEqualTo(expandUrl)), resource);
 		
@@ -399,7 +399,7 @@ public class BaseFhirTest {
 		response.addParameter().setValue(new BooleanType(true));
 		
 		String systemUrl = URLEncoder.encode( system, StandardCharsets.UTF_8.toString() );
-		mockFhirResourceRetrieval("/ValueSet/" + theID + "/$validate-code?code=" + code + "&system=" + systemUrl, response);
+		mockFhirResourceRetrieval("/ValueSet/" + theID + "/$validate-code?code=" + code + "&system=" + systemUrl + "&_format=json", response);
 
 		return resource;
 	}

@@ -50,9 +50,9 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_1.xml");
 
-		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
-		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), ENCOUNTER_1, fhirConfig);
-		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", getFhirParser(), observationIN, fhirConfig);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
+		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), ENCOUNTER_1, fhirConfig);
+		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123&_format=json", getFhirParser(), observationIN, fhirConfig);
 
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
 				new HashSet<>(Arrays.asList("Observations Exist")), Arrays.asList("123"), (patientId, expression, result) -> {
@@ -76,9 +76,9 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_1.xml");
 
-		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
-		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), ENCOUNTER_1, fhirConfig);
-		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", getFhirParser(), observationOUT, fhirConfig);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
+		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), ENCOUNTER_1, fhirConfig);
+		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123&_format=json", getFhirParser(), observationOUT, fhirConfig);
 
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
 				new HashSet<>(Arrays.asList("Observations Exist")), Arrays.asList("123"), (patientId, expression, result) -> {
@@ -102,9 +102,9 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_2.xml");
 
-		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
-		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), ENCOUNTER_1, fhirConfig);
-		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", getFhirParser(), observation, fhirConfig);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
+		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), ENCOUNTER_1, fhirConfig);
+		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123&_format=json", getFhirParser(), observation, fhirConfig);
 
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
@@ -133,9 +133,9 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_2.xml");
 
-		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
-		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), ENCOUNTER_1, fhirConfig);
-		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", getFhirParser(), observation, fhirConfig);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
+		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), ENCOUNTER_1, fhirConfig);
+		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123&_format=json", getFhirParser(), observation, fhirConfig);
 
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
@@ -166,7 +166,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		bundle.addEntry(firstEncounter);
 		bundle.addEntry(secondEncounter);
 
-		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), bundle, fhirConfig);
+		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), bundle, fhirConfig);
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
 				new HashSet<>(Arrays.asList("ValidEncounters2")), Arrays.asList("123"), (patientId, expression, result) -> {
@@ -196,7 +196,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		bundle.addEntry(firstEncounter);
 		bundle.addEntry(secondEncounter);
 
-		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), bundle, fhirConfig);
+		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), bundle, fhirConfig);
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
 				new HashSet<>(Arrays.asList("ValidEncounters2")), Arrays.asList("123"), (patientId, expression, result) -> {
@@ -218,8 +218,8 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_4.xml");
 
-		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), ENCOUNTER_3, fhirConfig);
-		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
+		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), ENCOUNTER_3, fhirConfig);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
 				new HashSet<>(Arrays.asList("NotFollowedByCondition")), Arrays.asList("123"), (patientId, expression, result) -> {
@@ -240,8 +240,8 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_4.xml");
 
-		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123", getFhirParser(), ENCOUNTER_1, fhirConfig);
-		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
+		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), ENCOUNTER_1, fhirConfig);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
 				new HashSet<>(Arrays.asList("NotFollowedByCondition")), Arrays.asList("123"), (patientId, expression, result) -> {
@@ -286,8 +286,8 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_5.xml");
 
-		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", getFhirParser(), bundle, fhirConfig);
-		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
+		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123&_format=json", getFhirParser(), bundle, fhirConfig);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
 				new HashSet<>(Arrays.asList("ValidObservation within 4 days")), Arrays.asList("123"), (patientId, expression, result) -> {
@@ -330,8 +330,8 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_5.xml");
 
-		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123", getFhirParser(), bundle, fhirConfig);
-		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123", getFhirParser(), CONDITION_IN, fhirConfig);
+		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123&_format=json", getFhirParser(), bundle, fhirConfig);
+		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
 		final AtomicInteger count = new AtomicInteger(0);
 		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
 				new HashSet<>(Arrays.asList("ValidObservation not within 4 days")), Arrays.asList("123"), (patientId, expression, result) -> {

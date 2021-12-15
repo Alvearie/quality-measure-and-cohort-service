@@ -6,13 +6,13 @@
 package com.ibm.cohort.engine.api.service;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.UUID;
 
 import javax.ws.rs.core.Response;
 
+import com.ibm.cohort.engine.api.service.model.ServiceErrorList.ErrorSource;
+import com.ibm.watson.service.base.model.ServiceError;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
 import org.junit.Before;
@@ -53,80 +53,114 @@ public class CohortServiceExceptionMapperTest {
 
 	@Test
 	public void testToResponseIllegalArgumentException() throws Exception {
-		Response response = exMapper.toResponse(new IllegalArgumentException("Something bad got input",
-				new IllegalArgumentException("Nested exception")));
-		ServiceErrorList serviceErrorList = (ServiceErrorList) response.getEntity();
-		assertEquals(new Integer(400), serviceErrorList.getStatusCode());
-		assertEquals(2, serviceErrorList.getErrors().size());
-		assertEquals("Something bad got input", serviceErrorList.getErrors().get(0).getMessage());
-		assertEquals("Nested exception", serviceErrorList.getErrors().get(1).getMessage());
+		Response response = exMapper.toResponse(
+				new IllegalArgumentException(
+						"Something bad got input",
+						new IllegalArgumentException("Nested exception")
+				)
+		);
+		ServiceErrorList actual = (ServiceErrorList) response.getEntity();
+
+		ServiceErrorList expected = new ServiceErrorList();
+		expected.setStatusCode(400);
+		expected.getErrors().add(newServiceError(400, "Something bad got input", ""));
+		expected.getErrors().add(newServiceError(400, "Nested exception", null));
+		expected.setErrorSource(ErrorSource.COHORT_SERVICE);
+
+		testErrorListEquality(expected, actual);
 	}
 	
 	@Test
 	public void testToResponseUnsupportedOperationException() throws Exception {
 		Response response = exMapper.toResponse(new UnsupportedOperationException("No support for that yet."));
-		ServiceErrorList serviceErrorList = (ServiceErrorList) response.getEntity();
-		assertEquals(new Integer(400), serviceErrorList.getStatusCode());
-		assertEquals(1, serviceErrorList.getErrors().size());
-		assertEquals("No support for that yet.", serviceErrorList.getErrors().get(0).getMessage());
+		ServiceErrorList actual = (ServiceErrorList) response.getEntity();
+
+		ServiceErrorList expected = new ServiceErrorList();
+		expected.setStatusCode(400);
+		expected.getErrors().add(newServiceError(400, "No support for that yet.", ""));
+		expected.setErrorSource(ErrorSource.COHORT_SERVICE);
+
+		testErrorListEquality(expected, actual);
 	}
 	
 	@Test
 	public void testToResponseCqlException() throws Exception {
 		Response response = exMapper.toResponse(new CqlException("Unexpected exception caught during execution", new IllegalArgumentException("Failed to resolve ValueSet")));
-		ServiceErrorList serviceErrorList = (ServiceErrorList) response.getEntity();
-		assertEquals(new Integer(400), serviceErrorList.getStatusCode());
-		assertEquals(2, serviceErrorList.getErrors().size());
-		assertEquals("Unexpected exception caught during execution", serviceErrorList.getErrors().get(0).getMessage());
-		assertEquals("Failed to resolve ValueSet", serviceErrorList.getErrors().get(1).getMessage());
+		ServiceErrorList actual = (ServiceErrorList) response.getEntity();
+
+		ServiceErrorList expected = new ServiceErrorList();
+		expected.setStatusCode(400);
+		expected.getErrors().add(newServiceError(400, "Unexpected exception caught during execution", ""));
+		expected.getErrors().add(newServiceError(400, "Failed to resolve ValueSet", null));
+		expected.setErrorSource(ErrorSource.COHORT_SERVICE);
+
+		testErrorListEquality(expected, actual);
 	}
 
 	@Test
 	public void testToResponseFhirClientConnectionException() throws Exception {
 		Response response = exMapper.toResponse(new FhirClientConnectionException("Something bad got input"));
-		ServiceErrorList serviceErrorList = (ServiceErrorList) response.getEntity();
-		assertEquals(new Integer(500), serviceErrorList.getStatusCode());
-		assertEquals(1, serviceErrorList.getErrors().size());
-		assertEquals("Something bad got input", serviceErrorList.getErrors().get(0).getMessage());
-		assertEquals("Reason: FhirClientConnectionException", serviceErrorList.getErrors().get(0).getDescription());
+		ServiceErrorList actual = (ServiceErrorList) response.getEntity();
+
+		ServiceErrorList expected = new ServiceErrorList();
+		expected.setStatusCode(500);
+		expected.getErrors().add(newServiceError(500, "Something bad got input", "Reason: FhirClientConnectionException"));
+		expected.setErrorSource(ErrorSource.COHORT_SERVICE);
+
+		testErrorListEquality(expected, actual);
 	}
 
 	@Test
 	public void testToResponseAuthenticationException() throws Exception {
 		Response response = exMapper.toResponse(new AuthenticationException());
-		ServiceErrorList serviceErrorList = (ServiceErrorList) response.getEntity();
-		assertEquals(new Integer(400), serviceErrorList.getStatusCode());
-		assertEquals(1, serviceErrorList.getErrors().size());
-		assertEquals("Client unauthorized", serviceErrorList.getErrors().get(0).getMessage());
-		assertEquals("Could not authenticate with FHIR server.", serviceErrorList.getErrors().get(0).getDescription());
-		assertEquals(401, serviceErrorList.getErrors().get(0).getCode());
+		ServiceErrorList actual = (ServiceErrorList) response.getEntity();
+
+		ServiceErrorList expected = new ServiceErrorList();
+		expected.setStatusCode(400);
+		expected.getErrors().add(newServiceError(401, "Client unauthorized", "Could not authenticate with FHIR server."));
+		expected.setErrorSource(ErrorSource.FHIR_SERVER);
+
+		testErrorListEquality(expected, actual);
 	}
 
 	@Test
 	public void testToResponseNPE() throws Exception {
 		Response response = exMapper.toResponse(new NullPointerException());
-		ServiceErrorList serviceErrorList = (ServiceErrorList) response.getEntity();
-		assertEquals(new Integer(500), serviceErrorList.getStatusCode());
-		assertEquals(1, serviceErrorList.getErrors().size());
+		ServiceErrorList actual = (ServiceErrorList) response.getEntity();
+
+		ServiceErrorList expected = new ServiceErrorList();
+		expected.setStatusCode(500);
+		expected.getErrors().add(newServiceError(500, null, null));
+		expected.setErrorSource(ErrorSource.COHORT_SERVICE);
+
+		testErrorListEquality(expected, actual);
 	}
 	
 	@Test
 	public void testToResponseResourceNotFoundExceptionHAPIFormat() throws Exception {
 		OperationOutcome outcome = new OperationOutcome();
 		outcome.getText().setStatusAsString("generated");
-		outcome.getIssueFirstRep().setSeverity(IssueSeverity.ERROR).setCode(OperationOutcome.IssueType.PROCESSING).setDiagnostics("Resource Patient/something is not found");
+		outcome.getIssueFirstRep()
+				.setSeverity(IssueSeverity.ERROR)
+				.setCode(OperationOutcome.IssueType.PROCESSING)
+				.setDiagnostics("Resource Patient/something is not found");
 		
 		ResourceNotFoundException ex = new ResourceNotFoundException("Error", outcome);
 		ex.setResponseBody(parser.encodeResourceToString(outcome));
 		
 		Response response = new CohortServiceExceptionMapper().toResponse(ex);
-		ServiceErrorList serviceErrorList = (ServiceErrorList) response.getEntity();
-		assertEquals(new Integer(400), serviceErrorList.getStatusCode());
-		assertEquals(1, serviceErrorList.getErrors().size());
-		
-		//System.out.println(serviceErrorList.getErrors().get(0).getDescription());
-		
-		assertTrue( "Missing resource ID in response", serviceErrorList.getErrors().get(0).getDescription().contains("Patient/something") );
+		ServiceErrorList actual = (ServiceErrorList) response.getEntity();
+
+		ServiceErrorList expected = new ServiceErrorList();
+		expected.setStatusCode(400);
+		expected.getErrors().add(newServiceError(
+				404,
+				"FHIR Resource Not Found: Error",
+				"{\"resourceType\":\"OperationOutcome\",\"text\":{\"status\":\"generated\"},\"issue\":[{\"severity\":\"error\",\"code\":\"processing\",\"diagnostics\":\"Resource Patient/something is not found\"}]}"
+		));
+		expected.setErrorSource(ErrorSource.FHIR_SERVER);
+
+		testErrorListEquality(expected, actual);
 	}
 	
 	@Test
@@ -144,35 +178,47 @@ public class CohortServiceExceptionMapperTest {
 		
 		JSONObject json = new JSONObject();
 		json.put("resourceType", "OperationOutcome");
-		json.put("id", UUID.randomUUID().toString());
+		json.put("id", "my-id");
 		json.put("issue", issues);
 
 		OperationOutcome outcome = parser.parseResource(OperationOutcome.class, json.toString());
-		
+
 		ResourceNotFoundException ex = new ResourceNotFoundException("Error", outcome);
 		ex.setResponseBody(json.toString());
 		
 		Response response = new CohortServiceExceptionMapper().toResponse(ex);
-		ServiceErrorList serviceErrorList = (ServiceErrorList) response.getEntity();
-		assertEquals(new Integer(400), serviceErrorList.getStatusCode());
-		assertEquals(1, serviceErrorList.getErrors().size());
-		
-		//System.out.println("---" + serviceErrorList.getErrors().get(0).getDescription());
-		
-		assertTrue( "Missing resource ID in response", serviceErrorList.getErrors().get(0).getDescription().contains("patientId") );
+		ServiceErrorList actual = (ServiceErrorList) response.getEntity();
+
+		ServiceErrorList expected = new ServiceErrorList();
+		expected.setStatusCode(400);
+		expected.getErrors().add(newServiceError(
+				404,
+				"FHIR Resource Not Found: Error",
+				"{\"issue\":[{\"severity\":\"fatal\",\"code\":\"not-found\",\"details\":{\"text\":\"Resource 'Patient\\/patientId' not found.\"}}],\"id\":\"my-id\",\"resourceType\":\"OperationOutcome\"}"
+		));
+		expected.setErrorSource(ErrorSource.FHIR_SERVER);
+
+		testErrorListEquality(expected, actual);
 	}
 	
 	@Test
 	public void testToResponseResourceNotFoundExceptionNotOperationOutcome() throws Exception {
-		
-		Response response = new CohortServiceExceptionMapper().toResponse(new ResourceNotFoundException("Bad URL"));
-		ServiceErrorList serviceErrorList = (ServiceErrorList) response.getEntity();
-		assertEquals(new Integer(400), serviceErrorList.getStatusCode());
-		assertEquals(1, serviceErrorList.getErrors().size());
-		
-		//System.out.println("---" + serviceErrorList.getErrors().get(0).getDescription());
-		
-		assertTrue( "Missing resource ID in response", serviceErrorList.getErrors().get(0).getDescription().contains("Bad URL") );
+		ResourceNotFoundException ex = new ResourceNotFoundException("Bad URL");
+		ex.setResponseBody("Bad Body");
+
+		Response response = new CohortServiceExceptionMapper().toResponse(ex);
+		ServiceErrorList actual = (ServiceErrorList) response.getEntity();
+
+		ServiceErrorList expected = new ServiceErrorList();
+		expected.setStatusCode(400);
+		expected.getErrors().add(newServiceError(
+				404,
+				"FHIR Resource Not Found: Bad URL",
+				"Bad Body"
+		));
+		expected.setErrorSource(ErrorSource.FHIR_SERVER);
+
+		testErrorListEquality(expected, actual);
 	}
 	
 	@Test
@@ -200,5 +246,22 @@ public class CohortServiceExceptionMapperTest {
 			Response response = exMapper.toResponse(ex);
 			assertEquals(400, response.getStatus());
 		}
+	}
+
+	private ServiceError newServiceError(int code, String message, String description) {
+		ServiceError retVal = new ServiceError(code, message);
+		retVal.setDescription(description);
+		return retVal;
+	}
+
+	/*
+	 * We have to compare the serialized form of the objects due to `ServiceError`
+	 * and `ServiceErrorList` lacking a hashCode and equals method.
+	 */
+	private void testErrorListEquality(ServiceErrorList expected, ServiceErrorList actual) throws Exception {
+		ObjectMapper mapper = new ObjectMapper();
+		String expectedString = mapper.writeValueAsString(expected);
+		String actualString = mapper.writeValueAsString(actual);
+		assertEquals(expectedString, actualString);
 	}
 }

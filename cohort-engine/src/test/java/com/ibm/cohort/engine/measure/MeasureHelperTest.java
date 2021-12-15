@@ -37,7 +37,7 @@ public class MeasureHelperTest extends BaseMeasureTest {
 		IGenericClient client = builder.createFhirClient(getFhirServerConfig());
 		provider = new RestFhirMeasureResolutionProvider(client);
 		
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 	}
 	
 	@Test
@@ -54,7 +54,7 @@ public class MeasureHelperTest extends BaseMeasureTest {
 		Measure measure = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/test.xml"), "Female");
 		measure.setUrl("http://fhir.ibm.com/fhir-server/api/v4/Measure/Test-1.0.0");
 		
-		MappingBuilder builder = get(urlMatching("/Measure\\?url=.*"));
+		MappingBuilder builder = get(urlMatching("/Measure\\?url=.*&_format=json"));
 		mockFhirResourceRetrieval(builder,getBundle(measure));
 		
 		Measure actual = MeasureHelper.loadMeasure(measure.getUrl(), provider);
@@ -77,7 +77,8 @@ public class MeasureHelperTest extends BaseMeasureTest {
 		measure.setVersion("1.0.0");
 
 		MappingBuilder builder = get(urlPathEqualTo("/Measure"))
-				.withQueryParam("identifier", new EqualToPattern(identifierSystem + '|' + identifierValue));
+				.withQueryParam("identifier", new EqualToPattern(identifierSystem + '|' + identifierValue))
+				.withQueryParam("_format", new EqualToPattern("json"));
 		mockFhirResourceRetrieval(builder,getBundle(measure));
 
 		Measure actual = MeasureHelper.loadMeasure(new Identifier(identifierSystem, identifierValue), "", provider);
@@ -106,7 +107,8 @@ public class MeasureHelperTest extends BaseMeasureTest {
 		measure3.setIdentifier(Collections.singletonList(identifier));
 
 		MappingBuilder builder = get(urlPathEqualTo("/Measure"))
-				.withQueryParam("identifier", new EqualToPattern(identifierSystem + '|' + identifierValue));
+				.withQueryParam("identifier", new EqualToPattern(identifierSystem + '|' + identifierValue))
+				.withQueryParam("_format", new EqualToPattern("json"));
 		mockFhirResourceRetrieval(builder,getBundle(measure1, measure2, measure3));
 
 		Measure actual = MeasureHelper.loadMeasure(new Identifier(identifierSystem, identifierValue), null, provider);
@@ -132,7 +134,8 @@ public class MeasureHelperTest extends BaseMeasureTest {
 
 		MappingBuilder builder = get(urlPathEqualTo("/Measure"))
 				.withQueryParam("identifier", new EqualToPattern(identifierSystem + '|' + identifierValue))
-				.withQueryParam("version", new EqualToPattern(measureVersion));
+				.withQueryParam("version", new EqualToPattern(measureVersion))
+				.withQueryParam("_format", new EqualToPattern("json"));
 		mockFhirResourceRetrieval(builder,getBundle(measure));
 
 		Measure actual = MeasureHelper.loadMeasure(new Identifier(identifierSystem, identifierValue), measureVersion, provider);

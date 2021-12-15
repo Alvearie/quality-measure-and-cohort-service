@@ -68,7 +68,7 @@ public class CohortCLITest extends BasePatientTest {
 			String[] lines = output.split("\r?\n");
 			assertEquals(5, lines.length);
 
-			verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
+			verify(1, getRequestedFor(urlEqualTo("/Patient/123?_format=json")));
 		} finally {
 			tmpFile.delete();
 		}
@@ -103,7 +103,7 @@ public class CohortCLITest extends BasePatientTest {
 			String[] lines = output.split("\r?\n");
 			assertEquals(6, lines.length);
 
-			verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
+			verify(1, getRequestedFor(urlEqualTo("/Patient/123?_format=json")));
 		} finally {
 			tmpFile.delete();
 		}
@@ -137,7 +137,7 @@ public class CohortCLITest extends BasePatientTest {
 			String[] lines = output.split("\r?\n");
 			assertEquals( String.join("\n", lines), 5, lines.length);
 
-			verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
+			verify(1, getRequestedFor(urlEqualTo("/Patient/123?_format=json")));
 		} finally {
 			tmpFile.delete();
 		}
@@ -148,7 +148,7 @@ public class CohortCLITest extends BasePatientTest {
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 
 		Patient justRight = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 		mockFhirResourceRetrieval(justRight);
@@ -184,9 +184,9 @@ public class CohortCLITest extends BasePatientTest {
 			assertEquals(output, 16, lines.length);
 			System.out.println(output);
 
-			verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
-			verify(1, getRequestedFor(urlEqualTo("/Patient/456")));
-			verify(1, getRequestedFor(urlEqualTo("/Patient/789")));
+			verify(1, getRequestedFor(urlEqualTo("/Patient/123?_format=json")));
+			verify(1, getRequestedFor(urlEqualTo("/Patient/456?_format=json")));
+			verify(1, getRequestedFor(urlEqualTo("/Patient/789?_format=json")));
 		} finally {
 			tmpFile.delete();
 		}
@@ -199,7 +199,7 @@ public class CohortCLITest extends BasePatientTest {
 
 		IParser encoder = getFhirParser();
 
-		mockFhirResourceRetrieval("/metadata", encoder, getCapabilityStatement(), fhirConfig);
+		mockFhirResourceRetrieval("/metadata?_format=json", encoder, getCapabilityStatement(), fhirConfig);
 
 		Patient justRight = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 		mockFhirResourceRetrieval(justRight);
@@ -235,9 +235,9 @@ public class CohortCLITest extends BasePatientTest {
 			assertEquals(output, 16, lines.length);
 			System.out.println(output);
 
-			verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
-			verify(1, getRequestedFor(urlEqualTo("/Patient/456")));
-			verify(1, getRequestedFor(urlEqualTo("/Patient/789")));
+			verify(1, getRequestedFor(urlEqualTo("/Patient/123?_format=json")));
+			verify(1, getRequestedFor(urlEqualTo("/Patient/456?_format=json")));
+			verify(1, getRequestedFor(urlEqualTo("/Patient/789?_format=json")));
 		} finally {
 			tmpFile.delete();
 		}
@@ -250,7 +250,7 @@ public class CohortCLITest extends BasePatientTest {
 
 		IParser encoder = getFhirParser();
 
-		mockFhirResourceRetrieval("/metadata", encoder, getCapabilityStatement(), fhirConfig);
+		mockFhirResourceRetrieval("/metadata?_format=json", encoder, getCapabilityStatement(), fhirConfig);
 
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 		mockFhirResourceRetrieval(patient);
@@ -280,7 +280,7 @@ public class CohortCLITest extends BasePatientTest {
 			assertEquals(output, 6, lines.length);
 			System.out.println(output);
 
-			verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
+			verify(1, getRequestedFor(urlEqualTo("/Patient/123?_format=json")));
 		} finally {
 			tmpFile.delete();
 		}
@@ -293,7 +293,7 @@ public class CohortCLITest extends BasePatientTest {
 
 		IParser encoder = getFhirParser();
 
-		mockFhirResourceRetrieval("/metadata", encoder, getCapabilityStatement(), fhirConfig);
+		mockFhirResourceRetrieval("/metadata?_format=json", encoder, getCapabilityStatement(), fhirConfig);
 
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, 65);
 		mockFhirResourceRetrieval(patient);
@@ -322,7 +322,7 @@ public class CohortCLITest extends BasePatientTest {
 			assertEquals(output, 4, lines.length);
 			System.out.println(output);
 
-			verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
+			verify(1, getRequestedFor(urlEqualTo("/Patient/123?_format=json")));
 		} finally {
 			tmpFile.delete();
 		}
@@ -335,7 +335,7 @@ public class CohortCLITest extends BasePatientTest {
 
 		IParser encoder = getFhirParser();
 
-		mockFhirResourceRetrieval("/metadata", encoder, getCapabilityStatement(), fhirConfig);
+		mockFhirResourceRetrieval("/metadata?_format=json", encoder, getCapabilityStatement(), fhirConfig);
 
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, 65);
 		mockFhirResourceRetrieval(patient);
@@ -370,7 +370,7 @@ public class CohortCLITest extends BasePatientTest {
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 		mockFhirResourceRetrieval(patient);
@@ -410,8 +410,8 @@ public class CohortCLITest extends BasePatientTest {
 			assertEquals(output, 12, lines.length);
 			System.out.println(output);
 
-			verify(1, getRequestedFor(urlEqualTo("/Patient/" + patient.getId())));
-			verify(1, getRequestedFor(urlEqualTo("/Library/" + root.getId())));
+			verify(1, getRequestedFor(urlEqualTo("/Patient/" + patient.getId() + "?_format=json")));
+			verify(1, getRequestedFor(urlEqualTo("/Library/" + root.getId() + "?_format=json")));
 		} finally {
 			tmpFile.delete();
 		}
@@ -422,7 +422,7 @@ public class CohortCLITest extends BasePatientTest {
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 		patient.setMaritalStatus(new CodeableConcept(new Coding("http://hl7.org/fhir/ValueSet/marital-status", "M", "Married")));
@@ -431,7 +431,7 @@ public class CohortCLITest extends BasePatientTest {
 		Condition condition = new Condition();
 		condition.setSubject(new Reference(patient.getId()));
 		condition.setCode(new CodeableConcept(new Coding("http://snomed.com/snomed/2020", "1234", "Dummy")));
-		mockFhirResourceRetrieval("/Condition?code%3Ain=http%3A%2F%2Fsome.io%2Fcondition&subject=Patient%2F" + patient.getId() + "&_count=500", condition);
+		mockFhirResourceRetrieval("/Condition?code%3Ain=http%3A%2F%2Fsome.io%2Fcondition&subject=Patient%2F" + patient.getId() + "&_count=500&_format=json", condition);
 		
 		File tmpFile = new File("target/fhir-stub.json");
 		ObjectMapper om = new ObjectMapper();
@@ -469,7 +469,7 @@ public class CohortCLITest extends BasePatientTest {
 	public void testCQLTranslationCustomIGWithTargetUrl()  throws Exception{
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, "1978-05-06");
 		patient.addExtension(new Extension("http://fakeIg.com/fake-extension", new StringType("fakeValue")));
@@ -507,9 +507,9 @@ public class CohortCLITest extends BasePatientTest {
 			String output = new String(baos.toByteArray());
 			System.out.println(output);
 
-			verify(2, getRequestedFor(urlEqualTo("/Patient/" + patient.getId())));
-			verify(1, getRequestedFor(urlEqualTo("/Library/" + root.getId())));
-			verify(1, getRequestedFor(urlEqualTo("/Library?url=%2FLibrary%2F" + helpers.getId())));
+			verify(2, getRequestedFor(urlEqualTo("/Patient/" + patient.getId() + "?_format=json")));
+			verify(1, getRequestedFor(urlEqualTo("/Library/" + root.getId() + "?_format=json")));
+			verify(1, getRequestedFor(urlEqualTo("/Library?url=%2FLibrary%2F" + helpers.getId() + "&_format=json")));
 		} finally {
 			tmpFile.delete();
 		}

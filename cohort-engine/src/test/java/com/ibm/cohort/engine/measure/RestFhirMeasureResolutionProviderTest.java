@@ -33,12 +33,12 @@ public class RestFhirMeasureResolutionProviderTest  extends BaseFhirTest {
 		IGenericClient client = builder.createFhirClient(getFhirServerConfig());
 		provider = new RestFhirMeasureResolutionProvider(client);
 		
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 	}
 	
 	@Test
 	public void resource_not_found_by_id___returns_null() {
-		mockNotFound("/Measure/non-existent-id");
+		mockNotFound("/Measure/non-existent-id\\?_format=json");
 		assertNull( provider.resolveMeasureById("non-existent-id") );
 	}
 	
@@ -131,12 +131,12 @@ public class RestFhirMeasureResolutionProviderTest  extends BaseFhirTest {
 		Bundle bundle = new Bundle();
 		bundle.addEntry(new Bundle.BundleEntryComponent().setResource(measure1v1));
 		bundle.addEntry(new Bundle.BundleEntryComponent().setResource(measure1v2));
-		mockFhirResourceRetrieval("/Measure?name%3Aexact=" + measure1v1.getName(), bundle);
-		mockFhirResourceRetrieval("/Measure?name%3Aexact=" + measure1v1.getName() + "&version=" + measure1v1.getVersion(), bundle);
-		mockFhirResourceRetrieval("/Measure?url=" + URLEncoder.encode(measure1v1.getUrl(), "UTF-8"), bundle);
-		mockFhirResourceRetrieval("/Measure?url=" + URLEncoder.encode(measure1v1.getUrl(), "UTF-8") + "&version=" + measure1v1.getVersion(), bundle);
-		mockFhirResourceRetrieval("/Measure?identifier=" + URLEncoder.encode(identifier.getSystem() + "|" + identifier.getValue(), "UTF-8") , bundle);
-		mockFhirResourceRetrieval("/Measure?identifier=" + URLEncoder.encode(identifier.getSystem() + "|" + identifier.getValue(), "UTF-8") + "&version=" + measure1v1.getVersion(), bundle);
+		mockFhirResourceRetrieval("/Measure?name%3Aexact=" + measure1v1.getName() + "&_format=json", bundle);
+		mockFhirResourceRetrieval("/Measure?name%3Aexact=" + measure1v1.getName() + "&version=" + measure1v1.getVersion() + "&_format=json", bundle);
+		mockFhirResourceRetrieval("/Measure?url=" + URLEncoder.encode(measure1v1.getUrl(), "UTF-8") + "&_format=json", bundle);
+		mockFhirResourceRetrieval("/Measure?url=" + URLEncoder.encode(measure1v1.getUrl(), "UTF-8") + "&version=" + measure1v1.getVersion() + "&_format=json", bundle);
+		mockFhirResourceRetrieval("/Measure?identifier=" + URLEncoder.encode(identifier.getSystem() + "|" + identifier.getValue(), "UTF-8") + "&_format=json", bundle);
+		mockFhirResourceRetrieval("/Measure?identifier=" + URLEncoder.encode(identifier.getSystem() + "|" + identifier.getValue(), "UTF-8") + "&version=" + measure1v1.getVersion() + "&_format=json", bundle);
 	}
 	
 	public String getUrlForName(String measureName) {

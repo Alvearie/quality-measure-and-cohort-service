@@ -108,7 +108,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test
 	public void elm_in_initial_population___cohort_evaluated_correctly() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -123,17 +123,17 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		assertNotNull(report);
 		assertEquals(1, report.getGroupFirstRep().getPopulationFirstRep().getCount());
 
-		verify(1, getRequestedFor(urlEqualTo("/Patient/123")));
+		verify(1, getRequestedFor(urlEqualTo("/Patient/123?_format=json")));
 
 		// These ensure that the cache is working
-		verify(1, getRequestedFor(urlMatching("/Library\\?url=http.*")));
-		verify(1, getRequestedFor(urlEqualTo("/Library?name%3Aexact=" + library.getName() + "&version=1.0.0")));
+		verify(1, getRequestedFor(urlMatching("/Library\\?url=http.*&_format=json")));
+		verify(1, getRequestedFor(urlEqualTo("/Library?name%3Aexact=" + library.getName() + "&version=1.0.0&_format=json")));
 	}
 	
 	@Test
 	public void elm_and_cql_in_initial_population___cohort_evaluated_correctly() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -152,7 +152,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test
 	public void in_initial_population_denominator_and_nothing_else___proportion_evaluated_correctly() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -266,7 +266,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test
 	public void in_one_initial_population_for_two_measures___two_measure_reports_returned() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -302,7 +302,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	
 	@Test
 	public void multilevel_library_dependencies___successfully_loaded_and_evaluated() throws Exception {
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -334,7 +334,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	
 	@Test
 	public void id_based_library_link___successfully_loaded_and_evaluated() throws Exception {
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -359,13 +359,13 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		MeasureReport report = reports.get(0);
 		verifyStandardPopulationCounts(report);
 		
-		verify(1, getRequestedFor(urlEqualTo("/Library/" + library.getId())));
+		verify(1, getRequestedFor(urlEqualTo("/Library/" + library.getId() + "?_format=json")));
 	}
 
 	@Test
 	public void measure_default_valid() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -389,7 +389,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test(expected = InvalidOperatorArgument.class)
 	public void measure_default_invalid_type() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -413,7 +413,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test(expected = UnsupportedFhirTypeException.class)
 	public void measure_default_unsupported_type() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -439,7 +439,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	private void runCareGapTest(Map<String, Parameter> parameters, Map<String, Integer> careGapExpectations)
 			throws ParseException, Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -489,7 +489,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test
 	public void in_populations_defines_returned() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		
@@ -537,7 +537,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test
 	public void in_populations_evaluated_define_only_returned() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -562,7 +562,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test
 	public void in_populations_evaluated_boolean_define_only_returned() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -587,7 +587,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test
 	public void in_populations_evaluated_resources_returned() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -612,7 +612,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test
 	public void in_populations_no_evaluated_resources_returned() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -653,7 +653,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test
 	public void in_populations_supplemental_data() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -681,7 +681,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test
 	public void measure_report_generated___named_parameters_on_measure_report() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -729,7 +729,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test
 	public void measure_report_generated___FHIR_measure_parameters_on_measure_report() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -793,7 +793,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test
 	public void measure_report_generated___java_overrides_overwrite_measure_params() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -835,7 +835,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test
 	public void measure_report_generated___datetime_parameters_on_report_in_utc() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -888,7 +888,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test
 	public void in_initial_population_when_engine_run_in_utc__engine_defaults_to_utc() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
@@ -913,7 +913,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 	@Test
 	public void measure_patient_list_report_generated() throws Exception {
 		CapabilityStatement metadata = getCapabilityStatement();
-		mockFhirResourceRetrieval("/metadata", metadata);
+		mockFhirResourceRetrieval("/metadata?_format=json", metadata);
 
 		Patient patient1 = getPatient("1", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient1);

@@ -183,7 +183,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		
 		Patient patient = getPatient("patientId", AdministrativeGender.MALE, 40);
 		
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 		mockFhirResourceRetrieval(patient);
 		
 		FhirServerConfig clientConfig = getFhirServerConfig();
@@ -297,8 +297,8 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		
 		Patient patient = getPatient("patientId", AdministrativeGender.MALE, 40);
 		
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
-		mockNotFound("/Patient/" + patient.getId());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
+		mockNotFound("/Patient/" + patient.getId() + "\\?_format=json");
 		
 		FhirServerConfig clientConfig = getFhirServerConfig();
 		
@@ -711,7 +711,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 		Patient patient1 = getPatient("patientId1", AdministrativeGender.MALE, 40);
 		Patient patient2 = getPatient("patientId2", AdministrativeGender.FEMALE, 40);
 
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 		mockFhirResourceRetrieval(patient1);
 		mockFhirResourceRetrieval(patient2);
 
@@ -780,8 +780,8 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 
 		Patient patient = getPatient("patientId", AdministrativeGender.MALE, 40);
 
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
-		mockNotFound("/Patient/" + patient.getId());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
+		mockNotFound("/Patient/" + patient.getId() + "\\?_format=json");
 
 		FhirServerConfig clientConfig = getFhirServerConfig();
 
@@ -887,7 +887,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 	public void testCohortEvaluation() throws Exception {
 		prepMocks();
 		mockResponseClasses();
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 		Patient patient = getPatient("123", AdministrativeGender.FEMALE, 40);
 		mockFhirResourceRetrieval(patient);
 
@@ -955,7 +955,7 @@ public class CohortEngineRestHandlerTest extends BaseFhirTest {
 	public void testCohortMultipleDependencies() throws Exception {
 		prepMocks();
 		mockResponseClasses();
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 		Patient patient = getPatient("123", AdministrativeGender.FEMALE, 40);
 		mockFhirResourceRetrieval(patient);
 

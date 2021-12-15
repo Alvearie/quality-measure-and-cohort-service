@@ -32,7 +32,7 @@ public class BasePatientTest extends BaseFhirTest {
 
 	protected CqlEvaluator setupTestFor(Patient patient, FhirServerConfig fhirConfig, String... resources) {
 
-		mockFhirResourceRetrieval("/metadata", getCapabilityStatement());
+		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 		mockFhirResourceRetrieval(patient);
 
 		CqlEvaluator wrapper = new CqlEvaluator();
