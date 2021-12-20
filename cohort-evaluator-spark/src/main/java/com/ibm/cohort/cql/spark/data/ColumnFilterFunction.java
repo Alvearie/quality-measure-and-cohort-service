@@ -69,7 +69,7 @@ public class ColumnFilterFunction implements Function<Dataset<Row>, Dataset<Row>
 					throw th;
 				}
 			}
-			result = sourceDataset.select( cols.toArray(new Column[cols.size()]) );
+			result = sourceDataset.select( cols.toArray(new Column[0]) );
 		}
 
 		return result;
