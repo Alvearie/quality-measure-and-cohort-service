@@ -19,7 +19,7 @@ import com.ibm.cohort.cql.util.StringMatcher;
 public class ColumnFilterFunction implements Function<Dataset<Row>, Dataset<Row>> {
 	private static final Logger LOG = LoggerFactory.getLogger(ColumnFilterFunction.class);
 	
-	private Set<StringMatcher> columnNameMatchers;
+	private final Set<StringMatcher> columnNameMatchers;
 	
 	public ColumnFilterFunction(Set<StringMatcher> columnNameMatchers) {
 		this.columnNameMatchers = columnNameMatchers;
