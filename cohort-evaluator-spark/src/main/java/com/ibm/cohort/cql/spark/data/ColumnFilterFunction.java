@@ -3,7 +3,7 @@ package com.ibm.cohort.cql.spark.data;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import com.ibm.cohort.cql.util.StringMatcher;
 
-public class ColumnFilterFunction implements Function<Dataset<Row>, Dataset<Row>> {
+public class ColumnFilterFunction implements UnaryOperator<Dataset<Row>> {
 	private static final Logger LOG = LoggerFactory.getLogger(ColumnFilterFunction.class);
 	
 	private final Set<StringMatcher> columnNameMatchers;

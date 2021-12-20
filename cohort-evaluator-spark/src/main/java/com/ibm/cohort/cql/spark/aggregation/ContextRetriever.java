@@ -9,11 +9,10 @@ package com.ibm.cohort.cql.spark.aggregation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -165,7 +164,7 @@ public class ContextRetriever {
                 Column[] columnArray = retainedColumns.toArray(new Column[0]);
                 joinedDataset = joinedDataset.select(columnArray);
 
-                Function<Dataset<Row>, Dataset<Row>> datasetTransformationFunction = datatypeToColumnMatchers == null ? Function.identity() : new ColumnFilterFunction(datatypeToColumnMatchers.get(relatedDataType));
+                UnaryOperator<Dataset<Row>> datasetTransformationFunction = datatypeToColumnMatchers == null ? UnaryOperator.identity() : new ColumnFilterFunction(datatypeToColumnMatchers.get(relatedDataType));
 
                 joinedDataset = datasetTransformationFunction.apply(joinedDataset);
                 
