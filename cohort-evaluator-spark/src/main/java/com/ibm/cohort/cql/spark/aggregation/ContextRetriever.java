@@ -53,7 +53,6 @@ public class ContextRetriever {
     private final Map<String, String> inputPaths;
     private final DatasetRetriever datasetRetriever;
     private final Map<String, Set<StringMatcher>> datatypeToColumnMatchers;
-    private Map<String, Function<Dataset<Row>, Dataset<Row>>> datasetTransformerMap = new HashMap<>();
 
     /**
      * @param inputPaths A mapping from datatype to Hadoop compatible path
@@ -166,16 +165,7 @@ public class ContextRetriever {
                 Column[] columnArray = retainedColumns.toArray(new Column[0]);
                 joinedDataset = joinedDataset.select(columnArray);
 
-                Function<Dataset<Row>, Dataset<Row>> datasetTransformationFunction = datasetTransformerMap.computeIfAbsent(
-                        relatedDataType,
-                        x -> {
-                            if (datatypeToColumnMatchers != null) {
-                                return new ColumnFilterFunction(datatypeToColumnMatchers.get(relatedDataType));
-                            }
-                            else {
-                                return Function.identity();
-                            }
-                        });
+                Function<Dataset<Row>, Dataset<Row>> datasetTransformationFunction = datatypeToColumnMatchers == null ? Function.identity() : new ColumnFilterFunction(datatypeToColumnMatchers.get(relatedDataType));
 
                 joinedDataset = datasetTransformationFunction.apply(joinedDataset);
                 
