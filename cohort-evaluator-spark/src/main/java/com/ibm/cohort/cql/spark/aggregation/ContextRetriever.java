@@ -58,7 +58,7 @@ public class ContextRetriever {
     /**
      * @param inputPaths A mapping from datatype to Hadoop compatible path
      * @param datasetRetriever A {@link DatasetRetriever} for low level data retrieval
-	 * @param datatypeToColumnMatchers Map of data type to required columns to use when building each context.
+     * @param datatypeToColumnMatchers Map of data type to required columns to use when building each context.
      *                                 When null is passed in, no column filtering is performed.   
      */
     public ContextRetriever(Map<String, String> inputPaths, DatasetRetriever datasetRetriever, Map<String, Set<StringMatcher>> datatypeToColumnMatchers) {
@@ -180,8 +180,8 @@ public class ContextRetriever {
                 joinedDataset = datasetTransformationFunction.apply(joinedDataset);
                 
                 if (joinedDataset != null) {
-					retVal.add(toPairRDD(joinedDataset, JOIN_CONTEXT_VALUE_IDX));
-				}
+                    retVal.add(toPairRDD(joinedDataset, JOIN_CONTEXT_VALUE_IDX));
+                }
                 else {
                     LOG.info("No data was read for context {}, datatype {}. This happens naturally when CQL-based column filtering is enabled and no data is required from the specified datatype.", contextDefinition.getName(), relatedDataType);
                 }
