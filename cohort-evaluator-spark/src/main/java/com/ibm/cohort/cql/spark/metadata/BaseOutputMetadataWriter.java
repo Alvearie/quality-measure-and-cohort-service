@@ -11,6 +11,7 @@ import org.apache.commons.collections.CollectionUtils;
 public abstract class BaseOutputMetadataWriter implements OutputMetadataWriter{
     
     public static final String SUCCESS_MARKER = "_SUCCESS";
+    public static final String SUCCESS_FLAG = "SUCCESS";
     public static final String BATCH_SUMMARY_PREFIX = "batch_summary-";
 
     @Override
