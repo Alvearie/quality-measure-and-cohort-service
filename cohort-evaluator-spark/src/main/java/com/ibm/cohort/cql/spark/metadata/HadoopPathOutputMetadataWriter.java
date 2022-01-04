@@ -35,6 +35,7 @@ public class HadoopPathOutputMetadataWriter extends BaseOutputMetadataWriter {
     @Override
     protected void createSuccessMarker() {
         try(FSDataOutputStream outputStream = metadataPath.getFileSystem(hadoopConfig).create(metadataPath.suffix("/" + SUCCESS_MARKER))) {
+            outputStream.write(SUCCESS_FLAG.getBytes());
         } catch (IOException e) {
             throw new RuntimeException("Error writing the success marker file", e);
         }
