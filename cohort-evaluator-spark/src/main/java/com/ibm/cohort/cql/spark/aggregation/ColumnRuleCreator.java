@@ -29,21 +29,6 @@ public class ColumnRuleCreator {
 		this.cqlTranslator = cqlTranslator;
 		this.libraryProvider = libraryProvider;
 	}
-	
-	/**
-	 *
-	 * @param context ContextDefinition whose CQL jobs will be interrogated for data requirements.
-	 * @param disableColumnFiltering If true, return null. Otherwise return a populated map
-	 * @return Map of data type to the fields in that datatype that are used by the CQL jobs.
-	 *         null is returned when column filtering is disabled.
-	 */
-	public Map<String, Set<StringMatcher>> getColumnRulesForContexts(ContextDefinition context, boolean disableColumnFiltering) {
-		Map<String, Set<StringMatcher>> pathsByDataType = null;
-		if( ! disableColumnFiltering ) {
-			pathsByDataType = getDataRequirementsForContext(context);
-		}
-		return pathsByDataType;
-	}
 
 	/**
 	 * Retrieve the merged set of data type and column filters for all CQL jobs that will
@@ -52,7 +37,7 @@ public class ColumnRuleCreator {
 	 * @param context ContextDefinition whose CQL jobs will be interrogated for data requirements
 	 * @return Map of data type to the fields in that datatype that are used by the CQL jobs
 	 */
-	protected Map<String, Set<StringMatcher>> getDataRequirementsForContext(ContextDefinition context) {
+	public Map<String, Set<StringMatcher>> getDataRequirementsForContext(ContextDefinition context) {
 		
 		Map<CqlLibraryDescriptor,Set<String>> expressionsByLibrary = new HashMap<>();
 		for( CqlEvaluationRequest request : requests ) {

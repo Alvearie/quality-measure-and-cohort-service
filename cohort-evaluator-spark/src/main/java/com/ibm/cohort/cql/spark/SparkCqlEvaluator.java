@@ -65,10 +65,10 @@ import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.library.HadoopBasedCqlLibraryProvider;
 import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
+import com.ibm.cohort.cql.spark.aggregation.ColumnRuleCreator;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.spark.aggregation.ContextRetriever;
-import com.ibm.cohort.cql.spark.aggregation.ColumnRuleCreator;
 import com.ibm.cohort.cql.spark.data.ConfigurableOutputColumnNameEncoder;
 import com.ibm.cohort.cql.spark.data.DefaultDatasetRetriever;
 import com.ibm.cohort.cql.spark.data.SparkDataRow;
@@ -335,7 +335,7 @@ public class SparkCqlEvaluator implements Serializable {
                 ContextRetriever contextRetriever = new ContextRetriever(
                         args.inputPaths,
                         new DefaultDatasetRetriever(spark, args.inputFormat),
-                        columnRuleCreator.getColumnRulesForContexts(context, args.disableColumnFiltering)
+                        args.disableColumnFiltering ? null : columnRuleCreator.getDataRequirementsForContext(context)
                 );
 
                 StructType resultsSchema = resultSchemas.get(contextName);
