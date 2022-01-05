@@ -107,7 +107,7 @@ Usage: SparkCqlEvaluator [options]
 The typical mode of invocation is to run the program using the spark-submit script from SPARK_HOME\bin to submit a job to a target Spark cluster. The simplest invocation for a Windows user will look like this...
 
 ```
-%SPARK_HOME%\bin\spark-submit.cmd --name cohort-evaluator-spark --class com.ibm.cohort.cql.spark.SparkCqlEvaluator local:/opt/spark/jars/cohort-evaluator-spark/target/cohort-evaluator-spark-1.0.2-SNAPSHOT.jar @/path/to/program-args.txt
+%SPARK_HOME%\bin\spark-submit.cmd --name cohort-evaluator-spark --class com.ibm.cohort.cql.spark.SparkCqlEvaluator local:/opt/spark/jars/cohort-evaluator-spark/target/cohort-evaluator-spark.jar @/path/to/program-args.txt
 ```
 
 In this example, the `@/path/to/program-args.txt` is a convenience option that allows users to store their program arguments in a file that can be reused across multiple program executions. Each line of the target file is a separate positional parameter. The option name and option value (for those options that have a value) should be on separate lines. Make sure to avoid trailing whitespace as that can confuse the argument parser. Alternatively, you can just pass all the options (e.g. -c /path/to/cql -m /path/to/modelinfo.xml -d /path/to/context-definitions.json -j /path/to/cql-jobs.json ...) directly in the spark-submit execution.
