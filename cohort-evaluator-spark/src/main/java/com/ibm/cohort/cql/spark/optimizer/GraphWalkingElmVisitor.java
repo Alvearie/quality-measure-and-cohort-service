@@ -87,7 +87,7 @@ public class GraphWalkingElmVisitor<R, C> extends ElmBaseLibraryVisitor <R, C> {
         if( ref instanceof FunctionRef ) {
             result = visitFunctionRef((FunctionRef)ref, context);
         } else {
-            result = visitRef(ref, context, defaultResult());
+            result = visitRef(ref, context, defaultResult(ref, context));
         }
         
         return result;
