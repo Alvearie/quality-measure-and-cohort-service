@@ -134,18 +134,8 @@ public class OptimizedObjectFactory extends ObjectFactoryEx {
 	}
 
 	@Override
-	public CodeDef createCodeDef() {
-		return super.createCodeDef();
-	}
-
-	@Override
 	public CodeRef createCodeRef() {
 		return super.createCodeRef();
-	}
-
-	@Override
-	public CodeSystemDef createCodeSystemDef() {
-		return super.createCodeSystemDef();
 	}
 
 	@Override
@@ -171,11 +161,6 @@ public class OptimizedObjectFactory extends ObjectFactoryEx {
 	@Override
 	public Concept createConcept() {
 		return super.createConcept();
-	}
-
-	@Override
-	public ConceptDef createConceptDef() {
-		return super.createConceptDef();
 	}
 
 	@Override
@@ -958,4 +943,18 @@ public class OptimizedObjectFactory extends ObjectFactoryEx {
 		return super.createXor();
 	}
 
+    @Override
+    public ConvertsToLong createConvertsToLong() {
+        return super.createConvertsToLong();
+    }
+
+    @Override
+    public ToLong createToLong() {
+        return super.createToLong();
+    }
+
+    @Override
+    public AnyInCodeSystem createAnyInCodeSystem() {
+        return super.createAnyInCodeSystem();
+    }
 }
