@@ -32,6 +32,11 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.opencds.cqf.cql</groupId>
+			<artifactId>engine.jaxb</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>xpp3</groupId>
 			<artifactId>xpp3</artifactId>
 			<version>1.1.4c</version>

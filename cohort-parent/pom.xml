@@ -278,6 +278,11 @@
 				<version>${engine.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>org.opencds.cqf.cql</groupId>
+				<artifactId>engine.jaxb</artifactId>
+				<version>${engine.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>org.opencds.cqf</groupId>
 				<artifactId>common</artifactId>
 				<version>${ruler.version}</version>

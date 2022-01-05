@@ -68,6 +68,11 @@
 			<groupId>org.opencds.cqf.cql</groupId>
 			<artifactId>engine</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>org.opencds.cqf.cql</groupId>
+			<artifactId>engine.jaxb</artifactId>
+		</dependency>
 		
 		<dependency>
 			<groupId>ca.uhn.hapi.fhir</groupId>
