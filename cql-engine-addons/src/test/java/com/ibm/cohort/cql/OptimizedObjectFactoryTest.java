@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.junit.Test;
 
 public class OptimizedObjectFactoryTest {
@@ -26,7 +27,10 @@ public class OptimizedObjectFactoryTest {
 		Set<String> subclassCreates = getCreates(subclassMethods);
 		Set<String> superclassCreates = getCreates(superclassMethods);
 
-		assertThat(subclassCreates, is(superclassCreates));
+		assertThat(
+			"The following overrides need to be added: " + CollectionUtils.removeAll(superclassCreates, subclassCreates) + "\n" +
+				"and the following overrides need to be removed: " + CollectionUtils.removeAll(subclassCreates, superclassCreates),
+			subclassCreates, is(superclassCreates));
 		// any missing overrides from the superclass must be redundantly overridden
 		// due to how moxy's annotations processor handles object factories
 	}
