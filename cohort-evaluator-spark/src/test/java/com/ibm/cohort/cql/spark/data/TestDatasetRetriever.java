@@ -24,7 +24,7 @@ public class TestDatasetRetriever implements DatasetRetriever {
     }
 
     @Override
-    public Dataset<Row> readDataset(String dataType, String path) {
+    public Dataset<Row> readDataset(String path) {
         return datasets.get(path);
     }
 

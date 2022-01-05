@@ -11,8 +11,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
@@ -21,7 +24,9 @@ import org.apache.spark.sql.functions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ibm.cohort.cql.spark.data.ColumnFilterFunction;
 import com.ibm.cohort.cql.spark.data.DatasetRetriever;
+import com.ibm.cohort.cql.util.StringMatcher;
 
 import scala.Tuple2;
 
@@ -46,14 +51,18 @@ public class ContextRetriever {
 
     private final Map<String, String> inputPaths;
     private final DatasetRetriever datasetRetriever;
+    private final Map<String, Set<StringMatcher>> datatypeToColumnMatchers;
 
     /**
      * @param inputPaths A mapping from datatype to Hadoop compatible path
      * @param datasetRetriever A {@link DatasetRetriever} for low level data retrieval
+     * @param datatypeToColumnMatchers Map of data type to required columns to use when building each context.
+     *                                 When null is passed in, no column filtering is performed.   
      */
-    public ContextRetriever(Map<String, String> inputPaths, DatasetRetriever datasetRetriever) {
+    public ContextRetriever(Map<String, String> inputPaths, DatasetRetriever datasetRetriever, Map<String, Set<StringMatcher>> datatypeToColumnMatchers) {
         this.inputPaths = inputPaths;
         this.datasetRetriever = datasetRetriever;
+        this.datatypeToColumnMatchers = datatypeToColumnMatchers;
     }
 
     /**
@@ -143,6 +152,10 @@ public class ContextRetriever {
                 } else {
                     throw new IllegalArgumentException("Unexpected Join Type: " + join.getClass().getName());
                 }
+                
+                if (StringUtils.isNotEmpty(join.getWhereClause())) {
+                    joinedDataset = joinedDataset.where(join.getWhereClause());
+                }
     
                 List<Column> retainedColumns = Arrays.stream(relatedDataset.columns())
                         .map(relatedDataset::col)
@@ -150,10 +163,19 @@ public class ContextRetriever {
                 retainedColumns.add(joinContextColumn);
                 Column[] columnArray = retainedColumns.toArray(new Column[0]);
                 joinedDataset = joinedDataset.select(columnArray);
-    
-                retVal.add(toPairRDD(joinedDataset, JOIN_CONTEXT_VALUE_IDX));
-            } else { 
-                LOG.info("No data was read for context {}, datatype {}. This happens natually when CQL-based column filtering is enabled and no data is required from the specified datatype.", contextDefinition.getName(), relatedDataType);
+
+                UnaryOperator<Dataset<Row>> datasetTransformationFunction = datatypeToColumnMatchers == null ? UnaryOperator.identity() : new ColumnFilterFunction(datatypeToColumnMatchers.get(relatedDataType));
+
+                joinedDataset = datasetTransformationFunction.apply(joinedDataset);
+                
+                if (joinedDataset != null) {
+                    retVal.add(toPairRDD(joinedDataset, JOIN_CONTEXT_VALUE_IDX));
+                }
+                else {
+                    LOG.info("No data was read for context {}, datatype {}. This happens naturally when CQL-based column filtering is enabled and no data is required from the specified datatype.", contextDefinition.getName(), relatedDataType);
+                }
+            } else {
+                LOG.info("No data was read for context {}, datatype {}.", contextDefinition.getName(), relatedDataType);
             }
         }
 
@@ -239,7 +261,7 @@ public class ContextRetriever {
         if (path == null) {
             throw new IllegalArgumentException(String.format("No path mapping found for datatype %s", dataType));
         }
-        Dataset<Row> dataset = datasetRetriever.readDataset(dataType, path);
+        Dataset<Row> dataset = datasetRetriever.readDataset(path);
         return ( dataset != null ) ? dataset
                 .withColumn(SOURCE_FACT_IDX, functions.lit(dataType)) : null;
     }
