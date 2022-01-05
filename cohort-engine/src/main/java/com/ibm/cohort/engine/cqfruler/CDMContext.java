@@ -59,8 +59,9 @@ public class CDMContext extends Context {
         return this.expressions.get(libraryId).get(name);
     }
 	
-	public void clearExpressionCache() {
-		expressions.clear();
+	@Override
+    public void clearExpressions() {
+		this.expressions.clear();
 	}
 
 	public CDMContext(Library library) {

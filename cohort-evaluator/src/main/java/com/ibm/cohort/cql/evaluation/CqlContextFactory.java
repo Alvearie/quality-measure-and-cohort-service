@@ -6,11 +6,10 @@
 
 package com.ibm.cohort.cql.evaluation;
 
-import java.lang.reflect.Field;
 import java.time.ZonedDateTime;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -163,7 +162,7 @@ public class CqlContextFactory {
         for (String modelUri : uris) {
             cqlContext.registerDataProvider(modelUri, dataProvider);
         }
-        
+
         resetContextValues(cqlContext);
         if( contextData != null ) {
             cqlContext.setContextValue(contextData.getKey(), contextData.getValue());
@@ -172,7 +171,6 @@ public class CqlContextFactory {
         DebugMap debugMap = createDebugMap(debug);
         cqlContext.setDebugMap(debugMap);
 
-        clearExpressionCache(cqlContext);
         cqlContext.setExpressionCaching(this.cacheExpressions);
 
         cqlContext.clearEvaluatedResources();
@@ -258,7 +256,7 @@ public class CqlContextFactory {
         // contexts from the included libraries, but that is a potentially expensive
         // graph walk. Trusting for now that this is enough.
 
-        contexts.stream().forEach(ctx -> cqlContext.setContextValue(ctx, null));
+        contexts.stream().forEach(ctx -> cqlContext.setContextValue(ctx, Optional.empty()));
     }
 
     /**
@@ -305,26 +303,4 @@ public class CqlContextFactory {
                 .map(d -> d.getUri()).collect(Collectors.toSet());
     }
 
-    /**
-     * Remove cached CQL evaluation results. This is necessary whenever the "context"
-     * changes. The approach uses some squirrely scope modification that will not work
-     * in JVMs newer than Java 11. The CQL engine has addressed the issue in newer
-     * code, so we should revisit that issue and consider updating when there is time.
-     *
-     * @param context CQL Context object
-     */
-    @SuppressWarnings("rawtypes")
-    protected void clearExpressionCache(Context context) {
-        // Hack to clear expression cache
-        // See cqf-ruler github issue #153
-        try {
-            Field privateField = context.getClass().getDeclaredField("expressions");
-            privateField.setAccessible(true);
-            LinkedHashMap expressions = (LinkedHashMap) privateField.get(context);
-            expressions.clear();
-
-        } catch (Exception e) {
-            throw new RuntimeException("Error resetting expression cache", e);
-        }
-    }
 }

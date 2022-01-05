@@ -178,8 +178,6 @@ public class CDMMeasureEvaluation {
 			// Grab the define results from the expression cache
 			MeasureEvidenceOptions.DefineReturnOptions defineReturnOptions = (evidenceOptions != null ) ? evidenceOptions.getDefineReturnOption() : MeasureEvidenceOptions.DefineReturnOptions.NONE;
 			addDefineEvaluationToReport(report, defineContext, defineReturnOptions);
-			
-			defineContext.clearExpressionCache();
 		}
 
 		List<Extension> parameterExtensions = getParameterExtensions(measure, context, parameterMap);
