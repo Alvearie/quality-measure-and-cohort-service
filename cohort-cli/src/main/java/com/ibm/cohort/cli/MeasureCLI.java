@@ -11,17 +11,25 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.zip.ZipFile;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
+import com.ibm.cohort.cql.version.ResourceSelector;
+import com.ibm.cohort.cql.fhir.handler.ResourceHandler;
+import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
+import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
+import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResrouceResolverFactory;
+import com.ibm.cohort.cql.hapi.handler.R4LibraryResourceHandler;
+import com.ibm.cohort.cql.hapi.resolver.R4MapFhirResourceResolverFactory;
+import com.ibm.cohort.cql.hapi.handler.R4MeasureResourceHandler;
+import com.ibm.cohort.cql.library.ZipStreamProcessor;
+import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
-import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
@@ -31,16 +39,9 @@ import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
 import com.ibm.cohort.cli.input.MeasureContextProvider;
 import com.ibm.cohort.cli.input.NoSplittingSplitter;
-import com.ibm.cohort.engine.helpers.FileHelpers;
-import com.ibm.cohort.engine.measure.DirectoryResourceResolutionProvider;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.MeasureEvaluator;
-import com.ibm.cohort.engine.measure.MeasureResolutionProvider;
 import com.ibm.cohort.engine.measure.R4DataProviderFactory;
-import com.ibm.cohort.engine.measure.ResourceResolutionProvider;
-import com.ibm.cohort.engine.measure.RestFhirLibraryResolutionProvider;
-import com.ibm.cohort.engine.measure.RestFhirMeasureResolutionProvider;
-import com.ibm.cohort.engine.measure.ZipResourceResolutionProvider;
 import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
@@ -138,33 +139,27 @@ public class MeasureCLI extends BaseCLI {
 			IGenericClient dataServerClient = fhirClientBuilderFactory.newFhirClientBuilder().createFhirClient(dataServerConfig);
 			IGenericClient terminologyServerClient = fhirClientBuilderFactory.newFhirClientBuilder().createFhirClient(terminologyServerConfig);
 
-			LibraryResolutionProvider<Library> libraryProvider;
-			MeasureResolutionProvider<Measure> measureProvider;
+			FhirResourceResolver<Library> libraryResolver;
+			FhirResourceResolver<Measure> measureResolver;
 
 			IParser parser = getFhirContext().newJsonParser().setPrettyPrint(true);
 			String [] filters = (arguments.filters != null) ? arguments.filters.toArray(new String[arguments.filters.size()]) : null;
 
 			if( arguments.measureServerConfigFile != null && FileHelpers.isZip(arguments.measureServerConfigFile)) {
-				ZipFile zipFile = new ZipFile( arguments.measureServerConfigFile );
-
-				ResourceResolutionProvider resourceProvider = new ZipResourceResolutionProvider(zipFile, parser, filters);
-
-				libraryProvider = resourceProvider;
-				measureProvider = resourceProvider;
-
+				R4MapFhirResourceResolverFactory<Library> libraryResolverFactory = createLibraryResourceResolverFactory(parser);
+				libraryResolver = libraryResolverFactory.fromZipFile(arguments.measureServerConfigFile.toPath(), filters);
+				R4MapFhirResourceResolverFactory<Measure> measureResolverFactory = createMeasureResourceResolverFactory(parser);
+				measureResolver = measureResolverFactory.fromZipFile(arguments.measureServerConfigFile.toPath(), filters);
 			} else if( arguments.measureServerConfigFile != null && arguments.measureServerConfigFile.isDirectory() ) {
-
-				ResourceResolutionProvider resourceProvider = new DirectoryResourceResolutionProvider(arguments.measureServerConfigFile, parser, filters);
-
-				libraryProvider = resourceProvider;
-				measureProvider = resourceProvider;
-
+				R4MapFhirResourceResolverFactory<Library> libraryResolverFactory = createLibraryResourceResolverFactory(parser);
+				libraryResolver = libraryResolverFactory.fromDirectory(arguments.measureServerConfigFile.toPath(), filters);
+				R4MapFhirResourceResolverFactory<Measure> measureResolverFactory = createMeasureResourceResolverFactory(parser);
+				measureResolver = measureResolverFactory.fromDirectory(arguments.measureServerConfigFile.toPath(), filters);
 			} else {
 				readMeasureServerConfiguration( arguments );
 				IGenericClient measureServerClient = fhirClientBuilderFactory.newFhirClientBuilder().createFhirClient(measureServerConfig);
-
-				libraryProvider = new RestFhirLibraryResolutionProvider( measureServerClient );
-				measureProvider = new RestFhirMeasureResolutionProvider( measureServerClient );
+				libraryResolver = R4FhirServerResrouceResolverFactory.createLibraryResolver(measureServerClient);
+				measureResolver = R4FhirServerResrouceResolverFactory.createMeasureResolver(measureServerClient);
 			}
 
 			List<MeasureContext> measureContexts;
@@ -177,11 +172,12 @@ public class MeasureCLI extends BaseCLI {
 			
 			validateMeasureContexts(measureContexts);
 
+			R4LibraryDependencyGatherer libraryDependencyGatherer = new R4LibraryDependencyGatherer(libraryResolver);
 			TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(terminologyServerClient);
 			try (RetrieveCacheContext retrieveCacheContext = arguments.disableRetrieveCache ? null : new DefaultRetrieveCacheContext()) {
 				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataServerClient, terminologyProvider, retrieveCacheContext, R4FhirModelResolverFactory.createCachingResolver(), ! arguments.enableTerminologyOptimization, arguments.searchPageSize);
 
-				evaluator = new MeasureEvaluator(measureProvider, libraryProvider, terminologyProvider, dataProviders);
+				evaluator = new MeasureEvaluator(measureResolver, libraryResolver, libraryDependencyGatherer, terminologyProvider, dataProviders);
 
 				for (String contextId : arguments.contextIds) {
 					out.println("Evaluating: " + contextId);
@@ -243,6 +239,20 @@ public class MeasureCLI extends BaseCLI {
 		if( sb.length() > 0 ) {
 			throw new IllegalArgumentException(sb.toString());
 		}
+	}
+
+	private R4MapFhirResourceResolverFactory<Library> createLibraryResourceResolverFactory(IParser parser) {
+		ResourceHandler<Library, Identifier> libraryHandler = new R4LibraryResourceHandler();
+		ResourceSelector<Library> librarySelector = new ResourceSelector<>(libraryHandler);
+		ZipStreamProcessor zipProcessor = new ZipStreamProcessor();
+		return new R4MapFhirResourceResolverFactory<>(libraryHandler, librarySelector, parser, zipProcessor);
+	}
+
+	private R4MapFhirResourceResolverFactory<Measure> createMeasureResourceResolverFactory(IParser parser) {
+		ResourceHandler<Measure, Identifier> measureHandler = new R4MeasureResourceHandler();
+		ResourceSelector<Measure> measureSelector = new ResourceSelector<>(measureHandler);
+		ZipStreamProcessor zipProcessor = new ZipStreamProcessor();
+		return new R4MapFhirResourceResolverFactory<>(measureHandler, measureSelector, parser, zipProcessor);
 	}
 
 	public static void main(String[] args) throws Exception {

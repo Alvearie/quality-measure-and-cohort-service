@@ -6,33 +6,33 @@
 
 package com.ibm.cohort.cql.translation;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.ibm.cohort.cql.library.CqlLibrary;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
-import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
+import com.ibm.cohort.cql.library.Format;
+import com.ibm.cohort.cql.provider.ProviderBasedCqlLibrarySourceProvider;
 
 public class TranslatingCqlLibraryProvider implements CqlLibraryProvider {
     private final CqlLibraryProvider backingLibraryProvider;
     private final CqlToElmTranslator translator;
+    private final boolean forceTranslation;
     
     // Cache of libraries that have already been translated
-    private Map<CqlLibraryDescriptor, CqlLibrary> translations;
+    private final Map<CqlLibraryDescriptor, CqlLibrary> translations = new HashMap<>();
     
     public TranslatingCqlLibraryProvider(CqlLibraryProvider backingProvider, CqlToElmTranslator translator) {
-        this.backingLibraryProvider = backingProvider;
+        this(backingProvider, translator, false);
+    }
+
+    public TranslatingCqlLibraryProvider(CqlLibraryProvider backingLibraryProvider, CqlToElmTranslator translator, boolean forceTranslation) {
+        this.backingLibraryProvider = backingLibraryProvider;
         this.translator = translator;
-        this.translations = new HashMap<>();
+        this.forceTranslation = forceTranslation;
     }
-    
-    @Override
-    public Collection<CqlLibraryDescriptor> listLibraries() {
-        return backingLibraryProvider.listLibraries();
-    }
-    
+
     @Override
     public CqlLibrary getLibrary(CqlLibraryDescriptor libraryDescriptor) {
         if( libraryDescriptor.getFormat().equals(Format.CQL) ) {
@@ -45,15 +45,15 @@ public class TranslatingCqlLibraryProvider implements CqlLibraryProvider {
                         .setFormat(Format.ELM);
                 
                 CqlLibrary library = backingLibraryProvider.getLibrary(elmDescriptor);
-                if( library == null ) {
+                if( library == null || forceTranslation ) {
                     CqlLibraryDescriptor cqlDescriptor = new CqlLibraryDescriptor()
                             .setLibraryId( key.getLibraryId() )
                             .setVersion( key.getVersion() )
-                            .setFormat( CqlLibraryDescriptor.Format.CQL );
+                            .setFormat(Format.CQL);
                     
                     library = backingLibraryProvider.getLibrary(cqlDescriptor);
                     if( library != null ) {
-                        CqlTranslationResult translationResult = translator.translate(library, new DefaultCqlLibrarySourceProvider(backingLibraryProvider));
+                        CqlTranslationResult translationResult = translator.translate(library, new ProviderBasedCqlLibrarySourceProvider(backingLibraryProvider));
                         return translationResult.getMainLibrary();
                     }
                 }

@@ -18,7 +18,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 
 @JsonInclude(Include.NON_NULL)
 public class MeasureContext {

@@ -25,6 +25,7 @@ import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList.ErrorSource;
 import com.ibm.cohort.engine.parameter.Parameter;
 import com.ibm.watson.service.base.model.ServiceError;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;

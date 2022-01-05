@@ -26,7 +26,7 @@ import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.Period;
 import org.hl7.fhir.r4.model.codesystems.MeasureScoring;
 
-import com.ibm.cohort.engine.helpers.CanonicalHelper;
+import com.ibm.cohort.cql.helpers.CanonicalHelper;
 
 import ca.uhn.fhir.parser.IParser;
 
@@ -68,7 +68,7 @@ public class TestHelper {
 		measure.setUrl("http://ibm.com/health/Measure/test_measure");
 		measure.setScoring(new CodeableConcept().addCoding(new Coding().setCode(MeasureScoring.COHORT.toCode())));
 		measure.setEffectivePeriod(new Period().setStart(startDate).setEnd(endDate));
-		measure.addLibrary(CanonicalHelper.toCanonicalUrl(library));
+		measure.addLibrary(CanonicalHelper.toCanonicalUrl(library.getUrl(), library.getVersion()));
 		measure.addGroup().addPopulation().setCode(new CodeableConcept().addCoding(new Coding().setSystem("http://hl7.org/fhir/measure-population").setCode("initial-population"))).setCriteria(new Expression().setExpression("Adult"));
 		return measure;
 	}

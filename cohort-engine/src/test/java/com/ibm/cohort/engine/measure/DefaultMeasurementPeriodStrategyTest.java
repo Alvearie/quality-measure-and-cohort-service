@@ -20,10 +20,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hl7.fhir.r4.model.Measure;
 import org.junit.Test;
 
-import com.ibm.cohort.engine.parameter.DateParameter;
-import com.ibm.cohort.engine.parameter.DatetimeParameter;
-import com.ibm.cohort.engine.parameter.IntervalParameter;
-import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.cohort.cql.evaluation.parameters.DateParameter;
+import com.ibm.cohort.cql.evaluation.parameters.DatetimeParameter;
+import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 
 public class DefaultMeasurementPeriodStrategyTest {
 

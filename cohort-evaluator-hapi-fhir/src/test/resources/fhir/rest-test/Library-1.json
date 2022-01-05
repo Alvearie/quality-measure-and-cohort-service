@@ -1,0 +1,13 @@
+{
+  "resourceType": "Library",
+  "id": "Library1-id",
+  "name": "Library1-name",
+  "version": "1.0.0",
+  "url": "http://fake.url.com/Library/Library1",
+  "identifier": {
+    "value": "Library1-idValue",
+    "system": "Library1-idSystem"
+  },
+  "title": "Library1-title",
+  "status": "active"
+}

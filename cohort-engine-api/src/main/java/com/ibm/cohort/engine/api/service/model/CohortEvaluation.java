@@ -13,12 +13,12 @@ import java.util.Map;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.ibm.cohort.cql.evaluation.CqlDebug;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import com.ibm.cohort.engine.LoggingEnum;
-import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
 import io.swagger.annotations.ApiModelProperty;
@@ -36,7 +36,7 @@ public class CohortEvaluation {
 	private Map<String, Parameter> parameters;
 	@NotNull
 	private String entrypoint;
-	private LoggingEnum loggingLevel;
+	private CqlDebug loggingLevel;
 	@NotNull
 	private String defineToRun;
 
@@ -86,11 +86,11 @@ public class CohortEvaluation {
 	}
 
 	@ApiModelProperty(required = true)
-	public LoggingEnum getLoggingLevel() {
+	public CqlDebug getLoggingLevel() {
 		return loggingLevel;
 	}
 
-	public void setLoggingLevel(LoggingEnum loggingLevel) {
+	public void setLoggingLevel(CqlDebug loggingLevel) {
 		this.loggingLevel = loggingLevel;
 	}
 

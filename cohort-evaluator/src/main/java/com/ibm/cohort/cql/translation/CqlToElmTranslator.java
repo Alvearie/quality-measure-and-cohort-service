@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBException;
 
+import com.ibm.cohort.cql.library.Format;
+import com.ibm.cohort.cql.provider.CqlLibrarySourceProvider;
 import org.cqframework.cql.cql2elm.CqlTranslator;
 import org.cqframework.cql.cql2elm.CqlTranslator.Options;
 import org.cqframework.cql.cql2elm.CqlTranslatorException;
@@ -75,7 +77,7 @@ public class CqlToElmTranslator {
         
         CqlLibrary translatedLibrary = new CqlLibrary().setDescriptor(new CqlLibraryDescriptor()
                 .setLibraryId(primaryLibrary.getDescriptor().getLibraryId())
-                .setVersion(primaryLibrary.getDescriptor().getVersion()).setFormat(CqlLibraryDescriptor.Format.ELM))
+                .setVersion(primaryLibrary.getDescriptor().getVersion()).setFormat(Format.ELM))
                 .setContent(cqlTranslator.toXml());
 
         try {
@@ -83,7 +85,7 @@ public class CqlToElmTranslator {
                 CqlLibrary library = new CqlLibrary()
                         .setDescriptor(new CqlLibraryDescriptor().setLibraryId(tl.getLibrary().getIdentifier().getId())
                                 .setVersion(tl.getLibrary().getIdentifier().getVersion())
-                                .setFormat(CqlLibraryDescriptor.Format.ELM))
+                                .setFormat(Format.ELM))
                         .setContent(CqlTranslator.convertToXml(tl.getLibrary()));
                 
 

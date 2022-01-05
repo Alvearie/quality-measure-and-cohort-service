@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.ibm.cohort.cql.library.Format;
 import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;

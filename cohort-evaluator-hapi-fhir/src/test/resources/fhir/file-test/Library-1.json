@@ -1,0 +1,29 @@
+{
+  "resourceType": "Library",
+  "id": "Library1-id",
+  "name": "Library1-name",
+  "version": "1.0.0",
+  "url": "http://fake.url.com/Library/Library1",
+  "identifier": {
+    "value": "Library1-idValue",
+    "system": "Library1-idSystem"
+  },
+  "title": "Library1-title",
+  "status": "active",
+  "type": {
+    "coding": [
+      {
+        "system": "http://terminology.hl7.org/CodeSystem/library-type",
+        "code": "logic-library",
+        "display": "Logic Library"
+      }
+    ],
+    "text": "The resource is a shareable library of formalized knowledge."
+  },
+  "content": [
+    {
+      "contentType": "test/cql",
+      "data": "V2hhdCB5b3UgbG9va2luZyBhdD8K"
+    }
+  ]
+}

@@ -89,7 +89,8 @@ public class CqlContextFactory {
         }
     }
 
-    public static boolean DEFAULT_CACHE_EXPRESSIONS = true;
+    public static final boolean DEFAULT_CACHE_EXPRESSIONS = true;
+    public static final boolean DEFAULT_CACHE_CONTEXTS = true;
 
     private static ConcurrentMap<ContextCacheKey, Context> CONTEXT_CACHE = new ConcurrentHashMap<>();
 
@@ -99,6 +100,7 @@ public class CqlContextFactory {
      * and this is the recommended setting for most applications.
      */
     private boolean cacheExpressions = DEFAULT_CACHE_EXPRESSIONS;
+    private boolean cacheContexts = DEFAULT_CACHE_CONTEXTS;
 
     private ExternalFunctionProvider externalFunctionProvider;
 
@@ -112,6 +114,14 @@ public class CqlContextFactory {
 
     public void setCacheExpressions(boolean cacheExpressions) {
         this.cacheExpressions = cacheExpressions;
+    }
+
+    public boolean isCacheContexts() {
+        return cacheContexts;
+    }
+
+    public void setCacheContexts(boolean cacheContexts) {
+        this.cacheContexts = cacheContexts;
     }
 
 
@@ -144,18 +154,22 @@ public class CqlContextFactory {
             CqlTerminologyProvider terminologyProvider, CqlDataProvider dataProvider, ZonedDateTime evaluationDateTime,
             Pair<String, String> contextData, Map<String, Parameter> parameters, CqlDebug debug)
             throws CqlLibraryDeserializationException {
-
-        ContextCacheKey key =
-            new ContextCacheKey(
+        ContextCacheKey key = new ContextCacheKey(
                 libraryProvider,
                 topLevelLibrary,
                 terminologyProvider,
                 this.externalFunctionProvider,
                 evaluationDateTime,
-                parameters);
-        Context cqlContext = CONTEXT_CACHE.computeIfAbsent( key, k -> {
-            return this.createContext(k);
-        } );
+                parameters
+        );
+
+        Context cqlContext;
+        if (cacheContexts) {
+            cqlContext = CONTEXT_CACHE.computeIfAbsent(key, this::createContext);
+        }
+        else {
+            cqlContext = createContext(key);
+        }
 
         // The following data elements need to be reset on every evaluation...
 
@@ -197,7 +211,7 @@ public class CqlContextFactory {
                 .withVersion(contextKey.topLevelLibrary.getVersion());
 
         Library entryPoint = libraryLoader.load(vid);
-        Context cqlContext = null;
+        Context cqlContext;
         if (contextKey.evaluationDateTime != null) {
             cqlContext = new Context(entryPoint, contextKey.evaluationDateTime, new CqlSystemDataProvider());
         } else {

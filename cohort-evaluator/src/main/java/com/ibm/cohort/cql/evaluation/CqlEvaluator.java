@@ -9,12 +9,15 @@ package com.ibm.cohort.cql.evaluation;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.cqframework.cql.elm.execution.ExpressionDef;
+import org.cqframework.cql.elm.execution.FunctionDef;
 import org.opencds.cqf.cql.engine.data.ExternalFunctionProvider;
 import org.opencds.cqf.cql.engine.execution.Context;
 
@@ -33,6 +36,7 @@ public class CqlEvaluator {
     private CqlDataProvider dataProvider;
     private CqlTerminologyProvider terminologyProvider;
     private ExternalFunctionProvider externalFunctionProvider;
+    private boolean cacheContexts = true;
     
     public List<Pair<CqlEvaluationRequest,CqlEvaluationResult>> evaluate( CqlEvaluationRequests requests ) {
         return evaluate(requests, DEFAULT_CQL_DEBUG);
@@ -88,12 +92,29 @@ public class CqlEvaluator {
         return evaluate(topLevelLibrary, parameters, context, null, DEFAULT_CQL_DEBUG, null);
     }
 
-    
+    public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary, Map<String,Parameter> parameters, Pair<String,String> context, Set<String> expressions) throws CqlLibraryDeserializationException {
+        return evaluate(topLevelLibrary, parameters, context, expressions, DEFAULT_CQL_DEBUG, null);
+    }
+
     public CqlEvaluationResult evaluate(CqlLibraryDescriptor topLevelLibrary, Map<String, Parameter> parameters,
             Pair<String, String> context, Set<String> expressions, CqlDebug debug, ZonedDateTime batchDateTime)
             throws CqlLibraryDeserializationException {
+        if (this.libraryProvider == null) {
+            throw new IllegalArgumentException("Missing libraryProvider");
+        }
+        else if (this.dataProvider == null) {
+            throw new IllegalArgumentException("Missing dataProvider");
+        }
+        else if (this.terminologyProvider == null) {
+            throw new IllegalArgumentException("Missing terminologyProvider");
+        }
+        else if (topLevelLibrary == null) {
+            throw new IllegalArgumentException("Missing library");
+        }
+
         CqlContextFactory contextFactory = new CqlContextFactory();
         contextFactory.setExternalFunctionProvider(this.externalFunctionProvider);
+        contextFactory.setCacheContexts(cacheContexts);
 
         Context cqlContext = contextFactory.createContext(libraryProvider, topLevelLibrary,
                 terminologyProvider, dataProvider, batchDateTime, context, parameters, debug);
@@ -101,15 +122,21 @@ public class CqlEvaluator {
         if( expressions == null ) {
             expressions = cqlContext.getCurrentLibrary().getStatements().getDef().stream().map( d -> d.getName() ).collect(Collectors.toSet());
         }
-        
-        Map<String,Object> results = new HashMap<>();
+
+        Map<String,Object> results = new LinkedHashMap<>();
         for( String expression : expressions ) {
-            Object result = cqlContext.resolveExpressionRef(expression).evaluate(cqlContext);
-            results.put(expression, result);
+            ExpressionDef expressionDef = cqlContext.resolveExpressionRef(expression);
+            // FunctionDefs cannot be evaluated directly.
+            // The CqlEngine class from the DBCG codebase, which we used in the past,
+            // also explicitly skips over FunctionDefs.
+            if (!(expressionDef instanceof FunctionDef)) {
+                Object result = cqlContext.resolveExpressionRef(expression).evaluate(cqlContext);
+                results.put(expression, result);
+            }
         }
         
         if( context != null ) {
-        	cqlContext.setContextValue(context.getLeft(), context.getRight());
+            cqlContext.setContextValue(context.getLeft(), context.getRight());
         }
         
         return new CqlEvaluationResult(results);
@@ -144,7 +171,15 @@ public class CqlEvaluator {
 
     public CqlEvaluator setExternalFunctionProvider(ExternalFunctionProvider externalFunctionProvider) {
         this.externalFunctionProvider = externalFunctionProvider;
+        return this;
+    }
 
+    public boolean isCacheContexts() {
+        return cacheContexts;
+    }
+
+    public CqlEvaluator setCacheContexts(boolean cacheContexts) {
+        this.cacheContexts = cacheContexts;
         return this;
     }
 

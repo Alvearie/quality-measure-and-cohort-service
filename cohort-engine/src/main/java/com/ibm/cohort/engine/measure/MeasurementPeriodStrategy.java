@@ -10,7 +10,7 @@ import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hl7.fhir.r4.model.Measure;
 
-import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 
 /**
  * Provide the ability for user's to customize the logic used

@@ -11,7 +11,6 @@ import org.cqframework.cql.elm.execution.VersionedIdentifier;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 
 import com.ibm.cohort.cql.OptimizedCqlLibraryReader;
-import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
 
 public class ProviderBasedLibraryLoader implements LibraryLoader {
 
@@ -26,7 +25,7 @@ public class ProviderBasedLibraryLoader implements LibraryLoader {
         CqlLibraryDescriptor desc = new CqlLibraryDescriptor()
                 .setLibraryId( vid.getId() )
                 .setVersion( vid.getVersion() )
-                .setFormat( Format.ELM );        
+                .setFormat( Format.ELM );
         
         CqlLibrary cqlLibrary = backingProvider.getLibrary( desc );
         if( cqlLibrary != null ) {

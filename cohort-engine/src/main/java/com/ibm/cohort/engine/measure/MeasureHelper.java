@@ -5,6 +5,7 @@
  */
 package com.ibm.cohort.engine.measure;
 
+import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
 import org.hl7.fhir.r4.model.Measure;
 
 public class MeasureHelper {
@@ -15,17 +16,17 @@ public class MeasureHelper {
 	 * and, if not, it tries to resolve it as the canonical URL of a FHIR resource.
 	 * 
 	 * @param resourceID String matching one of the expected lookup strategies
-	 * @param provider Resolution implementation for the various lookup strategies
+	 * @param resolver Resolver implementation for the various lookup strategies
 	 * @return Resolved FHIR Measure resource
 	 */
-	public static Measure loadMeasure(String resourceID, MeasureResolutionProvider<Measure> provider ) {
+	public static Measure loadMeasure(String resourceID, FhirResourceResolver<Measure> resolver ) {
 		Measure result = null;
 		
 		if( resourceID != null ) {
 			if( resourceID.startsWith("Measure/") || ! resourceID.contains("/") ) {
-				result = provider.resolveMeasureById(resourceID.replace("Measure/", ""));
+				result = resolver.resolveById(resourceID.replace("Measure/", ""));
 			} else if( resourceID.contains("/Measure/") ) {
-				result = provider.resolveMeasureByCanonicalUrl(resourceID);
+				result = resolver.resolveByCanonicalUrl(resourceID);
 			}
 		}
 		
@@ -36,11 +37,10 @@ public class MeasureHelper {
 		return result;
 	}
 
-	public static Measure loadMeasure(Identifier identifier, String version, MeasureResolutionProvider<Measure> provider) {
+	public static Measure loadMeasure(Identifier identifier, String version, FhirResourceResolver<Measure> resolver) {
 		Measure result;
 
-		org.hl7.fhir.r4.model.Identifier fhirIdentfier = new org.hl7.fhir.r4.model.Identifier().setSystem(identifier.getSystem()).setValue(identifier.getValue());
-		result = provider.resolveMeasureByIdentifier(fhirIdentfier, version);
+		result = resolver.resolveByIdentifier(identifier.getValue(), identifier.getSystem(), version);
 
 		if ( result == null ) {
 			throw new IllegalArgumentException(String.format("Failed to resolve Measure resource with identifier:'%s', version:'%s'", identifier, version));
@@ -49,13 +49,13 @@ public class MeasureHelper {
 		return result;
 	}
 
-	public static Measure loadMeasure(MeasureContext context, MeasureResolutionProvider<Measure> provider) {
+	public static Measure loadMeasure(MeasureContext context, FhirResourceResolver<Measure> resolver) {
 		Measure result = null;
 
 		if (context.getMeasureId() != null) {
-			result = loadMeasure(context.getMeasureId(), provider);
+			result = loadMeasure(context.getMeasureId(), resolver);
 		} else if (context.getIdentifier() != null) {
-			result = loadMeasure(context.getIdentifier(), context.getVersion(), provider);
+			result = loadMeasure(context.getIdentifier(), context.getVersion(), resolver);
 		}
 
 		if (result == null) {

@@ -8,42 +8,65 @@ package com.ibm.cohort.cli;
 import static com.ibm.cohort.cli.ParameterHelper.parseParameterArguments;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.zip.ZipInputStream;
+import java.util.stream.Collectors;
 
-import org.hl7.fhir.instance.model.api.IAnyResource;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
+import com.ibm.cohort.cql.data.CqlDataProvider;
+import com.ibm.cohort.cql.evaluation.ContextNames;
+import com.ibm.cohort.cql.evaluation.CqlDebug;
+import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
+import com.ibm.cohort.cql.evaluation.CqlEvaluator;
+import com.ibm.cohort.cql.data.DefaultCqlDataProvider;
+import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResrouceResolverFactory;
+import com.ibm.cohort.cql.library.Format;
+import com.ibm.cohort.cql.terminology.DefaultCqlTerminologyProvider;
+import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
+import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
+import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
+import com.ibm.cohort.cql.library.CqlLibrary;
+import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
+import com.ibm.cohort.cql.library.CqlLibraryProvider;
+import com.ibm.cohort.cql.library.MapCqlLibraryProvider;
+import com.ibm.cohort.cql.library.MapCqlLibraryProviderFactory;
+import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
+import com.ibm.cohort.cql.library.ZipStreamProcessor;
+import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
+import com.ibm.cohort.cql.translation.CqlToElmTranslator;
+import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
+import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;
+import com.ibm.cohort.engine.retrieve.R4RestFhirRetrieveProvider;
+import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
+import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
 import com.ibm.cohort.cli.input.NoSplittingSplitter;
-import com.ibm.cohort.engine.CqlEvaluator;
-import com.ibm.cohort.engine.DirectoryLibrarySourceProvider;
-import com.ibm.cohort.engine.EvaluationResultCallback;
-import com.ibm.cohort.engine.FhirLibraryLibrarySourceProvider;
-import com.ibm.cohort.engine.LoggingEnum;
-import com.ibm.cohort.engine.MultiFormatLibrarySourceProvider;
-import com.ibm.cohort.engine.TranslatingLibraryLoader;
-import com.ibm.cohort.engine.ZipStreamLibrarySourceProvider;
-import com.ibm.cohort.engine.helpers.FileHelpers;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
-import com.ibm.cohort.file.LibraryFormat;
-import com.ibm.cohort.translator.provider.CqlTranslationProvider;
-import com.ibm.cohort.translator.provider.InJVMCqlTranslationProvider;
+import org.hl7.fhir.instance.model.api.IAnyResource;
+import org.hl7.fhir.r4.model.Attachment;
+import org.hl7.fhir.r4.model.Library;
+import org.opencds.cqf.cql.engine.fhir.searchparam.SearchParameterResolver;
+import org.opencds.cqf.cql.engine.model.ModelResolver;
+import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 public class CohortCLI extends BaseCLI {
 
-	public static final LibraryFormat DEFAULT_SOURCE_FORMAT = LibraryFormat.XML;
+	public static final Format DEFAULT_SOURCE_FORMAT = Format.ELM;
 
 	/**
 	 * Command line argument definitions
@@ -68,7 +91,7 @@ public class CohortCLI extends BaseCLI {
 		private Set<String> expressions;
 
 		@Parameter(names = { "-c",
-				"--context-id" }, description = "Unique ID for one or more context objects (e.g. Patient IDs)", required = true)
+				"--context-id" }, description = "Unique ID for one or more context objects (e.g. Patient IDs)")
 		private List<String> contextIds;
 
 		@Parameter(names = { "-p",
@@ -77,14 +100,14 @@ public class CohortCLI extends BaseCLI {
 
 		@Parameter(names = { "-s",
 				"--source-format" }, description = "Indicates which files in the file source should be processed", required = false)
-		private LibraryFormat sourceFormat = DEFAULT_SOURCE_FORMAT;
+		private Format sourceFormat = DEFAULT_SOURCE_FORMAT;
 		
 		@Parameter(names = { "-i",
 				"--model-info" }, description = "Model info file used when translating CQL", required = false)
 		private File modelInfoFile;
 
 		@Parameter(names = {"--logging-level" }, description = "Specific logging level")
-		private LoggingEnum loggingLevel = LoggingEnum.NA;
+		private CqlDebug loggingLevel = CqlDebug.NONE;
 
 		@Parameter(names = { "--enable-terminology-optimization" }, description = "By default, ValueSet resources used in CQL are first expanded by the terminology provider, then the codes are used to query the data server. If the data server contains the necessary terminology resources and supports the token :in search modifier, setting this flag to false will enable code filtering directly on the data server which should improve CQL engine throughput.", required = false )
 		private boolean enableTerminologyOptimization = DEFAULT_TERMINOLOGY_OPTIMIZATION_ENABLED;
@@ -95,8 +118,6 @@ public class CohortCLI extends BaseCLI {
 		@Parameter(names = { "-h", "--help" }, description = "Display this help", required = false, help = true)
 		private boolean isDisplayHelp;
 	}
-
-
 
 	/**
 	 * Simulate main method behavior in a non-static context for use in testing
@@ -120,90 +141,157 @@ public class CohortCLI extends BaseCLI {
 		if (arguments.isDisplayHelp) {
 			jc.usage();
 		} else {
-			
 			FhirClientBuilderFactory factory = FhirClientBuilderFactory.newInstance();
-			
-			wrapper = new CqlEvaluator(factory);
-			wrapper.setExpandValueSets( ! arguments.enableTerminologyOptimization );
-			wrapper.setSearchPageSize( arguments.searchPageSize );
+			FhirClientBuilder fhirClientBuilder = factory.newFhirClientBuilder();
 
-			configureConnections(wrapper, arguments);
+			readConnectionConfiguration(arguments);
 
+			ZipStreamProcessor zipProcessor = new ZipStreamProcessor();
+			MapCqlLibraryProviderFactory libraryProviderFactory = new MapCqlLibraryProviderFactory(zipProcessor);
+
+			String [] filters = null;
+			if( arguments.filters != null ) {
+				filters = arguments.filters.toArray(new String[arguments.filters.size()]);
+			}
+
+			CqlLibraryProvider backingLibraryProvider;
 			Path libraryFolder = Paths.get(arguments.libraryPath);
-			MultiFormatLibrarySourceProvider sourceProvider = null;
 			if (libraryFolder.toFile().isDirectory()) {
 				out.println(String.format("Loading libraries from folder '%s'", libraryFolder.toString()));
-				sourceProvider = new DirectoryLibrarySourceProvider(libraryFolder);
+				backingLibraryProvider = libraryProviderFactory.fromDirectory(libraryFolder, filters);
 			} else if ( FileHelpers.isZip(libraryFolder.toFile()) ) {
 				out.println(String.format("Loading libraries from ZIP '%s'", libraryFolder.toString()));
-				try (InputStream is = new FileInputStream(libraryFolder.toFile())) {
-					String [] filters = null;
-					if( arguments.filters != null ) {
-						filters = arguments.filters.toArray(new String[arguments.filters.size()]);
-					}
-					
-					sourceProvider = new ZipStreamLibrarySourceProvider(new ZipInputStream(is), filters);
-				}
+				backingLibraryProvider = libraryProviderFactory.fromZipFile(libraryFolder, filters);
 			} else {
 				out.println(String.format("Loading libraries from FHIR Library '%s'", libraryFolder.toString()));
-				sourceProvider = new FhirLibraryLibrarySourceProvider(wrapper.getMeasureServerClient(), arguments.libraryPath);
+				IGenericClient measureClient = fhirClientBuilder.createFhirClient(measureServerConfig);
+				FhirResourceResolver<Library> libraryResolver = R4FhirServerResrouceResolverFactory.createLibraryResolver(measureClient);
+				R4LibraryDependencyGatherer dependencyGatherer = new R4LibraryDependencyGatherer(libraryResolver);
+				List<Library> cqlLibraries = dependencyGatherer.gatherForLibraryId(arguments.libraryPath);
+				Map<CqlLibraryDescriptor, CqlLibrary> cqlLibraryMap = toCqlLibraryMap(cqlLibraries);
+				backingLibraryProvider = new MapCqlLibraryProvider(cqlLibraryMap);
 			}
 
-			boolean isForceTranslation = arguments.sourceFormat == LibraryFormat.CQL;
-			CqlTranslationProvider translationProvider = new InJVMCqlTranslationProvider(sourceProvider);
+			CqlLibraryProvider fhirClasspathProvider = new ClasspathCqlLibraryProvider("org.hl7.fhir");
+			backingLibraryProvider = new PriorityCqlLibraryProvider(backingLibraryProvider, fhirClasspathProvider);
+
+			CqlToElmTranslator translator = new CqlToElmTranslator();
 			if (arguments.modelInfoFile != null && arguments.modelInfoFile.exists()) {
-				translationProvider.convertAndRegisterModelInfo(arguments.modelInfoFile);
+				translator.registerModelInfo(arguments.modelInfoFile);
 			}
-			wrapper.setLibraryLoader(new TranslatingLibraryLoader(sourceProvider, translationProvider, isForceTranslation));
 
-			Map<String, com.ibm.cohort.engine.parameter.Parameter> parameters = null;
+			boolean isForceTranslation = arguments.sourceFormat == Format.CQL;
+			CqlLibraryProvider libraryProvider = new TranslatingCqlLibraryProvider(backingLibraryProvider, translator, isForceTranslation);
+
+			IGenericClient dataClient = fhirClientBuilder.createFhirClient(dataServerConfig);
+			ModelResolver modelResolver = R4FhirModelResolverFactory.createCachingResolver();
+			SearchParameterResolver searchParameterResolver = new SearchParameterResolver(dataClient.getFhirContext());
+			R4RestFhirRetrieveProvider retrieveProvider = new R4RestFhirRetrieveProvider(searchParameterResolver, dataClient);
+			retrieveProvider.setSearchPageSize(arguments.searchPageSize);
+			retrieveProvider.setExpandValueSets(!arguments.enableTerminologyOptimization);
+			CqlDataProvider dataProvider = new DefaultCqlDataProvider(modelResolver, retrieveProvider);
+
+			IGenericClient termClient = fhirClientBuilder.createFhirClient(terminologyServerConfig);
+			TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(termClient);
+			CqlTerminologyProvider termProvider = new DefaultCqlTerminologyProvider(terminologyProvider);
+
+			wrapper = new CqlEvaluator()
+					.setLibraryProvider(libraryProvider)
+					.setDataProvider(dataProvider)
+					.setTerminologyProvider(termProvider);
+
+			Map<String, com.ibm.cohort.cql.evaluation.parameters.Parameter> parameters = null;
 			if (arguments.parameters != null) {
 				parameters = parseParameterArguments(arguments.parameters);
 			}
-			
-			wrapper.evaluate(arguments.libraryName, arguments.libraryVersion, parameters, arguments.expressions,
-					arguments.contextIds, arguments.loggingLevel, new EvaluationResultCallback() {
 
-						@Override
-						public void onContextBegin(String contextId) {
-							out.println("Context: " + contextId);
-						}
+			CqlLibraryDescriptor libraryDescriptor = new CqlLibraryDescriptor()
+					.setLibraryId(arguments.libraryName)
+					.setVersion(arguments.libraryVersion)
+					.setFormat(Format.ELM);
 
-						@Override
-						public void onEvaluationComplete(String contextId, String expression, Object result) {
-						
-							String value;
-							if( result != null ) {
-								if( result instanceof IAnyResource ) {
-									IAnyResource resource = (IAnyResource) result;
-									value = resource.getId();
-								} else if( result instanceof Collection ) {
-									Collection<?> collection = (Collection<?>) result;
-									value = "Collection: " + collection.size();
-								} else {
-									value = result.toString();
-								}
-							} else {
-								value = "null";
-							}
-							
-							out.println(String.format("Expression: \"%s\", Result: %s", expression, value));
-						}
+			List<Pair<String, String>> contexts;
+			if (arguments.contextIds == null || arguments.contextIds.isEmpty()) {
+				// If no context ids are provided, perform one run using a null context
+				contexts = Collections.singletonList(null);
+			}
+			else {
+				contexts = arguments.contextIds.stream()
+						.map(x -> new ImmutablePair<>(ContextNames.PATIENT, x))
+						.collect(Collectors.toList());
+			}
 
-						@Override
-						public void onContextComplete(String contextId) {
-							out.println("---");
-						}
-					});
+			for (Pair<String, String> context : contexts) {
+				out.println("Context: " + context);
+				CqlEvaluationResult result = wrapper.evaluate(
+						libraryDescriptor,
+						parameters,
+						context,
+						arguments.expressions,
+						arguments.loggingLevel,
+						ZonedDateTime.now()
+				);
+
+				out.print(prettyPrintResult(result));
+				out.println("---");
+			}
 		}
 		return wrapper;
 	}
 
-	protected void configureConnections(CqlEvaluator wrapper, ConnectionArguments arguments) throws IOException {
-		readConnectionConfiguration(arguments);
-		wrapper.setDataServerConnectionProperties(dataServerConfig);
-		wrapper.setTerminologyServerConnectionProperties(terminologyServerConfig);
-		wrapper.setMeasureServerConnectionProperties(measureServerConfig);
+	private String prettyPrintResult(CqlEvaluationResult result) {
+		StringBuilder builder = new StringBuilder();
+		for (Map.Entry<String,Object> entry : result.getExpressionResults().entrySet()) {
+			String expression = entry.getKey();
+			Object value = entry.getValue();
+
+			builder.append("Expression: \"").append(expression).append("\", ");
+			builder.append("Result: ").append(prettyPrintValue(value)).append('\n');
+		}
+		return builder.toString();
+	}
+
+	private String prettyPrintValue(Object value) {
+		String retVal;
+		if( value != null ) {
+			if( value instanceof IAnyResource ) {
+				IAnyResource resource = (IAnyResource) value;
+				retVal = resource.getId();
+			} else if( value instanceof Collection ) {
+				Collection<?> collection = (Collection<?>) value;
+				retVal = "Collection: " + collection.size();
+			} else {
+				retVal = value.toString();
+			}
+		} else {
+			retVal = "null";
+		}
+		return retVal;
+	}
+
+	private Map<CqlLibraryDescriptor, CqlLibrary> toCqlLibraryMap(List<Library> libraries) {
+		Map<CqlLibraryDescriptor, CqlLibrary> retVal = new HashMap<>();
+
+		for (Library library : libraries) {
+			String libraryId = library.getName();
+			String version = library.getVersion();
+
+			for (Attachment attachment : library.getContent()) {
+				Format libraryFormat = Format.lookupByName(attachment.getContentType());
+				if (libraryFormat != null) {
+					CqlLibraryDescriptor key = new CqlLibraryDescriptor()
+							.setLibraryId(libraryId)
+							.setVersion(version)
+							.setFormat(libraryFormat);
+					CqlLibrary value = new CqlLibrary()
+							.setContent(new String(attachment.getData()))
+							.setDescriptor(key);
+					retVal.put(key, value);
+				}
+			}
+		}
+
+		return retVal;
 	}
 
 	public static void main(String[] args) throws IOException {

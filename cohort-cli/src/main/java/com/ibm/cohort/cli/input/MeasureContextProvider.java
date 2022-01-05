@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.cli.ParameterHelper;
 import com.ibm.cohort.engine.measure.Identifier;
 import com.ibm.cohort.engine.measure.MeasureContext;
-import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 
 
 public class MeasureContextProvider {

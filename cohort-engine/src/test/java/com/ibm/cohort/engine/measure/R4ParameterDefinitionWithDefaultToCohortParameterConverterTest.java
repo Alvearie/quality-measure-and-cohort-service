@@ -34,18 +34,18 @@ import org.junit.Test;
 
 import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
-import com.ibm.cohort.engine.parameter.BooleanParameter;
-import com.ibm.cohort.engine.parameter.CodeParameter;
-import com.ibm.cohort.engine.parameter.ConceptParameter;
-import com.ibm.cohort.engine.parameter.DateParameter;
-import com.ibm.cohort.engine.parameter.DatetimeParameter;
-import com.ibm.cohort.engine.parameter.DecimalParameter;
-import com.ibm.cohort.engine.parameter.IntegerParameter;
-import com.ibm.cohort.engine.parameter.IntervalParameter;
-import com.ibm.cohort.engine.parameter.QuantityParameter;
-import com.ibm.cohort.engine.parameter.RatioParameter;
-import com.ibm.cohort.engine.parameter.StringParameter;
-import com.ibm.cohort.engine.parameter.TimeParameter;
+import com.ibm.cohort.cql.evaluation.parameters.BooleanParameter;
+import com.ibm.cohort.cql.evaluation.parameters.CodeParameter;
+import com.ibm.cohort.cql.evaluation.parameters.ConceptParameter;
+import com.ibm.cohort.cql.evaluation.parameters.DateParameter;
+import com.ibm.cohort.cql.evaluation.parameters.DatetimeParameter;
+import com.ibm.cohort.cql.evaluation.parameters.DecimalParameter;
+import com.ibm.cohort.cql.evaluation.parameters.IntegerParameter;
+import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
+import com.ibm.cohort.cql.evaluation.parameters.QuantityParameter;
+import com.ibm.cohort.cql.evaluation.parameters.RatioParameter;
+import com.ibm.cohort.cql.evaluation.parameters.StringParameter;
+import com.ibm.cohort.cql.evaluation.parameters.TimeParameter;
 
 public class R4ParameterDefinitionWithDefaultToCohortParameterConverterTest {
 

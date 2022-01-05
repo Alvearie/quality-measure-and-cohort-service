@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.ibm.cohort.cql.evaluation.CqlDebug;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 
@@ -53,7 +54,6 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.LoggingEnum;
 import com.ibm.cohort.engine.api.service.CohortEngineRestConstants;
 import com.ibm.cohort.engine.api.service.CohortEngineRestHandler;
 import com.ibm.cohort.engine.api.service.ServiceBuildConstants;
@@ -64,9 +64,9 @@ import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.PatientListMeasureEvaluation;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
-import com.ibm.cohort.engine.parameter.DateParameter;
-import com.ibm.cohort.engine.parameter.IntervalParameter;
-import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.cohort.cql.evaluation.parameters.DateParameter;
+import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import com.ibm.watson.common.service.base.utilities.BVT;
@@ -600,7 +600,7 @@ public class DefaultVT extends ServiceVTBase {
 		requestData.setDefineToRun("Male");
 		requestData.setEntrypoint("cql/basic/Test-1.0.0.cql");
 		requestData.setPatientIds(VALID_PATIENT_ID);
-		requestData.setLoggingLevel(LoggingEnum.TRACE);
+		requestData.setLoggingLevel(CqlDebug.TRACE);
 
 		RequestSpecification request = buildBaseRequest(new Headers())
 				.queryParam(CohortEngineRestHandler.VERSION, ServiceBuildConstants.DATE)
@@ -631,7 +631,7 @@ public class DefaultVT extends ServiceVTBase {
 		requestData.setDefineToRun("Female");
 		requestData.setEntrypoint("cql/basic/Test-1.0.0.cql");
 		requestData.setPatientIds(patientInput);
-		requestData.setLoggingLevel(LoggingEnum.TRACE);
+		requestData.setLoggingLevel(CqlDebug.TRACE);
 
 
 		RequestSpecification request = buildBaseRequest(new Headers())

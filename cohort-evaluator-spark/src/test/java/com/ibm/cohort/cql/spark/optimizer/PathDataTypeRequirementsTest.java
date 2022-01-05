@@ -22,7 +22,6 @@ import org.junit.runners.Parameterized.Parameters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
 @RunWith(value=Parameterized.class)
 public class PathDataTypeRequirementsTest extends BaseDataTypeRequirementsProcessorTest {
     
@@ -63,7 +62,7 @@ public class PathDataTypeRequirementsTest extends BaseDataTypeRequirementsProces
         Map<String,Set<String>> paths = runPathTest(testCaseDir.toString()
                 , new File(CONFIG_DIR, "modelinfo/alltypes-modelinfo-1.0.0.xml").toString()
                 , expressions
-                , desc -> desc.getLibraryId().equals("Parent"));
+                , x -> x.getFileName().toString().equals("Parent-1.0.0.cql"));
         
         System.out.println(paths);
         

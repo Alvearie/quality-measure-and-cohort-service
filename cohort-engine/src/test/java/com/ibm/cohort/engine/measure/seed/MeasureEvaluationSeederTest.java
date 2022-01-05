@@ -6,14 +6,21 @@
 
 package com.ibm.cohort.engine.measure.seed;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
+import com.ibm.cohort.cql.hapi.HapiUtils;
+import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
+import org.apache.commons.io.IOUtils;
 import org.cqframework.cql.elm.execution.Library.Usings;
 import org.cqframework.cql.elm.execution.UsingDef;
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
+import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
@@ -22,23 +29,16 @@ import org.hl7.fhir.r4.model.Measure;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
-import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 import org.opencds.cqf.cql.engine.runtime.DateTime;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
-import com.ibm.cohort.engine.measure.LibraryHelper;
-
 public class MeasureEvaluationSeederTest {
 
     private final String libraryUrl = "http://measure.evaluation.seeder.test/Library/test-library";
-    private final String libraryName = "libraryName";
-    private final String libraryVersion = "libraryVersion";
-
-    private final String usingLocalIdentifier = "FHIR";
-    private final String usingVersion = "usingVersion";
+    private final String libraryName = "Test";
+    private final String libraryVersion = "1.0.0";
 
     private final String fhirUri = "http://hl7.org/fhir";
 
@@ -47,31 +47,32 @@ public class MeasureEvaluationSeederTest {
     private final String productLine = "productLine";
 
     @Test
-    public void create_fullContext() {
+    public void create_fullContext() throws IOException {
         TerminologyProvider terminologyProvider = Mockito.mock(TerminologyProvider.class);
 
         DataProvider dataProvider = Mockito.mock(DataProvider.class);
 
         Map<String, DataProvider> dataProviders = new HashMap<>();
         dataProviders.put(fhirUri, dataProvider);
+        Measure measure = createMeasure();
 
-        LibraryLoader libraryLoader = Mockito.mock(LibraryLoader.class);
-        Mockito.when(libraryLoader.load(createLibraryIdentifier()))
-                .thenReturn(createCqlLibrary());
+        Library library = createLibrary("/cql/seeder/Test-1.0.0.xml");
+        FhirResourceResolver<Library> libraryResolver = Mockito.mock(FhirResourceResolver.class);
+        Mockito.when(libraryResolver.resolveByName(libraryName, libraryVersion))
+                .thenReturn(library);
 
-        LibraryResolutionProvider<Library> libraryResourceProvider = Mockito.mock(LibraryResolutionProvider.class);
-        Mockito.when(libraryResourceProvider.resolveLibraryByCanonicalUrl(libraryUrl))
-                .thenReturn(createLibrary());
+        R4LibraryDependencyGatherer dependencyGatherer = Mockito.mock(R4LibraryDependencyGatherer.class);
+        Mockito.when(dependencyGatherer.gatherForMeasure(measure))
+                .thenReturn(Collections.singletonList(library));
 
         MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(
                 terminologyProvider,
                 dataProviders,
-                libraryLoader,
-                libraryResourceProvider
+                dependencyGatherer,
+                libraryResolver
         );
         seeder.enableExpressionCaching();
 
-        Measure measure = createMeasure();
         IMeasureEvaluationSeed actual = seeder.create(
                 measure, periodStart, periodEnd, productLine, null
         );
@@ -90,7 +91,7 @@ public class MeasureEvaluationSeederTest {
     }
 
     @Test
-    public void create_minimalContext() {
+    public void create_minimalContext() throws IOException {
         TerminologyProvider terminologyProvider = Mockito.mock(TerminologyProvider.class);
 
         DataProvider dataProvider = Mockito.mock(DataProvider.class);
@@ -98,23 +99,25 @@ public class MeasureEvaluationSeederTest {
         Map<String, DataProvider> dataProviders = new HashMap<>();
         dataProviders.put(fhirUri, dataProvider);
 
-        LibraryLoader libraryLoader = Mockito.mock(LibraryLoader.class);
-        Mockito.when(libraryLoader.load(createLibraryIdentifier()))
-                .thenReturn(createCqlLibrary());
+        Library library = createLibrary("/cql/seeder/Test-1.0.0.xml");
+        FhirResourceResolver<Library> libraryResolver = Mockito.mock(FhirResourceResolver.class);
+        Mockito.when(libraryResolver.resolveByName(libraryName, libraryVersion))
+                .thenReturn(library);
 
-        LibraryResolutionProvider<Library> libraryResourceProvider = Mockito.mock(LibraryResolutionProvider.class);
-        Mockito.when(libraryResourceProvider.resolveLibraryByCanonicalUrl(libraryUrl))
-                .thenReturn(createLibrary());
+        Measure measure = createMeasure();
+
+        R4LibraryDependencyGatherer dependencyGatherer = Mockito.mock(R4LibraryDependencyGatherer.class);
+        Mockito.when(dependencyGatherer.gatherForMeasure(measure))
+                .thenReturn(Collections.singletonList(library));
 
         MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(
                 terminologyProvider,
                 dataProviders,
-                libraryLoader,
-                libraryResourceProvider
+                dependencyGatherer,
+                libraryResolver
         );
         seeder.disableDebugLogging();
 
-        Measure measure = createMeasure();
         IMeasureEvaluationSeed actual = seeder.create(
                 measure, periodStart, periodEnd, null, null
         );
@@ -133,79 +136,67 @@ public class MeasureEvaluationSeederTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void create_libraryWithMultipleModels() {
-        LibraryLoader libraryLoader = Mockito.mock(LibraryLoader.class);
-        Mockito.when(libraryLoader.load(createLibraryIdentifier()))
-                .thenReturn(createCqlLibraryWithMultipleModels());
+    public void create_libraryWithMultipleModels() throws IOException {
+        Measure measure = createMeasure();
 
-        LibraryResolutionProvider<Library> libraryResourceProvider = Mockito.mock(LibraryResolutionProvider.class);
-        Mockito.when(libraryResourceProvider.resolveLibraryByCanonicalUrl(libraryUrl))
-                .thenReturn(createLibrary());
+        FhirResourceResolver<Library> libraryResolver = Mockito.mock(FhirResourceResolver.class);
+
+        R4LibraryDependencyGatherer dependencyGatherer = Mockito.mock(R4LibraryDependencyGatherer.class);
+        Mockito.when(dependencyGatherer.gatherForMeasure(measure))
+                .thenReturn(Collections.singletonList(createLibrary("/cql/seeder/MultipleUsings-1.0.0.xml")));
 
         MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(
                 null,
                 null,
-                libraryLoader,
-                libraryResourceProvider
+                dependencyGatherer,
+                libraryResolver
         );
 
         seeder.create(
-                createMeasure(), periodStart, periodEnd, null, null
+                measure, periodStart, periodEnd, null, null
         );
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void create_noLibraryOnMeasure() {
+        Measure measure = createMeasure();
+
+        FhirResourceResolver<Library> libraryResolver = Mockito.mock(FhirResourceResolver.class);
+
+        R4LibraryDependencyGatherer dependencyGatherer = Mockito.mock(R4LibraryDependencyGatherer.class);
+        Mockito.when(dependencyGatherer.gatherForMeasure(measure))
+                .thenReturn(Collections.emptyList());
+
         MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(
                 null,
                 null,
-                null,
-                null
+                dependencyGatherer,
+                libraryResolver
         );
 
         seeder.create(
-                new Measure(), periodStart, periodEnd, null, null
+                measure, periodStart, periodEnd, null, null
         );
     }
 
-    private org.cqframework.cql.elm.execution.Library createCqlLibrary() {
-        UsingDef cqlLibraryUsingDef = new UsingDef()
-                .withLocalIdentifier(usingLocalIdentifier)
-                .withVersion(usingVersion);
-        Usings cqlLibraryUsings = new Usings()
-                .withDef(cqlLibraryUsingDef);
-
-        return new org.cqframework.cql.elm.execution.Library().withUsings(cqlLibraryUsings);
-    }
-
-    private org.cqframework.cql.elm.execution.Library createCqlLibraryWithMultipleModels() {
-        UsingDef cqlLibraryUsingDef = new UsingDef()
-                .withLocalIdentifier(usingLocalIdentifier)
-                .withVersion(usingVersion);
-        Usings cqlLibraryUsings = new Usings()
-                .withDef(cqlLibraryUsingDef, cqlLibraryUsingDef, cqlLibraryUsingDef);
-
-        return new org.cqframework.cql.elm.execution.Library().withUsings(cqlLibraryUsings);
-    }
-
-    private VersionedIdentifier createLibraryIdentifier() {
-        return new VersionedIdentifier()
-                .withId(libraryName)
-                .withVersion(libraryVersion);
-    }
-
-    private Library createLibrary() {
+    private Library createLibrary(String elmFile) throws IOException {
         Coding libraryCoding = new Coding();
-        libraryCoding.setSystem(LibraryHelper.CODE_SYSTEM_LIBRARY_TYPE);
-        libraryCoding.setCode(LibraryHelper.CODE_LOGIC_LIBRARY);
+        libraryCoding.setSystem(HapiUtils.CODE_SYSTEM_LIBRARY_TYPE);
+        libraryCoding.setCode(HapiUtils.CODE_LOGIC_LIBRARY);
 
         CodeableConcept libraryType = new CodeableConcept();
         libraryType.setCoding(Collections.singletonList(libraryCoding));
 
         Library library = new Library();
+        library.setId(libraryName + "-id");
         library.setType(libraryType);
         library.setName(libraryName);
         library.setVersion(libraryVersion);
+
+        Attachment attachment = new Attachment();
+        attachment.setData(IOUtils.resourceToByteArray(elmFile));
+        attachment.setContentType("application/elm+xml");
+        library.setContent(Collections.singletonList(attachment));
         return library;
     }
 

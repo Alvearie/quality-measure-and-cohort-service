@@ -40,7 +40,7 @@ import com.ibm.cohort.engine.cqfruler.MeasureEvaluation;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceHelper;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
-import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 
 /**
  * Implementation of measure evaluation logic for the IBM Common Data Model IG

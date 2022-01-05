@@ -6,9 +6,12 @@
 
 package com.ibm.cohort.valueset;
 
+import com.ibm.cohort.annotations.Generated;
+
 /*
  * This is a simple class to allow a codeSystem and it's version to be used as a key in a hashMap
  */
+@Generated
 class CodeSystemKey {
 
 	public String codeSystem;

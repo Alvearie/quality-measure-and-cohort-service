@@ -14,6 +14,7 @@ import java.util.Set;
 
 import javax.xml.bind.JAXB;
 
+import com.ibm.cohort.cql.library.Format;
 import org.cqframework.cql.cql2elm.NamespaceManager;
 import org.cqframework.cql.elm.visiting.ElmBaseLibraryVisitor;
 import org.hl7.elm.r1.Element;
@@ -28,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import com.ibm.cohort.cql.library.CqlLibrary;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
-import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
 
 /**

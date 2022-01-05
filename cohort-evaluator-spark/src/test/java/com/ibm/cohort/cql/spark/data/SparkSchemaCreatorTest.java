@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
@@ -29,7 +30,6 @@ import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
-import com.ibm.cohort.cql.library.DirectoryBasedCqlLibraryProvider;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
@@ -47,11 +47,12 @@ public class SparkSchemaCreatorTest {
 	
 	@Before
 	public void setup() {
-				cqlTranslator = new CqlToElmTranslator();
-				cqlTranslator.registerModelInfo(new File("src/test/resources/output-validation/modelinfo/simple-all-types-model-info.xml"));
-				
-				cqlLibraryProvider = new TranslatingCqlLibraryProvider(
-				new DirectoryBasedCqlLibraryProvider(new File("src/test/resources/output-validation/cql")),
+		cqlTranslator = new CqlToElmTranslator();
+		cqlTranslator.registerModelInfo(new File("src/test/resources/output-validation/modelinfo/simple-all-types-model-info.xml"));
+
+		CqlLibraryProvider backingProvider = new ClasspathCqlLibraryProvider("output-validation.cql");
+		cqlLibraryProvider = new TranslatingCqlLibraryProvider(
+				backingProvider,
 				cqlTranslator
 		);
 		

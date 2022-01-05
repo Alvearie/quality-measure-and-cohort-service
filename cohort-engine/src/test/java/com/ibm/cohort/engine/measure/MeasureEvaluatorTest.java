@@ -72,24 +72,24 @@ import com.ibm.cohort.engine.cqfruler.MeasureSupplementalDataEvaluation;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
 import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
-import com.ibm.cohort.engine.parameter.BooleanParameter;
-import com.ibm.cohort.engine.parameter.CodeParameter;
-import com.ibm.cohort.engine.parameter.ConceptParameter;
-import com.ibm.cohort.engine.parameter.DateParameter;
-import com.ibm.cohort.engine.parameter.DatetimeParameter;
-import com.ibm.cohort.engine.parameter.DecimalParameter;
-import com.ibm.cohort.engine.parameter.IntegerParameter;
-import com.ibm.cohort.engine.parameter.IntervalParameter;
-import com.ibm.cohort.engine.parameter.Parameter;
-import com.ibm.cohort.engine.parameter.QuantityParameter;
-import com.ibm.cohort.engine.parameter.RatioParameter;
-import com.ibm.cohort.engine.parameter.StringParameter;
-import com.ibm.cohort.engine.parameter.TimeParameter;
-import com.ibm.cohort.file.LibraryFormat;
+import com.ibm.cohort.cql.evaluation.parameters.BooleanParameter;
+import com.ibm.cohort.cql.evaluation.parameters.CodeParameter;
+import com.ibm.cohort.cql.evaluation.parameters.ConceptParameter;
+import com.ibm.cohort.cql.evaluation.parameters.DateParameter;
+import com.ibm.cohort.cql.evaluation.parameters.DatetimeParameter;
+import com.ibm.cohort.cql.evaluation.parameters.DecimalParameter;
+import com.ibm.cohort.cql.evaluation.parameters.IntegerParameter;
+import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
+import com.ibm.cohort.cql.evaluation.parameters.QuantityParameter;
+import com.ibm.cohort.cql.evaluation.parameters.RatioParameter;
+import com.ibm.cohort.cql.evaluation.parameters.StringParameter;
+import com.ibm.cohort.cql.evaluation.parameters.TimeParameter;
 
 public class MeasureEvaluatorTest extends BaseMeasureTest {
 
 	public static final String DEFAULT_VERSION = "1.0.0";
+	public static final String ELM_MIME_TYPE = "application/elm+xml";
 	
 	private MeasureEvaluator evaluator;
 	
@@ -113,8 +113,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
 
-		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.xml",
-				LibraryFormat.MIME_TYPE_APPLICATION_ELM_XML);
+		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.xml", ELM_MIME_TYPE);
 
 		Measure measure = getCohortMeasure("CohortMeasureName", library, INITIAL_POPULATION);
 		mockFhirResourceRetrieval(measure);
@@ -686,8 +685,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
 
-		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.xml",
-											   LibraryFormat.MIME_TYPE_APPLICATION_ELM_XML);
+		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.xml", ELM_MIME_TYPE);
 
 		Measure measure = getCohortMeasure("CohortMeasureName", library, INITIAL_POPULATION);
 		mockFhirResourceRetrieval(measure);
@@ -734,8 +732,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
 
-		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.xml",
-											   LibraryFormat.MIME_TYPE_APPLICATION_ELM_XML);
+		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.xml", ELM_MIME_TYPE);
 
 		Measure measure = getCohortMeasure("CohortMeasureName", library, INITIAL_POPULATION);
 
@@ -798,8 +795,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
 
-		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.xml",
-											   LibraryFormat.MIME_TYPE_APPLICATION_ELM_XML);
+		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.xml", ELM_MIME_TYPE);
 
 		Measure measure = getCohortMeasure("CohortMeasureName", library, INITIAL_POPULATION);
 
@@ -840,8 +836,7 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1970-10-10");
 		mockFhirResourceRetrieval(patient);
 
-		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.xml",
-											   LibraryFormat.MIME_TYPE_APPLICATION_ELM_XML);
+		Library library = mockLibraryRetrieval("TestDummyPopulations", DEFAULT_VERSION, "cql/fhir-measure/test-dummy-populations.xml", ELM_MIME_TYPE);
 
 		String fhirDefaultDatetimeParamterName = "fhirDatetimeParamDefault";
 		String fhirTimezoneDatetimeParameterName = "fhirDatetimeParamGMTPlus4";

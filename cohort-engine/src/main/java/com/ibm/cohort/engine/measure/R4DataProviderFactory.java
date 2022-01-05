@@ -26,8 +26,7 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 /**
  * <p>An internal class intended to ease the burden of creating the URI to {@link DataProvider} mapping
  * required by the {@link MeasureEvaluator}.
- *
- * <p>This should only be used if the {@link R4MeasureEvaluatorBuilder} is insufficient for your usecase.
+
  */
 public class R4DataProviderFactory {
 
