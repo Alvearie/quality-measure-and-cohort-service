@@ -188,13 +188,6 @@ The data tables that are used as input to the Spark CQL Evaluator application ar
 
 Aggregation contexts are defined in a JSON-formatted configuration file that we typically call `context-definitions.json` though the name isn't prescribed. In the `context-definitions.json` file, you define a primary data type and all of the relationships to related data that will be needed for CQL evaluation. Each record of the primary data type should be uniquely keyed and the related data types can be joined in using one-to-many or many-to-many semantics. In the one-to-many join scenario, data for a related data type is assumed to have a direct foreign key to the primary data type table. In the many-to-many join scenario, data for a related data type is assumed to be once removed from the primary data type table. Join logic is performed first on an "association" table and then again via a different key value on the true related data type.
 
-Both one-to-many and many-to-many joins may specify an optional `whereClause` field which is used to limit which 
-rows are included in the results of a join. For example, we may wish to join the primary data type to a related data
-type only where a particular column is equal to a given value. In that case, the join in the context definition could
-specify `"whereClause": "a_column = 'a_value'"`. The join would be performed as normal, and then filtered down to
-only the cases for which the `whereClause` is true. This feature is meant to cover some advanced use cases and will
-likely not be needed for a majority of joins.
-
 An example context-definitions.json file might look like this..
 ```json
 {
@@ -223,16 +216,6 @@ An example context-definitions.json file might look like this..
 					"relatedDataType": "Patient",
 					"relatedKeyColumn": "patient_id"
 				}]
-        },{
-                "name": "Encounter",
-                "primaryDataType": "Patient",
-                "primaryKeyColumn": "patient_id",
-                "relationships":[{
-                    "type": "OneToMany",
-                    "relatedDataType": "Encounter",
-                    "relatedKeyColumn": "patient_id",
-                    "whereClause": "status = 'COMPLETE'"
-                }]
         }]
 }
 ```
@@ -399,6 +382,8 @@ This file contains various pieces of information about the performed run. The cu
 * `applicationId`: The spark application id. This value will match the application id on a Spark History server (if as history server is in use).
 * `startTimeMillis`: The starting timestamp of the Spark job in milliseconds.
 * `endTimeMillis`: The ending timestamp of the Spark job in milliseconds.
+* `runtimeMillis`: Runtime of the job in milliseconds.
+* `jobStatus`: `SUCCESS` if the Spark job finished without errors. `FAIL` otherwise. 
 * `totalContexts`: The total number of contexts processed.
 * `executionsPerContext`: A map containing an entry of `ContextName -> TotalCqlExecutions` for each context processed.
 * `errorList`: If one or more CQL evaluation errors occured during the run, then this field contains an entry per error
@@ -410,7 +395,9 @@ This file contains various pieces of information about the performed run. The cu
 them in the batch summary file rather than to have the program halt when it hits an error during CQL evaluation.
 This behavior can be changed by using the `--halt-on-error` option at runtime. When this option is used, the program
 will fail outright if an error is hit during CQL evaluation. This allows programs to "fail fast" if that behavior is
-needed rather than waiting until the end of a run to see if there are any errors reported.
+needed rather than waiting until the end of a run to see if there are any errors reported. Note that when the program halts early, the contents of the batch summary file is "best effort" and
+due to the way Spark reports information during failures it is possible that contents of the file may be
+incomplete or inaccurate. However, any reported errors should still be useful for debugging issues during a run.
 
 ### Debugging
 

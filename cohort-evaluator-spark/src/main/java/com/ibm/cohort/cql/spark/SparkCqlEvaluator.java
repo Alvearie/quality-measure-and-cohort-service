@@ -31,6 +31,7 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -279,9 +280,14 @@ public class SparkCqlEvaluator implements Serializable {
         EvaluationSummary evaluationSummary = new EvaluationSummary();
         long startTimeMillis = System.currentTimeMillis();
         evaluationSummary.setStartTimeMillis(startTimeMillis);
+        evaluationSummary.setJobStatus(JobStatus.FAIL);
         
         SparkSession.Builder sparkBuilder = SparkSession.builder();
         try (SparkSession spark = sparkBuilder.getOrCreate()) {
+            final LongAccumulator contextAccum = spark.sparkContext().longAccumulator("Context");
+            final CollectionAccumulator<EvaluationError> errorAccumulator = spark.sparkContext().collectionAccumulator("EvaluationErrors");
+            
+            try {
             spark.sparkContext().setLocalProperty("mdc." + CORRELATION_ID, MDC.get(CORRELATION_ID));
             evaluationSummary.setCorrelationId(MDC.get(CORRELATION_ID));
             boolean useJava8API = Boolean.valueOf(spark.conf().get("spark.sql.datetime.java8API.enabled"));
@@ -314,9 +320,7 @@ public class SparkCqlEvaluator implements Serializable {
 
             ZonedDateTime batchRunTime = ZonedDateTime.now();
 
-            final LongAccumulator contextAccum = spark.sparkContext().longAccumulator("Context");
             final LongAccumulator perContextAccum = spark.sparkContext().longAccumulator("PerContext");
-            final CollectionAccumulator<EvaluationError> errorAccumulator = args.haltOnError ? null : spark.sparkContext().collectionAccumulator("EvaluationErrors");
             
             CustomMetricSparkPlugin.contextAccumGauge.setAccumulator(contextAccum);
             CustomMetricSparkPlugin.perContextAccumGauge.setAccumulator(perContextAccum);
@@ -399,6 +403,41 @@ public class SparkCqlEvaluator implements Serializable {
                 }
             } catch (NoSuchElementException e) {
                 LOG.info("spark.ui.prometheus.enabled is not set");
+            }
+            
+            evaluationSummary.setJobStatus(JobStatus.SUCCESS);
+        } 
+        catch (Exception e) {
+            // If we experience an error that would make the program halt, capture the error
+            // and report it in the batch summary file
+            StringBuilder sb = new StringBuilder();
+            sb.append(e.getMessage());
+            if (e.getCause() != null) {
+                sb.append('\n').append(e.getCause().getMessage());
+            }
+
+            evaluationSummary.setErrorList(Collections.singletonList(new EvaluationError(null, null, null, sb.toString())));
+            throw e;
+        }
+            finally {
+                long endTimeMillis = System.currentTimeMillis();
+                evaluationSummary.setEndTimeMillis(endTimeMillis);
+                evaluationSummary.setRuntimeMillis(endTimeMillis - startTimeMillis);
+
+                if (args.metadataOutputPath != null) {
+                    if (evaluationSummary.getErrorList() == null) {
+                        evaluationSummary.setErrorList(errorAccumulator.value());
+                    }
+
+                    if (CollectionUtils.isNotEmpty(evaluationSummary.getErrorList())) {
+                        evaluationSummary.setJobStatus(JobStatus.FAIL);
+                    }
+
+                    evaluationSummary.setTotalContexts(contextAccum.value());
+
+                    OutputMetadataWriter writer = getOutputMetadataWriter();
+                    writer.writeMetadata(evaluationSummary);
+                }
             }
         }
     }
@@ -574,14 +613,14 @@ public class SparkCqlEvaluator implements Serializable {
                         expressionResults.put(outputColumnKey, typeConverter.toSparkType(entry.getValue()));
                     }
                 } catch (Throwable th) {
-                    if (errorAccum != null) {
-                        Object contextId = rowsByContext._1();
-                        errorAccum.add(new EvaluationError(contextName, contextId, singleRequest.getExpressionNames().iterator().next(), th.getMessage()));
-                    }
-                    else {
+                    if (args.haltOnError) {
                         throw new RuntimeException(String.format("CQL evaluation failed for ContextName: %s, OutputColumn: %s",
                                                                  String.valueOf(contextName),
                                                                  singleRequest.getExpressionNames()), th);
+                    }
+                    else {
+                        Object contextId = rowsByContext._1();
+                        errorAccum.add(new EvaluationError(contextName, contextId, singleRequest.getExpressionNames().iterator().next(), th.getMessage()));
                     }
                 }
             }
