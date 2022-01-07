@@ -97,7 +97,7 @@ RUN rm "$SPARK_HOME"/jars/*log4j*jar
 COPY --chown=root:root target/lib/*.jar $SPARK_HOME/jars/
 
 # Copy the main jar into the jars directory of spark home
-COPY --chown=root:root target/cohort-evaluator-spark-*-SNAPSHOT.jar $SPARK_HOME/jars/cohort-evaluator-spark.jar
+COPY --chown=root:root target/cohort-evaluator-spark-*-SNAPSHOT.jar target/cohort-evaluator-spark-?.?.?.jar $SPARK_HOME/jars/cohort-evaluator-spark.jar
 
 # Go back to the spark user for when a container is created
 USER spark
