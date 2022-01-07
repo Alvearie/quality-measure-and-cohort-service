@@ -97,7 +97,13 @@ RUN rm "$SPARK_HOME"/jars/*log4j*jar
 COPY --chown=root:root target/lib/*.jar $SPARK_HOME/jars/
 
 # Copy the main jar into the jars directory of spark home
-COPY --chown=root:root target/cohort-evaluator-spark-*-SNAPSHOT.jar target/cohort-evaluator-spark-?.?.?.jar $SPARK_HOME/jars/cohort-evaluator-spark.jar
+# Use the ?.?.? version of the copy command for release builds because the jar won't get built with SNAPSHOT in the name for release builds
+# and we can't use cohort-evaluator-spark-*.jar because there are other jars in the directory that would match this wildcard which we don't want
+# renamed (ie cohort-evaluator-spark-2.0.1-javadoc.jar, cohort-evaluator-spark-2.0.1-sources.jar, cohort-evaluator-spark-2.0.1-tests.jar)
+# Also dockerlint won't allow you to do a copy with more than 2 src arguments (which docker alone allows so long as one of the files exists)
+# unless you are copying to a directory
+#COPY --chown=root:root target/cohort-evaluator-spark-*-SNAPSHOT.jar $SPARK_HOME/jars/cohort-evaluator-spark.jar
+COPY --chown=root:root target/cohort-evaluator-spark-?.?.?.jar $SPARK_HOME/jars/cohort-evaluator-spark.jar
 
 # Go back to the spark user for when a container is created
 USER spark
