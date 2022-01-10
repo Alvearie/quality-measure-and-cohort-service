@@ -281,144 +281,144 @@ public class SparkCqlEvaluator implements Serializable {
         long startTimeMillis = System.currentTimeMillis();
         evaluationSummary.setStartTimeMillis(startTimeMillis);
         evaluationSummary.setJobStatus(JobStatus.FAIL);
-        
+
         SparkSession.Builder sparkBuilder = SparkSession.builder();
         try (SparkSession spark = sparkBuilder.getOrCreate()) {
             final LongAccumulator contextAccum = spark.sparkContext().longAccumulator("Context");
             final CollectionAccumulator<EvaluationError> errorAccumulator = spark.sparkContext().collectionAccumulator("EvaluationErrors");
-            
+
             try {
-            spark.sparkContext().setLocalProperty("mdc." + CORRELATION_ID, MDC.get(CORRELATION_ID));
-            evaluationSummary.setCorrelationId(MDC.get(CORRELATION_ID));
-            boolean useJava8API = Boolean.valueOf(spark.conf().get("spark.sql.datetime.java8API.enabled"));
-            this.typeConverter = new SparkTypeConverter(useJava8API);
-            this.hadoopConfiguration = new SerializableConfiguration(spark.sparkContext().hadoopConfiguration());
-            evaluationSummary.setApplicationId(spark.sparkContext().applicationId());
+                spark.sparkContext().setLocalProperty("mdc." + CORRELATION_ID, MDC.get(CORRELATION_ID));
+                evaluationSummary.setCorrelationId(MDC.get(CORRELATION_ID));
+                boolean useJava8API = Boolean.valueOf(spark.conf().get("spark.sql.datetime.java8API.enabled"));
+                this.typeConverter = new SparkTypeConverter(useJava8API);
+                this.hadoopConfiguration = new SerializableConfiguration(spark.sparkContext().hadoopConfiguration());
+                evaluationSummary.setApplicationId(spark.sparkContext().applicationId());
 
-            CqlToElmTranslator cqlTranslator = getCqlTranslator();
-            
-            SparkOutputColumnEncoder columnEncoder = getSparkOutputColumnEncoder();
-            
-            ContextDefinitions contexts = readContextDefinitions(args.contextDefinitionPath);
+                CqlToElmTranslator cqlTranslator = getCqlTranslator();
 
-            List<ContextDefinition> filteredContexts = contexts.getContextDefinitions();
-            if (args.aggregationContexts != null && !args.aggregationContexts.isEmpty()) {
-                filteredContexts = filteredContexts.stream().filter(def -> args.aggregationContexts.contains(def.getName()))
-                        .collect(Collectors.toList());
-            }
-            if (filteredContexts.isEmpty()) {
-                throw new IllegalArgumentException(
-                        "At least one context definition is required (after filtering if enabled).");
-            }
-            
-            Map<String, StructType> resultSchemas = calculateSparkSchema(
-                    filteredContexts.stream().map(ContextDefinition::getName).collect(Collectors.toList()),
-                    contexts,
-                    columnEncoder,
-                    cqlTranslator
-            );
+                SparkOutputColumnEncoder columnEncoder = getSparkOutputColumnEncoder();
 
-            ZonedDateTime batchRunTime = ZonedDateTime.now();
+                ContextDefinitions contexts = readContextDefinitions(args.contextDefinitionPath);
 
-            final LongAccumulator perContextAccum = spark.sparkContext().longAccumulator("PerContext");
-            
-            CustomMetricSparkPlugin.contextAccumGauge.setAccumulator(contextAccum);
-            CustomMetricSparkPlugin.perContextAccumGauge.setAccumulator(perContextAccum);
-            CustomMetricSparkPlugin.totalContextsToProcessCounter.inc(filteredContexts.size());
-            CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(0);
+                List<ContextDefinition> filteredContexts = contexts.getContextDefinitions();
+                if (args.aggregationContexts != null && !args.aggregationContexts.isEmpty()) {
+                    filteredContexts = filteredContexts.stream().filter(def -> args.aggregationContexts.contains(def.getName()))
+                            .collect(Collectors.toList());
+                }
+                if (filteredContexts.isEmpty()) {
+                    throw new IllegalArgumentException(
+                            "At least one context definition is required (after filtering if enabled).");
+                }
 
-            ColumnRuleCreator columnRuleCreator = new ColumnRuleCreator(
-                    getFilteredJobSpecificationWithIds().getEvaluations(),
-                    getCqlTranslator(),
-                    createLibraryProvider()
-            );
-
-            for (ContextDefinition context : filteredContexts) {
-                final String contextName = context.getName();
-                
-                ContextRetriever contextRetriever = new ContextRetriever(
-                        args.inputPaths,
-                        new DefaultDatasetRetriever(spark, args.inputFormat),
-                        args.disableColumnFiltering ? null : columnRuleCreator.getDataRequirementsForContext(context)
+                Map<String, StructType> resultSchemas = calculateSparkSchema(
+                        filteredContexts.stream().map(ContextDefinition::getName).collect(Collectors.toList()),
+                        contexts,
+                        columnEncoder,
+                        cqlTranslator
                 );
 
-                StructType resultsSchema = resultSchemas.get(contextName);
-                
-                if (resultsSchema == null || resultsSchema.fields().length == 0) {
-                    LOG.warn("Context " + contextName + " has no defines configured. Skipping.");
+                ZonedDateTime batchRunTime = ZonedDateTime.now();
+
+                final LongAccumulator perContextAccum = spark.sparkContext().longAccumulator("PerContext");
+
+                CustomMetricSparkPlugin.contextAccumGauge.setAccumulator(contextAccum);
+                CustomMetricSparkPlugin.perContextAccumGauge.setAccumulator(perContextAccum);
+                CustomMetricSparkPlugin.totalContextsToProcessCounter.inc(filteredContexts.size());
+                CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(0);
+
+                ColumnRuleCreator columnRuleCreator = new ColumnRuleCreator(
+                        getFilteredJobSpecificationWithIds().getEvaluations(),
+                        getCqlTranslator(),
+                        createLibraryProvider()
+                );
+
+                for (ContextDefinition context : filteredContexts) {
+                    final String contextName = context.getName();
+
+                    ContextRetriever contextRetriever = new ContextRetriever(
+                            args.inputPaths,
+                            new DefaultDatasetRetriever(spark, args.inputFormat),
+                            args.disableColumnFiltering ? null : columnRuleCreator.getDataRequirementsForContext(context)
+                    );
+
+                    StructType resultsSchema = resultSchemas.get(contextName);
+
+                    if (resultsSchema == null || resultsSchema.fields().length == 0) {
+                        LOG.warn("Context " + contextName + " has no defines configured. Skipping.");
+                    } else {
+                        LOG.info("Evaluating context " + contextName);
+                        long contextStartMillis = System.currentTimeMillis();
+
+                        final String outputPath = MapUtils.getRequiredKey(args.outputPaths, context.getName(), "outputPath");
+
+                        JavaPairRDD<Object, List<Row>> rowsByContextId = contextRetriever.retrieveContext(context);
+
+                        CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.getValue() + 1);
+                        JavaPairRDD<Object, Row> resultsByContext = rowsByContextId
+                                .flatMapToPair(x -> evaluate(contextName, resultsSchema, x, perContextAccum, errorAccumulator, batchRunTime));
+
+                        writeResults(spark, resultsSchema, resultsByContext, outputPath);
+                        long contextEndMillis = System.currentTimeMillis();
+
+                        LOG.info(String.format("Wrote results for context %s to %s", contextName, outputPath));
+
+                        evaluationSummary.addContextCount(contextName, perContextAccum.value());
+                        evaluationSummary.addContextRuntime(contextName, contextEndMillis - contextStartMillis);
+
+                        contextAccum.add(1);
+                        perContextAccum.reset();
+                    }
                 }
-                else {
-                    LOG.info("Evaluating context " + contextName);
-                    long contextStartMillis = System.currentTimeMillis();
 
-                    final String outputPath = MapUtils.getRequiredKey(args.outputPaths, context.getName(), "outputPath");
+                long endTimeMillis = System.currentTimeMillis();
+                evaluationSummary.setEndTimeMillis(endTimeMillis);
+                evaluationSummary.setRuntimeMillis(endTimeMillis - startTimeMillis);
 
-                    JavaPairRDD<Object, List<Row>> rowsByContextId = contextRetriever.retrieveContext(context);
+                if (args.metadataOutputPath != null) {
+                    if (errorAccumulator != null) {
+                        evaluationSummary.setErrorList(errorAccumulator.value());
+                    }
 
-                    CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.getValue() + 1);
-                    JavaPairRDD<Object, Row> resultsByContext = rowsByContextId
-                            .flatMapToPair(x -> evaluate(contextName, resultsSchema, x, perContextAccum, errorAccumulator, batchRunTime));
-                    
-                    writeResults(spark, resultsSchema, resultsByContext, outputPath);
-                    long contextEndMillis = System.currentTimeMillis();
+                    evaluationSummary.setTotalContexts(contextAccum.value());
 
-                    LOG.info(String.format("Wrote results for context %s to %s", contextName, outputPath));
-                    
-                    evaluationSummary.addContextCount(contextName, perContextAccum.value());
-                    evaluationSummary.addContextRuntime(contextName, contextEndMillis - contextStartMillis);
-
-                    contextAccum.add(1);
-                    perContextAccum.reset();
-                }
-            }
-
-            long endTimeMillis = System.currentTimeMillis();
-            evaluationSummary.setEndTimeMillis(endTimeMillis);
-            evaluationSummary.setRuntimeMillis(endTimeMillis - startTimeMillis);
-
-            if (args.metadataOutputPath != null) {
-                if (errorAccumulator != null) {
-                    evaluationSummary.setErrorList(errorAccumulator.value());
+                    OutputMetadataWriter writer = getOutputMetadataWriter();
+                    writer.writeMetadata(evaluationSummary);
                 }
 
-                evaluationSummary.setTotalContexts(contextAccum.value());
+                CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(0);
 
-                OutputMetadataWriter writer = getOutputMetadataWriter();
-                writer.writeMetadata(evaluationSummary);
-            }
-            
-            CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(0);
-            
-            try {
-                Boolean metricsEnabledStr = Boolean.valueOf(spark.conf().get("spark.ui.prometheus.enabled"));
-                if(metricsEnabledStr) {
-                    LOG.info("Prometheus metrics enabled, sleeping for 7 seconds to finish gathering metrics");
-                    //sleep for over 5 seconds because Prometheus only polls
-                    //every 5 seconds. If spark finishes and goes away immediately after completing,
-                    //Prometheus will never be able to poll for the final set of metrics for the spark-submit
-                    //The default promtheus config map was changed from 2 minute scrape interval to 5 seconds for spark pods
-                    Thread.sleep(7000);
-                }else {
-                    LOG.info("Prometheus metrics not enabled");
+                try {
+                    Boolean metricsEnabledStr = Boolean.valueOf(spark.conf().get("spark.ui.prometheus.enabled"));
+                    if (metricsEnabledStr) {
+                        LOG.info("Prometheus metrics enabled, sleeping for 7 seconds to finish gathering metrics");
+                        //sleep for over 5 seconds because Prometheus only polls
+                        //every 5 seconds. If spark finishes and goes away immediately after completing,
+                        //Prometheus will never be able to poll for the final set of metrics for the spark-submit
+                        //The default promtheus config map was changed from 2 minute scrape interval to 5 seconds for spark pods
+                        Thread.sleep(7000);
+                    } else {
+                        LOG.info("Prometheus metrics not enabled");
+                    }
                 }
-            } catch (NoSuchElementException e) {
-                LOG.info("spark.ui.prometheus.enabled is not set");
-            }
-            
-            evaluationSummary.setJobStatus(JobStatus.SUCCESS);
-        } 
-        catch (Exception e) {
-            // If we experience an error that would make the program halt, capture the error
-            // and report it in the batch summary file
-            StringBuilder sb = new StringBuilder();
-            sb.append(e.getMessage());
-            if (e.getCause() != null) {
-                sb.append('\n').append(e.getCause().getMessage());
-            }
+                catch (NoSuchElementException e) {
+                    LOG.info("spark.ui.prometheus.enabled is not set");
+                }
 
-            evaluationSummary.setErrorList(Collections.singletonList(new EvaluationError(null, null, null, sb.toString())));
-            throw e;
-        }
+                evaluationSummary.setJobStatus(JobStatus.SUCCESS);
+            }
+            catch (Exception e) {
+                // If we experience an error that would make the program halt, capture the error
+                // and report it in the batch summary file
+                StringBuilder sb = new StringBuilder();
+                sb.append(e.getMessage());
+                if (e.getCause() != null) {
+                    sb.append('\n').append(e.getCause().getMessage());
+                }
+
+                evaluationSummary.setErrorList(Collections.singletonList(new EvaluationError(null, null, null, sb.toString())));
+                throw e;
+            }
             finally {
                 long endTimeMillis = System.currentTimeMillis();
                 evaluationSummary.setEndTimeMillis(endTimeMillis);
