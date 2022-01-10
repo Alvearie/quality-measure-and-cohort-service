@@ -6,6 +6,7 @@
 
 package com.ibm.cohort.cql.spark;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -410,13 +411,17 @@ public class SparkCqlEvaluator implements Serializable {
             catch (Exception e) {
                 // If we experience an error that would make the program halt, capture the error
                 // and report it in the batch summary file
-                StringBuilder sb = new StringBuilder();
-                sb.append(e.getMessage());
-                if (e.getCause() != null) {
-                    sb.append('\n').append(e.getCause().getMessage());
+                ByteArrayOutputStream errorDetailStream = new ByteArrayOutputStream();
+                try (PrintStream printStream = new PrintStream(errorDetailStream)) {
+                    printStream.write(e.getMessage().getBytes());
+                    printStream.write('\n');
+                    if (e.getCause() != null) {
+                        printStream.write(e.getCause().getMessage().getBytes());
+                        printStream.write('\n');
+                    }
+                    e.printStackTrace(printStream);
+                    evaluationSummary.setErrorList(Collections.singletonList(new EvaluationError(null, null, null, errorDetailStream.toString())));
                 }
-
-                evaluationSummary.setErrorList(Collections.singletonList(new EvaluationError(null, null, null, sb.toString())));
                 throw e;
             }
             finally {
