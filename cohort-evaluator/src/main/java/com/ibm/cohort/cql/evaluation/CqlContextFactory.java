@@ -25,6 +25,7 @@ import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 
 import com.ibm.cohort.cql.data.CqlDataProvider;
+import com.ibm.cohort.cql.data.CqlSystemDataProvider;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryDeserializationException;
@@ -196,9 +197,9 @@ public class CqlContextFactory {
         Library entryPoint = libraryLoader.load(vid);
         Context cqlContext = null;
         if (contextKey.evaluationDateTime != null) {
-            cqlContext = new Context(entryPoint, contextKey.evaluationDateTime);
+            cqlContext = new Context(entryPoint, contextKey.evaluationDateTime, new CqlSystemDataProvider());
         } else {
-            cqlContext = new Context(entryPoint);
+            cqlContext = new Context(entryPoint, new CqlSystemDataProvider());
         }
 
         cqlContext.registerExternalFunctionProvider(vid, this.externalFunctionProvider);

@@ -161,13 +161,6 @@ Logging in Java can be a complicated topic because there are a variety of loggin
 
 The APIs leverage the Hibernate reference implementation for bean validation which uses JBoss logging. If users wish to control the Hibernate logging via SLF4J then they should add `-Dorg.jboss.logging.provider=slf4j` to their system properties.
 
-#### Dealing with potential PHI leakage in the logs
-<div style="background-color: beige; color: red; border: 1px solid red;">The Execution Logical Model (ELM) specification has a <a href="https://cql.hl7.org/04-logicalspecification.html#errors-and-messages">Message</a> feature that can be leveraged by CQL authors to write debug messages to the logging framework. The contents of the debug message can include any amount of detail in the objects being processed by the engine. In a situation where PHI is being processed, care should be taken to avoid logging PHI using the "Message" feature or to disable the logging entirely in the solution's logging framework configuration. The logging comes from <span style="font-family: Courier New; color: black;">org.opencds.cqf.cql.engine.elm.execution.MessageEvaluator</span>. This could be disabled from the SimpleLogger implementation used during CLI execution by setting a system property as shown below.</div>
-
-```
-java -jar cohort-cli-*.jar -Dorg.slf4j.simpleLogger.log.org.opencds.cqf.cql.engine.elm.execution.MessageEvaluator=off ...
-```
-
 ### Secure Socket Layer (SSL) Configuration
 
 If you choose to use an IBM FHIR option, you will need to consider how to handle SSL setup. Out of the box, IBM FHIR only enables an SSL endpoint and not a plain text HTTP endpoint. You could enable the FHIR server plain text HTTP endpoint in the FHIR server's server.xml, but more than likely you will want to keep SSL in place and [configure your Java Virtual Machine (JVM) for SSL](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html). There is a sample java keystore [config/trustStore.pkcs12](https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/cohort-cli/config/trustStore.pkcs12) that contains the default `localhost` certificate from the IBM FHIR server. You can use the provided trustStore.pkcs12 (or your own as needed) by passing standard arguments to your JVM on startup. An example that uses the provided trustStore file would include `-Djavax.net.ssl.trustStore=config/trustStore.pkcs12 -Djavax.net.ssl.trustStorePassword=change-password -Djavax.net.ssl.trustStoreType=pkcs12`.
