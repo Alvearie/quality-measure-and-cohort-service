@@ -73,20 +73,8 @@ public class SparkTypeConverter implements Serializable {
         return obj;
     }
 
-    public Object toCqlLong(Object sparkVal) {
-        Object result;
-
-        Long l = (Long) sparkVal;
-        if (Integer.MIN_VALUE <= l && l <= Integer.MAX_VALUE) {
-            result = (int) l.longValue();
-        } else {
-            // There is a PR open in the CQL engine for adding Long support. Revisit this
-            // when that PR is completed.
-            throw new UnsupportedConversionException(
-                    String.format("Long value '%s' is outside the range of integer", l.toString()));
-        }
-
-        return result;
+    public Object toCqlLong(Object obj) {
+        return obj;
     }
 
     public Object toCqlFloat(Object obj) {

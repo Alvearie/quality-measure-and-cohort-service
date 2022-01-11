@@ -37,17 +37,7 @@ public class SparkTypeConverterTest {
     public void setUp() {
         typeConverter = new SparkTypeConverter(true);
     }
-    
-    @Test
-    public void testLongOutOfIntMaxRangeIsUnsupported() {
-        assertThrows(UnsupportedConversionException.class, () -> typeConverter.toCqlLong( Long.valueOf(Integer.MAX_VALUE) + 1) );
-    }
-    
-    @Test
-    public void testLongOutOfIntMinRangeIsUnsupported() {
-        assertThrows(UnsupportedConversionException.class, () -> typeConverter.toCqlLong( Long.valueOf(Integer.MIN_VALUE) - 1) );
-    }
-    
+
     @Test
     public void testJavaUtilDateIsUnsupportedDate() {
         assertThrows(UnsupportedConversionException.class, () -> typeConverter.toCqlDate( new java.util.Date() ));
