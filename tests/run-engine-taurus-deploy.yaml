@@ -16,7 +16,7 @@ spec:
     - name: all-icr-io
   containers:
   - name: engine-test-app
-    image: us.icr.io/vpc-dev-cohort-rns/taurus-javabridge:1
+    image: us.icr.io/vpc-dev-cohort-rns/taurus-fvt:1
     imagePullPolicy: Always
     command: ["sleep"]
     args: ["28800"]
