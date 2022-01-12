@@ -91,6 +91,9 @@ public class ValueSetImporter {
 			if(fileOutputLocation.equals("NONE") && measureServerConfigFile == null) {
 				throw new IllegalArgumentException("Parameters [-m, --measure-server] and [--output-locations] cannot both be null. Please supply a value for one of these parameters");
 			}
+			if((fileOutputLocation.equals("BOTH") || fileOutputLocation.equals("COS")) && (bucket == null || cosJsonConfigs == null)){
+				throw new IllegalArgumentException("Required information for writing to COS is missing! Please specify both a bucket and the COS configurations.");
+			}
 		}
 	}
 
