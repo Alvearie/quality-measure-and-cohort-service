@@ -14,6 +14,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileWriter;
@@ -31,8 +32,10 @@ import java.util.UUID;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.cloud.objectstorage.services.s3.AmazonS3;
 import com.ibm.cohort.engine.BaseFhirTest;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
@@ -41,6 +44,16 @@ public class ValueSetImporterTest extends BaseFhirTest {
 	private final String defaultInputFile = "src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx";
 	private final String valueSetIdentifier = "2.16.840.1.113762.1.4.1114.7";
 	private final String resourcePath = "/ValueSet?url=" + URLEncoder.encode("http://cts.nlm.nih.gov/fhir/ValueSet/") + valueSetIdentifier + "&_format=json";
+
+	public class TestImporter extends ValueSetImporter{
+		@Override
+		public AmazonS3 createClient(String api_key, String service_instance_id, String endpoint_url, String location){
+			AmazonS3 client = Mockito.mock(AmazonS3.class);
+			when(client.putObject(Mockito.any())).thenReturn(null);
+			return client;
+		}
+	}
+
 	@Test
 	public void testImportAllNewResources() throws IOException {
 		FhirServerConfig fhirConfig = getFhirServerConfig();
@@ -101,7 +114,20 @@ public class ValueSetImporterTest extends BaseFhirTest {
 		verify( 1, getRequestedFor(urlEqualTo(resourcePath)) );
 		verify( exactly(0), postRequestedFor(urlEqualTo("/ValueSet?_format=json")) );
 	}
-	
+
+	@Test
+	public void testCorrectMethodHit() throws IOException {
+		String inputFile = "src/test/resources/2.16.840.1.113762.1.4.1114.7-Comments.xlsx";
+
+		try {
+			OutputStream baos = new ByteArrayOutputStream();
+			PrintStream out = new PrintStream(baos);
+			TestImporter importer = new TestImporter();
+			importer.runWithArgs( new String[] { inputFile, "--output-locations", "COS", "--bucket", "kwasny-test", "--cos-configuration", "src/test/resources/cos-credentials.json"}, out);
+		} finally {
+		}
+	}
+
 	@Test
 	public void testSaveToJSON() throws Exception {
 		runSaveToFileTest("2.16.840.1.113762.1.4.1114.7", ".xlsx", "json");
@@ -120,7 +146,7 @@ public class ValueSetImporterTest extends BaseFhirTest {
 	@Test(expected=IllegalArgumentException.class)
 	public void testBadServerAndFileSystemParameters() throws Exception {
 		ValueSetImporter.main(new String[] { "-p", Paths.get("target").toString(), "-o", "json", "-m", "someJunkServerName",
-				"src/test/resources/" + "2.16.840.1.113762.1.4.1114.7.xlsx" });
+				"src/test/resources/" + "2.16.840.1.113762.1.4.1114.7.xlsx", "--output-locations", "LOCAL" });
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
@@ -152,7 +178,8 @@ public class ValueSetImporterTest extends BaseFhirTest {
 
 			OutputStream baos = new ByteArrayOutputStream();
 			PrintStream out = new PrintStream(baos);
-			ValueSetImporter.runWithArgs( new String[] { "-m", tmpFile.toString(), pathString }, out);
+			ValueSetImporter importer = new ValueSetImporter();
+			importer.runWithArgs( new String[] { "-m", tmpFile.toString(), pathString }, out);
 		} finally {
 			Files.delete( tmpFile );
 		}
@@ -163,11 +190,9 @@ public class ValueSetImporterTest extends BaseFhirTest {
 		String outputFile = Paths.get("target").toString() + "/" + inputSpreadSheet + "." + inputFormat;
 		try {
 			ValueSetImporter.main(new String[] { "-p", Paths.get("target").toString(), "-o", inputFormat,
-					"src/test/resources/" + inputSpreadSheetFileName });
+					"src/test/resources/" + inputSpreadSheetFileName, "--output-locations", "LOCAL" });
 
 			assertTrue(Files.exists(Paths.get(outputFile)));
-		} catch (Exception e) {
-			throw e;
 		} finally {
 			if (Files.exists(Paths.get(outputFile))) {
 				Files.delete(Paths.get(outputFile));
