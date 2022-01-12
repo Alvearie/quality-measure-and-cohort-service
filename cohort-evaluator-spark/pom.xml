@@ -252,6 +252,30 @@
 							<outputDirectory>${project.build.directory}/lib</outputDirectory>
 						</configuration>
 					</execution>
+					<!-- Copy the spark jar and remove it's version number -->
+					<!-- So we can copy it into the docker image and not -->
+					<!-- have to update the jar name used on the spark-submit  -->
+					<!-- command when it changes every release -->
+					<execution>
+						<id>copy</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>com.ibm.cohort</groupId>
+									<artifactId>cohort-evaluator-spark</artifactId>
+									<version>${revision}</version>
+									<type>jar</type>
+									<overWrite>true</overWrite>
+									<outputDirectory>${project.build.directory}</outputDirectory>
+									<destFileName>cohort-evaluator-spark.jar</destFileName>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>
