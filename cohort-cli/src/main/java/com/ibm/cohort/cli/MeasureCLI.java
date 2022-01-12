@@ -52,7 +52,7 @@ import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
-public class MeasureCLI extends BaseCLI {
+public class MeasureCLI extends BaseCLI implements RunnableProgram {
 
 	private enum ReportFormat { TEXT, JSON }
 	
@@ -245,6 +245,15 @@ public class MeasureCLI extends BaseCLI {
 		}
 	}
 
+	@Override
+	public void runProgram(String[] args) {
+		try {
+			MeasureCLI.main( args);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to run MeasureCLI", e);
+		}
+	}
+	
 	public static void main(String[] args) throws Exception {
 		MeasureCLI cli = new MeasureCLI();
 		cli.runWithArgs( args, System.out );

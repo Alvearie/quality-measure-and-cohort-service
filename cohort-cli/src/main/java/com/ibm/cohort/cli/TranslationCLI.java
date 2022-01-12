@@ -22,7 +22,7 @@ import com.ibm.cohort.engine.DirectoryLibrarySourceProvider;
 import com.ibm.cohort.translator.provider.CqlTranslationProvider;
 import com.ibm.cohort.translator.provider.InJVMCqlTranslationProvider;
 
-public class TranslationCLI {
+public class TranslationCLI implements RunnableProgram {
 
 	private static final class TranslationOptions extends ConnectionArguments {
 		@Parameter(names = { "-f",
@@ -59,6 +59,15 @@ public class TranslationCLI {
 
 		out.println("Translated Library: ");
 		out.println(library.toString());
+	}
+	
+	@Override
+	public void runProgram(String[] args) {
+		try {
+			TranslationCLI.main(args);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to run TranslationCLI", e);
+		}
 	}
 
 	public static void main(String[] args) throws Exception {
