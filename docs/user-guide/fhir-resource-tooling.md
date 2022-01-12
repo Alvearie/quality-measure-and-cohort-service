@@ -42,3 +42,18 @@ $> java -cp fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar com.ibm.cohort.tooli
 ```
 
 Please note, if you intend to use custom mappings those mappings must be provided to load the value set with this tool.
+
+There is also the ability to write the json representation of the value set either locally or to cos, in the case that you would like to check that it looks how you would expect. In this case, rather than the server configuration, you would need to specify either COS, LOCAL, or BOTH with the --output-locations flag.
+
+
+#####Parameters
+
+* -m/--measure-server: The path to the JSON configuration data for the FHIR server connection that will be used to retrieve measure and library resources. If this is provided, `output-locations` must be **NONE**.
+* --override-existing-value-sets: If provided, will force the creation of valuesets, even if they already exist.
+* -c/--code-system-mappings: A file containing custom code system mappings to be used.
+* --output-locations: Determines if and where to write a FHIR representation of the valueset. If set to **NONE**, the value sets will be written to the specified FHIR database. If **LOCAL**, the program will use the `file-system-output-path` option to determine where to write the FHIR representation locally. If **COS**, the program will use the `cos-configuration` option to determine the specific COS instance and `bucket` to determine which bucket to write it to. If **BOTH**, the program will write the results to both places. If this is not **NONE**, the `measure-server` configuration must not be specified.
+* -p/--file-system-output-path: The local filesystem path to write results out to (will only be used if output-locations is either **BOTH** or **LOCAL**).
+* -b/--bucket: COS bucket to write results to (will only be used if output-locations is either **BOTH** or **COS**).
+* --cos-configuration: A json file containing all the relevant cos configuration needs for access
+* -o/--file-system-output-format: The format to use when exporting value sets to the file system when using the -p/--file-system-output-path parameters. Valid values are JSON or XML. If not specified, the default output format will be JSON
+* [no option]: The last argument in the command should be a list of all the spreadsheets you intend to upload.
