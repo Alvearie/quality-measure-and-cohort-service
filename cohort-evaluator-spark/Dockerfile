@@ -82,7 +82,7 @@ LABEL maintainer="IBM Quality Measure and Cohort Service Team" \
       description="Quality Measure and Cohort Service Spark Image" \
       name="cohort-evaluator-spark" \
       vendor="Alvearie Open Source by IBM" \
-      version="2.0.1" \
+      version="2.1.0" \
       release="2" \
       summary="Quality Measure and Cohort Service Spark Image" \
       description="Quality Measure and Cohort Service Spark Image"
@@ -97,7 +97,7 @@ RUN rm "$SPARK_HOME"/jars/*log4j*jar
 COPY --chown=root:root target/lib/*.jar $SPARK_HOME/jars/
 
 # Copy the main jar into the jars directory of spark home
-COPY --chown=root:root target/cohort-evaluator-spark-*-SNAPSHOT.jar $SPARK_HOME/jars/cohort-evaluator-spark.jar
+COPY --chown=root:root target/cohort-evaluator-spark.jar $SPARK_HOME/jars/cohort-evaluator-spark.jar
 
 # Go back to the spark user for when a container is created
 USER spark
