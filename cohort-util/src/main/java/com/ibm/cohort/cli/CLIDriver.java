@@ -5,8 +5,15 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.ibm.cohort.annotations.Generated;
+
+@Generated
 public class CLIDriver {
+	private static final Logger LOGGER = LoggerFactory.getLogger(CLIDriver.class);
+	
 	public static void main(String[] args) {
 		CLIDriver cliDriver = new CLIDriver();
 		cliDriver.runProgram(args);
@@ -23,7 +30,7 @@ public class CLIDriver {
 		catch (UnsupportedOperationException e) {
 			Set<String> validCommands = getValidCommands();
 			if (CollectionUtils.isNotEmpty(validCommands)) {
-				System.err.println("Valid commands are: " + String.join(", ", validCommands));
+				LOGGER.error("Valid commands are: {}", String.join(", ", validCommands));
 			}
 			throw e;
 		}
