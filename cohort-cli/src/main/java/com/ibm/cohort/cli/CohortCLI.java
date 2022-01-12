@@ -210,8 +210,7 @@ public class CohortCLI extends BaseCLI implements RunnableProgram {
 	public void runProgram(String[] args) {
 		try {
 			CohortCLI.main(args);
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
 			throw new RuntimeException("Failed to run CohortCLI", e);
 		}
 	}
