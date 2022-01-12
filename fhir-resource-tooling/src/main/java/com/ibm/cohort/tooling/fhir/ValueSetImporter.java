@@ -106,9 +106,14 @@ public class ValueSetImporter {
 		} else {
 			arguments.validate();
 			FhirContext fhirContext = FhirContext.forR4();
-
+			//only connect to fhir server if we are not writing it to file system
+			IGenericClient client = null;
 			ObjectMapper om = new ObjectMapper();
-
+			if(arguments.fileOutputLocation.equals("NONE")) {
+				FhirServerConfig config = om.readValue(arguments.measureServerConfigFile, FhirServerConfig.class);
+				client = FhirClientBuilderFactory.newInstance().newFhirClientBuilder(fhirContext)
+						.createFhirClient(config);
+			}
 			Map<String, String> codeSystemMappings = null;
 			if(arguments.filename != null) {
 				codeSystemMappings = ValueSetUtil.getMapFromInputStream(new FileInputStream(new File(arguments.filename)));
@@ -120,10 +125,6 @@ public class ValueSetImporter {
 					
 					//only import the value set to fhir server if we are not writing the value set to file system
 					if(arguments.fileOutputLocation.equals("NONE")) {
-						//only connect to fhir server if we are not writing it to file system
-						FhirServerConfig config = om.readValue(arguments.measureServerConfigFile, FhirServerConfig.class);
-						IGenericClient client = FhirClientBuilderFactory.newInstance().newFhirClientBuilder(fhirContext)
-								.createFhirClient(config);
 						String retVal = ValueSetUtil.importArtifact(client, artifact, arguments.overrideValueSets);
 						if(retVal == null){
 							logger.error("Value set already exists! Please provide the override option if you would like to override this value set.");
