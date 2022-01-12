@@ -14,6 +14,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
@@ -46,10 +47,13 @@ public class ValueSetImporterTest extends BaseFhirTest {
 	private final String resourcePath = "/ValueSet?url=" + URLEncoder.encode("http://cts.nlm.nih.gov/fhir/ValueSet/") + valueSetIdentifier + "&_format=json";
 
 	public class TestImporter extends ValueSetImporter{
+		final AmazonS3 client;
+		TestImporter(AmazonS3 mockClient){
+			client = mockClient;
+		}
+
 		@Override
 		public AmazonS3 createClient(String api_key, String service_instance_id, String endpoint_url, String location){
-			AmazonS3 client = Mockito.mock(AmazonS3.class);
-			when(client.putObject(Mockito.any())).thenReturn(null);
 			return client;
 		}
 	}
@@ -119,11 +123,15 @@ public class ValueSetImporterTest extends BaseFhirTest {
 	public void testCorrectMethodHit() throws IOException {
 		String inputFile = "src/test/resources/2.16.840.1.113762.1.4.1114.7-Comments.xlsx";
 
+		AmazonS3 client = Mockito.mock(AmazonS3.class);
+		when(client.putObject(Mockito.any())).thenReturn(null);
+
 		try {
 			OutputStream baos = new ByteArrayOutputStream();
 			PrintStream out = new PrintStream(baos);
-			TestImporter importer = new TestImporter();
+			TestImporter importer = new TestImporter(client);
 			importer.runWithArgs( new String[] { inputFile, "--output-locations", "COS", "--bucket", "kwasny-test", "--cos-configuration", "src/test/resources/cos-credentials.json"}, out);
+			Mockito.verify(client).putObject(any());
 		} finally {
 		}
 	}
