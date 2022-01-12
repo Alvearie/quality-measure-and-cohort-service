@@ -1,2 +1,2 @@
 tools = ["open source vulnerabilities", "shellcheck"]
-ignoreRules = ["SC1128"]
+ignoreRules = ["SC1128", "The shebang must be on the first line. Delete blanks and move comments."]
