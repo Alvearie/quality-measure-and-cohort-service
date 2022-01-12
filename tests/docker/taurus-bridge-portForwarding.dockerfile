@@ -2,9 +2,10 @@ FROM blazemeter/taurus
 
 RUN pip3 install numpy
 
-RUN pip3 install python-javabridge
+# Not currently using javabridge for taurus-based test automation
+# RUN pip3 install python-javabridge
 
-ARG KUBE_VERSION=1.16.1
+ARG KUBE_VERSION=1.21.4
 ENV API_KEY="set-me"
 ENV CLUSTER_NAME="set-me"
 ENV REGION="set-me"
