@@ -1,1 +1,2 @@
-tools = ["open source vulnerabilities"]
+tools = ["open source vulnerabilities", "shellcheck"]
+ignoreRules = ["SC1128"]
