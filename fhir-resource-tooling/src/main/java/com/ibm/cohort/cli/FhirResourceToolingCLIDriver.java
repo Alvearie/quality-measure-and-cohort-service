@@ -4,14 +4,14 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class FhirResourceToolingCLIDriver extends CLIDriver {
+public class FhirResourceToolingCLIDriver extends BaseCLIDriver {
 	protected static final String MEASURE_IMPORTER = "measure-importer";
 	protected static final String VALUE_SET_IMPORTER = "value-set-importer";
 	
 	private static final Set<String> VALID_COMMANDS = new HashSet<>(Arrays.asList(MEASURE_IMPORTER, VALUE_SET_IMPORTER));
 
 	public static void main(String[] args) {
-		CLIDriver cliDriver = new FhirResourceToolingCLIDriver();
+		BaseCLIDriver cliDriver = new FhirResourceToolingCLIDriver();
 		cliDriver.runProgram(args);
 	}
 

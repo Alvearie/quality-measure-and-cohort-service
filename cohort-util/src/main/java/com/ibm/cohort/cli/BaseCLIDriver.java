@@ -11,10 +11,10 @@ import org.slf4j.LoggerFactory;
 import com.ibm.cohort.annotations.Generated;
 
 @Generated
-public class CLIDriver {
-	private static final Logger LOGGER = LoggerFactory.getLogger(CLIDriver.class);
+public class BaseCLIDriver {
+	private static final Logger LOGGER = LoggerFactory.getLogger(BaseCLIDriver.class);
 	
-	public void runProgram(String[] args) {
+	protected void runProgram(String[] args) {
 		if (args.length == 0) {
 			throw new IllegalArgumentException("Must provide a command to run.");
 		}
