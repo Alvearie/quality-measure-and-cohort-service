@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class CohortCliDriver extends CLIDriver{
+public class CohortCliDriver extends BaseCLIDriver {
 	protected static final String COHORT_CLI = "cohort-cli";
 	protected static final String MEASURE_CLI = "measure-cli";
 	protected static final String TRANSLATION_CLI = "translation-cli";
@@ -12,7 +12,7 @@ public class CohortCliDriver extends CLIDriver{
 	private static final Set<String> VALID_COMMANDS = new HashSet<>(Arrays.asList(COHORT_CLI, MEASURE_CLI, TRANSLATION_CLI));
 
 	public static void main(String[] args) {
-		CLIDriver cliDriver = new CohortCliDriver();
+		BaseCLIDriver cliDriver = new CohortCliDriver();
 		cliDriver.runProgram(args);
 	}
 
