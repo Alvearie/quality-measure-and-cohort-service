@@ -372,21 +372,6 @@ public class SparkCqlEvaluator implements Serializable {
                     }
                 }
 
-                long endTimeMillis = System.currentTimeMillis();
-                evaluationSummary.setEndTimeMillis(endTimeMillis);
-                evaluationSummary.setRuntimeMillis(endTimeMillis - startTimeMillis);
-
-                if (args.metadataOutputPath != null) {
-                    if (errorAccumulator != null) {
-                        evaluationSummary.setErrorList(errorAccumulator.value());
-                    }
-
-                    evaluationSummary.setTotalContexts(contextAccum.value());
-
-                    OutputMetadataWriter writer = getOutputMetadataWriter();
-                    writer.writeMetadata(evaluationSummary);
-                }
-
                 CustomMetricSparkPlugin.currentlyEvaluatingContextGauge.setValue(0);
 
                 try {
