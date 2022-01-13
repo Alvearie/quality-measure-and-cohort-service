@@ -14,18 +14,13 @@ import com.ibm.cohort.annotations.Generated;
 public class CLIDriver {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CLIDriver.class);
 	
-	public static void main(String[] args) {
-		CLIDriver cliDriver = new CLIDriver();
-		cliDriver.runProgram(args);
-	}
-	
 	public void runProgram(String[] args) {
 		if (args.length == 0) {
 			throw new IllegalArgumentException("Must provide a command to run.");
 		}
 		try {
-			RunnableProgram runnableProgram = getRunnableProgram(args[0]);
-			runnableProgram.runProgram(Arrays.copyOfRange(args, 1, args.length));
+			ProgramRunner programRunner = getRunnableProgram(args[0]);
+			programRunner.runProgram(Arrays.copyOfRange(args, 1, args.length));
 		}
 		catch (UnsupportedOperationException e) {
 			Set<String> validCommands = getValidCommands();
@@ -36,7 +31,7 @@ public class CLIDriver {
 		}
 	}
 	
-	public RunnableProgram getRunnableProgram(String command) throws UnsupportedOperationException {
+	public ProgramRunner getRunnableProgram(String command) throws UnsupportedOperationException {
 		return null;
 	}
 	

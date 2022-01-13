@@ -1,6 +1,6 @@
 package com.ibm.cohort.cli;
 
 
-public interface RunnableProgram {
+public interface ProgramRunner {
 	void runProgram(String[] args);
 }
