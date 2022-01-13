@@ -24,7 +24,7 @@ import com.ibm.cohort.translator.provider.InJVMCqlTranslationProvider;
 
 public class TranslationCLI {
 
-	private static final class TranslationOptions extends ConnectionArguments {
+	private static final class TranslationOptions {
 		@Parameter(names = { "-f",
 				"--files" }, description = "Path to cql file", required = true)
 		private String cqlPath;
