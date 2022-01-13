@@ -5,8 +5,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class FhirResourceToolingCLIDriver extends CLIDriver {
-	private static final String MEASURE_IMPORTER = "measure-importer";
-	private static final String VALUE_SET_IMPORTER = "value-set-importer";
+	protected static final String MEASURE_IMPORTER = "measure-importer";
+	protected static final String VALUE_SET_IMPORTER = "value-set-importer";
 	
 	private static final Set<String> VALID_COMMANDS = new HashSet<>(Arrays.asList(MEASURE_IMPORTER, VALUE_SET_IMPORTER));
 

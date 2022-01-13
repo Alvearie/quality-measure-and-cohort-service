@@ -244,7 +244,7 @@ public class MeasureCLI extends BaseCLI {
 			throw new IllegalArgumentException(sb.toString());
 		}
 	}
-	
+
 	public static void main(String[] args) throws Exception {
 		MeasureCLI cli = new MeasureCLI();
 		cli.runWithArgs( args, System.out );
