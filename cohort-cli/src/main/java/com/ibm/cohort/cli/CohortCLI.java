@@ -41,7 +41,7 @@ import com.ibm.cohort.file.LibraryFormat;
 import com.ibm.cohort.translator.provider.CqlTranslationProvider;
 import com.ibm.cohort.translator.provider.InJVMCqlTranslationProvider;
 
-public class CohortCLI extends BaseCLI implements RunnableProgram {
+public class CohortCLI extends BaseCLI {
 
 	public static final LibraryFormat DEFAULT_SOURCE_FORMAT = LibraryFormat.XML;
 
@@ -204,15 +204,6 @@ public class CohortCLI extends BaseCLI implements RunnableProgram {
 		wrapper.setDataServerConnectionProperties(dataServerConfig);
 		wrapper.setTerminologyServerConnectionProperties(terminologyServerConfig);
 		wrapper.setMeasureServerConnectionProperties(measureServerConfig);
-	}
-	
-	@Override
-	public void runProgram(String[] args) {
-		try {
-			CohortCLI.main(args);
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to run CohortCLI", e);
-		}
 	}
 
 	public static void main(String[] args) throws IOException {

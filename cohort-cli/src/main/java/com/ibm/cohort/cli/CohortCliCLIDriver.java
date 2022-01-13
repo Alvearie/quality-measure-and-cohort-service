@@ -17,15 +17,15 @@ public class CohortCliCLIDriver extends CLIDriver{
 	}
 
 	@Override
-	public RunnableProgram getRunnableProgram(String command) throws UnsupportedOperationException {
+	public ProgramRunner getRunnableProgram(String command) throws UnsupportedOperationException {
 		if (command.equals(COHORT_CLI)) {
-			return new CohortCLI();
+			return new CohortCLIRunner();
 		}
 		else if (command.equals(MEASURE_CLI)) {
-			return new MeasureCLI();
+			return new MeasureCLIRunner();
 		}
 		else if (command.equals(TRANSLATION_CLI)) {
-			return new TranslationCLI();
+			return new TranslationCLIRunner();
 		}
 		else {
 			throw new UnsupportedOperationException(getStandardCommandError(command));
