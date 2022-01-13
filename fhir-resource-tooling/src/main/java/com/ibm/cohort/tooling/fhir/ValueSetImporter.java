@@ -84,7 +84,7 @@ public class ValueSetImporter {
 		
 		public void validate() {
 			//check to make sure we are either exporting to file OR importing to a fhir server, but not both
-			if(!(fileOutputLocation == OutputLocations.NONE) && measureServerConfigFile != null) {
+			if(fileOutputLocation != OutputLocations.NONE && measureServerConfigFile != null) {
 				throw new IllegalArgumentException("Parameters [-m, --measure-server] and [--output-locations] cannot both be specified on the same invocation");
 			}
 			
