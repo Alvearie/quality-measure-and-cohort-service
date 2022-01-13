@@ -1,4 +1,4 @@
-build = "mvn clean install -f cohort-parent/pom.xml"
+build = "mvn -f cohort-parent"
 jdkVersion = "8"
 
 tools = ["open source vulnerabilities", "shellcheck"]
