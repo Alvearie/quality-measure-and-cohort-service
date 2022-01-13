@@ -20,21 +20,20 @@ import org.hl7.fhir.r4.model.ValueSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cloud.objectstorage.ClientConfiguration;
-import com.ibm.cloud.objectstorage.SDKGlobalConfiguration;
-import com.ibm.cloud.objectstorage.auth.AWSCredentials;
-import com.ibm.cloud.objectstorage.auth.AWSStaticCredentialsProvider;
-import com.ibm.cloud.objectstorage.client.builder.AwsClientBuilder;
-import com.ibm.cloud.objectstorage.oauth.BasicIBMOAuthCredentials;
-import com.ibm.cloud.objectstorage.services.s3.AmazonS3;
-import com.ibm.cloud.objectstorage.services.s3.AmazonS3ClientBuilder;
-import com.ibm.cloud.objectstorage.services.s3.model.ObjectMetadata;
-import com.ibm.cloud.objectstorage.services.s3.model.PutObjectRequest;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import com.ibm.cohort.tooling.cos.CosConfiguration;
@@ -49,6 +48,7 @@ public class ValueSetImporter {
 	private static final Logger logger = LoggerFactory.getLogger(ValueSetImporter.class.getName());
 	
 	private enum FileFormat {JSON, XML};
+	private enum OutputLocations{NONE, LOCAL, COS, BOTH}
 	
 	public static final class ValueSetImporterArguments {
 		@Parameter(names = {"-m",
@@ -64,8 +64,8 @@ public class ValueSetImporter {
 		@Parameter(names = {"-h", "--help"}, description = "Show this help", help = true)
 		boolean isDisplayHelp;
 
-		@Parameter(names = {"--output-locations"}, description = "If any but \"NONE\" is specified, value sets will be converted to FHIR format and written to a location specified by the bucket or filePath parameters. Value sets will not be imported into the FHIR server if this option is set. Options are COS, LOCAL, BOTH, NONE.")
-		String fileOutputLocation = "NONE";
+		@Parameter(names = {"--output-locations"}, description = "If any but \"NONE\" is specified, value sets will be converted to FHIR format and written to a location specified by the bucket or filePath parameters. Value sets will not be imported into the FHIR server if this option is set. Default is NONE.")
+		OutputLocations fileOutputLocation = OutputLocations.NONE;
 
 		@Parameter(names = {"-p", "--file-system-output-path"}, description = "Local filesystem path to write results out to (will only be used if output-locations is either BOTH or LOCAL.")
 		String fileSystemOutputPath;
@@ -84,14 +84,14 @@ public class ValueSetImporter {
 		
 		public void validate() {
 			//check to make sure we are either exporting to file OR importing to a fhir server, but not both
-			if(!fileOutputLocation.equals("NONE") && measureServerConfigFile != null) {
+			if(!(fileOutputLocation == OutputLocations.NONE) && measureServerConfigFile != null) {
 				throw new IllegalArgumentException("Parameters [-m, --measure-server] and [--output-locations] cannot both be specified on the same invocation");
 			}
 			
-			if(fileOutputLocation.equals("NONE") && measureServerConfigFile == null) {
+			if(fileOutputLocation == OutputLocations.NONE && measureServerConfigFile == null) {
 				throw new IllegalArgumentException("Parameters [-m, --measure-server] and [--output-locations] cannot both be null. Please supply a value for one of these parameters");
 			}
-			if((fileOutputLocation.equals("BOTH") || fileOutputLocation.equals("COS")) && (bucket == null || cosJsonConfigs == null)){
+			if((fileOutputLocation == OutputLocations.BOTH || fileOutputLocation == OutputLocations.COS) && (bucket == null || cosJsonConfigs == null)){
 				throw new IllegalArgumentException("Required information for writing to COS is missing! Please specify both a bucket and the COS configurations.");
 			}
 		}
@@ -112,7 +112,7 @@ public class ValueSetImporter {
 			//only connect to fhir server if we are not writing it to file system
 			IGenericClient client = null;
 			ObjectMapper om = new ObjectMapper();
-			if(arguments.fileOutputLocation.equals("NONE")) {
+			if(arguments.fileOutputLocation == OutputLocations.NONE) {
 				FhirServerConfig config = om.readValue(arguments.measureServerConfigFile, FhirServerConfig.class);
 				client = FhirClientBuilderFactory.newInstance().newFhirClientBuilder(fhirContext)
 						.createFhirClient(config);
@@ -127,7 +127,7 @@ public class ValueSetImporter {
 					ValueSetArtifact artifact = ValueSetUtil.createArtifact(is, codeSystemMappings);
 					
 					//only import the value set to fhir server if we are not writing the value set to file system
-					if(arguments.fileOutputLocation.equals("NONE")) {
+					if(arguments.fileOutputLocation == OutputLocations.NONE) {
 						String retVal = ValueSetUtil.importArtifact(client, artifact, arguments.overrideValueSets);
 						if(retVal == null){
 							logger.error("Value set already exists! Please provide the override option if you would like to override this value set.");
@@ -140,13 +140,13 @@ public class ValueSetImporter {
 						String valueSetId = vs.getId().startsWith("urn:oid:") ? vs.getId().replace("urn:oid:", "") : vs.getId();						
 						String vsFileName = valueSetId + "." + arguments.filesystemOutputFormat.toString().toLowerCase();
 
-						if(arguments.fileOutputLocation.equals("BOTH") || arguments.fileOutputLocation.equals("COS")){
+						if(arguments.fileOutputLocation == OutputLocations.BOTH || arguments.fileOutputLocation == OutputLocations.COS){
 							CosConfiguration cosConfig = om.readValue(arguments.cosJsonConfigs, CosConfiguration.class);
 
-							AmazonS3 cosClient = createClient(cosConfig.getApikey(), cosConfig.getResource_instance_id(), cosConfig.getCos_endpoint(), cosConfig.getCos_location());
+							AmazonS3 cosClient = createClient(cosConfig.getAccess_key_id(), cosConfig.getSecret_access_key(), cosConfig.getCos_endpoint(), cosConfig.getCos_location());
 							putToCos(arguments, fhirContext, vs, vsFileName, cosClient);
 						}
-						if(arguments.fileOutputLocation.equals("BOTH") || arguments.fileOutputLocation.equals("LOCAL")) {
+						if(arguments.fileOutputLocation == OutputLocations.BOTH || arguments.fileOutputLocation == OutputLocations.LOCAL) {
 							try (BufferedWriter writer = new BufferedWriter(new FileWriter(arguments.fileSystemOutputPath + System.getProperty("file.separator") + vsFileName))) {
 								//create the output dir if it doesn't exist
 								File outputDir = new File(arguments.fileSystemOutputPath);
@@ -178,8 +178,7 @@ public class ValueSetImporter {
 
 	public AmazonS3 createClient(String api_key, String service_instance_id, String endpoint_url, String location)
 	{
-		SDKGlobalConfiguration.IAM_ENDPOINT = "https://iam.cloud.ibm.com/identity/token";
-		AWSCredentials credentials = new BasicIBMOAuthCredentials(api_key, service_instance_id);
+		AWSCredentials credentials = new BasicAWSCredentials(api_key, service_instance_id);
 		ClientConfiguration clientConfig = new ClientConfiguration().withRequestTimeout(5000);
 		clientConfig.setUseTcpKeepAlive(true);
 

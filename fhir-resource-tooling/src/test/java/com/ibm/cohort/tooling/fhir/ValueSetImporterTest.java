@@ -35,8 +35,8 @@ import org.hl7.fhir.r4.model.ValueSet;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import com.amazonaws.services.s3.AmazonS3;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cloud.objectstorage.services.s3.AmazonS3;
 import com.ibm.cohort.engine.BaseFhirTest;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 

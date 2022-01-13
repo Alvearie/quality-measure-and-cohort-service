@@ -17,28 +17,28 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 public class CosConfiguration {
 	@JsonInclude(Include.NON_NULL)
-	private String apikey;
+	private String access_key_id;
 	@JsonInclude(Include.NON_NULL)
-	private String resource_instance_id;
+	private String secret_access_key;
 	@JsonInclude(Include.NON_NULL)
 	private String cos_endpoint;
 	@JsonInclude(Include.NON_NULL)
 	private String cos_location;
 
-	public String getResource_instance_id() {
-		return resource_instance_id;
+	public String getAccess_key_id() {
+		return access_key_id;
 	}
 
-	public void setResource_instance_id(String resource_instance_id) {
-		this.resource_instance_id = resource_instance_id;
+	public void setAccess_key_id(String access_key_id) {
+		this.access_key_id = access_key_id;
 	}
 
-	public String getApikey() {
-		return apikey;
+	public String getSecret_access_key() {
+		return secret_access_key;
 	}
 
-	public void setApikey(String apikey) {
-		this.apikey = apikey;
+	public void setSecret_access_key(String secret_access_key) {
+		this.secret_access_key = secret_access_key;
 	}
 
 	public String getCos_endpoint() {
