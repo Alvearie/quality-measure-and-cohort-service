@@ -37,3 +37,4 @@ and [MeasureEvaluator](https://github.com/Alvearie/quality-measure-and-cohort-se
 
 Example usage for these classes are available in the `CohortCLI` and `MeasureCLI` (which are each described on
 the [getting started](user-guide/getting-started.md) page).
+Both of these CLIs are exposed through the entrypoint in the cohort-cli shaded jar produced by our build process.

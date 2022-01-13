@@ -8,7 +8,7 @@ The [Quality Reporting](http://www.hl7.org/fhir/clinicalreasoning-quality-report
 The command-line interface for the quality measure evaluator is very similar to the command-line-interface of the cohort evaluator. If you have not already done so, it would be helpful to review the details of the [cohort-evaluator command-line interface](user-guide/client-server-guide.md#command-line-interface) before continuing with this guide.
 
 ```
-$ java -classpath cohort-cli/target/cohort-cli-VERSION-shaded.jar com.ibm.cohort.cli.MeasureCLI --help
+$ java -classpath cohort-cli/target/cohort-cli-VERSION-shaded.jar measure-cli --help
 Usage: measure-engine [options]
   Options:
   * -c, --context-id
@@ -376,7 +376,7 @@ Various exceptions can be thrown when a `value` cannot be converted to the corre
 With a local IBM FHIR test instance pre-loaded with a sample measure and patient...
 
 ```
-$ java -Djavax.net.ssl.trustStore=config/trustStore.pkcs12 -Djavax.net.ssl.trustStorePassword=change-password -Djavax.net.ssl.trustStoreType=pkcs12 -classpath target/cohort-cli-VERSION-shaded.jar com.ibm.cohort.cli.MeasureCLI -d config/local-ibm-fhir.json -p path/to/json/parameter/file -c '1747edf2ef3-cd7133f1-3131-4ba8-a71a-da98c594cbab'
+$ java -Djavax.net.ssl.trustStore=config/trustStore.pkcs12 -Djavax.net.ssl.trustStorePassword=change-password -Djavax.net.ssl.trustStoreType=pkcs12 -jar target/cohort-cli-VERSION-shaded.jar measure-cli -d config/local-ibm-fhir.json -p path/to/json/parameter/file -c '1747edf2ef3-cd7133f1-3131-4ba8-a71a-da98c594cbab'
 [main] INFO ca.uhn.fhir.util.VersionUtil - HAPI FHIR version 5.0.2 - Rev ecf175a352
 [main] INFO ca.uhn.fhir.context.FhirContext - Creating new FHIR context for FHIR version [R4]
 [main] INFO ca.uhn.fhir.util.XmlUtil - Unable to determine StAX implementation: java.xml/META-INF/MANIFEST.MF not found

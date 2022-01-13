@@ -16,7 +16,7 @@ public class BaseCLIDriver {
 	
 	protected void runProgram(String[] args) {
 		if (args.length == 0) {
-			throw new IllegalArgumentException("Must provide a command to run.");
+			throw new IllegalArgumentException("Must provide a command to run. Valid commands are: " + String.join(", ", getValidCommands()));
 		}
 		try {
 			ProgramRunner programRunner = getRunnableProgram(args[0]);

@@ -24,7 +24,7 @@ There are lots of ways to do CQL evaluation in client-server mode. The simplest 
 The cohort evaluator command-line interface (CLI) provides a simple interface for users to evaluate clinical quality language queries stored in filesystem files, ZIP archives, or FHIR Library resources against data in a remote FHIR server. A simple CLI execution is descried in the cohort-cli package's Maven build artifact and can be executed from using `mvn exec:java` command. That will demonstrate program usage using the public https://hapi.fhir.org/baseR4 FHIR server and a very simple CQL library. An execution where you run the command yourself would look like the following...
 
 ```bash
-$ java -jar target/cohort-cli-VERSION-shaded.jar -d config/remote-hapi-fhir.json -f src/test/resources/cql/basic -l test -c 1235008
+$ java -jar target/cohort-cli-VERSION-shaded.jar cohort-cli -d config/remote-hapi-fhir.json -f src/test/resources/cql/basic -l test -c 1235008
 [main] INFO ca.uhn.fhir.util.VersionUtil - HAPI FHIR version 5.0.2 - Rev ecf175a352
 [main] INFO ca.uhn.fhir.context.FhirContext - Creating new FHIR context for FHIR version [R4]
 [main] INFO ca.uhn.fhir.util.XmlUtil - Unable to determine StAX implementation: java.xml/META-INF/MANIFEST.MF not found
@@ -41,7 +41,7 @@ Expression: Over the hill, Result: true
 Or if you need to pass parameters...
 
 ```bash
-$ java -jar target/cohort-cli-VERSION-shaded.jar -d config/remote-hapi-fhir.json -f src/test/resources/cql/parameters -l test-with -v params -c 1235008 -p MaxAge:integer:40
+$ java -jar target/cohort-cli-VERSION-shaded.jar cohort-cli -d config/remote-hapi-fhir.json -f src/test/resources/cql/parameters -l test-with -v params -c 1235008 -p MaxAge:integer:40
 [main] INFO ca.uhn.fhir.util.VersionUtil - HAPI FHIR version 5.0.2 - Rev ecf175a352
 [main] INFO ca.uhn.fhir.context.FhirContext - Creating new FHIR context for FHIR version [R4]
 [main] INFO ca.uhn.fhir.util.XmlUtil - Unable to determine StAX implementation: java.xml/META-INF/MANIFEST.MF not found
@@ -58,7 +58,7 @@ Expression: ParamMaxAge, Result: 40
 Complete usage of the CLI is available using the --help flag...
 
 ```
-$ java -jar target/cohort-cli-VERSION-shaded.jar --help
+$ java -jar target/cohort-cli-VERSION-shaded.jar cohort-cli --help
 Usage: cql-engine [options]
   Options:
   * -c, --context-id
