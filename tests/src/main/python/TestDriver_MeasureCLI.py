@@ -37,7 +37,7 @@ class Test(object):
     # Execute submits a query and validates the return.
     def execute(self, jsonMeasureConfigurationFile, resource, params, targets, output, measureServer, filters, regEx):
         expectedOutputs = output.split('\n')
-        callDetails = ["java", "-Xms1G", "-Xmx1G", "-Djavax.net.ssl.trustStore="+os.environ["TRUSTSTORE"], "-Djavax.net.ssl.trustStorePassword="+os.environ["TRUSTSTORE_PASSWORD"], "-Djavax.net.ssl.trustStoreType="+os.environ["TRUSTSTORE_TYPE"], "-Dorg.jboss.logging.provider=slf4j", "-Dorg.slf4j.simpleLogger.log.org.hibernate.validator.internal.util.Version=off", "-classpath", jar, "com.ibm.cohort.cli.MeasureCLI"]
+        callDetails = ["java", "-Xms1G", "-Xmx1G", "-Djavax.net.ssl.trustStore="+os.environ["TRUSTSTORE"], "-Djavax.net.ssl.trustStorePassword="+os.environ["TRUSTSTORE_PASSWORD"], "-Djavax.net.ssl.trustStoreType="+os.environ["TRUSTSTORE_TYPE"], "-Dorg.jboss.logging.provider=slf4j", "-Dorg.slf4j.simpleLogger.log.org.hibernate.validator.internal.util.Version=off", "-jar", jar, "measure-cli"]
         if os.environ['DATA_FHIR_SERVER_DETAILS']:
             callDetails.append("-d")
             callDetails.append(os.environ['DATA_FHIR_SERVER_DETAILS'])
