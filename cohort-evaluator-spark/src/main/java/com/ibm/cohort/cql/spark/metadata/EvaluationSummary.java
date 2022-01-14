@@ -14,9 +14,10 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.ibm.cohort.cql.spark.JobStatus;
 import com.ibm.cohort.cql.spark.errors.EvaluationError;
 
-@JsonPropertyOrder({"applicationId", "startTimeMillis", "endTimeMillis", "runtimeMillis", "totalContexts", "executionsPerContext", "runtimeMillisPerContext", "errorList"})
+@JsonPropertyOrder({"applicationId", "startTimeMillis", "endTimeMillis", "runtimeMillis", "jobStatus", "totalContexts", "executionsPerContext", "runtimeMillisPerContext", "errorList"})
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class EvaluationSummary {
 	private List<EvaluationError> errorList;
@@ -28,6 +29,7 @@ public class EvaluationSummary {
 	private Map<String, Long> runtimeMillisPerContext = new HashMap<>();
 	private String applicationId;
 	private String correlationId;
+	private JobStatus jobStatus;
 
 	public EvaluationSummary() {
 		
@@ -103,6 +105,14 @@ public class EvaluationSummary {
 
 	public void setCorrelationId(String correlationId) {
 		this.correlationId = correlationId;
+	}
+
+	public JobStatus getJobStatus() {
+		return jobStatus;
+	}
+
+	public void setJobStatus(JobStatus jobStatus) {
+		this.jobStatus = jobStatus;
 	}
 
 	public void addContextCount(String contextName, long count) {
