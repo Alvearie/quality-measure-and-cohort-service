@@ -7,7 +7,7 @@ ARG WORKDIR=/tmp
 ARG APACHE_LOG4J2="apache-log4j-2.17.1-bin"
 #Download and extract the apache log4j version 2.17.1 jar files
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-WORKDIR ${WORKDIR}
+# WORKDIR ${WORKDIR}
 RUN set -x && \
     wget -nv -O ${WORKDIR}/${APACHE_LOG4J2}.tar.gz "https://dlcdn.apache.org/logging/log4j/2.17.1/${APACHE_LOG4J2}.tar.gz" && \
     tar -xzf ${WORKDIR}/${APACHE_LOG4J2}.tar.gz --strip-components=1 -C ${WORKDIR}
