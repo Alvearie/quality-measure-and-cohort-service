@@ -6,7 +6,7 @@
  *
  */
 
-package com.ibm.cohort.tooling.cos;
+package com.ibm.cohort.tooling.s3;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -15,15 +15,15 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-public class CosConfiguration {
+public class S3Configuration {
 	@JsonInclude(Include.NON_NULL)
 	private String access_key_id;
 	@JsonInclude(Include.NON_NULL)
 	private String secret_access_key;
 	@JsonInclude(Include.NON_NULL)
-	private String cos_endpoint;
+	private String endpoint;
 	@JsonInclude(Include.NON_NULL)
-	private String cos_location;
+	private String location;
 
 	public String getAccess_key_id() {
 		return access_key_id;
@@ -41,20 +41,20 @@ public class CosConfiguration {
 		this.secret_access_key = secret_access_key;
 	}
 
-	public String getCos_endpoint() {
-		return cos_endpoint;
+	public String getEndpoint() {
+		return endpoint;
 	}
 
-	public void setCos_endpoint(String cos_endpoint) {
-		this.cos_endpoint = cos_endpoint;
+	public void setEndpoint(String endpoint) {
+		this.endpoint = endpoint;
 	}
 
-	public String getCos_location() {
-		return cos_location;
+	public String getLocation() {
+		return location;
 	}
 
-	public void setCos_location(String cos_location) {
-		this.cos_location = cos_location;
+	public void setLocation(String location) {
+		this.location = location;
 	}
 
 	@Override

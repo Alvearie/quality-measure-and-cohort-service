@@ -36,7 +36,7 @@ import com.beust.jcommander.internal.DefaultConsole;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
-import com.ibm.cohort.tooling.cos.CosConfiguration;
+import com.ibm.cohort.tooling.s3.S3Configuration;
 import com.ibm.cohort.valueset.ValueSetArtifact;
 import com.ibm.cohort.valueset.ValueSetUtil;
 
@@ -48,7 +48,7 @@ public class ValueSetImporter {
 	private static final Logger logger = LoggerFactory.getLogger(ValueSetImporter.class.getName());
 	
 	private enum FileFormat {JSON, XML};
-	private enum OutputLocations{NONE, LOCAL, COS, BOTH}
+	private enum OutputLocations{NONE, LOCAL, S3, BOTH}
 	
 	public static final class ValueSetImporterArguments {
 		@Parameter(names = {"-m",
@@ -70,11 +70,11 @@ public class ValueSetImporter {
 		@Parameter(names = {"-p", "--file-system-output-path"}, description = "Local filesystem path to write results out to (will only be used if output-locations is either BOTH or LOCAL.")
 		String fileSystemOutputPath;
 
-		@Parameter(names = {"-b", "--bucket"}, description = "Bucket to write results out to (will only be used if output-locations is either BOTH or COS).")
+		@Parameter(names = {"-b", "--bucket"}, description = "Bucket to write results out to (will only be used if output-locations is either BOTH or S3).")
 		String bucket;
 
-		@Parameter(names = {"--cos-configuration"}, description = "a json file containing all the relevant cos configuration needs for access")
-		File cosJsonConfigs;
+		@Parameter(names = {"--S3-configuration"}, description = "a json file containing all the relevant S3 configuration needs for access")
+		File S3JsonConfigs;
 
 		@Parameter(names = {"-o", "--file-system-output-format"}, description = "Format to use when exporting value sets to the file system when using the -p/--file-system-output-path parameters. Valid values are JSON or XML. If not specified, the default output format will be JSON", required = false)
 		FileFormat filesystemOutputFormat = FileFormat.JSON;
@@ -91,8 +91,8 @@ public class ValueSetImporter {
 			if(fileOutputLocation == OutputLocations.NONE && measureServerConfigFile == null) {
 				throw new IllegalArgumentException("Either [-m, --measure-server] or [--output-locations] must be specified. Please supply either a valid measure server or a valid (not NONE) output location.");
 			}
-			if((fileOutputLocation == OutputLocations.BOTH || fileOutputLocation == OutputLocations.COS) && (bucket == null || cosJsonConfigs == null)){
-				throw new IllegalArgumentException("Required information for writing to COS is missing! Please specify both a bucket and the COS configurations.");
+			if((fileOutputLocation == OutputLocations.BOTH || fileOutputLocation == OutputLocations.S3) && (bucket == null || S3JsonConfigs == null)){
+				throw new IllegalArgumentException("Required information for writing to S3 is missing! Please specify both a bucket and the S3 configurations.");
 			}
 			if((fileOutputLocation == OutputLocations.BOTH || fileOutputLocation == OutputLocations.LOCAL) && fileSystemOutputPath == null){
 				throw new IllegalArgumentException("Required information for writing locally is missing! Please specify a file system output path (-p/--file-system-output-path).");
@@ -143,11 +143,11 @@ public class ValueSetImporter {
 						String valueSetId = vs.getId().startsWith("urn:oid:") ? vs.getId().replace("urn:oid:", "") : vs.getId();						
 						String vsFileName = valueSetId + "." + arguments.filesystemOutputFormat.toString().toLowerCase();
 
-						if(arguments.fileOutputLocation == OutputLocations.BOTH || arguments.fileOutputLocation == OutputLocations.COS){
-							CosConfiguration cosConfig = om.readValue(arguments.cosJsonConfigs, CosConfiguration.class);
+						if(arguments.fileOutputLocation == OutputLocations.BOTH || arguments.fileOutputLocation == OutputLocations.S3){
+							S3Configuration S3Config = om.readValue(arguments.S3JsonConfigs, S3Configuration.class);
 
-							AmazonS3 cosClient = createClient(cosConfig.getAccess_key_id(), cosConfig.getSecret_access_key(), cosConfig.getCos_endpoint(), cosConfig.getCos_location());
-							putToCos(arguments, fhirContext, vs, vsFileName, cosClient);
+							AmazonS3 S3Client = createClient(S3Config.getAccess_key_id(), S3Config.getSecret_access_key(), S3Config.getEndpoint(), S3Config.getLocation());
+							putToS3(arguments, fhirContext, vs, vsFileName, S3Client);
 						}
 						if(arguments.fileOutputLocation == OutputLocations.BOTH || arguments.fileOutputLocation == OutputLocations.LOCAL) {
 							try (BufferedWriter writer = new BufferedWriter(new FileWriter(arguments.fileSystemOutputPath + System.getProperty("file.separator") + vsFileName))) {
@@ -171,12 +171,12 @@ public class ValueSetImporter {
 		}
 	}
 
-	private static void putToCos(ValueSetImporterArguments arguments, FhirContext fhirContext, ValueSet vs, String vsFileName, AmazonS3 cosClient) {
+	private static void putToS3(ValueSetImporterArguments arguments, FhirContext fhirContext, ValueSet vs, String vsFileName, AmazonS3 S3Client) {
 		ObjectMetadata metadata = new ObjectMetadata();
 		byte[] arr = fhirContext.newJsonParser().encodeResourceToString(vs).getBytes();
 		metadata.setContentLength(arr.length);
 		PutObjectRequest put = new PutObjectRequest(arguments.bucket, vsFileName, new ByteArrayInputStream(arr), metadata);
-		cosClient.putObject(put);
+		S3Client.putObject(put);
 	}
 
 	public AmazonS3 createClient(String api_key, String service_instance_id, String endpoint_url, String location)
