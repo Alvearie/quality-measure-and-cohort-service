@@ -104,8 +104,8 @@ public class SparkDataRowTest extends BaseSparkTest {
             assertTrue( sdr.getValue( "integerField" ) instanceof Integer );
             assertEquals( pojo.getIntegerField(), (Integer) sdr.getValue("integerField") );
 
-            assertTrue( sdr.getValue( "longField" ) instanceof Integer );
-            assertEquals( Integer.valueOf(4), (Integer) sdr.getValue("longField") );
+            assertTrue( sdr.getValue( "longField" ) instanceof Long );
+            assertEquals( pojo.getLongField(), (Long) sdr.getValue("longField") );
 
             assertTrue( sdr.getValue( "floatField" ) instanceof BigDecimal );
             assertEquals( BigDecimal.valueOf(5.5f), (BigDecimal) sdr.getValue("floatField") );

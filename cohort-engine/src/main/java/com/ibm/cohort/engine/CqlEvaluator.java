@@ -32,6 +32,8 @@ import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.cqfruler.CDMContext;
+import com.ibm.cohort.engine.data.CompositeCqlDataProvider;
+import com.ibm.cohort.engine.data.CqlSystemDataProvider;
 import com.ibm.cohort.engine.parameter.Parameter;
 import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;
 import com.ibm.cohort.engine.retrieve.R4RestFhirRetrieveProvider;
@@ -327,9 +329,15 @@ public class CqlEvaluator {
 		//reliable way to do that right now using HAPI and IBM FHIR as examples.
 		retrieveProvider.setExpandValueSets(isExpandValueSets());
 		retrieveProvider.setSearchPageSize(getSearchPageSize());
-		CompositeDataProvider dataProvider = new CompositeDataProvider(R4FhirModelResolverFactory.createCachingResolver(), retrieveProvider);
+		CompositeDataProvider dataProvider = new CompositeCqlDataProvider(R4FhirModelResolverFactory.createCachingResolver(), retrieveProvider);
 
-		return mapSupportedModelsToDataProvider(dataProvider);
+		Map<String, DataProvider> dataProviders = mapSupportedModelsToDataProvider(dataProvider);
+
+		// override system data provider
+		CqlSystemDataProvider systemDataProvider = new CqlSystemDataProvider();
+		dataProviders.put("urn:hl7-org:elm-types:r1", systemDataProvider);
+
+		return dataProviders;
 	}
 
 	/**

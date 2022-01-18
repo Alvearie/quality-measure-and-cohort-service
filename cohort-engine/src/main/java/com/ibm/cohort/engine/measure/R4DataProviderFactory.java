@@ -9,13 +9,13 @@ package com.ibm.cohort.engine.measure;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.opencds.cqf.cql.engine.data.CompositeDataProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.fhir.searchparam.SearchParameterResolver;
 import org.opencds.cqf.cql.engine.model.ModelResolver;
 import org.opencds.cqf.cql.engine.retrieve.RetrieveProvider;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
+import com.ibm.cohort.engine.data.CompositeCqlDataProvider;
 import com.ibm.cohort.engine.measure.cache.CachingRetrieveProvider;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;
@@ -76,7 +76,7 @@ public class R4DataProviderFactory {
 				? new CachingRetrieveProvider(baseRetrieveProvider, retrieveCacheContext)
 				: baseRetrieveProvider;
 
-		DataProvider dataProvider = new CompositeDataProvider(modelResolver, retrieveProvider);
+		DataProvider dataProvider = new CompositeCqlDataProvider(modelResolver, retrieveProvider);
 
 		Map<String, DataProvider> retVal = new HashMap<>();
 		retVal.put(FHIR_R4_URL, dataProvider);

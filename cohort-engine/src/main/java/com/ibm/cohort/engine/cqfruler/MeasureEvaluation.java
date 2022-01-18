@@ -13,12 +13,10 @@
 
 package com.ibm.cohort.engine.cqfruler;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -133,22 +131,6 @@ public class MeasureEvaluation {
 
         return (Iterable<Resource>) result;
     }
-
-	@SuppressWarnings("unchecked")
-
-	protected void clearExpressionCache(Context context) {
-		// Hack to clear expression cache
-		// See cqf-ruler github issue #153
-		try {
-			Field privateField = context.getClass().getDeclaredField("expressions");
-			privateField.setAccessible(true);
-			LinkedHashMap expressions = (LinkedHashMap) privateField.get(context);
-			expressions.clear();
-
-		} catch (Exception e) {
-			logger.warn("Error resetting expression cache", e);
-		}
-	}
 
     protected boolean evaluatePopulationCriteria(Context context, Patient patient,
             Measure.MeasureGroupPopulationComponent criteria, Map<String, Resource> population,
@@ -325,7 +307,6 @@ public class MeasureEvaluation {
 
                     // For each patient in the initial population
                     for (Patient patient : patients) {
-                        clearExpressionCache(context);
                         // Are they in the initial population?
                         boolean inInitialPopulation = evaluatePopulationCriteria(context, patient,
                                 initialPopulationCriteria, initialPopulation, initialPopulationPatients, null, null,
@@ -386,7 +367,6 @@ public class MeasureEvaluation {
 
                     // For each patient in the patient list
                     for (Patient patient : patients) {
-                        clearExpressionCache(context);
                         evaluatePopulationCriteria(context, patient,
                                 initialPopulationCriteria, initialPopulation, initialPopulationPatients, null, null,
                                 null);
