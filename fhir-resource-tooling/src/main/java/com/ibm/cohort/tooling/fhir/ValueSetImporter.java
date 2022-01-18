@@ -73,7 +73,7 @@ public class ValueSetImporter {
 		@Parameter(names = {"-b", "--bucket"}, description = "Bucket to write results out to (will only be used if output-locations is either BOTH or S3).")
 		String bucket;
 
-		@Parameter(names = {"--S3-configuration"}, description = "a json file containing all the relevant S3 configuration needs for access")
+		@Parameter(names = {"--s3-configuration"}, description = "a json file containing all the relevant S3 configuration needs for access")
 		File S3JsonConfigs;
 
 		@Parameter(names = {"-o", "--file-system-output-format"}, description = "Format to use when exporting value sets to the file system when using the -p/--file-system-output-path parameters. Valid values are JSON or XML. If not specified, the default output format will be JSON", required = false)

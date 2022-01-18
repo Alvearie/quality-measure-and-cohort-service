@@ -130,7 +130,7 @@ public class ValueSetImporterTest extends BaseFhirTest {
 			OutputStream baos = new ByteArrayOutputStream();
 			PrintStream out = new PrintStream(baos);
 			TestImporter importer = new TestImporter(client);
-			importer.runWithArgs( new String[] { inputFile, "--output-locations", "COS", "--bucket", "kwasny-test", "--cos-configuration", "src/test/resources/example-cos-credentials.json"}, out);
+			importer.runWithArgs( new String[] { inputFile, "--output-locations", "S3", "--bucket", "kwasny-test", "--s3-configuration", "src/test/resources/example-cos-credentials.json"}, out);
 			Mockito.verify(client).putObject(any());
 		} finally {
 		}
