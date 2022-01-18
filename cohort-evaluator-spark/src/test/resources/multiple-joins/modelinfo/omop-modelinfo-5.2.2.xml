@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modelInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance" xmlns:xi="http://www.w3.org/2001/XInclude" name="OMOP" version="5.2.2" url="https://ibm.com/omop">
+
+  <typeInfo xmlns="urn:hl7-org:elm-modelinfo:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" baseType="System.Any" name="vocabulary" label="vocabulary" retrievable="true" xsi:type="ClassInfo">
+    <element name="vocabulary_id" elementType="System.String"/>
+    <element name="vocabulary_name" elementType="System.String"/>
+    <element name="vocabulary_reference" elementType="System.String"/>
+    <element name="vocabulary_version" elementType="System.String"/>
+    <element name="vocabulary_concept_id" elementType="System.Integer"/>
+  </typeInfo>
+  <typeInfo xmlns="urn:hl7-org:elm-modelinfo:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" baseType="System.Any" name="concept" label="concept" retrievable="true" xsi:type="ClassInfo">
+    <element name="concept_id" elementType="System.Integer"/>
+    <element name="concept_name" elementType="System.String"/>
+    <element name="domain_id" elementType="System.String"/>
+    <element name="vocabulary_id" elementType="System.String"/>
+    <element name="concept_class_id" elementType="System.String"/>
+    <element name="standard_concept" elementType="System.String"/>
+    <element name="concept_code" elementType="System.String"/>
+    <element name="valid_start_date" elementType="System.Date"/>
+    <element name="valid_end_date" elementType="System.Date"/>
+    <element name="invalid_reason" elementType="System.String"/>
+  </typeInfo>
+  <typeInfo xmlns="urn:hl7-org:elm-modelinfo:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" baseType="System.Any" name="observation" label="observation" retrievable="true" xsi:type="ClassInfo">
+    <element name="observation_id" elementType="System.Integer"/>
+    <element name="person_id" elementType="System.Integer"/>
+    <element name="observation_concept_id" elementType="System.Integer"/>
+    <element name="observation_date" elementType="System.Date"/>
+    <element name="observation_datetime" elementType="System.DateTime"/>
+    <element name="observation_type_concept_id" elementType="System.Integer"/>
+    <element name="value_as_number" elementType="System.Decimal"/>
+    <element name="value_as_string" elementType="System.String"/>
+    <element name="value_as_concept_id" elementType="System.Integer"/>
+    <element name="qualifier_concept_id" elementType="System.Integer"/>
+    <element name="unit_concept_id" elementType="System.Integer"/>
+    <element name="provider_id" elementType="System.Integer"/>
+    <element name="visit_occurrence_id" elementType="System.Integer"/>
+    <element name="observation_source_value" elementType="System.String"/>
+    <element name="observation_source_concept_id" elementType="System.Integer"/>
+    <element name="unit_source_value" elementType="System.String"/>
+    <element name="qualifier_source_value" elementType="System.String"/>
+  </typeInfo>
+  <typeInfo xmlns="urn:hl7-org:elm-modelinfo:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" baseType="System.Any" name="person" label="person" retrievable="true" xsi:type="ClassInfo">
+    <element name="person_id" elementType="System.Integer"/>
+    <element name="gender_concept_id" elementType="System.Integer"/>
+    <element name="year_of_birth" elementType="System.Integer"/>
+    <element name="month_of_birth" elementType="System.Integer"/>
+    <element name="day_of_birth" elementType="System.Integer"/>
+    <element name="birth_datetime" elementType="System.DateTime"/>
+    <element name="race_concept_id" elementType="System.Integer"/>
+    <element name="ethnicity_concept_id" elementType="System.Integer"/>
+    <element name="location_id" elementType="System.Integer"/>
+    <element name="provider_id" elementType="System.Integer"/>
+    <element name="care_site_id" elementType="System.Integer"/>
+    <element name="person_source_value" elementType="System.String"/>
+    <element name="gender_source_value" elementType="System.String"/>
+    <element name="gender_source_concept_id" elementType="System.Integer"/>
+    <element name="race_source_value" elementType="System.String"/>
+    <element name="race_source_concept_id" elementType="System.Integer"/>
+    <element name="ethnicity_source_value" elementType="System.String"/>
+    <element name="ethnicity_source_concept_id" elementType="System.Integer"/>
+  </typeInfo>
+
+  <contextInfo name="concept" keyElement="concept_id">
+    <contextType namespace="OMOP" name="concept"/>
+  </contextInfo>
+  <contextInfo name="vocabulary" keyElement="vocabulary_id">
+    <contextType namespace="OMOP" name="vocabulary"/>
+  </contextInfo>
+  <contextInfo name="person" keyElement="person_id">
+    <contextType namespace="OMOP" name="person"/>
+  </contextInfo>
+  <contextInfo name="observation" keyElement="observation_id">
+    <contextType namespace="OMOP" name="observation"/>
+  </contextInfo>
+
+</modelInfo>

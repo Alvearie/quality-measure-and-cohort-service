@@ -78,4 +78,36 @@ public class ColumnRuleCreatorTest {
 
         assertEquals( expected, actual );
     }
+
+    @Test
+    public void testGetFiltersForContextWithMultiJoinColumns() throws Exception {
+        CqlToElmTranslator cqlTranslator = new CqlToElmTranslator();
+        cqlTranslator.registerModelInfo(new File("src/test/resources/multiple-joins/modelinfo/omop-modelinfo-5.2.2.xml"));
+
+        ObjectMapper mapper = new ObjectMapper();
+        CqlEvaluationRequests requests = mapper.readValue(new File("src/test/resources/multiple-joins/metadata/cql-jobs.json"), CqlEvaluationRequests.class);
+
+        TranslatingCqlLibraryProvider cqlLibraryProvider = new TranslatingCqlLibraryProvider(new DirectoryBasedCqlLibraryProvider(new File("src/test/resources/multiple-joins/cql")), cqlTranslator);
+
+        ColumnRuleCreator columnRuleCreator = new ColumnRuleCreator(
+            requests.getEvaluations(),
+            cqlTranslator,
+            cqlLibraryProvider
+        );
+
+        ContextDefinitions definitions = mapper.readValue(new File("src/test/resources/multiple-joins/metadata/context-definitions.json"), ContextDefinitions.class);
+        ContextDefinition context = definitions.getContextDefinitionByName("person");
+
+        Map<String, Set<StringMatcher>> actual = columnRuleCreator.getDataRequirementsForContext(context);
+
+        Map<String,Set<StringMatcher>> expected = new HashMap<>();
+        expected.put("person", new HashSet<>(Arrays.asList(new EqualsStringMatcher(ContextRetriever.SOURCE_FACT_IDX), new EqualsStringMatcher("person_id"))));
+        expected.put("vocabulary", new HashSet<>(Arrays.asList(new EqualsStringMatcher(ContextRetriever.SOURCE_FACT_IDX), new EqualsStringMatcher("vocabulary_id"), new EqualsStringMatcher("vocabulary_version"), new EqualsStringMatcher(ContextRetriever.JOIN_CONTEXT_VALUE_IDX))));
+        expected.put("concept", new HashSet<>(Arrays.asList(new EqualsStringMatcher(ContextRetriever.SOURCE_FACT_IDX),
+                                                            new EqualsStringMatcher("concept_id"), new EqualsStringMatcher("concept_code"), new EqualsStringMatcher("concept_name"), new EqualsStringMatcher("vocabulary_id"),
+                                                            new EqualsStringMatcher(ContextRetriever.JOIN_CONTEXT_VALUE_IDX))));
+        expected.put("observation", new HashSet<>(Arrays.asList(new EqualsStringMatcher(ContextRetriever.SOURCE_FACT_IDX), new EqualsStringMatcher("observation_concept_id"), new EqualsStringMatcher("person_id"), new EqualsStringMatcher(ContextRetriever.JOIN_CONTEXT_VALUE_IDX))));
+
+        assertEquals( expected, actual );
+    }
 }

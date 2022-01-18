@@ -80,6 +80,18 @@ public class ColumnRuleCreator {
 						associationFields.add(new EqualsStringMatcher(manyToMany.getAssociationOneKeyColumn()));
 						associationFields.add(new EqualsStringMatcher(manyToMany.getAssociationManyKeyColumn()));
 					}
+
+                    if (join instanceof MultiManyToMany) {
+                        ManyToMany with = ((MultiManyToMany) join).getWith();
+
+                        while (with != null) {
+                            Set<StringMatcher> relatedFields = pathsByDataType.computeIfAbsent(with.getRelatedDataType(), dt -> new HashSet<>());
+                            relatedFields.add(new EqualsStringMatcher(with.getRelatedKeyColumn()));
+                            relatedFields.add(new EqualsStringMatcher(ContextRetriever.JOIN_CONTEXT_VALUE_IDX));
+
+                            with = (with instanceof MultiManyToMany) ? ((MultiManyToMany) with).getWith() : null;
+                        }
+                    }
 				}
 			}
 		}

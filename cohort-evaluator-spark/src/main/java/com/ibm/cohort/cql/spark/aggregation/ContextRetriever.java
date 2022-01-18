@@ -135,7 +135,7 @@ public class ContextRetriever {
                     Column joinCriteria = primaryDataset.col(primaryJoinColumn)
                             .equalTo(relatedDataset.col(relatedColumnName));
                     joinedDataset = primaryDataset.join(relatedDataset, joinCriteria);
-                } else if (join.getClass() == ManyToMany.class) {
+                } else if (join instanceof ManyToMany) {
                     ManyToMany manyToMany = (ManyToMany) join;
                     String assocDataType = manyToMany.getAssociationDataType();
                     Dataset<Row> assocDataset = readDataset(assocDataType);
@@ -149,7 +149,26 @@ public class ContextRetriever {
                     Column relatedJoinCriteria = joinedDataset.col(assocRelatedColumnName)
                             .equalTo(relatedDataset.col(relatedColumnName));
                     joinedDataset = joinedDataset.join(relatedDataset, relatedJoinCriteria);
-                } else {
+
+                    if (manyToMany instanceof MultiManyToMany) {
+                        Column baseContextColumn = joinContextColumn;
+                        Dataset<Row> baseDataset = joinedDataset;
+                        ManyToMany additionalJoin = ((MultiManyToMany) join).getWith();
+
+                        while (additionalJoin != null) {
+                            Dataset<Row> additionalDataset = gather(additionalJoin, baseDataset, baseContextColumn);
+
+                            if (additionalDataset != null) {
+                                retVal.add(toPairRDD(additionalDataset.distinct(), JOIN_CONTEXT_VALUE_IDX));
+                            }
+
+                            additionalJoin = (additionalJoin instanceof MultiManyToMany) ? ((MultiManyToMany) additionalJoin).getWith() : null;
+                            baseDataset = additionalDataset;
+                            baseContextColumn = additionalDataset.col(JOIN_CONTEXT_VALUE_IDX);
+                        }
+                    }
+                }
+                else {
                     throw new IllegalArgumentException("Unexpected Join Type: " + join.getClass().getName());
                 }
                 
@@ -180,6 +199,38 @@ public class ContextRetriever {
         }
 
         return retVal;
+    }
+
+    private Dataset<Row> gather(
+        ManyToMany join,
+        Dataset<Row> leftDataset,
+        Column joinContextColumn) {
+        List<Column> retainedColumns = new ArrayList<>();
+
+        String rightDataType = join.getRelatedDataType();
+
+        Dataset<Row> rightDataset = readDataset(rightDataType);
+
+        Arrays.stream(rightDataset.columns())
+            .map(rightDataset::col)
+            .forEach(retainedColumns::add);
+        retainedColumns.add(joinContextColumn);
+
+        Column withJoinCriteria =
+            leftDataset.col(join.getAssociationManyKeyColumn()).equalTo(
+                rightDataset.col(join.getRelatedKeyColumn()));
+        Dataset<Row> joinedDataset = leftDataset.join(rightDataset, withJoinCriteria);
+
+        joinedDataset = joinedDataset.select(retainedColumns.toArray(new Column[0]));
+
+        if (StringUtils.isNotEmpty(join.getWhereClause())) {
+            joinedDataset = joinedDataset.where(join.getWhereClause());
+        }
+
+        UnaryOperator<Dataset<Row>> datasetTransformationFunction = datatypeToColumnMatchers == null ? UnaryOperator.identity() : new ColumnFilterFunction(datatypeToColumnMatchers.get(rightDataType));
+        joinedDataset = datasetTransformationFunction.apply(joinedDataset);
+
+        return joinedDataset;
     }
 
     /**

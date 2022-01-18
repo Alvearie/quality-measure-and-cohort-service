@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type" )
 @JsonSubTypes({
     @JsonSubTypes.Type( value = ManyToMany.class, name="ManyToMany"),
+    @JsonSubTypes.Type( value = MultiManyToMany.class, name="MultiManyToMany"),
     @JsonSubTypes.Type( value = OneToMany.class, name="OneToMany"),
 })
 public abstract class Join {

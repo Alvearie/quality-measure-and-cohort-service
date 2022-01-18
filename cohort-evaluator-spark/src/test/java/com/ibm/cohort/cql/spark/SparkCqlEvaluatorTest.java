@@ -544,6 +544,36 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         return ds.collectAsList();
     }
 
+    @Test
+    public void testMultipleJoinsEvaluation() throws Exception {
+        File inputDir = new File("src/test/resources/multiple-joins/");
+        File outputDir = new File("target/output/multiple-joins/");
+        File person = new File(outputDir, "person_cohort");
+
+        String [] args = new String[] {
+            "-t", new File(inputDir, "/terminology/").toURI().toString(),
+            "-d", "src/test/resources/multiple-joins/metadata/context-definitions.json",
+            "-j", "src/test/resources/multiple-joins/metadata/cql-jobs.json",
+            "-m", "src/test/resources/multiple-joins/modelinfo/omop-modelinfo-5.2.2.xml",
+            "-c", "src/test/resources/multiple-joins/cql",
+            "--input-format", "parquet",
+            "-i", "person=" + new File(inputDir, "data/person.parquet").toURI(),
+            "-i", "observation=" + new File(inputDir, "data/observation.parquet").toURI(),
+            "-i", "concept=" + new File(inputDir, "data/concept.parquet").toURI(),
+            "-i", "vocabulary=" + new File(inputDir, "data/vocabulary.parquet").toURI(),
+            "-o", "person=" + person.toURI(),
+            "-n", "1",
+            "--output-format", "parquet",
+            "--overwrite-output-for-contexts",
+            "--metadata-output-path", outputDir.toURI().toString(),
+            "--halt-on-error"
+        };
+
+        SparkCqlEvaluator.main(args);
+
+        validateOutputCountsAndColumns(person.toURI().toString(), new HashSet<>(Arrays.asList("person_id", "parameters", "DiabetesSmoking|cohort")), 94, "parquet");
+    }
+
     private void validateOutputCountsAndColumns(String filename, Set<String> columnNames, int numExpectedRows, String expectedFormat) {
         // SparkCqlEvaluator closes the SparkSession. Make sure we have one opened before any validation.
         DeltaLog.clearCache();

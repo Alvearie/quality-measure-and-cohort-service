@@ -1,0 +1,32 @@
+{
+  "contextDefinitions": [
+    {
+      "name": "person",
+      "primaryDataType": "person",
+      "primaryKeyColumn": "person_id",
+      "relationships": [
+        {
+          "type": "MultiManyToMany",
+          "associationDataType": "observation",
+          "associationOneKeyColumn": "person_id",
+          "associationManyKeyColumn": "observation_concept_id",
+          "relatedDataType": "concept",
+          "relatedKeyColumn": "concept_id",
+          "with": {
+            "type": "ManyToMany",
+            "associationDataType": "concept",
+            "associationOneKeyColumn": "concept_id",
+            "associationManyKeyColumn": "vocabulary_id",
+            "relatedDataType": "vocabulary",
+            "relatedKeyColumn": "vocabulary_id"
+          }
+        },
+        {
+          "type": "OneToMany",
+          "relatedDataType": "observation",
+          "relatedKeyColumn": "person_id"
+        }
+      ]
+    }
+  ]
+}
