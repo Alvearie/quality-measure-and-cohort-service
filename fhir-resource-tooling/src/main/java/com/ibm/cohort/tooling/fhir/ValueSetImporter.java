@@ -89,7 +89,7 @@ public class ValueSetImporter {
 			}
 			
 			if(fileOutputLocation == OutputLocations.NONE && measureServerConfigFile == null) {
-				throw new IllegalArgumentException("Either [-m, --measure-server] or [--output-locations] must be specified. Please supply a non-null/none value for one of these parameters");
+				throw new IllegalArgumentException("Either [-m, --measure-server] or [--output-locations] must be specified. Please supply either a valid measure server or a valid (not NONE) output location.");
 			}
 			if((fileOutputLocation == OutputLocations.BOTH || fileOutputLocation == OutputLocations.COS) && (bucket == null || cosJsonConfigs == null)){
 				throw new IllegalArgumentException("Required information for writing to COS is missing! Please specify both a bucket and the COS configurations.");
