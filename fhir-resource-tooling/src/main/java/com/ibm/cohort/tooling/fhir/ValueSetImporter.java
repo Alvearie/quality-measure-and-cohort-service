@@ -89,10 +89,13 @@ public class ValueSetImporter {
 			}
 			
 			if(fileOutputLocation == OutputLocations.NONE && measureServerConfigFile == null) {
-				throw new IllegalArgumentException("Parameters [-m, --measure-server] and [--output-locations] cannot both be null. Please supply a value for one of these parameters");
+				throw new IllegalArgumentException("Either [-m, --measure-server] or [--output-locations] must be specified. Please supply a non-null/none value for one of these parameters");
 			}
 			if((fileOutputLocation == OutputLocations.BOTH || fileOutputLocation == OutputLocations.COS) && (bucket == null || cosJsonConfigs == null)){
 				throw new IllegalArgumentException("Required information for writing to COS is missing! Please specify both a bucket and the COS configurations.");
+			}
+			if((fileOutputLocation == OutputLocations.BOTH || fileOutputLocation == OutputLocations.LOCAL) && fileSystemOutputPath == null){
+				throw new IllegalArgumentException("Required information for writing locally is missing! Please specify a file system output path (-p/--file-system-output-format).");
 			}
 		}
 	}
