@@ -95,7 +95,7 @@ public class ValueSetImporter {
 				throw new IllegalArgumentException("Required information for writing to COS is missing! Please specify both a bucket and the COS configurations.");
 			}
 			if((fileOutputLocation == OutputLocations.BOTH || fileOutputLocation == OutputLocations.LOCAL) && fileSystemOutputPath == null){
-				throw new IllegalArgumentException("Required information for writing locally is missing! Please specify a file system output path (-p/--file-system-output-format).");
+				throw new IllegalArgumentException("Required information for writing locally is missing! Please specify a file system output path (-p/--file-system-output-path).");
 			}
 		}
 	}
