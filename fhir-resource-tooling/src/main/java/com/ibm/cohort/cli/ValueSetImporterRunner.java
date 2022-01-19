@@ -18,7 +18,7 @@ public class ValueSetImporterRunner implements ProgramRunner {
 			ValueSetImporter.main(args);
 		}
 		catch (Exception e) {
-			throw new RuntimeException("Failed to run MeasureImporter", e);
+			throw new RuntimeException("Failed to run ValueSetImporter", e);
 		}
 	}
 }
