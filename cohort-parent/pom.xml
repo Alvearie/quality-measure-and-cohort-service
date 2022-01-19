@@ -46,8 +46,8 @@
 		<maven.compiler.source>${whBldsdkVer}</maven.compiler.source>
 		<maven.compiler.target>${whBldsdkVer}</maven.compiler.target>
 
-		<cqframework.version>1.5.4</cqframework.version>
-		<engine.version>1.5.1</engine.version>
+		<cqframework.version>1.5.6</cqframework.version>
+		<engine.version>1.5.4</engine.version>
 		<ruler.version>0.4.0</ruler.version>
 
 		<spark.version>3.1.2</spark.version>
@@ -275,6 +275,11 @@
 			<dependency>
 				<groupId>org.opencds.cqf.cql</groupId>
 				<artifactId>engine.fhir</artifactId>
+				<version>${engine.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.opencds.cqf.cql</groupId>
+				<artifactId>engine.jaxb</artifactId>
 				<version>${engine.version}</version>
 			</dependency>
 			<dependency>

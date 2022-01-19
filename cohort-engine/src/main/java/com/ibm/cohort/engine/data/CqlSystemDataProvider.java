@@ -1,21 +1,20 @@
 /*
- * (C) Copyright IBM Corp. 2021
+ * (C) Copyright IBM Corp. 2022, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.ibm.cohort.cql.data;
+package com.ibm.cohort.engine.data;
 
 import java.util.function.Supplier;
 
-import org.opencds.cqf.cql.engine.data.DataProvider;
+import org.opencds.cqf.cql.engine.data.SystemDataProvider;
 import org.opencds.cqf.cql.engine.elm.execution.obfuscate.PHIObfuscator;
 import org.opencds.cqf.cql.engine.elm.execution.obfuscate.RedactingPHIObfuscator;
 
-public interface CqlDataProvider extends DataProvider {
-
+public class CqlSystemDataProvider extends SystemDataProvider {
     @Override
-    default Supplier<PHIObfuscator> phiObfuscationSupplier() {
+    public Supplier<PHIObfuscator> phiObfuscationSupplier() {
         return RedactingPHIObfuscator::new;
     }
 }

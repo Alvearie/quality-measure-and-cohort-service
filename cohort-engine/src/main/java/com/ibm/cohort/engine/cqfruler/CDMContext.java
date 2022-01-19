@@ -18,6 +18,8 @@ import org.cqframework.cql.elm.execution.Library;
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
 import org.opencds.cqf.cql.engine.execution.Context;
 
+import com.ibm.cohort.engine.data.CqlSystemDataProvider;
+
 /**
  * 
  * This class extends the base context with the purpose of removing the limit on the number of items stored in the expression cache.  
@@ -59,8 +61,9 @@ public class CDMContext extends Context {
         return this.expressions.get(libraryId).get(name);
     }
 	
-	public void clearExpressionCache() {
-		expressions.clear();
+	@Override
+    public void clearExpressions() {
+		this.expressions.clear();
 	}
 
 	public CDMContext(Library library) {
@@ -68,7 +71,7 @@ public class CDMContext extends Context {
 	}
 
 	public CDMContext(Library library, ZonedDateTime evaluationZonedDateTime) {
-		super(library, evaluationZonedDateTime);
+		super(library, evaluationZonedDateTime, new CqlSystemDataProvider());
 	}
 	
 	public Set<VersionedIdentifier> getLibrariesInCache() {

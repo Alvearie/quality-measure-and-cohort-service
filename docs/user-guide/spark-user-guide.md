@@ -224,16 +224,16 @@ An example context-definitions.json file might look like this..
 					"relatedKeyColumn": "patient_id"
 				}]
         },{
-                "name": "Encounter",
-                "primaryDataType": "Patient",
-                "primaryKeyColumn": "patient_id",
-                "relationships":[{
-                    "type": "OneToMany",
-                    "relatedDataType": "Encounter",
-                    "relatedKeyColumn": "patient_id",
-                    "whereClause": "status = 'COMPLETE'"
-                }]
-        }]
+                 "name": "Encounter",
+                 "primaryDataType": "Patient",
+                 "primaryKeyColumn": "patient_id",
+                 "relationships":[{
+                     "type": "OneToMany",
+                     "relatedDataType": "Encounter",
+                     "relatedKeyColumn": "patient_id",
+                     "whereClause": "status = 'COMPLETE'"
+                 }]
+         }]
 }
 ```
 
@@ -399,6 +399,8 @@ This file contains various pieces of information about the performed run. The cu
 * `applicationId`: The spark application id. This value will match the application id on a Spark History server (if as history server is in use).
 * `startTimeMillis`: The starting timestamp of the Spark job in milliseconds.
 * `endTimeMillis`: The ending timestamp of the Spark job in milliseconds.
+* `runtimeMillis`: Runtime of the job in milliseconds.
+* `jobStatus`: `SUCCESS` if the Spark job finished without errors. `FAIL` otherwise. 
 * `totalContexts`: The total number of contexts processed.
 * `executionsPerContext`: A map containing an entry of `ContextName -> TotalCqlExecutions` for each context processed.
 * `errorList`: If one or more CQL evaluation errors occured during the run, then this field contains an entry per error
@@ -410,7 +412,9 @@ This file contains various pieces of information about the performed run. The cu
 them in the batch summary file rather than to have the program halt when it hits an error during CQL evaluation.
 This behavior can be changed by using the `--halt-on-error` option at runtime. When this option is used, the program
 will fail outright if an error is hit during CQL evaluation. This allows programs to "fail fast" if that behavior is
-needed rather than waiting until the end of a run to see if there are any errors reported.
+needed rather than waiting until the end of a run to see if there are any errors reported. Note that when the program halts early, the contents of the batch summary file is "best effort" and
+due to the way Spark reports information during failures it is possible that contents of the file may be
+incomplete or inaccurate. However, any reported errors should still be useful for debugging issues during a run.
 
 ### Debugging
 

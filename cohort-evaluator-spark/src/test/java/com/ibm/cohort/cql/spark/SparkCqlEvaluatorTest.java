@@ -864,6 +864,9 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
         File inputDir = new File("src/test/resources/alltypes/");
         File outputDir = new File("target/output/alltypes/");
 
+        File metadataDir = new File(outputDir, "null-result");
+        Set<Path> summaryFilesBefore = getSummaryFilesInPath(metadataDir.toPath());
+
         File patientFile = new File(outputDir, "Patient_cohort");
         File aFile = new File(outputDir, "A_cohort");
         File bFile = new File(outputDir, "B_cohort");
@@ -887,18 +890,26 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
           "-o", "D=" + dFile.toURI().toString(),
           "-n", "10",
           "--overwrite-output-for-contexts",
-          "--metadata-output-path", outputDir.toURI().toString(),
+          "--metadata-output-path", metadataDir.toURI().toString(),
           "--halt-on-error"
         };
 
         Exception ex = assertThrows( IllegalArgumentException.class, () -> SparkCqlEvaluator.main(args) );
         assertTrue( "Unexpected exception message", ex.getMessage().contains("has a null result type"));
+
+        Set<Path> summaryFilesAfter = getSummaryFilesInPath(metadataDir.toPath());
+        summaryFilesAfter.removeAll(summaryFilesBefore);
+
+        assertEquals(1, summaryFilesAfter.size());
     }
     
     @Test
     public void testCQLEngineThrowsException() throws Exception {
         File inputDir = new File("src/test/resources/alltypes/");
         File outputDir = new File("target/output/alltypes/");
+
+        File metadataDir = new File(outputDir, "halt-on-error");
+        Set<Path> summaryFilesBefore = getSummaryFilesInPath(metadataDir.toPath());
 
         File patientFile = new File(outputDir, "Patient_cohort");
         File aFile = new File(outputDir, "A_cohort");
@@ -923,12 +934,17 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
           "-o", "D=" + dFile.toURI().toString(),
           "-n", "10",
           "--overwrite-output-for-contexts",
-          "--metadata-output-path", outputDir.toURI().toString(),
+          "--metadata-output-path", metadataDir.toURI().toString(),
           "--halt-on-error"
         };
 
         Throwable th = assertThrows( SparkException.class, () -> SparkCqlEvaluator.main(args) );
         assertStackTraceContainsMessage(th, "CQL evaluation failed");
+
+        Set<Path> summaryFilesAfter = getSummaryFilesInPath(metadataDir.toPath());
+        summaryFilesAfter.removeAll(summaryFilesBefore);
+
+        assertEquals(1, summaryFilesAfter.size());
     }
 
     @Test
@@ -985,9 +1001,11 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
 
             if (hasErrors) {
                 assertTrue(CollectionUtils.isNotEmpty(evaluationSummary.getErrorList()));
+                assertTrue(evaluationSummary.getJobStatus() == JobStatus.FAIL);
             }
             else {
                 assertTrue(CollectionUtils.isEmpty(evaluationSummary.getErrorList()));
+                assertTrue(evaluationSummary.getJobStatus() == JobStatus.SUCCESS);
             }
         }
     }
