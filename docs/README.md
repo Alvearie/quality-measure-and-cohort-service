@@ -26,4 +26,4 @@ Basic Instructions:
 * Serve the docs locally (run from the root of this repo): `docsify serve docs/`
 
 Installing docsify is not a requirement to contribute documentation. Doing so is strictly a way to verify that changes are
-being rendered properly before merging back to `master`.
+being rendered properly before merging back to `main`.
