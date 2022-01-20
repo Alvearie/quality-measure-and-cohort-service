@@ -21,7 +21,7 @@ The ZIP archive should be formatted in the following manner...
 A sample program invocation might look like the following...
 
 ```
-$> java -jar fhir-resource-tooling-VERSION-shaded.jar -m local-fhir-config.json /path/to/measurebundle.zip
+$> java -jar fhir-resource-tooling-VERSION-shaded.jar measure-importer -m local-fhir-config.json /path/to/measurebundle.zip
 ```
 
 The FHIR bundles that are generated and the contents server response are written to an output path specified by the `-o` option. If no `-o` option is provided then the output is written to the current working directory. Users are responsible for creating the directory used in the -o option prior to executing the importer. The directory will not be created for you.
@@ -30,7 +30,7 @@ The FHIR bundles that are generated and the contents server response are written
 Another of our internal processes involves downloading and importing terminology resources into the FHIR server based on spreadsheets downloaded from the National Library Of Medicine's [ValueSet Authority Center (VSAC)](https://vsac.nlm.nih.gov/) website. In you want to download and import your own ValueSets from VSAC, start at the [VSAC website](https://vsac.nlm.nih.gov/),  navigate to the `Search Value Sets` tab to look for specific value sets, and then select `Export Value Set Results` on relevant sets. Once downloaded, use an invocation similar to the following to import whatever spreadsheets were exported.
 
 ```
-$> java -cp fhir-resource-tooling-VERSION-shaded.jar com.ibm.cohort.tooling.fhir.ValueSetImporter -m local-fhir-config.json <list_of_spreadsheet_valuesets>
+$> java -jar fhir-resource-tooling-VERSION-shaded.jar value-set-importer -m local-fhir-config.json <list_of_spreadsheet_valuesets>
 ```
 To see an existing template one can use to build one's own value sets from scratch, please check out our [template](user-guide/value_set_template.xlsx ':ignore').
 
@@ -38,7 +38,7 @@ To see an existing template one can use to build one's own value sets from scrat
 The ValueSetImporter tool can also be used to load value set spreadsheets that contain custom codes from alternate systems. One way to do so would be to simply replace the code system name in the spread sheet for a given code with the full url of that code. If you wish to use custom mappings, simply provide the argument `-c` or `--code-system-mappings` and supply a custom mapping file. To see an example of a custom code system map, click [here](user-guide/custom_codes.txt ':ignore').
 
 ```
-$> java -cp fhir-resource-tooling-0.0.1-SNAPSHOT-shaded.jar com.ibm.cohort.tooling.fhir.ValueSetImporter -m local-fhir-config.json -c <custom_codes.txt> <list_of_spreadsheet_valuesets>
+$> java -jar fhir-resource-tooling-VERSION-SNAPSHOT-shaded.jar value-set-importer -m local-fhir-config.json -c <custom_codes.txt> <list_of_spreadsheet_valuesets>
 ```
 
 Please note, if you intend to use custom mappings those mappings must be provided to load the value set with this tool.
