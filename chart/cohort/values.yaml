@@ -90,4 +90,4 @@ sparkHistoryServer:
     sparkHistoryFsCleanerEnabled: true
     sparkHistoryFsCleanerInterval: 1d
     sparkHistoryFsCleanerMaxAge: 120d
-    sparkHistoryFsCleanerMaxNum: 'Int.MaxValue'
+    sparkHistoryFsCleanerMaxNum: Int.MaxValue
