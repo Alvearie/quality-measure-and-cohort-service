@@ -87,7 +87,8 @@ sparkHistoryServer:
     eventsDir: "/"
   
   logs:
-    sparkHistoryFsCleanerEnabled: true
-    sparkHistoryFsCleanerInterval: 1d
-    sparkHistoryFsCleanerMaxAge: 120d
-    sparkHistoryFsCleanerMaxNum: Int.MaxValue
+    sparkHistoryOpts: >
+      -Dspark.history.fs.cleaner.enabled=true
+      -Dspark.history.fs.cleaner.interval=1d
+      -Dspark.history.fs.cleaner.maxAge=120d
+      -Dspark.history.fs.cleaner.maxNum=Int.MaxValue

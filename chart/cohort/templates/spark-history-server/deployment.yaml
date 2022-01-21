@@ -49,14 +49,8 @@ spec:
           value: {{ .Values.sparkHistoryServer.s3.bucket }}
         - name: AWS_LOG_PATH
           value: {{ .Values.sparkHistoryServer.s3.eventsDir }}
-        - name: SPARK_HISTORY_FS_CLEANER_MAXAGE
-          value: {{ .Values.sparkHistoryServer.logs.sparkHistoryFsCleanerMaxAge }}
-        - name: SPARK_HISTORY_FS_CLEANER_ENABLED
-          value: {{ .Values.sparkHistoryServer.logs.sparkHistoryFsCleanerEnabled }}
-        - name: SPARK_HISTORY_FS_CLEANER_INTERVAL
-          value: {{ .Values.sparkHistoryServer.logs.sparkHistoryFsCleanerInterval }}
-        - name: SPARK_HISTORY_FS_CLEANER_MAXNUM
-          value: {{ .Values.sparkHistoryServer.logs.sparkHistoryFsCleanerMaxNum }}
+        - name: SPARK_HISTORY_OPTS
+          value: {{ .Values.sparkHistoryServer.logs.sparkHistoryOpts }}
         - name: AWS_ACCESS_KEY
           valueFrom:
             secretKeyRef:
