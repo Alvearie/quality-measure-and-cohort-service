@@ -85,3 +85,9 @@ sparkHistoryServer:
     endpointId: "https://s3.us.cloud-object-storage.appdomain.cloud"
     bucket: cohort-spark-history
     eventsDir: "/"
+  
+  logs:
+    sparkHistoryFsCleanerEnabled: true
+    sparkHistoryFsCleanerInterval: 1d
+    sparkHistoryFsCleanerMaxAge: 120d
+    sparkHistoryFsCleanerMaxNum: Int.MaxValue
