@@ -86,6 +86,10 @@ sparkHistoryServer:
     bucket: cohort-spark-history
     eventsDir: "/"
   
+# The spark.history.fs.cleaner.* options control
+# how often the spark history server cleans up old event logs.
+# See https://spark.apache.org/docs/latest/monitoring.html#spark-history-server-configuration-options
+# for more information
   logs:
     sparkHistoryOpts: >
       -Dspark.history.fs.cleaner.enabled=true
