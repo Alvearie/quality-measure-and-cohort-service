@@ -243,6 +243,58 @@ For the initial pilot implementation of the Spark application, join logic is lim
 
 If the user wishes to limit which aggregation contexts are evaluated during an application run, there is a program option `-a` that can be used to specify one or more contextKey values for the aggregation contexts that should be evaluated.
 
+#### Advanced Joins
+
+When using normalized data, you might encounter a need to join on mutiple tables to create the desired context.
+
+Let's consider how we would need to set up a Context Definition to support using standardized valuesets within the OMOP data model.
+
+```plantuml
+entity "**person**" {
+  + ""person_id"": //integer [PK]//
+  --
+  ...
+}
+
+entity "**observation**" {
+  + ""observation_id"": //integer [PK]//
+  --
+  *""person_id"": //integer [FK]//
+  --
+  *""observation_concept_id"": //integer [FK]//
+  --
+  ...
+}
+
+entity "**concept**" {
+  + ""concept_id"": //integer [PK]//
+  --
+  *""vocabulary_id"": //character varying(20) [FK]//
+  --
+  ...
+}
+
+entity "**vocabulary**" {
+  + ""vocabulary_id"": //character varying(20) [PK]//
+  --
+  ""vocabulary_version"": //character varying(255) //
+  --
+  ...
+}
+
+"**observation**"   }--  "**person**"
+"**observation**"   }--  "**concept**"
+"**concept**"       }--  "**vocabulary**"
+```
+
+Because we need the triplet of `concept_id`, `vocabulary_id`, and `vocabulary_version` to query the terminology provider,
+we have to join across both the `concept` and `vocabulary` tables.
+
+And we would use the `with` field within a `MultiManyToMany` join to represent this relationship:
+
+[MultiManyToMany example ContextDefinition](context-definition/example-multi-many-to-many.json ':include :type=json')
+
+
 ### CQL and ModelInfo
 CQL files should be stored in a single folder which is indicated by the `-c` program option. Filenames of files contained in that folder should correspond to the library statement and version specified in the contents of the file. For example, a CQL with `library "SampleLibrary" version '1.0.0'` should be named `SampleLibrary-1.0.0.cql` (or SampleLibrary-1.0.0.xml if already translated to ELM).
 
