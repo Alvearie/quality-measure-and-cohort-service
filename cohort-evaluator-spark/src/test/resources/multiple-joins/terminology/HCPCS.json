@@ -1,26 +1,27 @@
 {
-	"resourceType": "ValueSet",
-	"id": "HCPCS",
-	"url": "http://cts.nlm.nih.gov/fhir/ValueSet/Test",
-	"version": "2020",
-	"name": "HCPCS",
-	"title": "HCPCS",
-	"status": "active",
-	"compose": {
-		"include": [
+  "resourceType": "ValueSet",
+  "id": "HCPCS",
+  "url": "http://cts.nlm.nih.gov/fhir/ValueSet/Test",
+  "version": "2020",
+  "name": "HCPCS",
+  "title": "HCPCS",
+  "status": "active",
+  "compose": {
+    "include": [
+      {
+        "system": "HCPCS",
+        "version": "2020",
+        "concept": [
           {
-			"system": "HCPCS",
-			"version": "2020",
-			"concept": [{
-				"code": "G0109",
-				"display": "Diabetes outpatient self-management training services, group session (2 or more), per 30 minutes"
-              },
-              {
-                "code": "G0108",
-                "display": "Diabetes outpatient self-management training services, individual, per 30 minutes"
-              }
-            ]
-		}
+            "code": "G0109",
+            "display": "Diabetes outpatient self-management training services, group session (2 or more), per 30 minutes"
+          },
+          {
+            "code": "G0108",
+            "display": "Diabetes outpatient self-management training services, individual, per 30 minutes"
+          }
         ]
-	}
+      }
+    ]
+  }
 }
