@@ -15,7 +15,9 @@ define "DiabetesObservationValueSet":
     , [concept] c
     , [vocabulary] v
   where
-    ToCode(c, v) in "Diabetes"
+    o.observation_concept_id = c.concept_id
+    and c.vocabulary_id = v.vocabulary_id
+    and ToCode(c, v) in "Diabetes"
 
 define function ToCode(concept concept, vocabulary vocabulary):
     System.Code {
