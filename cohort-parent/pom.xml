@@ -278,6 +278,12 @@
 				<groupId>org.opencds.cqf.cql</groupId>
 				<artifactId>engine.fhir</artifactId>
 				<version>${engine.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>com.squareup.okhttp3</groupId>
+						<artifactId>okhttp</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>org.opencds.cqf.cql</groupId>
