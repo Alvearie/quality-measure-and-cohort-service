@@ -25,12 +25,7 @@
 	</scm>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-    			<artifactId>log4j</artifactId>
-    			<version>2.13.1</version>
-		</dependency>
-
+		
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
 			<artifactId>cohort-engine</artifactId>
