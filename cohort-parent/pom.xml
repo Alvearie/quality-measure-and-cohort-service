@@ -42,6 +42,8 @@
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+<!--		<project.res-->
+
 		<whBldsdkVer>1.8</whBldsdkVer>
 		<maven.compiler.source>${whBldsdkVer}</maven.compiler.source>
 		<maven.compiler.target>${whBldsdkVer}</maven.compiler.target>
@@ -52,19 +54,19 @@
 
 		<spark.version>3.1.2</spark.version>
 		<spark.scala.version>2.12</spark.scala.version>
-		<hadoop.version>3.2.0</hadoop.version>
+		<hadoop.version>3.2.2</hadoop.version>
 
 		<!-- Scala 2.12 has a hard dependency on the 2.10.X lineage of Jackson -->
 		<jackson.version>2.10.5</jackson.version>
 		<jackson.databind.version>${jackson.version}.1</jackson.databind.version>
 		<jacoco.version>0.8.6</jacoco.version>
 		<powermock.version>2.0.9</powermock.version>
-		<groovy.version>2.4.8</groovy.version>
+		<groovy.version>2.4.21</groovy.version>
 		<slf4j.version>1.7.30</slf4j.version>
 		<swagger.version>1.6.2</swagger.version>
 		<ant.junit.version>1.10.9</ant.junit.version>
 		<cxf.version>3.4.4</cxf.version>
-		<jetty.version>9.4.40.v20210413</jetty.version>
+		<jetty.version>9.4.44.v20210927</jetty.version>
 
 		<!-- Default values for the jacoco-maven-plugin reports -->
 		<cohort.jacoco.classRatio>0.80</cohort.jacoco.classRatio>
@@ -773,7 +775,7 @@
 				<version>2.9.0</version>
 			</dependency>
 			<dependency>
-				<groupId>org.hibernate</groupId>
+				<groupId>org.hibernate.validator</groupId>
 				<artifactId>hibernate-validator</artifactId>
 				<version>6.0.22.Final</version>
 			</dependency>
@@ -801,7 +803,7 @@
 			<dependency>
 				<groupId>io.netty</groupId>
 				<artifactId>netty-all</artifactId>
-				<version>4.1.61.Final</version>
+				<version>4.1.73.Final</version>
 			</dependency>
 			<dependency>
 				<groupId>log4j</groupId>
@@ -848,6 +850,15 @@
 				<artifactId>gson</artifactId>
 				<version>2.8.9</version>
 			</dependency>
+
+			<!-- override version pulled in by com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:jar:2.10.0 -->
+			<dependency>
+				<groupId>org.yaml</groupId>
+				<artifactId>snakeyaml</artifactId>
+				<version>1.26</version>
+			</dependency>
+
+
 		</dependencies>
 	</dependencyManagement>
 
@@ -1135,6 +1146,11 @@
 					<artifactId>maven-shade-plugin</artifactId>
 					<version>3.2.4</version>
 				</plugin>
+				<plugin>
+					<groupId>org.sonatype.ossindex.maven</groupId>
+					<artifactId>ossindex-maven-plugin</artifactId>
+					<version>3.1.0</version>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 
@@ -1289,7 +1305,7 @@
 								<ignoredUnusedDeclaredDependency>org.opencds.cqf:common</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>org.hamcrest:hamcrest-core</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>org.apache.commons:commons-text</ignoredUnusedDeclaredDependency>
-								<ignoredUnusedDeclaredDependency>org.hibernate:hibernate-validator</ignoredUnusedDeclaredDependency>
+								<ignoredUnusedDeclaredDependency>org.hibernate.validator:hibernate-validator</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>org.glassfish:javax.el</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>com.github.tomakehurst:wiremock-jre8</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>org.apache.hadoop:hadoop-aws</ignoredUnusedDeclaredDependency>
@@ -1356,7 +1372,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!--<plugin>
+			<plugin>
 				<groupId>org.sonatype.ossindex.maven</groupId>
 				<artifactId>ossindex-maven-plugin</artifactId>
 				<executions>
@@ -1369,9 +1385,34 @@
 					</execution>
 				</executions>
 				<configuration>
-					<cvssScoreThreshold>7</cvssScoreThreshold>
+					<excludeVulnerabilityIds>
+						<!-- The following 3 vulnerabilities are from org.spark-project.spark:unused and only apply to lower versions of Spark-->
+						<!-- [CVE-2020-9480] In Apache Spark 2.4.5 and earlier, a standalone resource manager's master may be configured to require authentication (spark.authenticate) via a shared secret. -->
+						<excludeVulnerabilityId>afec1ee2-9dc1-4ecf-a12b-2776442d1717</excludeVulnerabilityId>
+						<!-- [CVE-2017-7678] Improper Neutralization of Input During Web Page Generation ("Cross-site Scripting"): In Apache Spark before 2.2.0... -->
+						<excludeVulnerabilityId>cebbeee0-d245-4a3f-b138-032060d151a9</excludeVulnerabilityId>
+						<!-- [CVE-2018-1334] Information Exposure: In Apache Spark 1.0.0 to 2.1.2, 2.2.0 to 2.2.1, and 2.3.0 -->
+						<excludeVulnerabilityId>9ddb61f1-9c22-41a8-9390-dd857d535408</excludeVulnerabilityId>
+
+					</excludeVulnerabilityIds>
+
+					<excludeCoordinates>
+						<!-- Excluding log4j until we figure out the approach to handle-->
+						<exclude>
+							<groupId>log4j</groupId>
+							<artifactId>log4j</artifactId>
+							<version>1.2.17</version>
+						</exclude>
+
+						<!-- Excluding this until I understand why IBM didn't flag it-->
+						<exclude>
+							<groupId>org.codehaus.jackson</groupId>
+							<artifactId>jackson-mapper-asl</artifactId>
+							<version>1.9.13</version>
+						</exclude>
+					</excludeCoordinates>
 				</configuration>
-			</plugin>-->
+			</plugin>
 		</plugins>
 	</build>
 

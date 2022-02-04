@@ -25,7 +25,7 @@
 	</scm>
 
 	<dependencies>
-		
+
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
 			<artifactId>cohort-engine</artifactId>
@@ -126,7 +126,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.hibernate</groupId>
+			<groupId>org.hibernate.validator</groupId>
 			<artifactId>hibernate-validator</artifactId>
 			<scope>runtime</scope>
 		</dependency>
