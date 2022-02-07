@@ -1,0 +1,16 @@
+{
+  "evaluations": [
+    {
+      "descriptor": {
+        "libraryId": "DiabetesSmoking",
+        "version": "1.0.0"
+      },
+      "expressions":
+      [
+        "cohort"
+      ],
+      "contextKey": "person",
+      "contextValue": "NA"
+    }
+  ]
+}

@@ -114,3 +114,11 @@ The FHIR Terminology Service for VSAC Resources is a RESTful API service for acc
 
 - https://cts.nlm.nih.gov/fhir/
 - https://www.nlm.nih.gov/vsac/support/usingvsac/vsacsvsapiv2.html
+
+##### OMOP
+Observational Medical Outcomes Partnership (OMOP) is a Common Data Model that aims to
+
+> allows for the systematic analysis of disparate observational databases
+
+- https://www.ohdsi.org/data-standardization/the-common-data-model/
+
