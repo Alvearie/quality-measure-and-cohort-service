@@ -42,8 +42,6 @@
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-<!--		<project.res-->
-
 		<whBldsdkVer>1.8</whBldsdkVer>
 		<maven.compiler.source>${whBldsdkVer}</maven.compiler.source>
 		<maven.compiler.target>${whBldsdkVer}</maven.compiler.target>
