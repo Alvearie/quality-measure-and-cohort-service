@@ -1408,7 +1408,12 @@
 							<version>1.2.17</version>
 						</exclude>
 
-						<!-- Excluding this until I understand why IBM didn't flag it-->
+						<!--
+						These are legitimate vulnerabilities that come through org.apache.parquet:parquet-hadoop:jar:1.10.1
+						If we upgrade to Spark 3.2.x, this will result in an update to parquest-hadoop 1.12.x which removes jackson-mapper-asl
+
+						Do we have an exemption for these today?
+						-->
 						<exclude>
 							<groupId>org.codehaus.jackson</groupId>
 							<artifactId>jackson-mapper-asl</artifactId>
