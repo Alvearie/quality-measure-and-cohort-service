@@ -807,7 +807,7 @@
 			<dependency>
 				<groupId>io.netty</groupId>
 				<artifactId>netty-all</artifactId>
-				<version>4.1.73.Final</version>
+				<version>4.1.61.Final</version>
 			</dependency>
 			<dependency>
 				<groupId>log4j</groupId>
@@ -1398,6 +1398,8 @@
 						<!-- [CVE-2018-1334] Information Exposure: In Apache Spark 1.0.0 to 2.1.2, 2.2.0 to 2.2.1, and 2.3.0 -->
 						<excludeVulnerabilityId>9ddb61f1-9c22-41a8-9390-dd857d535408</excludeVulnerabilityId>
 
+						<!-- This is a legitimate vulnerability -->
+<!--						<excludeVulnerabilityId>151e0922-bd99-4adf-ac92-10c23aa4c815</excludeVulnerabilityId>-->
 					</excludeVulnerabilityIds>
 
 					<excludeCoordinates>
@@ -1418,6 +1420,12 @@
 							<groupId>org.codehaus.jackson</groupId>
 							<artifactId>jackson-mapper-asl</artifactId>
 							<version>1.9.13</version>
+						</exclude>
+
+						<exclude>
+							<groupId>io.netty</groupId>
+							<artifactId>netty-all</artifactId>
+							<version>4.1.61.Final</version>
 						</exclude>
 					</excludeCoordinates>
 				</configuration>
