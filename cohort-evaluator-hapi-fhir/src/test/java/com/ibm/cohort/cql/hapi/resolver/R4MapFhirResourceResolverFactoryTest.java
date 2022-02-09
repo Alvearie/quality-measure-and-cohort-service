@@ -120,8 +120,7 @@ public class R4MapFhirResourceResolverFactoryTest {
     @Test
     public void fromZipFile_searchPath_subSubFolder() throws IOException {
         Path directory = Paths.get("src/test/resources/fhir/file-test/zipped-libraries.zip");
-        Path searchPath = Paths.get("sub-folder", "subsub-folder");
-        FhirResourceResolver<Library> resolver = factory.fromZipFile(directory, searchPath.toString());
+        FhirResourceResolver<Library> resolver = factory.fromZipFile(directory, "sub-folder/subsub-folder");
 
         assertIdsArePresent(
                 resolver,
