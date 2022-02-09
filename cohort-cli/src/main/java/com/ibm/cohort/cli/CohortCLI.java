@@ -222,7 +222,7 @@ public class CohortCLI extends BaseCLI {
 			}
 
 			for (Pair<String, String> context : contexts) {
-				out.println("Context: " + context);
+				out.println("Context: " + context.getRight());
 				CqlEvaluationResult result = wrapper.evaluate(
 						libraryDescriptor,
 						parameters,
