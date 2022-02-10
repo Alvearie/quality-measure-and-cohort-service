@@ -20,20 +20,6 @@
 	</scm>
 
 	<dependencies>
-		<dependency>
-			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-cli</artifactId>
-			<version>${revision}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-evaluator</artifactId>
-			<version>${revision}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-		</dependency>
 	</dependencies>
 
 	<build>
