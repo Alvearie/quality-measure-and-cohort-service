@@ -134,11 +134,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId> org.opencds.cqf.cql</groupId>
-			<artifactId>engine.fhir</artifactId>
-		</dependency>
-
-		<dependency>
 			<groupId>com.ibm.cohort</groupId>
 			<artifactId>cohort-engine-api</artifactId>
 			<version>${project.version}</version>

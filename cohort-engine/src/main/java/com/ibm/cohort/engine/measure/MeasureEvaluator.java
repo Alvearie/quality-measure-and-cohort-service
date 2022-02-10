@@ -10,13 +10,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
 import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
-import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
@@ -35,7 +35,7 @@ public class MeasureEvaluator {
 	private final R4LibraryDependencyGatherer libraryDependencyGatherer;
 
 	private final TerminologyProvider terminologyProvider;
-	private final Map<String, DataProvider> dataProviders;
+	private final Map<String, CqlDataProvider> dataProviders;
 	private MeasurementPeriodStrategy measurementPeriodStrategy;
 
 	public MeasureEvaluator(
@@ -43,7 +43,7 @@ public class MeasureEvaluator {
 			FhirResourceResolver<Library> libraryResolver,
 			R4LibraryDependencyGatherer libraryDependencyGatherer,
 			TerminologyProvider terminologyProvider,
-			Map<String, DataProvider> dataProviders
+			Map<String, CqlDataProvider> dataProviders
 	) {
 		this.measureResolver = measureResolver;
 		this.libraryResolver = libraryResolver;

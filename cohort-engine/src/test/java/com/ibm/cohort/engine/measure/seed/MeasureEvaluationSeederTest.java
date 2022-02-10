@@ -7,19 +7,16 @@
 package com.ibm.cohort.engine.measure.seed;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
 import com.ibm.cohort.cql.hapi.HapiUtils;
 import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
 import org.apache.commons.io.IOUtils;
-import org.cqframework.cql.elm.execution.Library.Usings;
-import org.cqframework.cql.elm.execution.UsingDef;
-import org.cqframework.cql.elm.execution.VersionedIdentifier;
 import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CodeableConcept;
@@ -29,7 +26,6 @@ import org.hl7.fhir.r4.model.Measure;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.runtime.DateTime;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
@@ -50,9 +46,9 @@ public class MeasureEvaluationSeederTest {
     public void create_fullContext() throws IOException {
         TerminologyProvider terminologyProvider = Mockito.mock(TerminologyProvider.class);
 
-        DataProvider dataProvider = Mockito.mock(DataProvider.class);
+        CqlDataProvider dataProvider = Mockito.mock(CqlDataProvider.class);
 
-        Map<String, DataProvider> dataProviders = new HashMap<>();
+        Map<String, CqlDataProvider> dataProviders = new HashMap<>();
         dataProviders.put(fhirUri, dataProvider);
         Measure measure = createMeasure();
 
@@ -94,9 +90,9 @@ public class MeasureEvaluationSeederTest {
     public void create_minimalContext() throws IOException {
         TerminologyProvider terminologyProvider = Mockito.mock(TerminologyProvider.class);
 
-        DataProvider dataProvider = Mockito.mock(DataProvider.class);
+        CqlDataProvider dataProvider = Mockito.mock(CqlDataProvider.class);
 
-        Map<String, DataProvider> dataProviders = new HashMap<>();
+        Map<String, CqlDataProvider> dataProviders = new HashMap<>();
         dataProviders.put(fhirUri, dataProvider);
 
         Library library = createLibrary("/cql/seeder/Test-1.0.0.xml");

@@ -10,13 +10,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.ibm.cohort.cql.data.CqlDataProvider;
+import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
+import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Patient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.opencds.cqf.cql.engine.data.DataProvider;
-import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
 import com.ibm.cohort.engine.BaseFhirTest;
@@ -42,8 +44,8 @@ public class R4DataProviderFactoryTest extends BaseFhirTest {
 				.withDefaultClient(getFhirServerConfig())
 				.build()
 				.getDataClient();
-		TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(client);
-		Map<String, DataProvider> map = R4DataProviderFactory.createDataProviderMap(
+		CqlTerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(client);
+		Map<String, CqlDataProvider> map = R4DataProviderFactory.createDataProviderMap(
 				client,
 				terminologyProvider,
 				null
@@ -57,9 +59,9 @@ public class R4DataProviderFactoryTest extends BaseFhirTest {
 				.withDefaultClient(getFhirServerConfig())
 				.build()
 				.getDataClient();
-		TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(client);
+		CqlTerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(client);
 		try(RetrieveCacheContext cacheContext = new DefaultRetrieveCacheContext(new CaffeineConfiguration<>())) {
-			Map<String, DataProvider> map = R4DataProviderFactory.createDataProviderMap(
+			Map<String, CqlDataProvider> map = R4DataProviderFactory.createDataProviderMap(
 					client,
 					terminologyProvider,
 					cacheContext
@@ -68,7 +70,7 @@ public class R4DataProviderFactoryTest extends BaseFhirTest {
 		}
 	}
 
-	private void verifyDataProviderMap(Map<String, DataProvider> dataProviderMap) {
+	private void verifyDataProviderMap(Map<String, CqlDataProvider> dataProviderMap) {
 		Assert.assertEquals(1, dataProviderMap.size());
 		DataProvider dataProvider = dataProviderMap.get(R4DataProviderFactory.FHIR_R4_URL);
 		Iterable<Object> iterable = dataProvider.retrieve(

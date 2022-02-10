@@ -27,10 +27,8 @@ import com.ibm.cohort.cql.evaluation.ContextNames;
 import com.ibm.cohort.cql.evaluation.CqlDebug;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
 import com.ibm.cohort.cql.evaluation.CqlEvaluator;
-import com.ibm.cohort.cql.data.DefaultCqlDataProvider;
 import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResrouceResolverFactory;
 import com.ibm.cohort.cql.library.Format;
-import com.ibm.cohort.cql.terminology.DefaultCqlTerminologyProvider;
 import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
@@ -44,8 +42,9 @@ import com.ibm.cohort.cql.library.ZipStreamProcessor;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
+import com.ibm.cohort.engine.measure.R4DataProviderFactory;
+import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;
-import com.ibm.cohort.engine.retrieve.R4RestFhirRetrieveProvider;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -60,9 +59,6 @@ import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import org.hl7.fhir.instance.model.api.IAnyResource;
 import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.Library;
-import org.opencds.cqf.cql.engine.fhir.searchparam.SearchParameterResolver;
-import org.opencds.cqf.cql.engine.model.ModelResolver;
-import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 public class CohortCLI extends BaseCLI {
 
@@ -184,16 +180,18 @@ public class CohortCLI extends BaseCLI {
 			CqlLibraryProvider libraryProvider = new TranslatingCqlLibraryProvider(backingLibraryProvider, translator, isForceTranslation);
 
 			IGenericClient dataClient = fhirClientBuilder.createFhirClient(dataServerConfig);
-			ModelResolver modelResolver = R4FhirModelResolverFactory.createCachingResolver();
-			SearchParameterResolver searchParameterResolver = new SearchParameterResolver(dataClient.getFhirContext());
-			R4RestFhirRetrieveProvider retrieveProvider = new R4RestFhirRetrieveProvider(searchParameterResolver, dataClient);
-			retrieveProvider.setSearchPageSize(arguments.searchPageSize);
-			retrieveProvider.setExpandValueSets(!arguments.enableTerminologyOptimization);
-			CqlDataProvider dataProvider = new DefaultCqlDataProvider(modelResolver, retrieveProvider);
 
 			IGenericClient termClient = fhirClientBuilder.createFhirClient(terminologyServerConfig);
-			TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(termClient);
-			CqlTerminologyProvider termProvider = new DefaultCqlTerminologyProvider(terminologyProvider);
+			CqlTerminologyProvider termProvider = new R4RestFhirTerminologyProvider(termClient);
+
+			CqlDataProvider dataProvider = R4DataProviderFactory.createDataProvider(
+					dataClient,
+					termProvider,
+					new DefaultRetrieveCacheContext(),
+					R4FhirModelResolverFactory.createCachingResolver(),
+					!arguments.enableTerminologyOptimization,
+					arguments.searchPageSize
+			);
 
 			wrapper = new CqlEvaluator()
 					.setLibraryProvider(libraryProvider)

@@ -34,7 +34,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 import com.ibm.cohort.cql.data.CqlDataProvider;
-import com.ibm.cohort.cql.data.DefaultCqlDataProvider;
 import com.ibm.cohort.cql.evaluation.ContextNames;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
 import com.ibm.cohort.cql.evaluation.CqlEvaluator;
@@ -51,10 +50,9 @@ import com.ibm.cohort.cql.library.MapCqlLibraryProviderFactory;
 import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
 import com.ibm.cohort.cql.library.ZipStreamProcessor;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
-import com.ibm.cohort.cql.terminology.DefaultCqlTerminologyProvider;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
-import com.ibm.cohort.engine.retrieve.R4RestFhirRetrieveProvider;
+import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -62,11 +60,6 @@ import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
-import org.opencds.cqf.cql.engine.data.DataProvider;
-import org.opencds.cqf.cql.engine.fhir.searchparam.SearchParameterResolver;
-import org.opencds.cqf.cql.engine.model.ModelResolver;
-import org.opencds.cqf.cql.engine.retrieve.RetrieveProvider;
-import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +75,6 @@ import com.ibm.cohort.engine.measure.MeasureEvaluator;
 import com.ibm.cohort.engine.measure.R4DataProviderFactory;
 import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
-import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
@@ -420,18 +412,22 @@ public class CohortEngineRestHandler {
 			FhirClientBuilderFactory clientBuilderFactory = FhirClientBuilderFactory.newInstance();
 			FhirClientBuilder clientBuilder = clientBuilderFactory.newFhirClientBuilder();
 
-			ZipInputStream zis = new ZipInputStream(cqlAttachment.getDataHandler().getInputStream());
-			ZipStreamProcessor zipProcessor = new ZipStreamProcessor();
-			MapCqlLibraryProviderFactory libraryProviderFactory = new MapCqlLibraryProviderFactory(zipProcessor);
-			String[] attachmentHeaders = cqlAttachment.getHeader("Content-Disposition").split(";");
-			String filename = null;
-			for(String header : attachmentHeaders){
-				if(header.contains("filename")){
-					filename = FilenameUtils.removeExtension(header.split("=")[1].replaceAll("\"", ""));
+			CqlLibraryProvider libraryProvider;
+			try(InputStream is = cqlAttachment.getDataHandler().getInputStream()) {
+				ZipInputStream zis = new ZipInputStream(is);
+				ZipStreamProcessor zipProcessor = new ZipStreamProcessor();
+				MapCqlLibraryProviderFactory libraryProviderFactory = new MapCqlLibraryProviderFactory(zipProcessor);
+				String[] attachmentHeaders = cqlAttachment.getHeader("Content-Disposition").split(";");
+				String filename = null;
+				for (String header : attachmentHeaders) {
+					if (header.contains("filename")) {
+						filename = FilenameUtils.removeExtension(header.split("=")[1].replaceAll("\"", ""));
+					}
 				}
+				String[] searchPaths = new String[]{"cql", filename + "/cql"};
+				libraryProvider = libraryProviderFactory.fromZipStream(zis, searchPaths);
 			}
-			String [] searchPaths = new String[] { "cql", filename+"/cql"};
-			CqlLibraryProvider libraryProvider = libraryProviderFactory.fromZipStream(zis, searchPaths);
+
 			CqlLibraryProvider fhirClasspathProvider = new ClasspathCqlLibraryProvider("org.hl7.fhir");
 			libraryProvider = new PriorityCqlLibraryProvider(libraryProvider, fhirClasspathProvider);
 
@@ -440,62 +436,24 @@ public class CohortEngineRestHandler {
 
 			IGenericClient dataClient = clientBuilder.createFhirClient(dataServerConfig);
 
-			// Do not use the caching resolver here until it is made thread-safe.
-			ModelResolver modelResolver = R4FhirModelResolverFactory.createNonCachingResolver();
-			SearchParameterResolver searchParameterResolver = new SearchParameterResolver(dataClient.getFhirContext());
-			RetrieveProvider retrieveProvider = new R4RestFhirRetrieveProvider(searchParameterResolver, dataClient);
-			CqlDataProvider dataProvider = new DefaultCqlDataProvider(modelResolver, retrieveProvider);
-
 			IGenericClient termClient = clientBuilder.createFhirClient(terminologyServerConfig);
-			TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(termClient);
-			CqlTerminologyProvider termProvider = new DefaultCqlTerminologyProvider(terminologyProvider);
+			CqlTerminologyProvider termProvider = new R4RestFhirTerminologyProvider(termClient);
 
-			CqlEvaluator evaluator = new CqlEvaluator()
-					.setLibraryProvider(libraryProvider)
-					.setDataProvider(dataProvider)
-					.setTerminologyProvider(termProvider)
-					.setCacheContexts(false);
-
-			Set<String> expressions = new HashSet<>();
-			expressions.add(evaluationRequest.getDefineToRun());
-
-			String[] patients = evaluationRequest.getPatientIds().split(",");
-			CqlLibraryDescriptor topLevelLibrary = CqlLibraryHelpers.filenameToLibraryDescriptor(evaluationRequest.getEntrypoint());
-
-			List<String> passingPatients = new ArrayList<>();
-			for (String patientId : patients) {
-				Pair<String, String> contextPair = new ImmutablePair<>(ContextNames.PATIENT, patientId);
-				CqlEvaluationResult result = evaluator.evaluate(
-						topLevelLibrary,
-						evaluationRequest.getParameters(),
-						contextPair,
-						expressions,
-						evaluationRequest.getLoggingLevel(),
-						ZonedDateTime.now()
+			List<String> passingPatients;
+			try (RetrieveCacheContext retrieveCacheContext = new DefaultRetrieveCacheContext()) {
+				passingPatients = evaluateCohort(
+						dataClient,
+						termProvider,
+						libraryProvider,
+						retrieveCacheContext,
+						evaluationRequest
 				);
-
-				for (Map.Entry<String, Object> entry : result.getExpressionResults().entrySet()) {
-					String expression = entry.getKey();
-					Object rawValue = entry.getValue();
-					if (rawValue == null) {
-						throw new RuntimeException(String.format("Null result is unsupported! Expression: \"%s\", ContextId: %s", expression, patientId));
-					}
-					if (!(rawValue instanceof Boolean)) {
-						throw new RuntimeException(String.format("Only boolean CQLs are currently supported! Expression: \"%s\", Result: %s, ContextId: %s", expression, result, patientId));
-					}
-					Boolean booleanResult = (Boolean)rawValue;
-					if (booleanResult) {
-						passingPatients.add(patientId);
-					}
-					logger.info(String.format("Expression: \"%s\", Result: %s, ContextId: %s", expression, booleanResult, patientId));
-				}
 			}
 
 			response = Response.status(Response.Status.OK)
 					.header("Content-Type", "application/json")
 					.entity(new CohortResult(passingPatients))
 					.build();
-
 		} catch (Throwable e) {
 			//map any exceptions caught into the proper REST error response objects
 			response = new CohortServiceExceptionMapper().toResponse(e);
@@ -956,6 +914,63 @@ public class CohortEngineRestHandler {
 		return response;
 	}
 
+	private List<String> evaluateCohort(
+			IGenericClient dataClient,
+			CqlTerminologyProvider termProvider,
+			CqlLibraryProvider libraryProvider,
+			RetrieveCacheContext retrieveCacheContext,
+			CohortEvaluation evaluationRequest
+	) {
+		CqlDataProvider dataProvider = R4DataProviderFactory.createDataProvider(
+				dataClient,
+				termProvider,
+				retrieveCacheContext
+		);
+
+		CqlEvaluator evaluator = new CqlEvaluator()
+				.setLibraryProvider(libraryProvider)
+				.setDataProvider(dataProvider)
+				.setTerminologyProvider(termProvider)
+				.setCacheContexts(false);
+
+		Set<String> expressions = new HashSet<>();
+		expressions.add(evaluationRequest.getDefineToRun());
+
+		String[] patients = evaluationRequest.getPatientIds().split(",");
+		CqlLibraryDescriptor topLevelLibrary = CqlLibraryHelpers.filenameToLibraryDescriptor(evaluationRequest.getEntrypoint());
+
+		List<String> retVal = new ArrayList<>();
+		for (String patientId : patients) {
+			Pair<String, String> contextPair = new ImmutablePair<>(ContextNames.PATIENT, patientId);
+			CqlEvaluationResult result = evaluator.evaluate(
+					topLevelLibrary,
+					evaluationRequest.getParameters(),
+					contextPair,
+					expressions,
+					evaluationRequest.getLoggingLevel(),
+					ZonedDateTime.now()
+			);
+
+			for (Map.Entry<String, Object> entry : result.getExpressionResults().entrySet()) {
+				String expression = entry.getKey();
+				Object rawValue = entry.getValue();
+				if (rawValue == null) {
+					throw new RuntimeException(String.format("Null result is unsupported! Expression: \"%s\", ContextId: %s", expression, patientId));
+				}
+				if (!(rawValue instanceof Boolean)) {
+					throw new RuntimeException(String.format("Only boolean CQLs are currently supported! Expression: \"%s\", Result: %s, ContextId: %s", expression, result, patientId));
+				}
+				Boolean booleanResult = (Boolean) rawValue;
+				if (booleanResult) {
+					retVal.add(patientId);
+				}
+				logger.info(String.format("Expression: \"%s\", Result: %s, ContextId: %s", expression, booleanResult, patientId));
+			}
+		}
+
+		return retVal;
+	}
+
 	private MeasureEvaluator createMeasureEvaluator(
 			InputStream inputStream,
 			FhirServerConfig dataServerConfig,
@@ -981,7 +996,7 @@ public class CohortEngineRestHandler {
 		FhirResourceResolver<Measure> measureResolver = resolvers.getMeasureResolver();
 		R4LibraryDependencyGatherer libraryDependencyGatherer = new R4LibraryDependencyGatherer(libraryResolver);
 
-		TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(terminologyClient);
+		CqlTerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(terminologyClient);
 		if( expandValueSets == null ) {
 			expandValueSets = R4DataProviderFactory.DEFAULT_IS_EXPAND_VALUE_SETS;
 		}
@@ -990,7 +1005,14 @@ public class CohortEngineRestHandler {
 			searchPageSize = R4DataProviderFactory.DEFAULT_PAGE_SIZE;
 		}
 
-		Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataClient, terminologyProvider, retrieveCacheContext, expandValueSets, searchPageSize);
+		Map<String, CqlDataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(
+				dataClient,
+				terminologyProvider,
+				retrieveCacheContext,
+				R4FhirModelResolverFactory.createCachingResolver(),
+				expandValueSets,
+				searchPageSize
+		);
 		return new MeasureEvaluator(measureResolver, libraryResolver, libraryDependencyGatherer, terminologyProvider, dataProviders);
 	}
 	

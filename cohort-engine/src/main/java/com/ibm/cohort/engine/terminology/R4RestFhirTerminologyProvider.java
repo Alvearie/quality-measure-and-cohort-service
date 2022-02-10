@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.CodeType;
@@ -33,7 +34,7 @@ import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
  * resources are not found and with an additional query parameter for version
  * added, as needed, during ValueSet resource resolution.
  */
-public class R4RestFhirTerminologyProvider extends R4FhirTerminologyProvider {
+public class R4RestFhirTerminologyProvider extends R4FhirTerminologyProvider implements CqlTerminologyProvider {
 
     private IGenericClient fhirClient;
     

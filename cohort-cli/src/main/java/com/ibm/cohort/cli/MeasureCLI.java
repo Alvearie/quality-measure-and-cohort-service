@@ -17,17 +17,17 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
+import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
 import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
 import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResrouceResolverFactory;
 import com.ibm.cohort.cql.hapi.resolver.R4QualityMeasureResolvers;
 import com.ibm.cohort.cql.hapi.resolver.R4QualityMeasureResolverFactory;
 import com.ibm.cohort.cql.library.ZipStreamProcessor;
+import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
-import org.opencds.cqf.cql.engine.data.DataProvider;
-import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -168,9 +168,9 @@ public class MeasureCLI extends BaseCLI {
 			validateMeasureContexts(measureContexts);
 
 			R4LibraryDependencyGatherer libraryDependencyGatherer = new R4LibraryDependencyGatherer(libraryResolver);
-			TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(terminologyServerClient);
+			CqlTerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(terminologyServerClient);
 			try (RetrieveCacheContext retrieveCacheContext = arguments.disableRetrieveCache ? null : new DefaultRetrieveCacheContext()) {
-				Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataServerClient, terminologyProvider, retrieveCacheContext, R4FhirModelResolverFactory.createCachingResolver(), ! arguments.enableTerminologyOptimization, arguments.searchPageSize);
+				Map<String, CqlDataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(dataServerClient, terminologyProvider, retrieveCacheContext, R4FhirModelResolverFactory.createCachingResolver(), ! arguments.enableTerminologyOptimization, arguments.searchPageSize);
 
 				evaluator = new MeasureEvaluator(measureResolver, libraryResolver, libraryDependencyGatherer, terminologyProvider, dataProviders);
 

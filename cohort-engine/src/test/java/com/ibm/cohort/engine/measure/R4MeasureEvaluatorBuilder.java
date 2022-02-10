@@ -8,14 +8,14 @@ package com.ibm.cohort.engine.measure;
 
 import java.util.Map;
 
+import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
 import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResrouceResolverFactory;
+import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
-import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.model.ModelResolver;
-import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.r4.cache.CachingModelResolverDecorator;
@@ -70,8 +70,8 @@ public class R4MeasureEvaluatorBuilder {
 			throw new IllegalArgumentException("Client context not provided");
 		}
 
-		TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(clientContext.getTerminologyClient());
-		Map<String, DataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(
+		CqlTerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(clientContext.getTerminologyClient());
+		Map<String, CqlDataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(
 				clientContext.getDataClient(),
 				terminologyProvider,
 				cacheContext,

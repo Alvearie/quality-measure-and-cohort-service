@@ -508,7 +508,7 @@ public class CohortCLITest extends BasePatientTest {
 			String output = new String(baos.toByteArray());
 			System.out.println(output);
 
-			verify(2, getRequestedFor(urlEqualTo("/Patient/" + patient.getId() + "?_format=json")));
+			verify(1, getRequestedFor(urlEqualTo("/Patient/" + patient.getId() + "?_format=json")));
 			verify(1, getRequestedFor(urlEqualTo("/Library/" + root.getId() + "?_format=json")));
 			verify(1, getRequestedFor(urlEqualTo("/Library?url=%2FLibrary%2F" + helpers.getId() + "&_format=json")));
 		} finally {

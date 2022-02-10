@@ -11,6 +11,7 @@ import static com.ibm.cohort.engine.cdm.CDMConstants.PARAMETER_DEFAULT_URL;
 import java.util.List;
 import java.util.Map;
 
+import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
 import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
 import com.ibm.cohort.cql.hapi.R4TranslatingLibraryLoader;
@@ -38,7 +39,7 @@ import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 public class MeasureEvaluationSeeder {
 
 	private final TerminologyProvider terminologyProvider;
-	private final Map<String, DataProvider> dataProviders;
+	private final Map<String, CqlDataProvider> dataProviders;
 	private final R4LibraryDependencyGatherer libraryDependencyGatherer;
 	private final FhirResourceResolver<Library> libraryResolver;
 
@@ -49,7 +50,7 @@ public class MeasureEvaluationSeeder {
 
 	public MeasureEvaluationSeeder(
 			TerminologyProvider terminologyProvider,
-			Map<String, DataProvider> dataProviders,
+			Map<String, CqlDataProvider> dataProviders,
 			R4LibraryDependencyGatherer libraryDependencyGatherer,
 			FhirResourceResolver<Library> libraryResolver) {
 		this.terminologyProvider = terminologyProvider;

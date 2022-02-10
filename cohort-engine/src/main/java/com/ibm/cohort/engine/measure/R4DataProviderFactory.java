@@ -9,13 +9,14 @@ package com.ibm.cohort.engine.measure;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.ibm.cohort.cql.data.CqlDataProvider;
+import com.ibm.cohort.cql.data.DefaultCqlDataProvider;
+import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.fhir.searchparam.SearchParameterResolver;
 import org.opencds.cqf.cql.engine.model.ModelResolver;
 import org.opencds.cqf.cql.engine.retrieve.RetrieveProvider;
-import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
-import com.ibm.cohort.engine.data.CompositeCqlDataProvider;
 import com.ibm.cohort.engine.measure.cache.CachingRetrieveProvider;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;
@@ -24,9 +25,8 @@ import com.ibm.cohort.engine.retrieve.R4RestFhirRetrieveProvider;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 /**
- * <p>An internal class intended to ease the burden of creating the URI to {@link DataProvider} mapping
- * required by the {@link MeasureEvaluator}.
-
+ * <p>An internal class intended to ease the burden of {@link DataProvider}
+ * creation and URI mapping necessary for cohort and measure evaluation.
  */
 public class R4DataProviderFactory {
 
@@ -48,19 +48,62 @@ public class R4DataProviderFactory {
 	
 	protected static final String FHIR_R4_URL = "http://hl7.org/fhir";
 
-	public static Map<String, DataProvider> createDataProviderMap(
+	public static Map<String, CqlDataProvider> createDataProviderMap(
 			IGenericClient client,
-			TerminologyProvider terminologyProvider,
+			CqlTerminologyProvider terminologyProvider,
+			RetrieveCacheContext retrieveCacheContext
+	) {
+		return createDataProviderMap(
+				client,
+				terminologyProvider,
+				retrieveCacheContext,
+				R4FhirModelResolverFactory.createCachingResolver(),
+				DEFAULT_IS_EXPAND_VALUE_SETS,
+				DEFAULT_PAGE_SIZE
+		);
+	}
+
+	public static Map<String, CqlDataProvider> createDataProviderMap(
+			IGenericClient client,
+			CqlTerminologyProvider terminologyProvider,
 			RetrieveCacheContext retrieveCacheContext,
+			ModelResolver modelResolver,
 			boolean isExpandValueSets,
 			Integer pageSize
 	) {
-		return createDataProviderMap(client, terminologyProvider, retrieveCacheContext, R4FhirModelResolverFactory.createNonCachingResolver(), isExpandValueSets, pageSize);
+		CqlDataProvider dataProvider = createDataProvider(
+				client,
+				terminologyProvider,
+				retrieveCacheContext,
+				modelResolver,
+				isExpandValueSets,
+				pageSize
+		);
+
+		Map<String, CqlDataProvider> retVal = new HashMap<>();
+		retVal.put(FHIR_R4_URL, dataProvider);
+
+		return retVal;
 	}
-	
-	public static Map<String, DataProvider> createDataProviderMap(
+
+	public static CqlDataProvider createDataProvider(
 			IGenericClient client,
-			TerminologyProvider terminologyProvider,
+			CqlTerminologyProvider terminologyProvider,
+			RetrieveCacheContext retrieveCacheContext
+	) {
+		return createDataProvider(
+				client,
+				terminologyProvider,
+				retrieveCacheContext,
+				R4FhirModelResolverFactory.createCachingResolver(),
+				DEFAULT_IS_EXPAND_VALUE_SETS,
+				DEFAULT_PAGE_SIZE
+		);
+	}
+
+	public static CqlDataProvider createDataProvider(
+			IGenericClient client,
+			CqlTerminologyProvider terminologyProvider,
 			RetrieveCacheContext retrieveCacheContext,
 			ModelResolver modelResolver,
 			boolean isExpandValueSets,
@@ -75,20 +118,7 @@ public class R4DataProviderFactory {
 				? new CachingRetrieveProvider(baseRetrieveProvider, retrieveCacheContext)
 				: baseRetrieveProvider;
 
-		DataProvider dataProvider = new CompositeCqlDataProvider(modelResolver, retrieveProvider);
-
-		Map<String, DataProvider> retVal = new HashMap<>();
-		retVal.put(FHIR_R4_URL, dataProvider);
-
-		return retVal;
-	}
-	
-	public static Map<String, DataProvider> createDataProviderMap(
-			IGenericClient client,
-			TerminologyProvider terminologyProvider,
-			RetrieveCacheContext retrieveCacheContext
-	) {
-		return createDataProviderMap( client, terminologyProvider, retrieveCacheContext, DEFAULT_IS_EXPAND_VALUE_SETS, DEFAULT_PAGE_SIZE );
+		return new DefaultCqlDataProvider(modelResolver, retrieveProvider);
 	}
 
 }
