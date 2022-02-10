@@ -44,6 +44,7 @@ import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
 import com.ibm.cohort.engine.measure.R4DataProviderFactory;
 import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
+import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
@@ -184,20 +185,6 @@ public class CohortCLI extends BaseCLI {
 			IGenericClient termClient = fhirClientBuilder.createFhirClient(terminologyServerConfig);
 			CqlTerminologyProvider termProvider = new R4RestFhirTerminologyProvider(termClient);
 
-			CqlDataProvider dataProvider = R4DataProviderFactory.createDataProvider(
-					dataClient,
-					termProvider,
-					new DefaultRetrieveCacheContext(),
-					R4FhirModelResolverFactory.createCachingResolver(),
-					!arguments.enableTerminologyOptimization,
-					arguments.searchPageSize
-			);
-
-			wrapper = new CqlEvaluator()
-					.setLibraryProvider(libraryProvider)
-					.setDataProvider(dataProvider)
-					.setTerminologyProvider(termProvider);
-
 			Map<String, com.ibm.cohort.cql.evaluation.parameters.Parameter> parameters = null;
 			if (arguments.parameters != null) {
 				parameters = parseParameterArguments(arguments.parameters);
@@ -219,20 +206,36 @@ public class CohortCLI extends BaseCLI {
 						.collect(Collectors.toList());
 			}
 
-			for (Pair<String, String> context : contexts) {
-				String contextLabel = context == null ? "null" : context.getRight();
-				out.println("Context: " + contextLabel);
-				CqlEvaluationResult result = wrapper.evaluate(
-						libraryDescriptor,
-						parameters,
-						context,
-						arguments.expressions,
-						arguments.loggingLevel,
-						ZonedDateTime.now()
+			try (RetrieveCacheContext cacheContext = new DefaultRetrieveCacheContext()) {
+				CqlDataProvider dataProvider = R4DataProviderFactory.createDataProvider(
+						dataClient,
+						termProvider,
+						cacheContext,
+						R4FhirModelResolverFactory.createCachingResolver(),
+						!arguments.enableTerminologyOptimization,
+						arguments.searchPageSize
 				);
 
-				out.print(prettyPrintResult(result));
-				out.println("---");
+				wrapper = new CqlEvaluator()
+						.setLibraryProvider(libraryProvider)
+						.setDataProvider(dataProvider)
+						.setTerminologyProvider(termProvider);
+
+				for (Pair<String, String> context : contexts) {
+					String contextLabel = context == null ? "null" : context.getRight();
+					out.println("Context: " + contextLabel);
+					CqlEvaluationResult result = wrapper.evaluate(
+							libraryDescriptor,
+							parameters,
+							context,
+							arguments.expressions,
+							arguments.loggingLevel,
+							ZonedDateTime.now()
+					);
+
+					out.print(prettyPrintResult(result));
+					out.println("---");
+				}
 			}
 		}
 		return wrapper;
