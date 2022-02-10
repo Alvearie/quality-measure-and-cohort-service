@@ -17,16 +17,12 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
-import com.ibm.cohort.cql.version.ResourceSelector;
-import com.ibm.cohort.cql.fhir.handler.ResourceHandler;
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
 import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
 import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResrouceResolverFactory;
-import com.ibm.cohort.cql.hapi.handler.R4LibraryResourceHandler;
-import com.ibm.cohort.cql.hapi.resolver.R4MapFhirResourceResolverFactory;
-import com.ibm.cohort.cql.hapi.handler.R4MeasureResourceHandler;
+import com.ibm.cohort.cql.hapi.resolver.R4QualityMeasureResolvers;
+import com.ibm.cohort.cql.hapi.resolver.R4QualityMeasureResolverFactory;
 import com.ibm.cohort.cql.library.ZipStreamProcessor;
-import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
@@ -139,22 +135,21 @@ public class MeasureCLI extends BaseCLI {
 			IGenericClient dataServerClient = fhirClientBuilderFactory.newFhirClientBuilder().createFhirClient(dataServerConfig);
 			IGenericClient terminologyServerClient = fhirClientBuilderFactory.newFhirClientBuilder().createFhirClient(terminologyServerConfig);
 
-			FhirResourceResolver<Library> libraryResolver;
-			FhirResourceResolver<Measure> measureResolver;
-
-			IParser parser = getFhirContext().newJsonParser().setPrettyPrint(true);
 			String [] filters = (arguments.filters != null) ? arguments.filters.toArray(new String[arguments.filters.size()]) : null;
 
+			IParser parser = getFhirContext().newJsonParser().setPrettyPrint(true);
+			R4QualityMeasureResolverFactory resolverFactory = new R4QualityMeasureResolverFactory(parser, new ZipStreamProcessor());
+
+			FhirResourceResolver<Library> libraryResolver;
+			FhirResourceResolver<Measure> measureResolver;
 			if( arguments.measureServerConfigFile != null && FileHelpers.isZip(arguments.measureServerConfigFile)) {
-				R4MapFhirResourceResolverFactory<Library> libraryResolverFactory = createLibraryResourceResolverFactory(parser);
-				libraryResolver = libraryResolverFactory.fromZipFile(arguments.measureServerConfigFile.toPath(), filters);
-				R4MapFhirResourceResolverFactory<Measure> measureResolverFactory = createMeasureResourceResolverFactory(parser);
-				measureResolver = measureResolverFactory.fromZipFile(arguments.measureServerConfigFile.toPath(), filters);
+				R4QualityMeasureResolvers resolvers = resolverFactory.fromZipFile(arguments.measureServerConfigFile.toPath(), filters);
+				libraryResolver = resolvers.getLibraryResolver();
+				measureResolver = resolvers.getMeasureResolver();
 			} else if( arguments.measureServerConfigFile != null && arguments.measureServerConfigFile.isDirectory() ) {
-				R4MapFhirResourceResolverFactory<Library> libraryResolverFactory = createLibraryResourceResolverFactory(parser);
-				libraryResolver = libraryResolverFactory.fromDirectory(arguments.measureServerConfigFile.toPath(), filters);
-				R4MapFhirResourceResolverFactory<Measure> measureResolverFactory = createMeasureResourceResolverFactory(parser);
-				measureResolver = measureResolverFactory.fromDirectory(arguments.measureServerConfigFile.toPath(), filters);
+				R4QualityMeasureResolvers resolvers = resolverFactory.fromDirectory(arguments.measureServerConfigFile.toPath(), filters);
+				libraryResolver = resolvers.getLibraryResolver();
+				measureResolver = resolvers.getMeasureResolver();
 			} else {
 				readMeasureServerConfiguration( arguments );
 				IGenericClient measureServerClient = fhirClientBuilderFactory.newFhirClientBuilder().createFhirClient(measureServerConfig);
@@ -239,20 +234,6 @@ public class MeasureCLI extends BaseCLI {
 		if( sb.length() > 0 ) {
 			throw new IllegalArgumentException(sb.toString());
 		}
-	}
-
-	private R4MapFhirResourceResolverFactory<Library> createLibraryResourceResolverFactory(IParser parser) {
-		ResourceHandler<Library, Identifier> libraryHandler = new R4LibraryResourceHandler();
-		ResourceSelector<Library> librarySelector = new ResourceSelector<>(libraryHandler);
-		ZipStreamProcessor zipProcessor = new ZipStreamProcessor();
-		return new R4MapFhirResourceResolverFactory<>(libraryHandler, librarySelector, parser, zipProcessor);
-	}
-
-	private R4MapFhirResourceResolverFactory<Measure> createMeasureResourceResolverFactory(IParser parser) {
-		ResourceHandler<Measure, Identifier> measureHandler = new R4MeasureResourceHandler();
-		ResourceSelector<Measure> measureSelector = new ResourceSelector<>(measureHandler);
-		ZipStreamProcessor zipProcessor = new ZipStreamProcessor();
-		return new R4MapFhirResourceResolverFactory<>(measureHandler, measureSelector, parser, zipProcessor);
 	}
 
 	public static void main(String[] args) throws Exception {

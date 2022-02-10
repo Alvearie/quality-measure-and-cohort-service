@@ -3,10 +3,10 @@
   "name": "LibraryNoId-name",
   "version": "1.2.3",
   "url": "http://fake.url.com/Library/LibraryNoId",
-  "identifier": {
+  "identifier": [{
     "value": "LibraryNoId-idValue",
     "system": "LibraryNoId-idSystem"
-  },
+  }],
   "title": "LibraryNoId-title",
   "status": "active",
   "type": {

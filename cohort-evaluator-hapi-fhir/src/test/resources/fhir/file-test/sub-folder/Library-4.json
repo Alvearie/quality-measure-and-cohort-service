@@ -4,10 +4,10 @@
   "name": "Library4-name",
   "version": "4.0.0",
   "url": "http://fake.url.com/Library/Library4",
-  "identifier": {
+  "identifier": [{
     "value": "Library4-idValue",
     "system": "Library4-idSystem"
-  },
+  }],
   "title": "Library4-title",
   "status": "active",
   "type": {

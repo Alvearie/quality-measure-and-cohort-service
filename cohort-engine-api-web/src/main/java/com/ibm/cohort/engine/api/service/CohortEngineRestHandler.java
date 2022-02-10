@@ -38,14 +38,10 @@ import com.ibm.cohort.cql.data.DefaultCqlDataProvider;
 import com.ibm.cohort.cql.evaluation.ContextNames;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
 import com.ibm.cohort.cql.evaluation.CqlEvaluator;
-import com.ibm.cohort.cql.version.ResourceSelector;
-import com.ibm.cohort.cql.fhir.handler.ResourceHandler;
+import com.ibm.cohort.cql.hapi.resolver.R4QualityMeasureResolverFactory;
+import com.ibm.cohort.cql.hapi.resolver.R4QualityMeasureResolvers;
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
-import com.ibm.cohort.cql.fhir.resolver.MapFhirResourceResolver;
-import com.ibm.cohort.cql.hapi.HapiUtils;
 import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
-import com.ibm.cohort.cql.hapi.handler.R4LibraryResourceHandler;
-import com.ibm.cohort.cql.hapi.handler.R4MeasureResourceHandler;
 import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResrouceResolverFactory;
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
@@ -62,7 +58,6 @@ import com.ibm.cohort.engine.retrieve.R4RestFhirRetrieveProvider;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
@@ -978,29 +973,13 @@ public class CohortEngineRestHandler {
 		}
 
 		IParser parser = dataClient.getFhirContext().newJsonParser();
-
 		String [] searchPaths = new String[] { "fhirResources", "fhirResources/libraries" };
 
-		ResourceHandler<Library, Identifier> libraryHandler = new R4LibraryResourceHandler();
-		ResourceSelector<Library> librarySelector = new ResourceSelector<>(libraryHandler);
-		MapFhirResourceResolver<Library, Identifier> libraryResolver = new MapFhirResourceResolver<>(libraryHandler, librarySelector);
+		R4QualityMeasureResolverFactory resolverFactory = new R4QualityMeasureResolverFactory(parser, new ZipStreamProcessor());
+		R4QualityMeasureResolvers resolvers = resolverFactory.fromZipStream(new ZipInputStream(inputStream), searchPaths);
+		FhirResourceResolver<Library> libraryResolver = resolvers.getLibraryResolver();
+		FhirResourceResolver<Measure> measureResolver = resolvers.getMeasureResolver();
 		R4LibraryDependencyGatherer libraryDependencyGatherer = new R4LibraryDependencyGatherer(libraryResolver);
-
-		ResourceHandler<Measure, Identifier> measureHandler = new R4MeasureResourceHandler();
-		ResourceSelector<Measure> measureSelector = new ResourceSelector<>(measureHandler);
-		MapFhirResourceResolver<Measure, Identifier> measureResolver = new MapFhirResourceResolver<>(measureHandler, measureSelector);
-
-		ZipStreamProcessor zipProcessor = new ZipStreamProcessor();
-		zipProcessor.processZip(new ZipInputStream(inputStream), searchPaths, (filename, content) -> {
-			if (HapiUtils.canParseFile(filename, parser)) {
-				IBaseResource baseResource = parser.parseResource(content);
-				if (libraryHandler.getSupportedClass().isInstance(baseResource)) {
-					libraryResolver.addResource((Library) baseResource);
-				} else if (measureHandler.getSupportedClass().isInstance(baseResource)) {
-					measureResolver.addResource((Measure) baseResource);
-				}
-			}
-		});
 
 		TerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(terminologyClient);
 		if( expandValueSets == null ) {

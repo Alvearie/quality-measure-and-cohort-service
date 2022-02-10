@@ -4,10 +4,10 @@
   "name": "Library2-name",
   "version": "2.0.0",
   "url": "http://fake.url.com/Library/Library2",
-  "identifier": {
+  "identifier": [{
     "value": "Library2-idValue",
     "system": "Library2-idSystem"
-  },
+  }],
   "title": "Library2-title",
   "status": "active",
   "type": {

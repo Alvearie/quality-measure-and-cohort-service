@@ -4,10 +4,10 @@
   "name": "Library5-name",
   "version": "5.0.0",
   "url": "http://fake.url.com/Library/Library5",
-  "identifier": {
+  "identifier": [{
     "value": "Library5-idValue",
     "system": "Library5-idSystem"
-  },
+  }],
   "title": "Library5-title",
   "status": "active",
   "type": {
