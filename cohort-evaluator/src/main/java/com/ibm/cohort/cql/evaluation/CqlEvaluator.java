@@ -10,6 +10,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -120,7 +121,13 @@ public class CqlEvaluator {
                 terminologyProvider, dataProvider, batchDateTime, context, parameters, debug);
         
         if( expressions == null ) {
-            expressions = cqlContext.getCurrentLibrary().getStatements().getDef().stream().map( d -> d.getName() ).collect(Collectors.toSet());
+            expressions = cqlContext
+                    .getCurrentLibrary()
+                    .getStatements()
+                    .getDef()
+                    .stream()
+                    .map(ExpressionDef::getName)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
         }
 
         Map<String,Object> results = new LinkedHashMap<>();
