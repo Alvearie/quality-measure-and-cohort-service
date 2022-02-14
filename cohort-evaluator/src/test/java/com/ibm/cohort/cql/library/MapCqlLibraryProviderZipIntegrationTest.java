@@ -20,7 +20,7 @@ public class MapCqlLibraryProviderZipIntegrationTest {
 
     @Test
     public void testLibraryFoundInZipSuccess() throws Exception {
-        MapCqlLibraryProviderFactory factory = new MapCqlLibraryProviderFactory(new ZipStreamProcessor());
+        MapCqlLibraryProviderFactory factory = new MapCqlLibraryProviderFactory();
         CqlLibraryProvider provider = factory.fromZipFile(Paths.get("src/test/resources/cql/zip/breast_cancer_screening_v1_0_0_cql.zip"));
         CqlLibraryProvider fhirClasspathProvider = new ClasspathCqlLibraryProvider("org.hl7.fhir");
         provider = new PriorityCqlLibraryProvider(provider, fhirClasspathProvider);
@@ -37,7 +37,7 @@ public class MapCqlLibraryProviderZipIntegrationTest {
 
     @Test
     public void testLibraryFoundInZipWithSearchPathsSuccess() throws Exception {
-        MapCqlLibraryProviderFactory factory = new MapCqlLibraryProviderFactory(new ZipStreamProcessor());
+        MapCqlLibraryProviderFactory factory = new MapCqlLibraryProviderFactory();
         CqlLibraryProvider provider = factory.fromZipFile(
                 Paths.get("src/test/resources/cql/zip-structured/col_colorectal_cancer_screening_v1_0_0.zip"),
                 "CDSexport"
@@ -58,7 +58,7 @@ public class MapCqlLibraryProviderZipIntegrationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testLibraryFoundInZipWithSearchPathsMissingError() throws Exception {
-        MapCqlLibraryProviderFactory factory = new MapCqlLibraryProviderFactory(new ZipStreamProcessor());
+        MapCqlLibraryProviderFactory factory = new MapCqlLibraryProviderFactory();
         CqlLibraryProvider provider = factory.fromZipFile(
                 Paths.get("src/test/resources/cql/zip-structured/col_colorectal_cancer_screening_v1_0_0.zip"),
                 "deploypackage"

@@ -45,6 +45,10 @@ public class R4QualityMeasureResolverFactory {
     private final IParser parser;
     private final ZipStreamProcessor zipProcessor;
 
+    public R4QualityMeasureResolverFactory(IParser parser) {
+        this(parser, new ZipStreamProcessor());
+    }
+
     public R4QualityMeasureResolverFactory(IParser parser, ZipStreamProcessor zipProcessor) {
         this.parser = parser;
         this.zipProcessor = zipProcessor;

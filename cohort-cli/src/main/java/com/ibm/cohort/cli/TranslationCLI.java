@@ -23,7 +23,6 @@ import com.ibm.cohort.cql.library.Format;
 import com.ibm.cohort.cql.library.MapCqlLibraryProvider;
 import com.ibm.cohort.cql.library.MapCqlLibraryProviderFactory;
 import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
-import com.ibm.cohort.cql.library.ZipStreamProcessor;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.CqlTranslationResult;
 import com.ibm.cohort.cql.provider.ProviderBasedCqlLibrarySourceProvider;
@@ -57,8 +56,7 @@ public class TranslationCLI {
 	public void runWithArgs(TranslationOptions options, PrintStream out) throws Exception {
 		CqlLibraryProvider libraryProvider;
 		if(options.directory != null && options.directory.exists()){
-			ZipStreamProcessor zipProcessor = new ZipStreamProcessor();
-			MapCqlLibraryProviderFactory libraryProviderFactory = new MapCqlLibraryProviderFactory(zipProcessor);
+			MapCqlLibraryProviderFactory libraryProviderFactory = new MapCqlLibraryProviderFactory();
 			libraryProvider = libraryProviderFactory.fromDirectory(options.directory.toPath());
 		}
 		else{

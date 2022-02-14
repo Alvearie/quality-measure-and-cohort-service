@@ -38,7 +38,6 @@ import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.library.MapCqlLibraryProvider;
 import com.ibm.cohort.cql.library.MapCqlLibraryProviderFactory;
 import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
-import com.ibm.cohort.cql.library.ZipStreamProcessor;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
@@ -143,8 +142,7 @@ public class CohortCLI extends BaseCLI {
 
 			readConnectionConfiguration(arguments);
 
-			ZipStreamProcessor zipProcessor = new ZipStreamProcessor();
-			MapCqlLibraryProviderFactory libraryProviderFactory = new MapCqlLibraryProviderFactory(zipProcessor);
+			MapCqlLibraryProviderFactory libraryProviderFactory = new MapCqlLibraryProviderFactory();
 
 			String [] filters = null;
 			if( arguments.filters != null ) {

@@ -23,7 +23,6 @@ import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
 import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResrouceResolverFactory;
 import com.ibm.cohort.cql.hapi.resolver.R4QualityMeasureResolvers;
 import com.ibm.cohort.cql.hapi.resolver.R4QualityMeasureResolverFactory;
-import com.ibm.cohort.cql.library.ZipStreamProcessor;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
@@ -138,7 +137,7 @@ public class MeasureCLI extends BaseCLI {
 			String [] filters = (arguments.filters != null) ? arguments.filters.toArray(new String[arguments.filters.size()]) : null;
 
 			IParser parser = getFhirContext().newJsonParser().setPrettyPrint(true);
-			R4QualityMeasureResolverFactory resolverFactory = new R4QualityMeasureResolverFactory(parser, new ZipStreamProcessor());
+			R4QualityMeasureResolverFactory resolverFactory = new R4QualityMeasureResolverFactory(parser);
 
 			FhirResourceResolver<Library> libraryResolver;
 			FhirResourceResolver<Measure> measureResolver;

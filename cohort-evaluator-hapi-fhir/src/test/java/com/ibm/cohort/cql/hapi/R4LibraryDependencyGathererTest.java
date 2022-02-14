@@ -96,7 +96,7 @@ public class R4LibraryDependencyGathererTest {
     }
 
     @Test
-    public void library_with_no_type_but_cql_attachment___returns_true() {
+    public void library_with_no_type_but_cql_attachment___returns_library() {
         String libraryId = "lib";
 
         Library lib = new Library();
@@ -115,7 +115,7 @@ public class R4LibraryDependencyGathererTest {
     }
 
     @Test
-    public void library_with_no_valid_data___returns_false() {
+    public void library_with_no_valid_data___returns_nothing() {
         String libraryId = "lib";
         Library lib = new Library();
         withIdentifiers(lib, libraryId, null, null);
@@ -129,7 +129,7 @@ public class R4LibraryDependencyGathererTest {
     }
 
     @Test
-    public void library_with_type_but_no_coding__returns_false() {
+    public void library_with_type_but_no_coding__returns_nothing() {
         String libraryId = "lib";
         Library lib = new Library();
         withIdentifiers(lib, libraryId, null, null);
@@ -144,7 +144,7 @@ public class R4LibraryDependencyGathererTest {
     }
 
     @Test
-    public void library_with_invalid_content__returns_false() {
+    public void library_with_invalid_content__returns_nothing() {
         String libraryId = "lib";
         Library lib = new Library();
         withIdentifiers(lib, libraryId, null, null);
@@ -159,7 +159,7 @@ public class R4LibraryDependencyGathererTest {
     }
 
     @Test
-    public void library_with_invalid_type__returns_false() {
+    public void library_with_invalid_type__returns_nothing() {
         String libraryId = "lib";
         Library lib = new Library();
         withIdentifiers(lib, libraryId, null, null);

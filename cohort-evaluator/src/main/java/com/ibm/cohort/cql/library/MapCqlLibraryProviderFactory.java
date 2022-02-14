@@ -30,6 +30,10 @@ public class MapCqlLibraryProviderFactory {
 
     private final ZipStreamProcessor zipProcessor;
 
+    public MapCqlLibraryProviderFactory() {
+        this(new ZipStreamProcessor());
+    }
+
     public MapCqlLibraryProviderFactory(ZipStreamProcessor zipProcessor) {
         this.zipProcessor = zipProcessor;
     }

@@ -7,7 +7,6 @@
 package com.ibm.cohort.cql.spark.optimizer;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -28,7 +27,6 @@ import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.library.Format;
 import com.ibm.cohort.cql.library.MapCqlLibraryProviderFactory;
 import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
-import com.ibm.cohort.cql.library.ZipStreamProcessor;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
 import com.ibm.cohort.cql.util.StringMatcher;
@@ -40,7 +38,7 @@ public abstract class BaseDataTypeRequirementsProcessorTest {
         ClasspathCqlLibraryProvider cpBasedLp = new ClasspathCqlLibraryProvider("org.hl7.fhir");
         cpBasedLp.setSupportedFormats(Format.CQL);
 
-        MapCqlLibraryProviderFactory dirProviderFactory = new MapCqlLibraryProviderFactory(new ZipStreamProcessor());
+        MapCqlLibraryProviderFactory dirProviderFactory = new MapCqlLibraryProviderFactory();
         CqlLibraryProvider dirBasedLp = dirProviderFactory.fromDirectory(Paths.get(cqlPath));
         PriorityCqlLibraryProvider lsp = new PriorityCqlLibraryProvider(dirBasedLp, cpBasedLp);
 

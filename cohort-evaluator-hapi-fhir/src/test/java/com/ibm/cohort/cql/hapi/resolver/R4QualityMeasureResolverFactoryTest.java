@@ -8,13 +8,7 @@ package com.ibm.cohort.cql.hapi.resolver;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
-import com.ibm.cohort.cql.fhir.handler.ResourceHandler;
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
-import com.ibm.cohort.cql.hapi.handler.R4LibraryResourceHandler;
-import com.ibm.cohort.cql.library.ZipStreamProcessor;
-import com.ibm.cohort.cql.version.ResourceSelector;
-import org.apache.commons.collections.ListUtils;
-import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.junit.Assert;
@@ -53,7 +47,7 @@ public class R4QualityMeasureResolverFactoryTest {
         if (factory == null) {
             FhirContext context = FhirContext.forR4();
             IParser parser = context.newJsonParser();
-            factory = new R4QualityMeasureResolverFactory(parser, new ZipStreamProcessor());
+            factory = new R4QualityMeasureResolverFactory(parser);
         }
     }
 

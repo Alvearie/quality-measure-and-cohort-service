@@ -48,7 +48,6 @@ import com.ibm.cohort.cql.library.CqlLibraryHelpers;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.library.MapCqlLibraryProviderFactory;
 import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
-import com.ibm.cohort.cql.library.ZipStreamProcessor;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
@@ -415,8 +414,7 @@ public class CohortEngineRestHandler {
 			CqlLibraryProvider libraryProvider;
 			try(InputStream is = cqlAttachment.getDataHandler().getInputStream()) {
 				ZipInputStream zis = new ZipInputStream(is);
-				ZipStreamProcessor zipProcessor = new ZipStreamProcessor();
-				MapCqlLibraryProviderFactory libraryProviderFactory = new MapCqlLibraryProviderFactory(zipProcessor);
+				MapCqlLibraryProviderFactory libraryProviderFactory = new MapCqlLibraryProviderFactory();
 				String[] attachmentHeaders = cqlAttachment.getHeader("Content-Disposition").split(";");
 				String filename = null;
 				for (String header : attachmentHeaders) {
@@ -990,7 +988,7 @@ public class CohortEngineRestHandler {
 		IParser parser = dataClient.getFhirContext().newJsonParser();
 		String [] searchPaths = new String[] { "fhirResources", "fhirResources/libraries" };
 
-		R4QualityMeasureResolverFactory resolverFactory = new R4QualityMeasureResolverFactory(parser, new ZipStreamProcessor());
+		R4QualityMeasureResolverFactory resolverFactory = new R4QualityMeasureResolverFactory(parser);
 		R4QualityMeasureResolvers resolvers = resolverFactory.fromZipStream(new ZipInputStream(inputStream), searchPaths);
 		FhirResourceResolver<Library> libraryResolver = resolvers.getLibraryResolver();
 		FhirResourceResolver<Measure> measureResolver = resolvers.getMeasureResolver();

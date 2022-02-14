@@ -18,7 +18,6 @@ import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.library.Format;
 import com.ibm.cohort.cql.library.MapCqlLibraryProviderFactory;
 import com.ibm.cohort.cql.library.ProviderBasedLibraryLoader;
-import com.ibm.cohort.cql.library.ZipStreamProcessor;
 import org.cqframework.cql.elm.execution.Library;
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
 import org.junit.Assert;
@@ -31,7 +30,7 @@ public class CqlTranslationIntegrationTest {
     public void multipleFilesInZip__translatedSuccessfully() throws Exception {
         Path zipFile = Paths.get("src/test/resources/cql/multiple-files/packaged-cqls.zip");
 
-        MapCqlLibraryProviderFactory providerFactory = new MapCqlLibraryProviderFactory(new ZipStreamProcessor());
+        MapCqlLibraryProviderFactory providerFactory = new MapCqlLibraryProviderFactory();
         CqlLibraryProvider backingLibraryProvider = providerFactory.fromZipFile(zipFile);
         runMultipleFilesTest(backingLibraryProvider);
     }
@@ -40,7 +39,7 @@ public class CqlTranslationIntegrationTest {
     public void multipleFilesInFolder__translatedSuccessfully() throws Exception {
         Path rootDirectory = Paths.get("src/test/resources/cql/multiple-files");
 
-        MapCqlLibraryProviderFactory providerFactory = new MapCqlLibraryProviderFactory(new ZipStreamProcessor());
+        MapCqlLibraryProviderFactory providerFactory = new MapCqlLibraryProviderFactory();
         CqlLibraryProvider backingLibraryProvider = providerFactory.fromDirectory(rootDirectory);
         runMultipleFilesTest(backingLibraryProvider);
     }

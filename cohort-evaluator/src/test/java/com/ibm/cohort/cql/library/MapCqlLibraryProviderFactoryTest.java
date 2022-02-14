@@ -18,7 +18,7 @@ public class MapCqlLibraryProviderFactoryTest {
 
     @Test
     public void fromDirectory() throws IOException {
-        MapCqlLibraryProviderFactory factory = new MapCqlLibraryProviderFactory(new ZipStreamProcessor());
+        MapCqlLibraryProviderFactory factory = new MapCqlLibraryProviderFactory();
         CqlLibraryProvider provider = factory.fromDirectory(Paths.get("src/test/resources/cql/multiple-files"));
         assertTestIsPresent(provider);
         assertTestDateQueryIsPresent(provider);
@@ -26,7 +26,7 @@ public class MapCqlLibraryProviderFactoryTest {
 
     @Test
     public void fromDirectory_withSearchPaths() throws IOException {
-        MapCqlLibraryProviderFactory factory = new MapCqlLibraryProviderFactory(new ZipStreamProcessor());
+        MapCqlLibraryProviderFactory factory = new MapCqlLibraryProviderFactory();
         CqlLibraryProvider provider = factory.fromDirectory(
                 Paths.get("src/test/resources/cql/multiple-files"),
                 "sub-folder"
@@ -37,7 +37,7 @@ public class MapCqlLibraryProviderFactoryTest {
 
     @Test
     public void fromZipFile() throws IOException {
-        MapCqlLibraryProviderFactory factory = new MapCqlLibraryProviderFactory(new ZipStreamProcessor());
+        MapCqlLibraryProviderFactory factory = new MapCqlLibraryProviderFactory();
         CqlLibraryProvider provider = factory.fromZipFile(Paths.get("src/test/resources/cql/multiple-files/packaged-cqls.zip"));
         assertTestIsPresent(provider);
         assertTestDateQueryIsPresent(provider);
@@ -45,7 +45,7 @@ public class MapCqlLibraryProviderFactoryTest {
 
     @Test
     public void fromZipFile_withSearchPaths() throws IOException {
-        MapCqlLibraryProviderFactory factory = new MapCqlLibraryProviderFactory(new ZipStreamProcessor());
+        MapCqlLibraryProviderFactory factory = new MapCqlLibraryProviderFactory();
         CqlLibraryProvider provider = factory.fromZipFile(
                 Paths.get("src/test/resources/cql/multiple-files/packaged-cqls.zip"),
                "sub-folder"
@@ -56,7 +56,7 @@ public class MapCqlLibraryProviderFactoryTest {
 
     @Test
     public void fromZipStream() throws IOException {
-        MapCqlLibraryProviderFactory factory = new MapCqlLibraryProviderFactory(new ZipStreamProcessor());
+        MapCqlLibraryProviderFactory factory = new MapCqlLibraryProviderFactory();
         try (InputStream is = this.getClass().getResourceAsStream("/cql/multiple-files/packaged-cqls.zip")) {
             CqlLibraryProvider provider = factory.fromZipStream(new ZipInputStream(is));
             assertTestIsPresent(provider);
@@ -66,7 +66,7 @@ public class MapCqlLibraryProviderFactoryTest {
 
     @Test
     public void fromZipStream_withSearchPaths() throws IOException {
-        MapCqlLibraryProviderFactory factory = new MapCqlLibraryProviderFactory(new ZipStreamProcessor());
+        MapCqlLibraryProviderFactory factory = new MapCqlLibraryProviderFactory();
         try (InputStream is = this.getClass().getResourceAsStream("/cql/multiple-files/packaged-cqls.zip")) {
             CqlLibraryProvider provider = factory.fromZipStream(new ZipInputStream(is), "sub-folder");
             assertTestIsNotPresent(provider);
