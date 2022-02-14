@@ -13,13 +13,13 @@ import org.junit.Test;
 
 import java.util.List;
 
-public class R4LibraryResourceHandlerTest {
+public class R4LibraryResourceFieldHandlerTest {
 
-    private final R4LibraryResourceHandler resourceHandler = new R4LibraryResourceHandler();
+    private final R4LibraryResourceFieldHandler libraryFieldHandler = new R4LibraryResourceFieldHandler();
 
     @Test
     public void getSupportedClass() {
-        Assert.assertEquals(Library.class, resourceHandler.getSupportedClass());
+        Assert.assertEquals(Library.class, libraryFieldHandler.getSupportedClass());
     }
 
     @Test
@@ -27,15 +27,15 @@ public class R4LibraryResourceHandlerTest {
         String id = "id";
         Library library = new Library();
         library.setId(id);
-        Assert.assertEquals(id, resourceHandler.getId(library));
+        Assert.assertEquals(id, libraryFieldHandler.getId(library));
     }
 
     @Test
     public void setId() {
         String id = "id";
         Library library = new Library();
-        resourceHandler.setId(id, library);
-        Assert.assertEquals("Library/" + id, resourceHandler.getId(library));
+        libraryFieldHandler.setId(id, library);
+        Assert.assertEquals("Library/" + id, libraryFieldHandler.getId(library));
     }
 
     @Test
@@ -43,7 +43,7 @@ public class R4LibraryResourceHandlerTest {
         String name = "name";
         Library library = new Library();
         library.setName(name);
-        Assert.assertEquals(name, resourceHandler.getName(library));
+        Assert.assertEquals(name, libraryFieldHandler.getName(library));
     }
 
     @Test
@@ -51,7 +51,7 @@ public class R4LibraryResourceHandlerTest {
         String version = "version";
         Library library = new Library();
         library.setVersion(version);
-        Assert.assertEquals(version, resourceHandler.getVersion(library));
+        Assert.assertEquals(version, libraryFieldHandler.getVersion(library));
     }
 
     @Test
@@ -59,7 +59,7 @@ public class R4LibraryResourceHandlerTest {
         String url = "url";
         Library library = new Library();
         library.setUrl(url);
-        Assert.assertEquals(url, resourceHandler.getUrl(library));
+        Assert.assertEquals(url, libraryFieldHandler.getUrl(library));
     }
 
     @Test
@@ -69,7 +69,7 @@ public class R4LibraryResourceHandlerTest {
                 .setValue("value");
         Library library = new Library();
         library.addIdentifier(identifier);
-        List<Identifier> libraryIdentifiers = resourceHandler.getIdentifiers(library);
+        List<Identifier> libraryIdentifiers = libraryFieldHandler.getIdentifiers(library);
         Assert.assertEquals(1, libraryIdentifiers.size());
         Assert.assertTrue(identifier.equalsDeep(libraryIdentifiers.get(0)));
     }
@@ -79,7 +79,7 @@ public class R4LibraryResourceHandlerTest {
         String identifierValue = "value";
         Identifier identifier = new Identifier()
                 .setValue(identifierValue);
-        Assert.assertEquals(identifierValue, resourceHandler.getIdentifierValue(identifier));
+        Assert.assertEquals(identifierValue, libraryFieldHandler.getIdentifierValue(identifier));
     }
 
     @Test
@@ -87,7 +87,7 @@ public class R4LibraryResourceHandlerTest {
         String identifierSystem = "system";
         Identifier identifier = new Identifier()
                 .setSystem(identifierSystem);
-        Assert.assertEquals(identifierSystem, resourceHandler.getIdentifierSystem(identifier));
+        Assert.assertEquals(identifierSystem, libraryFieldHandler.getIdentifierSystem(identifier));
     }
 
 }

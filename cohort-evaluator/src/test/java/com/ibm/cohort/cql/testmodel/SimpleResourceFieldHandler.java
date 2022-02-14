@@ -7,18 +7,18 @@
 package com.ibm.cohort.cql.testmodel;
 
 import com.ibm.cohort.annotations.Generated;
-import com.ibm.cohort.cql.fhir.handler.ResourceHandler;
+import com.ibm.cohort.cql.fhir.handler.ResourceFieldHandler;
 
 import java.util.List;
 
 /**
- * An implementation of {@link ResourceHandler} that operates on
+ * An implementation of {@link ResourceFieldHandler} that operates on
  * {@link SimpleObject} resources.
- * Used for assisting in testing objects that require a {@link ResourceHandler}
+ * Used for assisting in testing objects that require a {@link ResourceFieldHandler}
  * implementation.
  */
 @Generated
-public class SimpleResourceHandler implements ResourceHandler<SimpleObject, SimpleIdentifier> {
+public class SimpleResourceFieldHandler implements ResourceFieldHandler<SimpleObject, SimpleIdentifier> {
 
     @Override
     public Class<SimpleObject> getSupportedClass() {

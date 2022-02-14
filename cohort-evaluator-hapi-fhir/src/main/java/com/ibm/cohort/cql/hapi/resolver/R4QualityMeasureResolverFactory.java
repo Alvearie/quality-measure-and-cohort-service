@@ -7,10 +7,10 @@
 package com.ibm.cohort.cql.hapi.resolver;
 
 import ca.uhn.fhir.parser.IParser;
-import com.ibm.cohort.cql.hapi.handler.R4LibraryResourceHandler;
-import com.ibm.cohort.cql.hapi.handler.R4MeasureResourceHandler;
+import com.ibm.cohort.cql.hapi.handler.R4LibraryResourceFieldHandler;
+import com.ibm.cohort.cql.hapi.handler.R4MeasureResourceFieldHandler;
 import com.ibm.cohort.cql.version.ResourceSelector;
-import com.ibm.cohort.cql.fhir.handler.ResourceHandler;
+import com.ibm.cohort.cql.fhir.handler.ResourceFieldHandler;
 import com.ibm.cohort.cql.fhir.resolver.MapFhirResourceResolver;
 import com.ibm.cohort.cql.hapi.HapiUtils;
 import com.ibm.cohort.cql.helpers.PathHelper;
@@ -55,10 +55,10 @@ public class R4QualityMeasureResolverFactory {
     }
 
     public R4QualityMeasureResolvers fromDirectory(Path directory, String... searchPaths) throws IOException {
-        ResourceHandler<Library, Identifier> libraryHandler = new R4LibraryResourceHandler();
-        MapFhirResourceResolver<Library, Identifier> libraryResolver = createResolver(libraryHandler);
-        ResourceHandler<Measure, Identifier> measureHandler = new R4MeasureResourceHandler();
-        MapFhirResourceResolver<Measure, Identifier> measureResolver = createResolver(measureHandler);
+        ResourceFieldHandler<Library, Identifier> libraryFieldHandler = new R4LibraryResourceFieldHandler();
+        MapFhirResourceResolver<Library, Identifier> libraryResolver = createResolver(libraryFieldHandler);
+        ResourceFieldHandler<Measure, Identifier> measureFieldHandler = new R4MeasureResourceFieldHandler();
+        MapFhirResourceResolver<Measure, Identifier> measureResolver = createResolver(measureFieldHandler);
 
         Iterator<Path> pathStream = Files.walk(directory, FileVisitOption.FOLLOW_LINKS)
                 .filter(x -> HapiUtils.canParseFile(x.toString(), parser))
@@ -67,7 +67,7 @@ public class R4QualityMeasureResolverFactory {
         while(pathStream.hasNext()) {
             Path path = pathStream.next();
             String content = readFile(path);
-            consumeFile(path.toString(), content, libraryHandler, libraryResolver, measureHandler, measureResolver);
+            consumeFile(path.toString(), content, libraryFieldHandler, libraryResolver, measureFieldHandler, measureResolver);
         }
 
         return new R4QualityMeasureResolvers(libraryResolver, measureResolver);
@@ -81,13 +81,13 @@ public class R4QualityMeasureResolverFactory {
     }
 
     public R4QualityMeasureResolvers fromZipStream(ZipInputStream zis, String... searchPaths) throws IOException {
-        ResourceHandler<Library, Identifier> libraryHandler = new R4LibraryResourceHandler();
-        MapFhirResourceResolver<Library, Identifier> libraryResolver = createResolver(libraryHandler);
-        ResourceHandler<Measure, Identifier> measureHandler = new R4MeasureResourceHandler();
-        MapFhirResourceResolver<Measure, Identifier> measureResolver = createResolver(measureHandler);
+        ResourceFieldHandler<Library, Identifier> libraryFieldHandler = new R4LibraryResourceFieldHandler();
+        MapFhirResourceResolver<Library, Identifier> libraryResolver = createResolver(libraryFieldHandler);
+        ResourceFieldHandler<Measure, Identifier> measureFieldHandler = new R4MeasureResourceFieldHandler();
+        MapFhirResourceResolver<Measure, Identifier> measureResolver = createResolver(measureFieldHandler);
 
         zipProcessor.processZip(zis, searchPaths, (filename, content) -> {
-            consumeFile(filename, content, libraryHandler, libraryResolver, measureHandler, measureResolver);
+            consumeFile(filename, content, libraryFieldHandler, libraryResolver, measureFieldHandler, measureResolver);
         });
 
         return new R4QualityMeasureResolvers(libraryResolver, measureResolver);
@@ -104,36 +104,36 @@ public class R4QualityMeasureResolverFactory {
     private void consumeFile(
             String filename,
             String content,
-            ResourceHandler<Library, Identifier> libraryHandler,
+            ResourceFieldHandler<Library, Identifier> libraryFieldHandler,
             MapFhirResourceResolver<Library, Identifier> libraryResolver,
-            ResourceHandler<Measure, Identifier> measureHandler,
+            ResourceFieldHandler<Measure, Identifier> measureFieldHandler,
             MapFhirResourceResolver<Measure, Identifier> measureResolver
     ) {
         String filenameId = FilenameUtils.getBaseName(filename);
 
         if (HapiUtils.canParseFile(filename, parser)) {
             IBaseResource baseResource = parser.parseResource(content);
-            if (libraryHandler.getSupportedClass().isInstance(baseResource)) {
+            if (libraryFieldHandler.getSupportedClass().isInstance(baseResource)) {
                 Library library = (Library)baseResource;
-                setIdIfNotPresent(library, libraryHandler, filenameId);
+                setIdIfNotPresent(library, libraryFieldHandler, filenameId);
                 libraryResolver.addResource(library);
-            } else if (measureHandler.getSupportedClass().isInstance(baseResource)) {
+            } else if (measureFieldHandler.getSupportedClass().isInstance(baseResource)) {
                 Measure measure = (Measure)baseResource;
-                setIdIfNotPresent(measure, measureHandler, filenameId);
+                setIdIfNotPresent(measure, measureFieldHandler, filenameId);
                 measureResolver.addResource(measure);
             }
         }
     }
 
-    private <T, I> void setIdIfNotPresent(T resource, ResourceHandler<T, I> resourceHandler, String fallbackId) {
-        String resourceId = resourceHandler.getId(resource);
+    private <T, I> void setIdIfNotPresent(T resource, ResourceFieldHandler<T, I> fieldHandler, String fallbackId) {
+        String resourceId = fieldHandler.getId(resource);
         if (resourceId == null) {
-            resourceHandler.setId(fallbackId, resource);
+            fieldHandler.setId(fallbackId, resource);
         }
     }
 
-    private <T, I> MapFhirResourceResolver<T, I> createResolver(ResourceHandler<T, I> resourceHandler) {
-        ResourceSelector<T> resourceSelector = new ResourceSelector<>(resourceHandler);
-        return new MapFhirResourceResolver<>(resourceHandler, resourceSelector);
+    private <T, I> MapFhirResourceResolver<T, I> createResolver(ResourceFieldHandler<T, I> fieldHandler) {
+        ResourceSelector<T> resourceSelector = new ResourceSelector<>(fieldHandler);
+        return new MapFhirResourceResolver<>(fieldHandler, resourceSelector);
     }
 }

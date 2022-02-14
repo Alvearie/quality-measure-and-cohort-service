@@ -6,8 +6,8 @@
 
 package com.ibm.cohort.cql.hapi;
 
-import com.ibm.cohort.cql.fhir.handler.ResourceHandler;
-import com.ibm.cohort.cql.hapi.handler.R4LibraryResourceHandler;
+import com.ibm.cohort.cql.fhir.handler.ResourceFieldHandler;
+import com.ibm.cohort.cql.hapi.handler.R4LibraryResourceFieldHandler;
 import com.ibm.cohort.cql.version.ResourceSelector;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
@@ -76,9 +76,9 @@ public class R4FhirBundleExtractorTest {
     }
 
     private R4FhirBundleExtractor<Library> getExtractor() {
-        ResourceHandler<Library, Identifier> libraryHandler = new R4LibraryResourceHandler();
-        ResourceSelector<Library> resourceSelector = new ResourceSelector<>(libraryHandler);
-        return new R4FhirBundleExtractor<>(libraryHandler, resourceSelector);
+        ResourceFieldHandler<Library, Identifier> libraryFieldHandler = new R4LibraryResourceFieldHandler();
+        ResourceSelector<Library> resourceSelector = new ResourceSelector<>(libraryFieldHandler);
+        return new R4FhirBundleExtractor<>(libraryFieldHandler, resourceSelector);
     }
 
     private void addToBundle(Resource resource, Bundle bundle) {

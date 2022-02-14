@@ -13,9 +13,9 @@ import static org.junit.Assert.assertThrows;
 
 import java.util.UUID;
 
-import com.ibm.cohort.cql.fhir.handler.ResourceHandler;
+import com.ibm.cohort.cql.fhir.handler.ResourceFieldHandler;
 import com.ibm.cohort.cql.fhir.resolver.MapFhirResourceResolver;
-import com.ibm.cohort.cql.hapi.handler.R4MeasureResourceHandler;
+import com.ibm.cohort.cql.hapi.handler.R4MeasureResourceFieldHandler;
 import com.ibm.cohort.cql.version.ResourceSelector;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Measure;
@@ -30,9 +30,9 @@ public class MapFhirResourceResolverIntegrationTest extends BaseFhirTest {
 
     @Before
     public void setUp() {
-        ResourceHandler<Measure, Identifier> measureHandler = new R4MeasureResourceHandler();
-        ResourceSelector<Measure> resourceSelector = new ResourceSelector<>(measureHandler);
-        resolver = new MapFhirResourceResolver<>(measureHandler, resourceSelector);
+        ResourceFieldHandler<Measure, Identifier> measureFieldHandler = new R4MeasureResourceFieldHandler();
+        ResourceSelector<Measure> resourceSelector = new ResourceSelector<>(measureFieldHandler);
+        resolver = new MapFhirResourceResolver<>(measureFieldHandler, resourceSelector);
     }
 
     @Test

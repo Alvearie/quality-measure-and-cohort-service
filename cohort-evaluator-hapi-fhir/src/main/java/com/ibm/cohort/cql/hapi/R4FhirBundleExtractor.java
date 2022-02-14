@@ -7,7 +7,7 @@
 package com.ibm.cohort.cql.hapi;
 
 import com.ibm.cohort.cql.version.ResourceSelector;
-import com.ibm.cohort.cql.fhir.handler.ResourceHandler;
+import com.ibm.cohort.cql.fhir.handler.ResourceFieldHandler;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
@@ -23,11 +23,11 @@ import java.util.stream.Collectors;
  */
 public class R4FhirBundleExtractor<T extends IBaseResource> {
 
-    private final ResourceHandler<T, Identifier> resourceHandler;
+    private final ResourceFieldHandler<T, Identifier> fieldHandler;
     private final ResourceSelector<T> resourceSelector;
 
-    public R4FhirBundleExtractor(ResourceHandler<T, Identifier> resourceHandler, ResourceSelector<T> resourceSelector) {
-        this.resourceHandler = resourceHandler;
+    public R4FhirBundleExtractor(ResourceFieldHandler<T, Identifier> fieldHandler, ResourceSelector<T> resourceSelector) {
+        this.fieldHandler = fieldHandler;
         this.resourceSelector = resourceSelector;
     }
 
@@ -37,7 +37,7 @@ public class R4FhirBundleExtractor<T extends IBaseResource> {
     }
 
     public List<T> extractAll(Bundle bundle) {
-        Class<T> supportedClass = resourceHandler.getSupportedClass();
+        Class<T> supportedClass = fieldHandler.getSupportedClass();
         return bundle.getEntry().stream()
                 .map(BundleEntryComponent::getResource)
                 .filter(supportedClass::isInstance)

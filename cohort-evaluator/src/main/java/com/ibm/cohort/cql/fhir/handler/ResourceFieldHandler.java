@@ -6,18 +6,18 @@
 
 package com.ibm.cohort.cql.fhir.handler;
 
-import com.ibm.cohort.cql.version.VersionHandler;
+import com.ibm.cohort.cql.version.VersionFieldHandler;
 
 import java.util.List;
 
 /**
- * Retrieves various FHIR related fields from the specified type.
- * Can also extract information from a specified identifier type.
+ * Handles various FHIR related fields from the specified type.
+ * Can also handle information from a specified identifier type.
  *
- * @param <T> The resource type to retrieve fields from.
+ * @param <T> The resource type to handle fields from.
  * @param <I> The identifier type found on {@link T}.
  */
-public interface ResourceHandler<T, I> extends VersionHandler<T> {
+public interface ResourceFieldHandler<T, I> extends VersionFieldHandler<T> {
 
     Class<T> getSupportedClass();
 

@@ -6,10 +6,10 @@
 
 package com.ibm.cohort.cql.version;
 
-import com.ibm.cohort.cql.fhir.handler.ResourceHandler;
+import com.ibm.cohort.cql.fhir.handler.ResourceFieldHandler;
 import com.ibm.cohort.cql.testmodel.SimpleIdentifier;
 import com.ibm.cohort.cql.testmodel.SimpleObject;
-import com.ibm.cohort.cql.testmodel.SimpleResourceHandler;
+import com.ibm.cohort.cql.testmodel.SimpleResourceFieldHandler;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -131,8 +131,8 @@ public class ResourceSelectorTest {
     }
 
     private ResourceSelector<SimpleObject> getSelector() {
-        ResourceHandler<SimpleObject, SimpleIdentifier> resourceHandler = new SimpleResourceHandler();
-        return new ResourceSelector<>(resourceHandler);
+        ResourceFieldHandler<SimpleObject, SimpleIdentifier> fieldHandler = new SimpleResourceFieldHandler();
+        return new ResourceSelector<>(fieldHandler);
     }
 
     private SimpleObject createObject(String id, String version) {

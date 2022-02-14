@@ -16,17 +16,17 @@ import java.util.Optional;
  * Selects a specific resource from a collection of resources based on
  * their versions.
  *
- * <p> It is expected that the provided {@link VersionHandler} will return
+ * <p> It is expected that the provided {@link VersionFieldHandler} will return
  * strings in the form of a Semantic Version (e.g. 1.0.0).
  *
  * @param <T> The resource type to select.
  */
 public class ResourceSelector<T> {
 
-    private final VersionHandler<T> versionHandler;
+    private final VersionFieldHandler<T> versionFieldHandler;
 
-    public ResourceSelector(VersionHandler<T> versionHandler) {
-        this.versionHandler = versionHandler;
+    public ResourceSelector(VersionFieldHandler<T> versionFieldHandler) {
+        this.versionFieldHandler = versionFieldHandler;
     }
 
     public T selectSpecificVersionOrLatest(Collection<T> resources, String version) {
@@ -44,7 +44,7 @@ public class ResourceSelector<T> {
         T retVal = null;
         SemanticVersion latestVersion = null;
         for (T resource : resources) {
-            String rawVersion = versionHandler.getVersion(resource);
+            String rawVersion = versionFieldHandler.getVersion(resource);
             Optional<SemanticVersion> possibleVersion = SemanticVersion.create(rawVersion);
             if (possibleVersion.isPresent()){
                 SemanticVersion version = possibleVersion.get();
@@ -61,7 +61,7 @@ public class ResourceSelector<T> {
         T retVal = null;
 
         for (T resource : resources) {
-            String resourceVersion = versionHandler.getVersion(resource);
+            String resourceVersion = versionFieldHandler.getVersion(resource);
             if (version.equals(resourceVersion)) {
                 if (retVal == null) {
                     retVal = resource;

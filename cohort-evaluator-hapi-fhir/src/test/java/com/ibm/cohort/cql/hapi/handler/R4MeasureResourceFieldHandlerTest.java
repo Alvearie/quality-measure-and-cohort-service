@@ -13,13 +13,13 @@ import org.junit.Test;
 
 import java.util.List;
 
-public class R4MeasureResourceHandlerTest {
+public class R4MeasureResourceFieldHandlerTest {
 
-    private final R4MeasureResourceHandler resourceHandler = new R4MeasureResourceHandler();
+    private final R4MeasureResourceFieldHandler measureFieldHandler = new R4MeasureResourceFieldHandler();
     
     @Test
     public void getSupportedClass() {
-        Assert.assertEquals(Measure.class, resourceHandler.getSupportedClass());
+        Assert.assertEquals(Measure.class, measureFieldHandler.getSupportedClass());
     }
 
     @Test
@@ -27,15 +27,15 @@ public class R4MeasureResourceHandlerTest {
         String id = "id";
         Measure measure = new Measure();
         measure.setId(id);
-        Assert.assertEquals(id, resourceHandler.getId(measure));
+        Assert.assertEquals(id, measureFieldHandler.getId(measure));
     }
 
     @Test
     public void setId() {
         String id = "id";
         Measure measure = new Measure();
-        resourceHandler.setId(id, measure);
-        Assert.assertEquals("Measure/" + id, resourceHandler.getId(measure));
+        measureFieldHandler.setId(id, measure);
+        Assert.assertEquals("Measure/" + id, measureFieldHandler.getId(measure));
     }
 
     @Test
@@ -43,7 +43,7 @@ public class R4MeasureResourceHandlerTest {
         String name = "name";
         Measure measure = new Measure();
         measure.setName(name);
-        Assert.assertEquals(name, resourceHandler.getName(measure));
+        Assert.assertEquals(name, measureFieldHandler.getName(measure));
     }
 
     @Test
@@ -51,7 +51,7 @@ public class R4MeasureResourceHandlerTest {
         String version = "version";
         Measure measure = new Measure();
         measure.setVersion(version);
-        Assert.assertEquals(version, resourceHandler.getVersion(measure));
+        Assert.assertEquals(version, measureFieldHandler.getVersion(measure));
     }
 
     @Test
@@ -59,7 +59,7 @@ public class R4MeasureResourceHandlerTest {
         String url = "url";
         Measure measure = new Measure();
         measure.setUrl(url);
-        Assert.assertEquals(url, resourceHandler.getUrl(measure));
+        Assert.assertEquals(url, measureFieldHandler.getUrl(measure));
     }
 
     @Test
@@ -69,7 +69,7 @@ public class R4MeasureResourceHandlerTest {
                 .setValue("value");
         Measure measure = new Measure();
         measure.addIdentifier(identifier);
-        List<Identifier> measureIdentifiers = resourceHandler.getIdentifiers(measure);
+        List<Identifier> measureIdentifiers = measureFieldHandler.getIdentifiers(measure);
         Assert.assertEquals(1, measureIdentifiers.size());
         Assert.assertTrue(identifier.equalsDeep(measureIdentifiers.get(0)));
     }
@@ -79,7 +79,7 @@ public class R4MeasureResourceHandlerTest {
         String identifierValue = "value";
         Identifier identifier = new Identifier()
                 .setValue(identifierValue);
-        Assert.assertEquals(identifierValue, resourceHandler.getIdentifierValue(identifier));
+        Assert.assertEquals(identifierValue, measureFieldHandler.getIdentifierValue(identifier));
     }
 
     @Test
@@ -87,7 +87,7 @@ public class R4MeasureResourceHandlerTest {
         String identifierSystem = "system";
         Identifier identifier = new Identifier()
                 .setSystem(identifierSystem);
-        Assert.assertEquals(identifierSystem, resourceHandler.getIdentifierSystem(identifier));
+        Assert.assertEquals(identifierSystem, measureFieldHandler.getIdentifierSystem(identifier));
     }
 
 }

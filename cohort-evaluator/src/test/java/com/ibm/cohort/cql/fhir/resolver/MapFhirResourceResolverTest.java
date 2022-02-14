@@ -8,8 +8,8 @@ package com.ibm.cohort.cql.fhir.resolver;
 
 import com.ibm.cohort.cql.testmodel.SimpleIdentifier;
 import com.ibm.cohort.cql.testmodel.SimpleObject;
-import com.ibm.cohort.cql.testmodel.SimpleResourceHandler;
-import com.ibm.cohort.cql.fhir.handler.ResourceHandler;
+import com.ibm.cohort.cql.testmodel.SimpleResourceFieldHandler;
+import com.ibm.cohort.cql.fhir.handler.ResourceFieldHandler;
 import com.ibm.cohort.cql.version.ResourceSelector;
 import org.junit.Assert;
 import org.junit.Test;
@@ -196,9 +196,9 @@ public class MapFhirResourceResolverTest {
     }
 
     private MapFhirResourceResolver<SimpleObject, SimpleIdentifier> getResolver() {
-        ResourceHandler<SimpleObject, SimpleIdentifier> resourceHandler = new SimpleResourceHandler();
-        ResourceSelector<SimpleObject> resourceSelector = new ResourceSelector<>(resourceHandler);
-        return new MapFhirResourceResolver<>(resourceHandler, resourceSelector);
+        ResourceFieldHandler<SimpleObject, SimpleIdentifier> fieldHandler = new SimpleResourceFieldHandler();
+        ResourceSelector<SimpleObject> resourceSelector = new ResourceSelector<>(fieldHandler);
+        return new MapFhirResourceResolver<>(fieldHandler, resourceSelector);
     }
 
 }

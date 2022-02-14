@@ -9,11 +9,11 @@ package com.ibm.cohort.cql.hapi.resolver;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import com.ibm.cohort.cql.fhir.resolver.CachingFhirResourceResolver;
 import com.ibm.cohort.cql.version.ResourceSelector;
-import com.ibm.cohort.cql.fhir.handler.ResourceHandler;
+import com.ibm.cohort.cql.fhir.handler.ResourceFieldHandler;
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
 import com.ibm.cohort.cql.hapi.R4FhirBundleExtractor;
-import com.ibm.cohort.cql.hapi.handler.R4LibraryResourceHandler;
-import com.ibm.cohort.cql.hapi.handler.R4MeasureResourceHandler;
+import com.ibm.cohort.cql.hapi.handler.R4LibraryResourceFieldHandler;
+import com.ibm.cohort.cql.hapi.handler.R4MeasureResourceFieldHandler;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
@@ -25,17 +25,17 @@ import org.hl7.fhir.r4.model.Measure;
 public class R4FhirServerResrouceResolverFactory {
 
     public static FhirResourceResolver<Measure> createMeasureResolver(IGenericClient measureClient) {
-        ResourceHandler<Measure, Identifier> measureHandler = new R4MeasureResourceHandler();
-        ResourceSelector<Measure> measureSelector = new ResourceSelector<>(measureHandler);
-        R4FhirBundleExtractor<Measure> measureExtractor = new R4FhirBundleExtractor<>(measureHandler, measureSelector);
+        ResourceFieldHandler<Measure, Identifier> measureFieldHandler = new R4MeasureResourceFieldHandler();
+        ResourceSelector<Measure> measureSelector = new ResourceSelector<>(measureFieldHandler);
+        R4FhirBundleExtractor<Measure> measureExtractor = new R4FhirBundleExtractor<>(measureFieldHandler, measureSelector);
         FhirResourceResolver<Measure> measureResolver = new R4MeasureFhirServerResourceResolver(measureClient, measureExtractor);
         return new CachingFhirResourceResolver<>(measureResolver);
     }
 
     public static FhirResourceResolver<Library> createLibraryResolver(IGenericClient libraryClient) {
-        ResourceHandler<Library, Identifier> libraryHandler = new R4LibraryResourceHandler();
-        ResourceSelector<Library> librarySelector = new ResourceSelector<>(libraryHandler);
-        R4FhirBundleExtractor<Library> libraryExtractor = new R4FhirBundleExtractor<>(libraryHandler, librarySelector);
+        ResourceFieldHandler<Library, Identifier> libraryFieldHandler = new R4LibraryResourceFieldHandler();
+        ResourceSelector<Library> librarySelector = new ResourceSelector<>(libraryFieldHandler);
+        R4FhirBundleExtractor<Library> libraryExtractor = new R4FhirBundleExtractor<>(libraryFieldHandler, librarySelector);
         FhirResourceResolver<Library> libraryResolver = new R4LibraryFhirServerResourceResolver(libraryClient, libraryExtractor);
         return new CachingFhirResourceResolver<>(libraryResolver);
     }

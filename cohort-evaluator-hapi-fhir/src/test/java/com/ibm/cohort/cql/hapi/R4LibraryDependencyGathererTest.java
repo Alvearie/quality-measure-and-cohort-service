@@ -12,9 +12,9 @@ import java.util.stream.Collectors;
 
 import com.ibm.cohort.cql.helpers.CanonicalHelper;
 import com.ibm.cohort.cql.version.ResourceSelector;
-import com.ibm.cohort.cql.fhir.handler.ResourceHandler;
+import com.ibm.cohort.cql.fhir.handler.ResourceFieldHandler;
 import com.ibm.cohort.cql.fhir.resolver.MapFhirResourceResolver;
-import com.ibm.cohort.cql.hapi.handler.R4LibraryResourceHandler;
+import com.ibm.cohort.cql.hapi.handler.R4LibraryResourceFieldHandler;
 import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
@@ -221,9 +221,9 @@ public class R4LibraryDependencyGathererTest {
     }
 
     private MapFhirResourceResolver<Library, Identifier> getMapFhirResourceResolver() {
-        ResourceHandler<Library, Identifier> libraryHandler = new R4LibraryResourceHandler();
-        ResourceSelector<Library> resourceSelector = new ResourceSelector<>(libraryHandler);
-        return new MapFhirResourceResolver<>(libraryHandler, resourceSelector);
+        ResourceFieldHandler<Library, Identifier> libraryFieldHandler = new R4LibraryResourceFieldHandler();
+        ResourceSelector<Library> resourceSelector = new ResourceSelector<>(libraryFieldHandler);
+        return new MapFhirResourceResolver<>(libraryFieldHandler, resourceSelector);
     }
 
 }

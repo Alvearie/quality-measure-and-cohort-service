@@ -7,7 +7,7 @@
 package com.ibm.cohort.cql.fhir.resolver;
 
 import com.ibm.cohort.cql.version.ResourceSelector;
-import com.ibm.cohort.cql.fhir.handler.ResourceHandler;
+import com.ibm.cohort.cql.fhir.handler.ResourceFieldHandler;
 import com.ibm.cohort.cql.helpers.CanonicalHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -29,7 +29,7 @@ import java.util.Map;
  */
 public class MapFhirResourceResolver<T, I> implements FhirResourceResolver<T> {
 
-    private final ResourceHandler<T, I> resourceHandler;
+    private final ResourceFieldHandler<T, I> fieldHandler;
     private final ResourceSelector<T> resourceSelector;
 
     private final Map<String, T> idMap = new HashMap<>();
@@ -37,8 +37,8 @@ public class MapFhirResourceResolver<T, I> implements FhirResourceResolver<T> {
     private final Map<String, List<T>> urlMap = new HashMap<>();
     private final Map<String, List<T>> identifierMap = new HashMap<>();
 
-    public MapFhirResourceResolver(ResourceHandler<T, I> resourceHandler, ResourceSelector<T> resourceSelector) {
-        this.resourceHandler = resourceHandler;
+    public MapFhirResourceResolver(ResourceFieldHandler<T, I> fieldHandler, ResourceSelector<T> resourceSelector) {
+        this.fieldHandler = fieldHandler;
         this.resourceSelector = resourceSelector;
     }
 
@@ -74,7 +74,7 @@ public class MapFhirResourceResolver<T, I> implements FhirResourceResolver<T> {
     }
 
     public void addResource(T resource) {
-        String id = resourceHandler.getId(resource);
+        String id = fieldHandler.getId(resource);
         idMap.put(id, resource);
 
         String shortenedId = getShortenedId(id);
@@ -82,16 +82,16 @@ public class MapFhirResourceResolver<T, I> implements FhirResourceResolver<T> {
             idMap.put(getShortenedId(id), resource);
         }
 
-        String name = resourceHandler.getName(resource);
+        String name = fieldHandler.getName(resource);
         nameMap.computeIfAbsent(name, x -> new ArrayList<>()).add(resource);
 
-        String url = resourceHandler.getUrl(resource);
+        String url = fieldHandler.getUrl(resource);
         urlMap.computeIfAbsent(url, x -> new ArrayList<>()).add(resource);
 
-        List<I> identifiers = resourceHandler.getIdentifiers(resource);
+        List<I> identifiers = fieldHandler.getIdentifiers(resource);
         for (I identifier : identifiers) {
-            String idValue = resourceHandler.getIdentifierValue(identifier);
-            String idSystem = resourceHandler.getIdentifierSystem(identifier);
+            String idValue = fieldHandler.getIdentifierValue(identifier);
+            String idSystem = fieldHandler.getIdentifierSystem(identifier);
             String identifierKey = createIdentifierMapKey(idValue, idSystem);
             identifierMap.computeIfAbsent(identifierKey, x -> new ArrayList<>()).add(resource);
         }

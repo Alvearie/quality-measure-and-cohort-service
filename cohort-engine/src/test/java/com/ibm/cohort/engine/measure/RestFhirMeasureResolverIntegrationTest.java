@@ -10,13 +10,8 @@ import static org.junit.Assert.assertNull;
 
 import java.net.URLEncoder;
 
-import com.ibm.cohort.cql.fhir.handler.ResourceHandler;
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
-import com.ibm.cohort.cql.hapi.R4FhirBundleExtractor;
-import com.ibm.cohort.cql.hapi.handler.R4MeasureResourceHandler;
 import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResrouceResolverFactory;
-import com.ibm.cohort.cql.hapi.resolver.R4MeasureFhirServerResourceResolver;
-import com.ibm.cohort.cql.version.ResourceSelector;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Enumerations.ResourceType;
 import org.hl7.fhir.r4.model.Identifier;

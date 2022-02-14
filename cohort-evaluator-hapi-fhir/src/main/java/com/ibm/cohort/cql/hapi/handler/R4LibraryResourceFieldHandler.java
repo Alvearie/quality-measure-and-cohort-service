@@ -6,7 +6,7 @@
 
 package com.ibm.cohort.cql.hapi.handler;
 
-import com.ibm.cohort.cql.fhir.handler.ResourceHandler;
+import com.ibm.cohort.cql.fhir.handler.ResourceFieldHandler;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Library;
@@ -14,9 +14,9 @@ import org.hl7.fhir.r4.model.Library;
 import java.util.List;
 
 /**
- * The R4 HAPI FHIR {@link Library} implementation of {@link ResourceHandler}.
+ * The R4 HAPI FHIR {@link Library} implementation of {@link ResourceFieldHandler}.
  */
-public class R4LibraryResourceHandler implements ResourceHandler<Library, Identifier> {
+public class R4LibraryResourceFieldHandler implements ResourceFieldHandler<Library, Identifier> {
 
     @Override
     public Class<Library> getSupportedClass() {

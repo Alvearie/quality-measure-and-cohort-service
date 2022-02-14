@@ -7,14 +7,14 @@
 package com.ibm.cohort.cql.version;
 
 /**
- * Retrieves a version from the specified resource.
+ * Handles the version field from the specified resource.
  *
  * <p> The format of the version can be any valid String, but other classes
  * may expect the returned string to match the Semantic Version format.
  *
- * @param <T> The resource to retrieve a version from.
+ * @param <T> The resource to handle the version from.
  */
-public interface VersionHandler<T> {
+public interface VersionFieldHandler<T> {
 
     String getVersion(T resource);
 
