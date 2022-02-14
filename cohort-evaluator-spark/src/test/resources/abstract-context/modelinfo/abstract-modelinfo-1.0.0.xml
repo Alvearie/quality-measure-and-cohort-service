@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ (C) Copyright IBM Corp. 2022, 2022
+  ~
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<modelInfo xmlns="urn:hl7-org:elm-modelinfo:r1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Abstract" version="1.0.0"
+           url="http://mock.cohort.model" targetQualifier="IDontKnow" patientClassName="A"
+           patientBirthDatePropertyName="datetime_col">
+	<typeInfo namespace="Abstract" name="Base" identifier="http://mock.cohort.model/Base"
+	          label="Base" retrievable="false" xsi:type="ClassInfo">
+	</typeInfo>
+
+	<typeInfo namespace="Abstract" name="A" baseType="Alpha" identifier="http://mock.cohort.model/A"
+	          label="A" retrievable="true" xsi:type="ClassInfo">
+		<element name="a" elementType="System.String"/>
+	</typeInfo>
+
+	<typeInfo namespace="Abstract" name="B" baseType="Alpha"
+	          identifier="http://mock.cohort.model/B" label="B" retrievable="true"
+	          xsi:type="ClassInfo">
+		<element name="b" elementType="System.String"/>
+	</typeInfo>
+
+	<typeInfo namespace="Abstract" name="Alpha"
+	          identifier="http://mock.cohort.model/Alpha"
+	          label="Alpha" retrievable="true" xsi:type="ClassInfo">
+		<element name="index" elementType="System.Integer"/>
+		<element name="id" elementType="System.Integer"/>
+	</typeInfo>
+
+	<typeInfo namespace="Abstract" name="One" baseType="Numeric"
+	          identifier="http://mock.cohort.model/A" label="A" retrievable="true"
+	          xsi:type="ClassInfo">
+		<element name="one" elementType="System.Integer"/>
+	</typeInfo>
+
+	<typeInfo namespace="Abstract" name="Two" baseType="Numeric"
+	          identifier="http://mock.cohort.model/Two" label="Two" retrievable="true"
+	          xsi:type="ClassInfo">
+		<element name="two" elementType="System.Integer"/>
+	</typeInfo>
+
+	<typeInfo namespace="Abstract" name="Numeric"
+	          identifier="http://mock.cohort.model/Numeric"
+	          label="Numeric" retrievable="true" xsi:type="ClassInfo">
+		<element name="unit" elementType="System.String"/>
+		<element name="id" elementType="System.Integer"/>
+	</typeInfo>
+
+	<typeInfo identifier="AlphaNumeric"
+	          label="AlphaNumeric" name="AlphaNumeric" namespace="Abstract"
+	          retrievable="true"
+	          xsi:type="ClassInfo">
+		<baseTypeSpecifier xsi:type="ChoiceTypeSpecifier">
+			<choice xsi:type="NamedTypeSpecifier" modelName="Abstract" name="Alpha"/>
+			<choice xsi:type="NamedTypeSpecifier" modelName="Abstract" name="Numeric"/>
+		</baseTypeSpecifier>
+	</typeInfo>
+
+	<contextInfo name="A" keyElement="id" birthDateElement="NA">
+		<contextType modelName="Abstract" namespace="Abstract" name="A"/>
+	</contextInfo>
+
+	<contextInfo name="B" keyElement="id" birthDateElement="NA">
+		<contextType modelName="Abstract" namespace="Abstract" name="B"/>
+	</contextInfo>
+
+	<contextInfo name="One" keyElement="id" birthDateElement="NA">
+		<contextType modelName="Abstract" namespace="Abstract" name="A"/>
+	</contextInfo>
+
+	<contextInfo name="Two" keyElement="id" birthDateElement="NA">
+		<contextType modelName="Abstract" namespace="Abstract" name="B"/>
+	</contextInfo>
+
+
+</modelInfo>

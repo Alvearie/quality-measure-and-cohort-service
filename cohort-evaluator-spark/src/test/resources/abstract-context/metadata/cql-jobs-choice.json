@@ -1,0 +1,15 @@
+{
+  "evaluations": [
+    {
+      "descriptor": {
+        "libraryId": "Choice",
+        "version": "1.0.0"
+      },
+      "expressions": [
+        "cohort"
+      ],
+      "contextKey": "AlphaNumeric",
+      "contextValue": "NA"
+    }
+  ]
+}

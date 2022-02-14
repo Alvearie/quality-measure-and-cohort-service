@@ -8,6 +8,8 @@ package com.ibm.cohort.cql.spark.optimizer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
@@ -15,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,9 +25,11 @@ import java.util.stream.Collectors;
 import javax.xml.bind.JAXB;
 import javax.xml.namespace.QName;
 
+import org.hamcrest.Matchers;
 import org.hl7.elm_modelinfo.r1.ClassInfo;
 import org.hl7.elm_modelinfo.r1.ModelInfo;
 import org.hl7.elm_modelinfo.r1.ModelSpecifier;
+import org.hl7.elm_modelinfo.r1.TypeInfo;
 import org.junit.Test;
 
 import com.ibm.cohort.cql.spark.optimizer.ModelUtils.TypeNode;
@@ -192,6 +197,37 @@ public class ModelUtilsTest {
         assertTrue(iex.getMessage(), iex.getMessage().contains("Other"));
         assertTrue(iex.getMessage(), iex.getMessage().contains(modelInfo.getName()));
         assertTrue(iex.getMessage(), iex.getMessage().contains(modelInfo.getVersion()));
+    }
+
+    @Test
+    public void testGetBaseTypeWithoutBaseType() {
+        ModelInfo modelInfo = new ModelInfo();
+        ClassInfo typeInfo = new ClassInfo();
+        typeInfo.setName("MyType");
+
+        assertNull(ModelUtils.getBaseTypeName(modelInfo, typeInfo));
+    }
+
+    @Test
+    public void testGetChoiceTypesNone() {
+        ModelInfo modelInfo = JAXB.unmarshal(new File("src/test/resources/abstract-context/modelinfo/abstract-modelinfo-1.0.0.xml"), ModelInfo.class);
+        TypeInfo typeInfo = modelInfo.getTypeInfo().stream().map(ClassInfo.class::cast)
+            .filter(classInfo -> classInfo.getName().equals("Alpha"))
+            .findFirst().orElse(null);
+        Collection<String> choiceTypes = ModelUtils.getChoiceTypeNames(typeInfo);
+
+        assertThat(choiceTypes, Matchers.empty());
+    }
+
+    @Test
+    public void testGetChoiceTypesValid() {
+        ModelInfo modelInfo = JAXB.unmarshal(new File("src/test/resources/abstract-context/modelinfo/abstract-modelinfo-1.0.0.xml"), ModelInfo.class);
+        TypeInfo typeInfo = modelInfo.getTypeInfo().stream().map(ClassInfo.class::cast)
+            .filter(classInfo -> classInfo.getName().equals("AlphaNumeric"))
+            .findFirst().orElse(null);
+        Collection<String> choiceTypes = ModelUtils.getChoiceTypeNames(typeInfo);
+
+        assertThat(choiceTypes, Matchers.containsInAnyOrder("Alpha", "Numeric"));
     }
 
     protected ModelInfo loadFromClasspath(String resourcePath) throws IOException {

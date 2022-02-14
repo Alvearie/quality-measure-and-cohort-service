@@ -818,7 +818,126 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
                 "parquet"
         );
     }
-    
+
+    @Test
+    public void testAbstractContextChoiceModel() throws Exception {
+        File inputDir = new File("src/test/resources/abstract-context/");
+        File outputDir = new File("target/output/abstract-context/");
+
+        File output = new File(outputDir, "AlphaNumeric");
+
+        String [] args = {
+            "-d", "src/test/resources/abstract-context/metadata/context-definition-choice.json",
+            "-j", "src/test/resources/abstract-context/metadata/cql-jobs-choice.json",
+            "-m", "src/test/resources/abstract-context/modelinfo/abstract-modelinfo-1.0.0.xml",
+            "-c", "src/test/resources/abstract-context/cql",
+            "--input-format", "parquet",
+            "-i", "AlphaNumeric=" + new File(inputDir, "data/One.parquet").toURI(),
+            "-o", "AlphaNumeric=" + output.toURI(),
+            "-n", "1",
+            "--output-format", "parquet",
+            "--overwrite-output-for-contexts",
+            "--disable-column-filter",
+            "--metadata-output-path", outputDir.toURI().toString()
+        };
+
+        SparkCqlEvaluator.main(args);
+
+        validateOutput(
+            output.toURI().toString(),
+            Arrays.asList(
+                RowFactory.create(0, "{}", false),
+                RowFactory.create(1, "{}", false),
+                RowFactory.create(2, "{}", true),
+                RowFactory.create(3, "{}", true),
+                RowFactory.create(4, "{}", true),
+                RowFactory.create(5, "{}", true),
+                RowFactory.create(6, "{}", true),
+                RowFactory.create(7, "{}", true),
+                RowFactory.create(8, "{}", true),
+                RowFactory.create(9, "{}", true)
+            ),
+            new StructType()
+                .add("id", DataTypes.IntegerType, false)
+                .add("parameters", DataTypes.StringType, false)
+                .add("Choice|cohort", DataTypes.BooleanType, true),
+            "parquet"
+        );
+    }
+
+    @Test
+    public void testAbstractContextInheritanceModel() throws Exception {
+        File inputDir = new File("src/test/resources/abstract-context/");
+        File outputDir = new File("target/output/abstract-context/");
+
+        File outputA = new File(outputDir, "A");
+        File outputB = new File(outputDir, "B");
+
+        String [] args = {
+            "-d", "src/test/resources/abstract-context/metadata/context-definition-inheritance.json",
+            "-j", "src/test/resources/abstract-context/metadata/cql-jobs-inheritance.json",
+            "-m", "src/test/resources/abstract-context/modelinfo/abstract-modelinfo-1.0.0.xml",
+            "-c", "src/test/resources/abstract-context/cql",
+            "--input-format", "parquet",
+            "-i", "A=" + new File(inputDir, "data/A.parquet").toURI(),
+            "-i", "B=" + new File(inputDir, "data/B.parquet").toURI(),
+            "-o", "A=" + outputA.toURI(),
+            "-o", "B=" + outputB.toURI(),
+            "-n", "1",
+            "--output-format", "parquet",
+            "--overwrite-output-for-contexts",
+            "--disable-column-filter",
+            "--metadata-output-path", outputDir.toURI().toString()
+        };
+
+        SparkCqlEvaluator.main(args);
+
+        // validate A
+        validateOutput(
+            outputA.toURI().toString(),
+            Arrays.asList(
+                RowFactory.create(0, "{}", false),
+                RowFactory.create(1, "{}", false),
+                RowFactory.create(2, "{}", true),
+                RowFactory.create(3, "{}", true),
+                RowFactory.create(4, "{}", true),
+                RowFactory.create(5, "{}", true),
+                RowFactory.create(6, "{}", true),
+                RowFactory.create(7, "{}", true),
+                RowFactory.create(8, "{}", true),
+                RowFactory.create(9, "{}", true)
+            ),
+            new StructType()
+                .add("id", DataTypes.IntegerType, false)
+                .add("parameters", DataTypes.StringType, false)
+                .add("Inheritance|cohort", DataTypes.BooleanType, true),
+            "parquet"
+        );
+
+        // validate B
+        validateOutput(
+            outputB.toURI().toString(),
+            Arrays.asList(
+                RowFactory.create(0, "{}", false),
+                RowFactory.create(1, "{}", false),
+                RowFactory.create(2, "{}", false),
+                RowFactory.create(3, "{}", false),
+                RowFactory.create(4, "{}", false),
+                RowFactory.create(5, "{}", false),
+                RowFactory.create(6, "{}", false),
+                RowFactory.create(7, "{}", false),
+                RowFactory.create(8, "{}", false),
+                RowFactory.create(9, "{}", false)
+            ),
+            new StructType()
+                .add("id", DataTypes.IntegerType, false)
+                .add("parameters", DataTypes.StringType, false)
+                .add("Inheritance|cohort", DataTypes.BooleanType, true),
+            "parquet"
+        );
+    }
+
+
     private void validateOutput(String filename, List<Row> expectedRows, StructType schema, String expectedFormat) {
         // SparkCqlEvaluator closes the SparkSession. Make sure we have one opened before any validation.
         DeltaLog.clearCache();

@@ -1,0 +1,14 @@
+{
+  "contextDefinitions": [
+    {
+      "name": "A",
+      "primaryDataType": "A",
+      "primaryKeyColumn": "id"
+    },
+    {
+      "name": "B",
+      "primaryDataType": "B",
+      "primaryKeyColumn": "id"
+    }
+  ]
+}
