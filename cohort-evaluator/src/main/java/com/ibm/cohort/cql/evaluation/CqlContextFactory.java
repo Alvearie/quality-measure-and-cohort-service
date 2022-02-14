@@ -165,6 +165,8 @@ public class CqlContextFactory {
         }
 
         resetContextValues(cqlContext);
+        cqlContext.clearExpressions();
+
         if( contextData != null ) {
             cqlContext.setContextValue(contextData.getKey(), contextData.getValue());
         }
