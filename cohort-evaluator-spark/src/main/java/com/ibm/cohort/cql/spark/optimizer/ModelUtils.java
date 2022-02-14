@@ -76,6 +76,11 @@ public class ModelUtils {
     public static QName getBaseTypeName(ModelInfo modelInfo, TypeInfo typeInfo) {
         String prefixURI;
         String baseTypeName;
+
+        String baseType = typeInfo.getBaseType();
+        if (baseType == null) {
+           return null;
+        }
         
         String [] parts = typeInfo.getBaseType().split("\\.");
         if( parts.length == 1 ) {
