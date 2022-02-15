@@ -920,7 +920,7 @@ public class CohortEngineRestHandler {
 		return response;
 	}
 	
-	private <T> void validateBean(T beanInput) {
+	protected static <T> void validateBean(T beanInput) {
 		// See https://openliberty.io/guides/bean-validation.html
 		// TODO: The validator below is recommended to be injected using CDI in the
 		// guide

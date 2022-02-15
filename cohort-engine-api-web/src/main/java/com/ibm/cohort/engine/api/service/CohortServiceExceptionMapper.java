@@ -37,6 +37,17 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 
 	@Override
 	public Response toResponse(Throwable ex) {
+		ServiceErrorList serviceErrorList = toServiceErrorList(ex);
+
+		ResponseBuilder rb = Response.status(serviceErrorList.getStatusCode()).
+				entity(serviceErrorList).
+				type(MediaType.APPLICATION_JSON);
+
+		return rb.build();
+	}
+	
+
+	public ServiceErrorList toServiceErrorList(Throwable ex) {
 		List<ServiceError> errorsList = new ArrayList<>();
 		//The IBM Cloud API Handbook mandates that REST errors be returned using
 		//an error container model class (ServiceErrorList) which in turn contains
@@ -173,12 +184,8 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 
 			errorsList.add(se);
 		}
-
-		ResponseBuilder rb = Response.status(serviceErrorList.getStatusCode()).
-				entity(serviceErrorList).
-				type(MediaType.APPLICATION_JSON);
-
-		return rb.build();
+		
+		return serviceErrorList;
 	}
 	
 	private void createServiceErrorsForExceptions(Throwable ex, int code, List<ServiceError> errorsList) {
