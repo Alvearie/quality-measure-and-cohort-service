@@ -52,7 +52,7 @@
 
 		<spark.version>3.1.2</spark.version>
 		<spark.scala.version>2.12</spark.scala.version>
-		<hadoop.version>3.2.0</hadoop.version>
+		<hadoop.version>3.2.2</hadoop.version>
 
 		<!-- Scala 2.12 has a hard dependency on the 2.10.X lineage of Jackson -->
 		<jackson.version>2.10.5</jackson.version>
@@ -1399,23 +1399,23 @@
 						<excludeVulnerabilityId>9ddb61f1-9c22-41a8-9390-dd857d535408</excludeVulnerabilityId>
 
 						<!-- This is a legitimate vulnerability -->
-						<excludeVulnerabilityId>151e0922-bd99-4adf-ac92-10c23aa4c815</excludeVulnerabilityId>
+						<!-- [CVE-2020-9492] In Apache Hadoop 3.2.0 to 3.2.1, 3.0.0-alpha1 to 3.1.3, and 2.0.0-alpha to 2.10.0, WebHDFS client might send SPNEGO authorization header to remote URL without proper verification. -->
+<!--						<excludeVulnerabilityId>151e0922-bd99-4adf-ac92-10c23aa4c815</excludeVulnerabilityId>-->
 					</excludeVulnerabilityIds>
 
 					<excludeCoordinates>
-						<!-- Excluding log4j until we figure out the approach to handle-->
+						<!--
+						These are legitimate vulnerabilities that come through org.apache.parquet:parquet-hadoop:jar:1.10.1
+						If we upgrade to Spark 3.2.x, this will result in an update to parquest-hadoop 1.12.x which removes jackson-mapper-asl
+
+						PRISM deviation exists for these 3 exclusions (log4j, jackson-mapper-asl, netty)
+						-->
 						<exclude>
 							<groupId>log4j</groupId>
 							<artifactId>log4j</artifactId>
 							<version>1.2.17</version>
 						</exclude>
 
-						<!--
-						These are legitimate vulnerabilities that come through org.apache.parquet:parquet-hadoop:jar:1.10.1
-						If we upgrade to Spark 3.2.x, this will result in an update to parquest-hadoop 1.12.x which removes jackson-mapper-asl
-
-						Do we have an exemption for these today?
-						-->
 						<exclude>
 							<groupId>org.codehaus.jackson</groupId>
 							<artifactId>jackson-mapper-asl</artifactId>
