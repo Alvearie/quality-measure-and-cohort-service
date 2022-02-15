@@ -2,18 +2,20 @@ library OMOPHelpers version '1.0.0'
 
 using OMOP version '5.2.2'
 
-define function ToCode(observation OMOP.observation):
+define "StandardizedObservations":
+  from [observation] o
+    , [concept] c
+    , [vocabulary] v
+  where
+    o.observation_concept_id = c.concept_id
+    and c.vocabulary_id = v.vocabulary_id
+
+define function ToCode(coding Tuple { observation OMOP.observation, concept OMOP.concept, vocabulary OMOP.vocabulary }):
     System.Code {
-      code: observation.observation_concept_id,
+      code: null,
       system: null,
       version: null,
       display: null
     }
 
-define function ToCode(concept concept, vocabulary vocabulary):
-    System.Code {
-      code: concept.concept_code,
-      system: concept.vocabulary_id,
-      version: vocabulary.vocabulary_version,
-      display: concept.concept_name
-    }
+// coding.observation.observation_concept_id as string

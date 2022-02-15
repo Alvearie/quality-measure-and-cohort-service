@@ -41,13 +41,13 @@
     <element name="unit_source_value" elementType="System.String"/>
     <element name="qualifier_source_value" elementType="System.String"/>
 	  <element name="code">
-		  <elementTypeSpecifier elementType="Code" xsi:type="ListTypeSpecifier"/>
-		  <binding name="Code" strength="Required"/>
+		  <elementTypeSpecifier elementType="code" xsi:type="ListTypeSpecifier"/>
+		  <binding name="code" strength="Required"/>
 	  </element>
   </typeInfo>
 
-	<typeInfo name="Code" retrievable="false" xsi:type="ClassInfo">
-		<element name="value" elementType="System.String"/>
+	<typeInfo xmlns="urn:hl7-org:elm-modelinfo:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" baseType="System.Any" name="code" label="code" retrievable="false" xsi:type="ClassInfo">
+		<element name="test" elementType="System.String"/>
 	</typeInfo>
 
   <typeInfo xmlns="urn:hl7-org:elm-modelinfo:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" baseType="System.Any" name="person" label="person" retrievable="true" xsi:type="ClassInfo">
@@ -71,7 +71,7 @@
     <element name="ethnicity_source_concept_id" elementType="System.Integer"/>
   </typeInfo>
 
-	<conversionInfo functionName="OMOPHelpers.ToCode" fromType="OMOP.Code" toType="System.Code"/>
+	<conversionInfo functionName="OMOPHelpers.ToCode" fromType="code" toType="System.Code"/>
 
   <contextInfo name="concept" keyElement="concept_id">
     <contextType namespace="OMOP" name="concept"/>

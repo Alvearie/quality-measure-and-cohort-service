@@ -566,7 +566,8 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
             "--output-format", "parquet",
             "--overwrite-output-for-contexts",
             "--metadata-output-path", outputDir.toURI().toString(),
-            "--halt-on-error"
+            "--halt-on-error",
+            "--disable-column-filter"
         };
 
         SparkCqlEvaluator.main(args);
