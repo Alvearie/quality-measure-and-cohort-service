@@ -219,6 +219,7 @@ public class CohortCLI extends BaseCLI {
 						.setDataProvider(dataProvider)
 						.setTerminologyProvider(termProvider);
 
+				ZonedDateTime evaluationDateTime = ZonedDateTime.now();
 				for (Pair<String, String> context : contexts) {
 					String contextLabel = context == null ? "null" : context.getRight();
 					out.println("Context: " + contextLabel);
@@ -228,7 +229,7 @@ public class CohortCLI extends BaseCLI {
 							context,
 							arguments.expressions,
 							arguments.loggingLevel,
-							ZonedDateTime.now()
+							evaluationDateTime
 					);
 
 					out.print(prettyPrintResult(result));
