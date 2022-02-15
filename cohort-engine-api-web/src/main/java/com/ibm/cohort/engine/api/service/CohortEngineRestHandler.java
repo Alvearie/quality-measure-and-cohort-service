@@ -41,7 +41,7 @@ import com.ibm.cohort.cql.hapi.resolver.R4QualityMeasureResolverFactory;
 import com.ibm.cohort.cql.hapi.resolver.R4QualityMeasureResolvers;
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
 import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
-import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResrouceResolverFactory;
+import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResourceResolverFactory;
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryHelpers;
@@ -727,7 +727,7 @@ public class CohortEngineRestHandler {
 					.setSystem(measureIdentifierSystem);
 
 			//resolve the measure, and return the parameter info for all the libraries linked to by the measure
-			FhirResourceResolver<Measure> measureResolver = R4FhirServerResrouceResolverFactory.createMeasureResolver(measureClient);
+			FhirResourceResolver<Measure> measureResolver = R4FhirServerResourceResolverFactory.createMeasureResolver(measureClient);
 			List<MeasureParameterInfo> parameterInfoList = FHIRRestUtils.getParametersForMeasureIdentifier(measureResolver, identifier, measureVersion);
 
 			//return the results
@@ -794,7 +794,7 @@ public class CohortEngineRestHandler {
 			IGenericClient measureClient = clientBuilder.createFhirClient(fhirServerConfig);
 
 			//resolve the measure, and return the parameter info for all the libraries linked to by the measure
-			FhirResourceResolver<Measure> measureResolver = R4FhirServerResrouceResolverFactory.createMeasureResolver(measureClient);
+			FhirResourceResolver<Measure> measureResolver = R4FhirServerResourceResolverFactory.createMeasureResolver(measureClient);
 			List<MeasureParameterInfo> parameterInfoList = FHIRRestUtils.getParametersForMeasureId(measureResolver, measureId);
 
 			//return the results

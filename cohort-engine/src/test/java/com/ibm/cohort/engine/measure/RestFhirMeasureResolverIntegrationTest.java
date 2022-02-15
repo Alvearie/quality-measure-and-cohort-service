@@ -11,7 +11,7 @@ import static org.junit.Assert.assertNull;
 import java.net.URLEncoder;
 
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
-import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResrouceResolverFactory;
+import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResourceResolverFactory;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Enumerations.ResourceType;
 import org.hl7.fhir.r4.model.Identifier;
@@ -35,7 +35,7 @@ public class RestFhirMeasureResolverIntegrationTest extends BaseFhirTest {
 		FhirClientBuilder builder = factory.newFhirClientBuilder(fhirContext);
 		IGenericClient client = builder.createFhirClient(getFhirServerConfig());
 
-		resolver = R4FhirServerResrouceResolverFactory.createMeasureResolver(client);
+		resolver = R4FhirServerResourceResolverFactory.createMeasureResolver(client);
 
 		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 	}

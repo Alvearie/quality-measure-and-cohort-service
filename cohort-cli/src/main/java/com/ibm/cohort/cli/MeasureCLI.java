@@ -20,7 +20,7 @@ import javax.validation.ValidatorFactory;
 import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
 import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
-import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResrouceResolverFactory;
+import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResourceResolverFactory;
 import com.ibm.cohort.cql.hapi.resolver.R4QualityMeasureResolvers;
 import com.ibm.cohort.cql.hapi.resolver.R4QualityMeasureResolverFactory;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
@@ -152,8 +152,8 @@ public class MeasureCLI extends BaseCLI {
 			} else {
 				readMeasureServerConfiguration( arguments );
 				IGenericClient measureServerClient = fhirClientBuilderFactory.newFhirClientBuilder().createFhirClient(measureServerConfig);
-				libraryResolver = R4FhirServerResrouceResolverFactory.createLibraryResolver(measureServerClient);
-				measureResolver = R4FhirServerResrouceResolverFactory.createMeasureResolver(measureServerClient);
+				libraryResolver = R4FhirServerResourceResolverFactory.createLibraryResolver(measureServerClient);
+				measureResolver = R4FhirServerResourceResolverFactory.createMeasureResolver(measureServerClient);
 			}
 
 			List<MeasureContext> measureContexts;

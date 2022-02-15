@@ -22,7 +22,7 @@ import org.hl7.fhir.r4.model.Measure;
  * A set of factory methods for more easily creating {@link FhirResourceResolver}
  * instances that query a FHIR server.
  */
-public class R4FhirServerResrouceResolverFactory {
+public class R4FhirServerResourceResolverFactory {
 
     public static FhirResourceResolver<Measure> createMeasureResolver(IGenericClient measureClient) {
         ResourceFieldHandler<Measure, Identifier> measureFieldHandler = new R4MeasureResourceFieldHandler();

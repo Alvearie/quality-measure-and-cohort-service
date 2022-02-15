@@ -11,7 +11,7 @@ import java.util.Map;
 import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
-import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResrouceResolverFactory;
+import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResourceResolverFactory;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
@@ -80,8 +80,8 @@ public class R4MeasureEvaluatorBuilder {
 				pageSize
 		);
 
-		FhirResourceResolver<Measure> measureResolver = R4FhirServerResrouceResolverFactory.createMeasureResolver(clientContext.getMeasureClient());
-		FhirResourceResolver<Library> libraryResolver = R4FhirServerResrouceResolverFactory.createLibraryResolver(clientContext.getLibraryClient());
+		FhirResourceResolver<Measure> measureResolver = R4FhirServerResourceResolverFactory.createMeasureResolver(clientContext.getMeasureClient());
+		FhirResourceResolver<Library> libraryResolver = R4FhirServerResourceResolverFactory.createLibraryResolver(clientContext.getLibraryClient());
 		R4LibraryDependencyGatherer libraryDependencyGatherer = new R4LibraryDependencyGatherer(libraryResolver);
 
 		return new MeasureEvaluator(measureResolver, libraryResolver, libraryDependencyGatherer, terminologyProvider, dataProviders);

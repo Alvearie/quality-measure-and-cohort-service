@@ -14,7 +14,7 @@ import static org.junit.Assert.assertNotNull;
 import java.util.Collections;
 
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
-import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResrouceResolverFactory;
+import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResourceResolverFactory;
 import org.hl7.fhir.r4.model.Measure;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +38,7 @@ public class MeasureHelperTest extends BaseMeasureTest {
 		FhirClientBuilderFactory factory = FhirClientBuilderFactory.newInstance();
 		FhirClientBuilder builder = factory.newFhirClientBuilder(fhirContext);
 		IGenericClient client = builder.createFhirClient(getFhirServerConfig());
-		resolver = R4FhirServerResrouceResolverFactory.createMeasureResolver(client);
+		resolver = R4FhirServerResourceResolverFactory.createMeasureResolver(client);
 		
 		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 	}

@@ -27,7 +27,7 @@ import com.ibm.cohort.cql.evaluation.ContextNames;
 import com.ibm.cohort.cql.evaluation.CqlDebug;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
 import com.ibm.cohort.cql.evaluation.CqlEvaluator;
-import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResrouceResolverFactory;
+import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResourceResolverFactory;
 import com.ibm.cohort.cql.library.Format;
 import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
@@ -160,7 +160,7 @@ public class CohortCLI extends BaseCLI {
 			} else {
 				out.println(String.format("Loading libraries from FHIR Library '%s'", libraryFolder.toString()));
 				IGenericClient measureClient = fhirClientBuilder.createFhirClient(measureServerConfig);
-				FhirResourceResolver<Library> libraryResolver = R4FhirServerResrouceResolverFactory.createLibraryResolver(measureClient);
+				FhirResourceResolver<Library> libraryResolver = R4FhirServerResourceResolverFactory.createLibraryResolver(measureClient);
 				R4LibraryDependencyGatherer dependencyGatherer = new R4LibraryDependencyGatherer(libraryResolver);
 				List<Library> cqlLibraries = dependencyGatherer.gatherForLibraryId(arguments.libraryPath);
 				Map<CqlLibraryDescriptor, CqlLibrary> cqlLibraryMap = toCqlLibraryMap(cqlLibraries);

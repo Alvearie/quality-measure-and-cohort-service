@@ -40,7 +40,7 @@ public class R4MeasureFhirServerResoureResolverTest extends R4FhirServerResource
                 IOUtils.resourceToString("/fhir/rest-test/Measure-1.json", StandardCharsets.UTF_8)
         );
 
-        FhirResourceResolver<Measure> resolver = R4FhirServerResrouceResolverFactory.createMeasureResolver(client);
+        FhirResourceResolver<Measure> resolver = R4FhirServerResourceResolverFactory.createMeasureResolver(client);
         Measure measure = resolver.resolveById(measureId);
         String expected = "Measure/" + measureId;
         Assert.assertEquals(expected, measure.getId());
@@ -56,7 +56,7 @@ public class R4MeasureFhirServerResoureResolverTest extends R4FhirServerResource
                 ""
         );
 
-        FhirResourceResolver<Measure> resolver = R4FhirServerResrouceResolverFactory.createMeasureResolver(client);
+        FhirResourceResolver<Measure> resolver = R4FhirServerResourceResolverFactory.createMeasureResolver(client);
         Measure measure = resolver.resolveById(id);
         Assert.assertNull(measure);
     }
@@ -72,7 +72,7 @@ public class R4MeasureFhirServerResoureResolverTest extends R4FhirServerResource
                 IOUtils.resourceToString("/fhir/rest-test/MeasureBundle.json", StandardCharsets.UTF_8)
         );
 
-        FhirResourceResolver<Measure> resolver = R4FhirServerResrouceResolverFactory.createMeasureResolver(client);
+        FhirResourceResolver<Measure> resolver = R4FhirServerResourceResolverFactory.createMeasureResolver(client);
         Measure measure = resolver.resolveByName(name, version);
         String expected = "Measure/Measure1-id";
         Assert.assertEquals(expected, measure.getId());
@@ -88,7 +88,7 @@ public class R4MeasureFhirServerResoureResolverTest extends R4FhirServerResource
                 IOUtils.resourceToString("/fhir/rest-test/MeasureBundle.json", StandardCharsets.UTF_8)
         );
 
-        FhirResourceResolver<Measure> resolver = R4FhirServerResrouceResolverFactory.createMeasureResolver(client);
+        FhirResourceResolver<Measure> resolver = R4FhirServerResourceResolverFactory.createMeasureResolver(client);
         Measure measure = resolver.resolveByName(name, null);
         String expected = "Measure/Measure1-id";
         Assert.assertEquals(expected, measure.getId());
@@ -104,7 +104,7 @@ public class R4MeasureFhirServerResoureResolverTest extends R4FhirServerResource
                 IOUtils.resourceToString("/fhir/rest-test/MeasureBundle.json", StandardCharsets.UTF_8)
         );
 
-        FhirResourceResolver<Measure> resolver = R4FhirServerResrouceResolverFactory.createMeasureResolver(client);
+        FhirResourceResolver<Measure> resolver = R4FhirServerResourceResolverFactory.createMeasureResolver(client);
         Measure measure = resolver.resolveByCanonicalUrl(canonicalUrl);
         String expected = "Measure/Measure1-id";
         Assert.assertEquals(expected, measure.getId());
@@ -120,7 +120,7 @@ public class R4MeasureFhirServerResoureResolverTest extends R4FhirServerResource
                 IOUtils.resourceToString("/fhir/rest-test/MeasureBundle.json", StandardCharsets.UTF_8)
         );
 
-        FhirResourceResolver<Measure> resolver = R4FhirServerResrouceResolverFactory.createMeasureResolver(client);
+        FhirResourceResolver<Measure> resolver = R4FhirServerResourceResolverFactory.createMeasureResolver(client);
         Measure measure = resolver.resolveByCanonicalUrl(canonicalUrl);
         String expected = "Measure/Measure1-id";
         Assert.assertEquals(expected, measure.getId());
@@ -138,7 +138,7 @@ public class R4MeasureFhirServerResoureResolverTest extends R4FhirServerResource
                 IOUtils.resourceToString("/fhir/rest-test/MeasureBundle.json", StandardCharsets.UTF_8)
         );
 
-        FhirResourceResolver<Measure> resolver = R4FhirServerResrouceResolverFactory.createMeasureResolver(client);
+        FhirResourceResolver<Measure> resolver = R4FhirServerResourceResolverFactory.createMeasureResolver(client);
         Measure measure = resolver.resolveByIdentifier(idValue, idSystem, version);
         String expected = "Measure/Measure1-id";
         Assert.assertEquals(expected, measure.getId());
@@ -155,7 +155,7 @@ public class R4MeasureFhirServerResoureResolverTest extends R4FhirServerResource
                 IOUtils.resourceToString("/fhir/rest-test/MeasureBundle.json", StandardCharsets.UTF_8)
         );
 
-        FhirResourceResolver<Measure> resolver = R4FhirServerResrouceResolverFactory.createMeasureResolver(client);
+        FhirResourceResolver<Measure> resolver = R4FhirServerResourceResolverFactory.createMeasureResolver(client);
         Measure measure = resolver.resolveByIdentifier(idValue, idSystem, null);
         String expected = "Measure/Measure1-id";
         Assert.assertEquals(expected, measure.getId());

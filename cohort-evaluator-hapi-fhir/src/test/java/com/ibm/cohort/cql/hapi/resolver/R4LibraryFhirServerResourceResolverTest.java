@@ -40,7 +40,7 @@ public class R4LibraryFhirServerResourceResolverTest extends R4FhirServerResourc
                 IOUtils.resourceToString("/fhir/rest-test/Library-1.json", StandardCharsets.UTF_8)
         );
 
-        FhirResourceResolver<Library> resolver = R4FhirServerResrouceResolverFactory.createLibraryResolver(client);
+        FhirResourceResolver<Library> resolver = R4FhirServerResourceResolverFactory.createLibraryResolver(client);
         Library library = resolver.resolveById(libraryId);
         String expected = "Library/" + libraryId;
         Assert.assertEquals(expected, library.getId());
@@ -56,7 +56,7 @@ public class R4LibraryFhirServerResourceResolverTest extends R4FhirServerResourc
                 ""
         );
 
-        FhirResourceResolver<Library> resolver = R4FhirServerResrouceResolverFactory.createLibraryResolver(client);
+        FhirResourceResolver<Library> resolver = R4FhirServerResourceResolverFactory.createLibraryResolver(client);
         Library library = resolver.resolveById(id);
         Assert.assertNull(library);
     }
@@ -72,7 +72,7 @@ public class R4LibraryFhirServerResourceResolverTest extends R4FhirServerResourc
                 IOUtils.resourceToString("/fhir/rest-test/LibraryBundle.json", StandardCharsets.UTF_8)
         );
 
-        FhirResourceResolver<Library> resolver = R4FhirServerResrouceResolverFactory.createLibraryResolver(client);
+        FhirResourceResolver<Library> resolver = R4FhirServerResourceResolverFactory.createLibraryResolver(client);
         Library library = resolver.resolveByName(name, version);
         String expected = "Library/Library1-id";
         Assert.assertEquals(expected, library.getId());
@@ -88,7 +88,7 @@ public class R4LibraryFhirServerResourceResolverTest extends R4FhirServerResourc
                 IOUtils.resourceToString("/fhir/rest-test/LibraryBundle.json", StandardCharsets.UTF_8)
         );
 
-        FhirResourceResolver<Library> resolver = R4FhirServerResrouceResolverFactory.createLibraryResolver(client);
+        FhirResourceResolver<Library> resolver = R4FhirServerResourceResolverFactory.createLibraryResolver(client);
         Library library = resolver.resolveByName(name, null);
         String expected = "Library/Library1-id";
         Assert.assertEquals(expected, library.getId());
@@ -104,7 +104,7 @@ public class R4LibraryFhirServerResourceResolverTest extends R4FhirServerResourc
                 IOUtils.resourceToString("/fhir/rest-test/LibraryBundle.json", StandardCharsets.UTF_8)
         );
 
-        FhirResourceResolver<Library> resolver = R4FhirServerResrouceResolverFactory.createLibraryResolver(client);
+        FhirResourceResolver<Library> resolver = R4FhirServerResourceResolverFactory.createLibraryResolver(client);
         Library library = resolver.resolveByCanonicalUrl(canonicalUrl);
         String expected = "Library/Library1-id";
         Assert.assertEquals(expected, library.getId());
@@ -120,7 +120,7 @@ public class R4LibraryFhirServerResourceResolverTest extends R4FhirServerResourc
                 IOUtils.resourceToString("/fhir/rest-test/LibraryBundle.json", StandardCharsets.UTF_8)
         );
 
-        FhirResourceResolver<Library> resolver = R4FhirServerResrouceResolverFactory.createLibraryResolver(client);
+        FhirResourceResolver<Library> resolver = R4FhirServerResourceResolverFactory.createLibraryResolver(client);
         Library library = resolver.resolveByCanonicalUrl(canonicalUrl);
         String expected = "Library/Library1-id";
         Assert.assertEquals(expected, library.getId());
@@ -138,7 +138,7 @@ public class R4LibraryFhirServerResourceResolverTest extends R4FhirServerResourc
                 IOUtils.resourceToString("/fhir/rest-test/LibraryBundle.json", StandardCharsets.UTF_8)
         );
 
-        FhirResourceResolver<Library> resolver = R4FhirServerResrouceResolverFactory.createLibraryResolver(client);
+        FhirResourceResolver<Library> resolver = R4FhirServerResourceResolverFactory.createLibraryResolver(client);
         Library library = resolver.resolveByIdentifier(idValue, idSystem, version);
         String expected = "Library/Library1-id";
         Assert.assertEquals(expected, library.getId());
@@ -155,7 +155,7 @@ public class R4LibraryFhirServerResourceResolverTest extends R4FhirServerResourc
                 IOUtils.resourceToString("/fhir/rest-test/LibraryBundle.json", StandardCharsets.UTF_8)
         );
 
-        FhirResourceResolver<Library> resolver = R4FhirServerResrouceResolverFactory.createLibraryResolver(client);
+        FhirResourceResolver<Library> resolver = R4FhirServerResourceResolverFactory.createLibraryResolver(client);
         Library library = resolver.resolveByIdentifier(idValue, idSystem, null);
         String expected = "Library/Library1-id";
         Assert.assertEquals(expected, library.getId());

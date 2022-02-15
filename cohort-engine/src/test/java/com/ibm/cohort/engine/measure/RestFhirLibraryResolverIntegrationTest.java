@@ -17,7 +17,7 @@ import static org.junit.Assert.assertNull;
 
 import com.ibm.cohort.cql.fhir.resolver.CachingFhirResourceResolver;
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
-import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResrouceResolverFactory;
+import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResourceResolverFactory;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Library;
 import org.junit.Assert;
@@ -43,7 +43,7 @@ public class RestFhirLibraryResolverIntegrationTest extends BaseFhirTest {
         FhirClientBuilder builder = factory.newFhirClientBuilder(fhirContext);
         IGenericClient client = builder.createFhirClient(getFhirServerConfig());
 
-        resolver = R4FhirServerResrouceResolverFactory.createLibraryResolver(client);
+        resolver = R4FhirServerResourceResolverFactory.createLibraryResolver(client);
     }
 
     @Test
