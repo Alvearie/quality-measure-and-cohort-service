@@ -1,6 +1,7 @@
 library "DiabetesSmoking" version '1.0.0'
 
 using "OMOP" version '5.2.2'
+include "OMOPHelpers" version '1.0.0'
 
 valueset "Diabetes": 'HCPCS' version '2020'
 
@@ -19,13 +20,8 @@ define "DiabetesObservationValueSet":
     and c.vocabulary_id = v.vocabulary_id
     and ToCode(c, v) in "Diabetes"
 
-define function ToCode(concept concept, vocabulary vocabulary):
-    System.Code {
-      code: concept.concept_code,
-      system: concept.vocabulary_id,
-      version: vocabulary.vocabulary_version,
-      display: concept.concept_name
-    }
+define: "DiabetesObservationCode":
+  [observation] o where o.code != null
 
 define "cohort":
-  exists("DiabetesObservationValueSet")
+  exists("DiabetesObservationCode")
