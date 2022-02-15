@@ -9,12 +9,14 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ibm.cohort.annotations.Generated;
 
 import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 
 @Generated
-@ApiModel
+@ApiModel(value="FhirServerConnectionStatusInfo", description="An object containing the results of an attempt to connect to a FHIR server")
 public class FhirServerConnectionStatusInfo {
 
 	public static enum FhirServerConfigType {dataServerConfig, terminologyServerConfig};
@@ -24,7 +26,8 @@ public class FhirServerConnectionStatusInfo {
 	private FhirConnectionStatus connectionResults;
 	private ServiceErrorList serviceErrorList;
 
-	
+	@ApiModelProperty(value = "A string describing the type of FHIR server config")
+	@JsonProperty("serverConfigType")
 	public FhirServerConfigType getServerConfigType() {
 		return serverConfigType;
 	}
@@ -33,6 +36,8 @@ public class FhirServerConnectionStatusInfo {
 		this.serverConfigType = serverConfigType;
 	}
 
+	@ApiModelProperty(value = "Result of the connection attempt")
+	@JsonProperty("connectionResults")
 	public FhirConnectionStatus getConnectionResults() {
 		return connectionResults;
 	}

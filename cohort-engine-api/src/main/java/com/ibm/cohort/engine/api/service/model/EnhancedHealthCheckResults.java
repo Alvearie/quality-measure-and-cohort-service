@@ -17,15 +17,13 @@ import com.ibm.cohort.annotations.Generated;
 import io.swagger.annotations.ApiModel;
 
 @Generated
-@ApiModel
+@ApiModel(value="EnhancedHealthCheckResults", description="An object containing the results of an attempt to connect to the FHIR data server and (optional) terminology server")
 public class EnhancedHealthCheckResults {
 
 	@NotNull
 	@Valid
 	private FhirServerConnectionStatusInfo dataServerConnectionResults;
 	private FhirServerConnectionStatusInfo terminologyServerConnectionResults;
-	
-	
 	
 	public FhirServerConnectionStatusInfo getDataServerConnectionResults() {
 		return dataServerConnectionResults;
