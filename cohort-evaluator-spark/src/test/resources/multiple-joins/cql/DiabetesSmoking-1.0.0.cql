@@ -9,7 +9,7 @@ context person
 
 define "DiabetesObservationCode":
   OMOPHelpers."StandardizedObservations" o where
-  convert o to Code in "Diabetes"
+  o in "Diabetes"
 
 define "cohort":
   exists("DiabetesObservationCode")

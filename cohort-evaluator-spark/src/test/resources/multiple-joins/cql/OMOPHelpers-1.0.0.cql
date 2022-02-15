@@ -9,13 +9,14 @@ define "StandardizedObservations":
   where
     o.observation_concept_id = c.concept_id
     and c.vocabulary_id = v.vocabulary_id
+  return convert { observation: o, concept: c, vocabulary: v } to OMOP.coding
 
-define function ToCode(coding Tuple { observation OMOP.observation, concept OMOP.concept, vocabulary OMOP.vocabulary }):
+define function ToCode(coding OMOP.coding):
     System.Code {
-      code: null,
-      system: null,
-      version: null,
-      display: null
+      code: coding.concept.concept_code,
+      system: coding.concept.vocabulary_id,
+      version: coding.vocabulary.vocabulary_version,
+      display: coding.concept.concept_name
     }
 
 // coding.observation.observation_concept_id as string
