@@ -71,7 +71,7 @@ import com.ibm.cohort.engine.api.service.model.MeasureParameterInfoList;
 import com.ibm.cohort.engine.api.service.model.PatientListMeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
 import com.ibm.cohort.engine.measure.MeasureEvaluator;
-import com.ibm.cohort.engine.measure.R4DataProviderFactory;
+import com.ibm.cohort.engine.data.R4DataProviderFactory;
 import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;

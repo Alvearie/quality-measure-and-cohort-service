@@ -41,7 +41,7 @@ import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
-import com.ibm.cohort.engine.measure.R4DataProviderFactory;
+import com.ibm.cohort.engine.data.R4DataProviderFactory;
 import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;

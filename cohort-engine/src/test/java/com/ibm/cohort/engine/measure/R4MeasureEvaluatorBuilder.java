@@ -13,6 +13,7 @@ import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
 import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResourceResolverFactory;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
+import com.ibm.cohort.engine.data.R4DataProviderFactory;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.opencds.cqf.cql.engine.model.ModelResolver;

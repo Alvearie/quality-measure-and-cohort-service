@@ -1,10 +1,10 @@
 /*
- * (C) Copyright IBM Corp. 2020, 2022
+ * (C) Copyright IBM Corp. 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.ibm.cohort.engine.measure;
+package com.ibm.cohort.engine.data;
 
 import java.util.HashMap;
 import java.util.Map;

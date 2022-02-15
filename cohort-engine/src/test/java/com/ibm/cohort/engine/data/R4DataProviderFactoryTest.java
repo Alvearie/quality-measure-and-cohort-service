@@ -1,10 +1,10 @@
 /*
- * (C) Copyright IBM Corp. 2020, 2022
+ * (C) Copyright IBM Corp. 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.ibm.cohort.engine.measure;
+package com.ibm.cohort.engine.data;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +12,7 @@ import java.util.Map;
 
 import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
-import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;
+import com.ibm.cohort.engine.measure.FHIRClientContext.Builder;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Patient;
 import org.junit.Assert;
@@ -40,7 +40,7 @@ public class R4DataProviderFactoryTest extends BaseFhirTest {
 
 	@Test
 	public void createDataProviderMap_noCacheContext() {
-		IGenericClient client = new FHIRClientContext.Builder()
+		IGenericClient client = new Builder()
 				.withDefaultClient(getFhirServerConfig())
 				.build()
 				.getDataClient();
@@ -55,7 +55,7 @@ public class R4DataProviderFactoryTest extends BaseFhirTest {
 
 	@Test
 	public void createDataProviderMap_withCacheContext() throws Exception {
-		IGenericClient client = new FHIRClientContext.Builder()
+		IGenericClient client = new Builder()
 				.withDefaultClient(getFhirServerConfig())
 				.build()
 				.getDataClient();

@@ -36,7 +36,7 @@ import com.ibm.cohort.cli.input.MeasureContextProvider;
 import com.ibm.cohort.cli.input.NoSplittingSplitter;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.MeasureEvaluator;
-import com.ibm.cohort.engine.measure.R4DataProviderFactory;
+import com.ibm.cohort.engine.data.R4DataProviderFactory;
 import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
