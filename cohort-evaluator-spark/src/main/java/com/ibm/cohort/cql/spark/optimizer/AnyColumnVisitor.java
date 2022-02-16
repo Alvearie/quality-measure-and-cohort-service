@@ -56,7 +56,8 @@ public class AnyColumnVisitor extends PathCaptureVisitor<AnyColumnContext> {
                 
                 context.reportAnyColumn(dataType, matcher);
             } else {
-                throw new IllegalArgumentException(String.format("%s function at %s should have exactly two arguments", elm.getName(), elm.getLocator()));
+                // todo: [daniel.kim]
+//                throw new IllegalArgumentException(String.format("%s function at %s should have exactly two arguments", elm.getName(), elm.getLocator()));
             }
         }
         return super.visitFunctionRef(elm, context);

@@ -7,13 +7,18 @@
 package com.ibm.cohort.cql.functions;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.ibm.cohort.cql.util.StringMatcher;
+import org.opencds.cqf.cql.engine.runtime.Code;
+import org.opencds.cqf.cql.engine.runtime.Tuple;
+
 import com.ibm.cohort.cql.util.PrefixStringMatcher;
 import com.ibm.cohort.cql.util.RegexStringMatcher;
+import com.ibm.cohort.cql.util.StringMatcher;
 import com.ibm.cohort.datarow.model.DataRow;
 
 public class AnyColumnFunctions {
@@ -52,5 +57,32 @@ public class AnyColumnFunctions {
         return dataRow.getFieldNames().stream().filter(matcher)
             .map(dataRow::getValue)
             .collect(Collectors.toList());
+    }
+
+
+    private static Map<String, String> omopConceptDb = new HashMap<>();
+    static {
+        omopConceptDb.put("2617212", "G0108");
+        omopConceptDb.put("2617211", "G0109");
+    }
+
+
+    private static Map<String, String> omopVocabularyDb = new HashMap<>();
+    static {
+// todo: [daniel.kim]
+    }
+
+    // todo: [daniel.kim]
+    public static Object ToCode(Object object) {
+        Tuple tuple = (Tuple) object;
+
+        String conceptId = (String) tuple.getElement("concept_id");
+        String codeString = omopConceptDb.get(conceptId);
+
+        Code code = new Code().withCode(codeString)
+            .withSystem("HCPCS")
+            .withVersion("2020");
+
+        return Collections.singletonList(code);
     }
 }

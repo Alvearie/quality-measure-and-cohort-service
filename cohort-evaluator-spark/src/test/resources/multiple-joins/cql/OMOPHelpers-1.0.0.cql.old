@@ -44,22 +44,4 @@ define function ToCode(coding OMOP.coding):
       display: coding.concept.concept_name
     }
 
-define function ToCode(code OMOP.code):
-    System.Code {
-      code: code.concept_id,
-      system: null,
-      version: null,
-      display: null
-    }
-
-// define function ToCode():
-//    System.Code {
-//      code: code.concept_id,
-//      system: null,
-//      version: null,
-//      display: null
-//    }
-
-define function ToCode(code Tuple { concept_id String}) returns System.Code : external
-
 // coding.observation.observation_concept_id as string

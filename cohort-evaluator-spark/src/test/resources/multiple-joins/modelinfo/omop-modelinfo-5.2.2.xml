@@ -42,7 +42,7 @@
     <element name="qualifier_source_value" elementType="System.String"/>
 	  <element name="code">
 		  <elementTypeSpecifier elementType="code" xsi:type="ListTypeSpecifier"/>
-		  <binding name="code" strength="Required"/>
+		  <binding name="observation_type_concept_id" strength="Required"/>
 	  </element>
   </typeInfo>
 
@@ -77,7 +77,15 @@
     <element name="ethnicity_source_concept_id" elementType="System.Integer"/>
   </typeInfo>
 
-	<conversionInfo xmlns="urn:hl7-org:elm-modelinfo:r1" functionName="OMOPHelpers.ToCode" fromType="coding" toType="System.Code"/>
+	<conversionInfo xmlns="urn:hl7-org:elm-modelinfo:r1" functionName="OMOPHelpers.ToCode" fromType="code" toType="System.Code"/>
+
+	<typeInfo xmlns="urn:hl7-org:elm-modelinfo:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" baseType="System.Any" name="code" label="code" retrievable="false" xsi:type="ClassInfo">
+		<element name="concept_id" elementType="System.String"/>
+	</typeInfo>
+
+<!--	<typeInfo xmlns="urn:hl7-org:elm-modelinfo:r1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" baseType="System.Any" name="code" label="code" retrievable="false" xsi:type="TupleTypeInfo">-->
+<!--		<element name="concept_id" elementType="System.String"/>-->
+<!--	</typeInfo>-->
 
   <contextInfo name="concept" keyElement="concept_id">
     <contextType namespace="OMOP" name="concept"/>

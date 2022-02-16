@@ -7,6 +7,7 @@
 package com.ibm.cohort.cql.spark.data;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -14,6 +15,7 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.types.Metadata;
 import org.apache.spark.sql.types.StructField;
 import org.opencds.cqf.cql.engine.runtime.Code;
+import org.opencds.cqf.cql.engine.runtime.Tuple;
 
 import com.ibm.cohort.datarow.model.DataRow;
 
@@ -53,6 +55,15 @@ public class SparkDataRow implements DataRow {
 
     @Override
     public Object getValue(String fieldName) {
+        if (fieldName.equals("code")) {
+            Tuple tuple = new Tuple();
+            LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+            map.put("concept_id", sparkRow.getAs("observation_concept_id").toString());
+            tuple.setElements(map);
+
+            return tuple;
+
+        }
         Object result = null;
 
         Object sparkVal = sparkRow.getAs(fieldName);
