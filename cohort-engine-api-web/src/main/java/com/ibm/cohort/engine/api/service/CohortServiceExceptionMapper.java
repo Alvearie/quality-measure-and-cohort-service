@@ -130,7 +130,7 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 			}
 			//will get thrown by HAPI FHIR when a requested resource is not found in the target FHIR server
 			else if (ex instanceof BaseServerResponseException) { 
-				serviceErrorCode = Status.BAD_REQUEST.getStatusCode();
+				serviceErrorCode = ((BaseServerResponseException)ex).getStatusCode();
 				serviceErrorListCode = serviceErrorCode;
 				
 				BaseServerResponseException sre = (BaseServerResponseException) ex;
@@ -195,8 +195,25 @@ public class CohortServiceExceptionMapper implements ExceptionMapper<Throwable>{
 		//exceptions can link to each other so we will only return maxExceptionCauseDepth
 		//number of them through the UI, the full stack will get logged if needed in calling method
 		while(cause != null && causeCount < MAX_EXCEPTION_CAUSE_DEPTH) {
+			int statusCode = code;
 			if(cause.getLocalizedMessage() != null && !cause.getLocalizedMessage().trim().isEmpty()) {
-				ServiceError error = new ServiceError(code, cause.getLocalizedMessage());
+				// the FhirClientConnectionException always hardcodes a 0 or 500 depending on library version
+				// this does not give enough information about the reason why it hit the error
+				// so look for specific exception types and map them to more description http status codes for the errors
+				if (ex instanceof FhirClientConnectionException) {
+					FhirClientConnectionException fcce = (FhirClientConnectionException) ex;
+					int serviceErrorCode = fcce.getStatusCode();
+					if(serviceErrorCode == 0 || serviceErrorCode == 500) {
+						if ( (cause instanceof java.net.ConnectException && cause.getMessage().toLowerCase().contains("connection refused")) ||
+								cause instanceof java.net.UnknownHostException || cause instanceof org.apache.http.conn.HttpHostConnectException ) {
+							statusCode = Status.NOT_FOUND.getStatusCode();
+						} else if ((cause instanceof java.net.SocketTimeoutException || cause instanceof org.apache.http.conn.ConnectTimeoutException)
+									&& cause.getMessage().toLowerCase().contains("timed out")) {
+							statusCode = Status.GATEWAY_TIMEOUT.getStatusCode();
+						}
+					}
+				}
+				ServiceError error = new ServiceError(statusCode, cause.getLocalizedMessage());
 				errorsList.add(error);
 			}
 			cause = cause.getCause();
