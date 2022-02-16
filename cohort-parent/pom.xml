@@ -59,12 +59,12 @@
 		<jackson.databind.version>${jackson.version}.1</jackson.databind.version>
 		<jacoco.version>0.8.6</jacoco.version>
 		<powermock.version>2.0.9</powermock.version>
-		<groovy.version>2.4.8</groovy.version>
+		<groovy.version>2.4.21</groovy.version>
 		<slf4j.version>1.7.30</slf4j.version>
 		<swagger.version>1.6.2</swagger.version>
 		<ant.junit.version>1.10.9</ant.junit.version>
-		<cxf.version>3.4.3</cxf.version>
-		<jetty.version>9.4.40.v20210413</jetty.version>
+		<cxf.version>3.4.4</cxf.version>
+		<jetty.version>9.4.44.v20210927</jetty.version>
 
 		<!-- Default values for the jacoco-maven-plugin reports -->
 		<cohort.jacoco.classRatio>0.80</cohort.jacoco.classRatio>
@@ -276,6 +276,12 @@
 				<groupId>org.opencds.cqf.cql</groupId>
 				<artifactId>engine.fhir</artifactId>
 				<version>${engine.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>com.squareup.okhttp3</groupId>
+						<artifactId>okhttp</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>org.opencds.cqf.cql</groupId>
@@ -773,7 +779,7 @@
 				<version>2.9.0</version>
 			</dependency>
 			<dependency>
-				<groupId>org.hibernate</groupId>
+				<groupId>org.hibernate.validator</groupId>
 				<artifactId>hibernate-validator</artifactId>
 				<version>6.0.22.Final</version>
 			</dependency>
@@ -848,6 +854,15 @@
 				<artifactId>gson</artifactId>
 				<version>2.8.9</version>
 			</dependency>
+
+			<!-- override version pulled in by com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:jar:2.10.0 -->
+			<dependency>
+				<groupId>org.yaml</groupId>
+				<artifactId>snakeyaml</artifactId>
+				<version>1.26</version>
+			</dependency>
+
+
 		</dependencies>
 	</dependencyManagement>
 
@@ -1135,6 +1150,11 @@
 					<artifactId>maven-shade-plugin</artifactId>
 					<version>3.2.4</version>
 				</plugin>
+				<plugin>
+					<groupId>org.sonatype.ossindex.maven</groupId>
+					<artifactId>ossindex-maven-plugin</artifactId>
+					<version>3.1.0</version>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 
@@ -1289,7 +1309,7 @@
 								<ignoredUnusedDeclaredDependency>org.opencds.cqf:common</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>org.hamcrest:hamcrest-core</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>org.apache.commons:commons-text</ignoredUnusedDeclaredDependency>
-								<ignoredUnusedDeclaredDependency>org.hibernate:hibernate-validator</ignoredUnusedDeclaredDependency>
+								<ignoredUnusedDeclaredDependency>org.hibernate.validator:hibernate-validator</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>org.glassfish:javax.el</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>com.github.tomakehurst:wiremock-jre8</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>org.apache.hadoop:hadoop-aws</ignoredUnusedDeclaredDependency>
@@ -1355,6 +1375,62 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.ossindex.maven</groupId>
+				<artifactId>ossindex-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>audit-dependencies</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>audit</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<excludeVulnerabilityIds>
+						<!-- The following 3 vulnerabilities are from org.spark-project.spark:unused and only apply to lower versions of Spark-->
+						<!-- [CVE-2020-9480] In Apache Spark 2.4.5 and earlier, a standalone resource manager's master may be configured to require authentication (spark.authenticate) via a shared secret. -->
+						<excludeVulnerabilityId>afec1ee2-9dc1-4ecf-a12b-2776442d1717</excludeVulnerabilityId>
+						<!-- [CVE-2017-7678] Improper Neutralization of Input During Web Page Generation ("Cross-site Scripting"): In Apache Spark before 2.2.0... -->
+						<excludeVulnerabilityId>cebbeee0-d245-4a3f-b138-032060d151a9</excludeVulnerabilityId>
+						<!-- [CVE-2018-1334] Information Exposure: In Apache Spark 1.0.0 to 2.1.2, 2.2.0 to 2.2.1, and 2.3.0 -->
+						<excludeVulnerabilityId>9ddb61f1-9c22-41a8-9390-dd857d535408</excludeVulnerabilityId>
+
+
+						<!-- This is a legitimate vulnerability, see note in excludeCoordinates regarding PRISM deviation -->
+						<!-- [CVE-2020-9492] In Apache Hadoop 3.2.0 to 3.2.1, 3.0.0-alpha1 to 3.1.3, and 2.0.0-alpha to 2.10.0, WebHDFS client might send SPNEGO authorization header to remote URL without proper verification. -->
+						<excludeVulnerabilityId>151e0922-bd99-4adf-ac92-10c23aa4c815</excludeVulnerabilityId>
+					</excludeVulnerabilityIds>
+
+					<excludeCoordinates>
+						<!--
+						These are legitimate vulnerabilities that come through org.apache.parquet:parquet-hadoop:jar:1.10.1
+						If we upgrade to Spark 3.2.x, this will result in an update to parquest-hadoop 1.12.x which removes jackson-mapper-asl
+
+						PRISM deviation exists for these 3 exclusions (log4j, jackson-mapper-asl, netty)
+						   AND vulnerability id 151e0922-bd99-4adf-ac92-10c23aa4c815 from above
+						-->
+						<exclude>
+							<groupId>log4j</groupId>
+							<artifactId>log4j</artifactId>
+							<version>1.2.17</version>
+						</exclude>
+
+						<exclude>
+							<groupId>org.codehaus.jackson</groupId>
+							<artifactId>jackson-mapper-asl</artifactId>
+							<version>1.9.13</version>
+						</exclude>
+
+						<exclude>
+							<groupId>io.netty</groupId>
+							<artifactId>netty-all</artifactId>
+							<version>4.1.61.Final</version>
+						</exclude>
+					</excludeCoordinates>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
