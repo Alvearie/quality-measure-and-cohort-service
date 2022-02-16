@@ -2,48 +2,6 @@ library OMOPHelpers version '1.0.0'
 
 using OMOP version '5.2.2'
 
-define function "standardizeCodesFrom"(observations List<OMOP.observation>):
-  from "observations" o
-  , [concept] c
-  , [vocabulary] v
-  where
-    o.observation_concept_id = c.concept_id
-    and c.vocabulary_id = v.vocabulary_id
-  return System.Code { code: c.concept_code, system: c.vocabulary_id, version: v.vocabulary_version, display: c.concept_name }
-
-define "StandardizedObservations":
-  from [observation] o
-    , [concept] c
-    , [vocabulary] v
-  where
-    o.observation_concept_id = c.concept_id
-    and c.vocabulary_id = v.vocabulary_id
-  return System.Code { code: c.concept_code, system: c.vocabulary_id, version: v.vocabulary_version, display: c.concept_name }
-
-//define "StandardizedObservations3":
-//  "StandardizedObservationTuple" tuple
-//  return System.Code { code: tuple.c.concept_code, system: tuple.c.vocabulary_id, version: tuple.v.vocabulary_version, display: tuple.c.concept_name }
-
-define "StandardizedObservations2":
-  from [observation] o
-    , [concept] c
-    , [vocabulary] v
-  where
-    o.observation_concept_id = c.concept_id
-    and c.vocabulary_id = v.vocabulary_id
-  return all convert Tuple { observation: o, concept: c, vocabulary: v } to OMOP.coding
-
-//   return OMOP.coding { observation: o, concept: c, vocabulary: v }
-//  return all { observation: o, concept: c, vocabulary: v } to OMOP.coding
-
-define function ToCode(coding OMOP.coding):
-    System.Code {
-      code: coding.concept.concept_code,
-      system: coding.concept.vocabulary_id,
-      version: coding.vocabulary.vocabulary_version,
-      display: coding.concept.concept_name
-    }
-
 define function ToCode(code OMOP.code):
     System.Code {
       code: code.concept_id,
@@ -52,14 +10,4 @@ define function ToCode(code OMOP.code):
       display: null
     }
 
-// define function ToCode():
-//    System.Code {
-//      code: code.concept_id,
-//      system: null,
-//      version: null,
-//      display: null
-//    }
-
 define function ToCode(code Tuple { concept_id String}) returns System.Code : external
-
-// coding.observation.observation_concept_id as string
