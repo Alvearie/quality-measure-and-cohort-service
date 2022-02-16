@@ -90,7 +90,8 @@ public class DataRowModelResolver implements ModelResolver {
 
     @Override
     public Object createInstance(String typeName) {
-        throw new UnsupportedOperationException("Creating rows is not supported");
+        // todo: [daniel.kim]
+        throw new UnsupportedOperationException("Creating rows is not supported for type: " + typeName);
     }
 
     @Override

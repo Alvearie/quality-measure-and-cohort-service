@@ -8,8 +8,8 @@ valueset "Diabetes": 'HCPCS' version '2020'
 context person
 
 define "DiabetesObservationCode":
-  OMOPHelpers."StandardizedObservations" o where
-  o in "Diabetes"
+  OMOPHelpers."StandardizedObservations" observations where
+  observations in "Diabetes"
 
 define "cohort":
   exists("DiabetesObservationCode")
