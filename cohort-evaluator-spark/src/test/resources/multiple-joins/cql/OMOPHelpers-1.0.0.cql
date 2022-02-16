@@ -2,17 +2,27 @@ library OMOPHelpers version '1.0.0'
 
 using OMOP version '5.2.2'
 
-define "StandardizedObservationTuple":
+define function "standardizeCodesFrom"(observations List<OMOP.observation>):
+  from "observations" o
+  , [concept] c
+  , [vocabulary] v
+  where
+    o.observation_concept_id = c.concept_id
+    and c.vocabulary_id = v.vocabulary_id
+  return System.Code { code: c.concept_code, system: c.vocabulary_id, version: v.vocabulary_version, display: c.concept_name }
+
+define "StandardizedObservations":
   from [observation] o
     , [concept] c
     , [vocabulary] v
   where
     o.observation_concept_id = c.concept_id
     and c.vocabulary_id = v.vocabulary_id
+  return System.Code { code: c.concept_code, system: c.vocabulary_id, version: v.vocabulary_version, display: c.concept_name }
 
-define "StandardizedObservations":
-  "StandardizedObservationTuple" tuple
-  return System.Code { code: tuple.c.concept_code, system: tuple.c.vocabulary_id, version: tuple.v.vocabulary_version, display: tuple.c.concept_name }
+//define "StandardizedObservations3":
+//  "StandardizedObservationTuple" tuple
+//  return System.Code { code: tuple.c.concept_code, system: tuple.c.vocabulary_id, version: tuple.v.vocabulary_version, display: tuple.c.concept_name }
 
 define "StandardizedObservations2":
   from [observation] o
