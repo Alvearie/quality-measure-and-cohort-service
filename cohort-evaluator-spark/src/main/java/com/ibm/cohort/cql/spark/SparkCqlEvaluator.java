@@ -783,7 +783,9 @@ public class SparkCqlEvaluator implements Serializable {
 
         Map<String, String> dataTypeAliases = new HashMap<>();
         for (ModelInfo modelInfo : modelInfos) {
-            modelInfo.getTypeInfo().stream().map(ClassInfo.class::cast)
+            modelInfo.getTypeInfo().stream()
+                .filter(ClassInfo.class::isInstance)
+                .map(ClassInfo.class::cast)
                 .filter(classInfo -> dataTypes.contains(classInfo.getName()))
                 .forEach(info -> {
                     String dataType = info.getName();
