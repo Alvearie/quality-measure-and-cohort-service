@@ -791,10 +791,12 @@ public class SparkCqlEvaluator implements Serializable {
                     String dataType = info.getName();
                     QName baseType = ModelUtils.getBaseTypeName(modelInfo, info);
                     if (baseType != null) {
+                        // for inheritance types
                         dataTypeAliases.put(dataType, baseType.getLocalPart());
                     }
 
                     Collection<String> choiceTypes = ModelUtils.getChoiceTypeNames(info);
+                    // for choice types
                     choiceTypes.forEach(choiceType -> dataTypeAliases.put(dataType, choiceType));
                 });
         }
