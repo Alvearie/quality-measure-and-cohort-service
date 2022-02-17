@@ -258,7 +258,8 @@ public class SparkSchemaCreator {
 
 	private List<ClassInfo> getClassInfos(String primaryDataType, ModelInfo modelInfo) {
 		return modelInfo.getTypeInfo().stream()
-				.map(x -> (ClassInfo) x)
+				.filter(ClassInfo.class::isInstance)
+				.map(ClassInfo.class::cast)
 				.filter(x -> x.getName().equals(primaryDataType))
 				.collect(Collectors.toList());
 	}
