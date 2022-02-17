@@ -546,8 +546,8 @@ public class SparkCqlEvaluator implements Serializable {
             if (dataTypeAliases.containsKey(dataType)) {
                 String mappedType = dataTypeAliases.get(dataType);
 
-                mappedRows = dataByDataType.computeIfAbsent(mappedType, x -> new ArrayList<>());
-                mappedRows.add(datarow);
+                List<Object> aliasedRows = dataByDataType.computeIfAbsent(mappedType, x -> new ArrayList<>());
+                aliasedRows.add(datarow);
             }
         }
 
