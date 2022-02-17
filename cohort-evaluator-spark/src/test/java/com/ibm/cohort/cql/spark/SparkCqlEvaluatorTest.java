@@ -832,7 +832,7 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
             "-m", "src/test/resources/abstract-context/modelinfo/abstract-modelinfo-1.0.0.xml",
             "-c", "src/test/resources/abstract-context/cql",
             "--input-format", "parquet",
-            "-i", "AlphaNumeric=" + new File(inputDir, "data/One.parquet").toURI(),
+            "-i", "AlphaNumeric=" + inputDir.toURI() + "data/{One,Two}.parquet",
             "-o", "AlphaNumeric=" + output.toURI(),
             "-n", "1",
             "--output-format", "parquet",
