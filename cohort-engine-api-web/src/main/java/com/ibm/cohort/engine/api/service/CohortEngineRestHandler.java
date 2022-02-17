@@ -278,7 +278,7 @@ public class CohortEngineRestHandler {
 			"etc.\n</pre>";
 
 	public static final String EXAMPLE_DATA_SERVER_CONFIG_JSON = "A configuration file containing information needed to connect to the FHIR server. "
-			+ "See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/getting-started.md#fhir-server-configuration for more details. \n"
+			+ "See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/fhir-server-config.md for more details. \n"
 			+ "Example Contents: \n <pre>{\n" + 
 			"    \"@class\": \"com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\",\n" + 
 			"    \"endpoint\": \"https://fhir-internal.dev:9443/fhir-server/api/v4\",\n" + 

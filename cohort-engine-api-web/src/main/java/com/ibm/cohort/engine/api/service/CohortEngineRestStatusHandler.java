@@ -55,7 +55,7 @@ public class CohortEngineRestStatusHandler extends ServiceStatusHandler {
 	private static final String HEALTH_CHECK_ENHANCED_API_NOTES = "Checks the status of the cohorting service and any downstream services used by the cohorting service";
 
 	public static final String EXAMPLE_HEALTH_CHECK_DATA_SERVER_CONFIG_JSON = "A configuration file containing information needed to connect to the FHIR server. "
-			+ "See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/getting-started.md#fhir-server-configuration for more details. \n" +
+			+ "See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/fhir-server-config.md for more details. \n" +
 			"<p>Example Contents: \n <pre>{\n" +
 			"    \"dataServerConfig\": {\n" +
 			"        \"@class\": \"com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\",\n" +
