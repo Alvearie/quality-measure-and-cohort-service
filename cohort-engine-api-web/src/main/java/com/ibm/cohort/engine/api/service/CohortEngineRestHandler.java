@@ -48,9 +48,9 @@ import com.ibm.cohort.engine.ZipStreamLibrarySourceProvider;
 import com.ibm.cohort.engine.api.service.model.CohortEvaluation;
 import com.ibm.cohort.engine.api.service.model.CohortResult;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
-import com.ibm.cohort.engine.api.service.model.PatientListMeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfoList;
+import com.ibm.cohort.engine.api.service.model.PatientListMeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
 import com.ibm.cohort.engine.measure.MeasureEvaluator;
 import com.ibm.cohort.engine.measure.R4DataProviderFactory;
@@ -59,7 +59,6 @@ import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
-import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
@@ -74,7 +73,6 @@ import com.ibm.watson.common.service.base.ServiceBaseUtility;
 import com.ibm.websphere.jaxrs20.multipart.IAttachment;
 import com.ibm.websphere.jaxrs20.multipart.IMultipartBody;
 
-import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import io.swagger.annotations.Api;
@@ -724,9 +722,8 @@ public class CohortEngineRestHandler {
 			validateBean(fhirServerConfig);
 			
 			//get the fhir client object used to call to FHIR
-			FhirContext ctx = FhirContext.forR4();
-			DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(ctx);
-			IGenericClient measureClient = builder.createFhirClient(fhirServerConfig);
+			FhirClientBuilder clientBuilder = FhirClientBuilderFactory.newInstance().newFhirClientBuilder();
+			IGenericClient measureClient = clientBuilder.createFhirClient(fhirServerConfig);
 			
 			//build the identifier object which is used by the fhir client
 			//to find the measure
@@ -797,9 +794,8 @@ public class CohortEngineRestHandler {
 			validateBean(fhirServerConfig);
 			
 			//get the fhir client object used to call to FHIR
-			FhirContext ctx = FhirContext.forR4();
-			DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(ctx);
-			IGenericClient measureClient = builder.createFhirClient(fhirServerConfig);
+			FhirClientBuilder clientBuilder = FhirClientBuilderFactory.newInstance().newFhirClientBuilder();
+			IGenericClient measureClient = clientBuilder.createFhirClient(fhirServerConfig);
 
 			//resolve the measure, and return the parameter info for all the libraries linked to by the measure
 			List<MeasureParameterInfo> parameterInfoList = FHIRRestUtils.getParametersForMeasureId(measureClient, measureId);
@@ -877,9 +873,8 @@ public class CohortEngineRestHandler {
 			validateBean(fhirServerConfig);
 
 			//get the fhir client object used to call to FHIR
-			FhirContext ctx = FhirContext.forR4();
-			DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(ctx);
-			IGenericClient terminologyClient = builder.createFhirClient(fhirServerConfig);
+			FhirClientBuilder clientBuilder = FhirClientBuilderFactory.newInstance().newFhirClientBuilder();
+			IGenericClient terminologyClient = clientBuilder.createFhirClient(fhirServerConfig);
 			
 			IAttachment valueSetAttachment = multipartBody.getAttachment(VALUE_SET_PART);
 			if (valueSetAttachment == null) {

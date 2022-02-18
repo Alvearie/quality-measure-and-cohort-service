@@ -25,7 +25,8 @@ import com.ibm.cohort.engine.api.service.model.FhirServerConnectionStatusInfo;
 import com.ibm.cohort.engine.api.service.model.FhirServerConnectionStatusInfo.FhirConnectionStatus;
 import com.ibm.cohort.engine.api.service.model.FhirServerConnectionStatusInfo.FhirServerConfigType;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
-import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
+import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
+import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import com.ibm.watson.common.service.base.ServiceBaseConstants;
 import com.ibm.watson.common.service.base.ServiceBaseUtility;
@@ -35,7 +36,6 @@ import com.ibm.watson.service.base.model.ServiceStatus.ServiceState;
 import com.ibm.websphere.jaxrs20.multipart.IAttachment;
 import com.ibm.websphere.jaxrs20.multipart.IMultipartBody;
 
-import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -81,6 +81,7 @@ public class CohortEngineRestStatusHandler extends ServiceStatusHandler {
 			"    }\n" +
 			"}</pre></p>";
 	
+	public static final String FHIR_SERVER_CONNECTION_CONFIG = "fhir_server_connection_config";
 	public static String GET_HEALTH_CHECK_ENCHANCED = "getHealthCheckEnhanced";
 	
 	
@@ -104,7 +105,7 @@ public class CohortEngineRestStatusHandler extends ServiceStatusHandler {
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@ApiOperation(value = "Get the status of the cohorting service and dependent downstream services", notes = CohortEngineRestStatusHandler.HEALTH_CHECK_ENHANCED_API_NOTES, response = EnhancedHealthCheckResults.class, nickname = "health_check_enhanced")
 	@ApiImplicitParams({
-		@ApiImplicitParam(name=CohortEngineRestHandler.FHIR_DATA_SERVER_CONFIG_PART, value=CohortEngineRestStatusHandler.EXAMPLE_HEALTH_CHECK_DATA_SERVER_CONFIG_JSON, dataTypeClass = EnhancedHealthCheckInput.class, required=true, paramType="form", type="file"),
+		@ApiImplicitParam(name=CohortEngineRestStatusHandler.FHIR_SERVER_CONNECTION_CONFIG, value=CohortEngineRestStatusHandler.EXAMPLE_HEALTH_CHECK_DATA_SERVER_CONFIG_JSON, dataTypeClass = EnhancedHealthCheckInput.class, required=true, paramType="form", type="file"),
 	})
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "Successful Operation", response = EnhancedHealthCheckResults.class),
@@ -139,9 +140,9 @@ public class CohortEngineRestStatusHandler extends ServiceStatusHandler {
 			results.setDataServerConnectionResults(dataServerConnectionResults);
 			results.setTerminologyServerConnectionResults(terminologyServerConnectionResults);
 
-			IAttachment dataSourceAttachment = multipartBody.getAttachment(CohortEngineRestHandler.FHIR_DATA_SERVER_CONFIG_PART);
+			IAttachment dataSourceAttachment = multipartBody.getAttachment(CohortEngineRestStatusHandler.FHIR_SERVER_CONNECTION_CONFIG);
 			if( dataSourceAttachment == null ) {
-				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", CohortEngineRestHandler.FHIR_DATA_SERVER_CONFIG_PART));
+				throw new IllegalArgumentException(String.format("Missing '%s' MIME attachment", CohortEngineRestStatusHandler.FHIR_SERVER_CONNECTION_CONFIG));
 			}
 			
 			// deserialize the request input
@@ -160,11 +161,10 @@ public class CohortEngineRestStatusHandler extends ServiceStatusHandler {
 			}
 
 			//get the fhir client object used to call to FHIR
-			FhirContext ctx = FhirContext.forR4();
-			DefaultFhirClientBuilder builder = new DefaultFhirClientBuilder(ctx);
+			FhirClientBuilder clientBuilder = FhirClientBuilderFactory.newInstance().newFhirClientBuilder();
+			IGenericClient dataClient = clientBuilder.createFhirClient(fhirServerConfigs.getDataServerConfig());
 			
 			//try a simple patient search to validate the connection info
-			IGenericClient dataClient = builder.createFhirClient(dataServerConfig);
 			try {
 				//used count=0 to minimize response size
 				dataClient.search().forResource(Patient.class).count(0).execute();
@@ -177,8 +177,8 @@ public class CohortEngineRestStatusHandler extends ServiceStatusHandler {
 			//if terminology server info is provided,
 			//try a simple valueset search to validate the connection info
 			if(terminologyServerConfig != null) {
+				IGenericClient terminologyClient = clientBuilder.createFhirClient(fhirServerConfigs.getTerminologyServerConfig());
 				try {
-					IGenericClient terminologyClient = builder.createFhirClient(terminologyServerConfig);
 					//used count=0 to minimize response size
 					terminologyClient.search().forResource(ValueSet.class).count(0).execute();
 					terminologyServerConnectionResults.setConnectionResults(FhirConnectionStatus.success);
