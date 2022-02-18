@@ -1,0 +1,9 @@
+{
+  "contextDefinitions": [
+    {
+      "name": "AlphaNumeric",
+      "primaryDataType": "AlphaNumeric",
+      "primaryKeyColumn": "id"
+    }
+  ]
+}

@@ -5,6 +5,7 @@
  */
 package com.ibm.cohort.cql.spark.data;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,10 +32,11 @@ import com.ibm.cohort.cql.evaluation.CqlEvaluationRequest;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
 import com.ibm.cohort.cql.library.CqlLibrary;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
-import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
+import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinition;
 import com.ibm.cohort.cql.spark.aggregation.ContextDefinitions;
+import com.ibm.cohort.cql.spark.optimizer.ModelUtils;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 
 import scala.Tuple2;
@@ -72,7 +74,7 @@ import scala.Tuple2;
  */
 public class SparkSchemaCreator {
     public static final String DEFAULT_PARAMETERS_COLUMN_NAME = "parameters";
-    
+
 	private CqlLibraryProvider libraryProvider;
 	private CqlEvaluationRequests requests;
 	private ContextDefinitions contextDefinitions;
@@ -189,16 +191,35 @@ public class SparkSchemaCreator {
 			ModelInfo modelInfo = modelManager.getModelInfoLoader().getModelInfo(modelInfoIdentifier);
 
 			// Look for a ClassInfo element matching primaryDataType for the context
-			List<ClassInfo> classInfos = modelInfo.getTypeInfo().stream()
-					.map(x -> (ClassInfo) x)
-					.filter(x -> x.getName().equals(primaryDataType))
-					.collect(Collectors.toList());
+			List<ClassInfo> classInfos = getClassInfos(primaryDataType, modelInfo);
 
 			if (!classInfos.isEmpty()) {
 				if (classInfos.size() == 1) {
-					List<ClassInfoElement> elements = classInfos.get(0).getElement().stream()
+					ClassInfo classInfo = classInfos.get(0);
+
+					List<ClassInfoElement> elements = classInfo.getElement().stream()
 							.filter(x -> x.getName().equals(primaryKeyColumn))
 							.collect(Collectors.toList());
+
+					// check base type
+					String baseType = classInfo.getBaseType();
+					if (classInfo.getBaseType() != null) {
+						List<ClassInfo> baseClassInfos = getClassInfos(baseType, modelInfo);
+
+						baseClassInfos.stream().map(ClassInfo::getElement).flatMap(List::stream)
+							.filter(element -> element.getName().equals(primaryKeyColumn))
+							.forEach(elements::add);
+					}
+
+					// check choice types
+					Collection<String> choiceTypes = ModelUtils.getChoiceTypeNames(classInfo);
+					choiceTypes.stream().map(type -> getClassInfos(type, modelInfo))
+						.flatMap(List::stream)
+						.map(ClassInfo::getElement)
+						.flatMap(List::stream)
+						.filter(element -> element.getName().equals(primaryKeyColumn))
+						.findFirst()
+						.ifPresent(elements::add);
 
 					// A future ModelInfo file may contain the information
 					if (elements.isEmpty()) {
@@ -234,7 +255,15 @@ public class SparkSchemaCreator {
 		}
 		return new Tuple2<>(contextDefinition.getPrimaryKeyColumn(), keyType);
 	}
-	
+
+	private List<ClassInfo> getClassInfos(String primaryDataType, ModelInfo modelInfo) {
+		return modelInfo.getTypeInfo().stream()
+				.filter(ClassInfo.class::isInstance)
+				.map(ClassInfo.class::cast)
+				.filter(x -> x.getName().equals(primaryDataType))
+				.collect(Collectors.toList());
+	}
+
 	public String getParametersColumnName() {
 	    return this.parametersColumnName;
 	}

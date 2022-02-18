@@ -6,8 +6,12 @@
 
 package com.ibm.cohort.cql.spark.optimizer;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -15,9 +19,12 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.hl7.elm_modelinfo.r1.ChoiceTypeSpecifier;
 import org.hl7.elm_modelinfo.r1.ClassInfo;
 import org.hl7.elm_modelinfo.r1.ModelInfo;
+import org.hl7.elm_modelinfo.r1.NamedTypeSpecifier;
 import org.hl7.elm_modelinfo.r1.TypeInfo;
+import org.hl7.elm_modelinfo.r1.TypeSpecifier;
 
 public class ModelUtils {
     public static class TypeNode {
@@ -76,8 +83,13 @@ public class ModelUtils {
     public static QName getBaseTypeName(ModelInfo modelInfo, TypeInfo typeInfo) {
         String prefixURI;
         String baseTypeName;
+
+        String baseType = typeInfo.getBaseType();
+        if (baseType == null) {
+           return null;
+        }
         
-        String [] parts = typeInfo.getBaseType().split("\\.");
+        String [] parts = baseType.split("\\.");
         if( parts.length == 1 ) {
             prefixURI = modelInfo.getUrl();
             baseTypeName = parts[0];
@@ -115,5 +127,24 @@ public class ModelUtils {
             throw new IllegalArgumentException(String.format("Unable to resolve model URI for prefix %s in model %s version %s", prefix, modelInfo.getName(), modelInfo.getVersion()));
         }
         return prefixURI;
+    }
+
+    public static Collection<String> getChoiceTypeNames(TypeInfo typeInfo) {
+        if (typeInfo != null &&
+            typeInfo.getBaseTypeSpecifier() != null &&
+            (typeInfo.getBaseTypeSpecifier() instanceof ChoiceTypeSpecifier)) {
+            List<String> choiceTypes = new ArrayList<>();
+            ChoiceTypeSpecifier choiceType = (ChoiceTypeSpecifier) typeInfo.getBaseTypeSpecifier();
+            for (TypeSpecifier typeSpecifier : choiceType.getChoice()) {
+                if (typeSpecifier instanceof NamedTypeSpecifier) {
+                    String typeName = ((NamedTypeSpecifier) typeSpecifier).getName();
+                    choiceTypes.add(typeName);
+                }
+            }
+
+            return choiceTypes;
+        } else {
+            return Collections.emptyList();
+        }
     }
 }

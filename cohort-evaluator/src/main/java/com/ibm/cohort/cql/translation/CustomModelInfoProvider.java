@@ -42,4 +42,7 @@ public class CustomModelInfoProvider implements ModelInfoProvider {
         return models.get(modelIdentifier);
     }
 
+    public Map<VersionedIdentifier, ModelInfo> getModels() {
+        return models;
+    }
 }

@@ -11,6 +11,7 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBException;
@@ -24,6 +25,8 @@ import org.cqframework.cql.cql2elm.LibraryManager;
 import org.cqframework.cql.cql2elm.ModelManager;
 import org.cqframework.cql.cql2elm.model.TranslatedLibrary;
 import org.cqframework.cql.elm.tracking.TrackBack;
+import org.hl7.elm.r1.VersionedIdentifier;
+import org.hl7.elm_modelinfo.r1.ModelInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +45,10 @@ public class CqlToElmTranslator {
     
     public void registerModelInfo(File modelInfoXML) {
         modelInfoProvider.addModel(modelInfoXML);
+    }
+
+    public Map<VersionedIdentifier, ModelInfo> getRegisteredModelInfos() {
+        return modelInfoProvider.getModels();
     }
 
     public CqlTranslationResult translate(CqlLibrary primaryLibrary, CqlLibrarySourceProvider sourceProvider) {

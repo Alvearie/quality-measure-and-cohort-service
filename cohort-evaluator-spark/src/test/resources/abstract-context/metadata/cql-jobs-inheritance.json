@@ -1,0 +1,26 @@
+{
+  "evaluations": [
+    {
+      "descriptor": {
+        "libraryId": "Inheritance",
+        "version": "1.0.0"
+      },
+      "expressions": [
+        "cohort"
+      ],
+      "contextKey": "A",
+      "contextValue": "NA"
+    },
+    {
+      "descriptor": {
+        "libraryId": "Inheritance",
+        "version": "1.0.0"
+      },
+      "expressions": [
+        "cohort"
+      ],
+      "contextKey": "B",
+      "contextValue": "NA"
+    }
+  ]
+}
