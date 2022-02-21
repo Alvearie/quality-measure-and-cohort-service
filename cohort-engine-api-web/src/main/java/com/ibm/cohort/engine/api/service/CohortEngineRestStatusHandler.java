@@ -82,7 +82,7 @@ public class CohortEngineRestStatusHandler extends ServiceStatusHandler {
 			"}</pre></p>";
 	
 	public static final String FHIR_SERVER_CONNECTION_CONFIG = "fhir_server_connection_config";
-	public static String GET_HEALTH_CHECK_ENCHANCED = "getHealthCheckEnhanced";
+	public static final String GET_HEALTH_CHECK_ENCHANCED = "getHealthCheckEnhanced";
 	
 	
 	/**
