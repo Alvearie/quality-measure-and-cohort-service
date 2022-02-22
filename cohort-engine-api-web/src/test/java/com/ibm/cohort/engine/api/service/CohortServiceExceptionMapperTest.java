@@ -8,11 +8,10 @@ package com.ibm.cohort.engine.api.service;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.net.ConnectException;
 
 import javax.ws.rs.core.Response;
 
-import com.ibm.cohort.engine.api.service.model.ServiceErrorList.ErrorSource;
-import com.ibm.watson.service.base.model.ServiceError;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
 import org.junit.Before;
@@ -23,7 +22,9 @@ import org.opencds.cqf.cql.engine.exception.CqlException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
+import com.ibm.cohort.engine.api.service.model.ServiceErrorList.ErrorSource;
 import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.watson.service.base.model.ServiceError;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
@@ -105,6 +106,77 @@ public class CohortServiceExceptionMapperTest {
 		ServiceErrorList expected = new ServiceErrorList();
 		expected.setStatusCode(500);
 		expected.getErrors().add(newServiceError(500, "Something bad got input", "Reason: FhirClientConnectionException"));
+		expected.setErrorSource(ErrorSource.COHORT_SERVICE);
+
+		testErrorListEquality(expected, actual);
+	}
+	
+	@Test
+	public void testToResponseFhirClientConnectionExceptionUnknownHost() throws Exception {
+		Response response = exMapper.toResponse(new FhirClientConnectionException("Something bad got input").initCause(new java.net.UnknownHostException("bad host") ));
+		ServiceErrorList actual = (ServiceErrorList) response.getEntity();
+
+		ServiceErrorList expected = new ServiceErrorList();
+		expected.setStatusCode(500);
+		expected.getErrors().add(newServiceError(500, "Something bad got input", "Reason: FhirClientConnectionException"));
+		expected.getErrors().add(newServiceError(404, "bad host", null));
+		expected.setErrorSource(ErrorSource.COHORT_SERVICE);
+
+		testErrorListEquality(expected, actual);
+	}
+	
+	@Test
+	public void testToResponseFhirClientConnectionExceptionUnknownHostConnectionRefused() throws Exception {
+		Response response = exMapper.toResponse(new FhirClientConnectionException("Something bad got input").initCause(new java.net.ConnectException("connection refused") ));
+		ServiceErrorList actual = (ServiceErrorList) response.getEntity();
+
+		ServiceErrorList expected = new ServiceErrorList();
+		expected.setStatusCode(500);
+		expected.getErrors().add(newServiceError(500, "Something bad got input", "Reason: FhirClientConnectionException"));
+		expected.getErrors().add(newServiceError(404, "connection refused", null));
+		expected.setErrorSource(ErrorSource.COHORT_SERVICE);
+
+		testErrorListEquality(expected, actual);
+	}
+	
+	@Test
+	public void testToResponseFhirClientConnectionExceptionUnknownHttpHostConnect() throws Exception {
+		Response response = exMapper.toResponse(new FhirClientConnectionException("Something bad got input").initCause(new org.apache.http.conn.HttpHostConnectException(org.apache.http.HttpHost.create("host"), new ConnectException("cause")) ));
+		ServiceErrorList actual = (ServiceErrorList) response.getEntity();
+
+		ServiceErrorList expected = new ServiceErrorList();
+		expected.setStatusCode(500);
+		expected.getErrors().add(newServiceError(500, "Something bad got input", "Reason: FhirClientConnectionException"));
+		expected.getErrors().add(newServiceError(404, "Connect to host failed: cause", null));
+		expected.getErrors().add(newServiceError(500, "cause", null));
+		expected.setErrorSource(ErrorSource.COHORT_SERVICE);
+
+		testErrorListEquality(expected, actual);
+	}
+	
+	@Test
+	public void testToResponseFhirClientConnectionExceptionUnknownHostTimedOut() throws Exception {
+		Response response = exMapper.toResponse(new FhirClientConnectionException("Something bad got input").initCause(new java.net.SocketTimeoutException("timed out") ));
+		ServiceErrorList actual = (ServiceErrorList) response.getEntity();
+
+		ServiceErrorList expected = new ServiceErrorList();
+		expected.setStatusCode(500);
+		expected.getErrors().add(newServiceError(500, "Something bad got input", "Reason: FhirClientConnectionException"));
+		expected.getErrors().add(newServiceError(504, "timed out", null));
+		expected.setErrorSource(ErrorSource.COHORT_SERVICE);
+
+		testErrorListEquality(expected, actual);
+	}
+	
+	@Test
+	public void testToResponseFhirClientConnectionExceptionUnknownHostApacheTimedOut() throws Exception {
+		Response response = exMapper.toResponse(new FhirClientConnectionException("Something bad got input").initCause(new org.apache.http.conn.ConnectTimeoutException("timed out") ));
+		ServiceErrorList actual = (ServiceErrorList) response.getEntity();
+
+		ServiceErrorList expected = new ServiceErrorList();
+		expected.setStatusCode(500);
+		expected.getErrors().add(newServiceError(500, "Something bad got input", "Reason: FhirClientConnectionException"));
+		expected.getErrors().add(newServiceError(504, "timed out", null));
 		expected.setErrorSource(ErrorSource.COHORT_SERVICE);
 
 		testErrorListEquality(expected, actual);
