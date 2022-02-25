@@ -22,6 +22,7 @@ import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.RelatedArtifact;
+import org.hl7.fhir.r4.model.codesystems.LibraryType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -194,8 +195,8 @@ public class R4LibraryDependencyGathererTest {
 
     private void asLogicLibrary(Library library) {
         Coding coding = new Coding()
-                .setSystem(HapiUtils.CODE_SYSTEM_LIBRARY_TYPE)
-                .setCode(HapiUtils.CODE_LOGIC_LIBRARY);
+                .setSystem(LibraryType.LOGICLIBRARY.getSystem())
+                .setCode(LibraryType.LOGICLIBRARY.toCode());
         library.getType().addCoding(coding);
     }
 

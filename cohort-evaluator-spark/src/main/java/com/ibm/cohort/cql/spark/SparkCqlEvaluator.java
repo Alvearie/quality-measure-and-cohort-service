@@ -666,7 +666,7 @@ public class SparkCqlEvaluator implements Serializable {
         CqlLibraryProvider hadoopBasedLp = new HadoopBasedCqlLibraryProvider(new Path(args.cqlPath), this.hadoopConfiguration.value());
         // we are excluding the pre-compiled FHIRHelpers libraries because they were not compiled
         // with the EnableResultTypes option that is required for some of the features of this program.
-        ClasspathCqlLibraryProvider cpBasedLp = new ClasspathCqlLibraryProvider("org.hl7.fhir");
+        ClasspathCqlLibraryProvider cpBasedLp = new ClasspathCqlLibraryProvider();
         cpBasedLp.setSupportedFormats(Format.CQL);
         CqlLibraryProvider priorityLp = new PriorityCqlLibraryProvider( hadoopBasedLp, cpBasedLp );
 

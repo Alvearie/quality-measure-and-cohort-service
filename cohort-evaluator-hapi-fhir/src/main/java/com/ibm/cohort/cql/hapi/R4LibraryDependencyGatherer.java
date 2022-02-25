@@ -14,6 +14,7 @@ import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.RelatedArtifact;
+import org.hl7.fhir.r4.model.codesystems.LibraryType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -140,8 +141,8 @@ public class R4LibraryDependencyGatherer {
         }
 
         for (Coding c : library.getType().getCoding()) {
-            if (c.hasSystem() && c.getSystem().equals(HapiUtils.CODE_SYSTEM_LIBRARY_TYPE)
-                    && c.hasCode() && c.getCode().equals(HapiUtils.CODE_LOGIC_LIBRARY)) {
+            if (c.hasSystem() && c.getSystem().equals(LibraryType.LOGICLIBRARY.getSystem())
+                    && c.hasCode() && c.getCode().equals(LibraryType.LOGICLIBRARY.toCode())) {
                 return true;
             }
         }

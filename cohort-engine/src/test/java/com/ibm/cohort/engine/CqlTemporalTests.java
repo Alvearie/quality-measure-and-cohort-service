@@ -12,6 +12,7 @@ import java.util.HashMap;
 
 import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
 import com.ibm.cohort.cql.evaluation.CqlEvaluator;
+import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
 import com.ibm.cohort.cql.library.Format;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Condition;
@@ -54,7 +55,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), ENCOUNTER_1, fhirConfig);
 		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123&_format=json", getFhirParser(), observationIN, fhirConfig);
 
-		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", "org.hl7.fhir");
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
 		String expression = "Observations Exist";
 
 		CqlEvaluationResult actual = evaluator.evaluate(
@@ -87,7 +88,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), ENCOUNTER_1, fhirConfig);
 		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123&_format=json", getFhirParser(), observationOUT, fhirConfig);
 
-		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", "org.hl7.fhir");
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
 		String expression = "Observations Exist";
 
 		CqlEvaluationResult actual = evaluator.evaluate(
@@ -119,7 +120,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), ENCOUNTER_1, fhirConfig);
 		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123&_format=json", getFhirParser(), observation, fhirConfig);
 
-		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", "org.hl7.fhir");
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
 		String expression = "ObservationWithin30DaysOfCondition";
 
 		CqlEvaluationResult actual = evaluator.evaluate(
@@ -151,7 +152,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), ENCOUNTER_1, fhirConfig);
 		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123&_format=json", getFhirParser(), observation, fhirConfig);
 
-		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", "org.hl7.fhir");
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
 		String expression = "ObservationWithin30DaysOfCondition";
 
 		CqlEvaluationResult actual = evaluator.evaluate(
@@ -181,7 +182,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		bundle.addEntry(secondEncounter);
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), bundle, fhirConfig);
 
-		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", "org.hl7.fhir");
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
 		String expression = "ValidEncounters2";
 
 		CqlEvaluationResult actual = evaluator.evaluate(
@@ -211,7 +212,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		bundle.addEntry(secondEncounter);
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), bundle, fhirConfig);
 
-		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", "org.hl7.fhir");
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
 		String expression = "ValidEncounters2";
 
 		CqlEvaluationResult actual = evaluator.evaluate(
@@ -235,7 +236,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), ENCOUNTER_3, fhirConfig);
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
 
-		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", "org.hl7.fhir");
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
 		String expression = "NotFollowedByCondition";
 
 		CqlEvaluationResult actual = evaluator.evaluate(
@@ -259,7 +260,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), ENCOUNTER_1, fhirConfig);
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
 
-		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", "org.hl7.fhir");
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
 		String expression = "NotFollowedByCondition";
 
 		CqlEvaluationResult actual = evaluator.evaluate(
@@ -307,7 +308,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123&_format=json", getFhirParser(), bundle, fhirConfig);
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
 
-		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", "org.hl7.fhir");
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
 		String expression = "ValidObservation within 4 days";
 
 		CqlEvaluationResult actual = evaluator.evaluate(
@@ -353,7 +354,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123&_format=json", getFhirParser(), bundle, fhirConfig);
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
 
-		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", "org.hl7.fhir");
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
 		String expression = "ValidObservation not within 4 days";
 
 		CqlEvaluationResult actual = evaluator.evaluate(

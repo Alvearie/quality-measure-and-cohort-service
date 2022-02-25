@@ -63,7 +63,7 @@ public class TranslationCLI {
 			libraryProvider = new MapCqlLibraryProvider(Collections.emptyMap());
 		}
 
-		CqlLibraryProvider fhirClasspathProvider = new ClasspathCqlLibraryProvider("org.hl7.fhir");
+		CqlLibraryProvider fhirClasspathProvider = new ClasspathCqlLibraryProvider();
 		libraryProvider = new PriorityCqlLibraryProvider(libraryProvider, fhirClasspathProvider);
 
 		CqlToElmTranslator translator = new CqlToElmTranslator();

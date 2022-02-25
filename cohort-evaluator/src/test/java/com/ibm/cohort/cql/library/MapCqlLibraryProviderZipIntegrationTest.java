@@ -22,7 +22,7 @@ public class MapCqlLibraryProviderZipIntegrationTest {
     public void testLibraryFoundInZipSuccess() throws Exception {
         MapCqlLibraryProviderFactory factory = new MapCqlLibraryProviderFactory();
         CqlLibraryProvider provider = factory.fromZipFile(Paths.get("src/test/resources/cql/zip/breast_cancer_screening_v1_0_0_cql.zip"));
-        CqlLibraryProvider fhirClasspathProvider = new ClasspathCqlLibraryProvider("org.hl7.fhir");
+        CqlLibraryProvider fhirClasspathProvider = new ClasspathCqlLibraryProvider();
         provider = new PriorityCqlLibraryProvider(provider, fhirClasspathProvider);
         CqlToElmTranslator translator = new CqlToElmTranslator();
         provider = new TranslatingCqlLibraryProvider(provider, translator, false);
@@ -42,7 +42,7 @@ public class MapCqlLibraryProviderZipIntegrationTest {
                 Paths.get("src/test/resources/cql/zip-structured/col_colorectal_cancer_screening_v1_0_0.zip"),
                 "CDSexport"
         );
-        CqlLibraryProvider fhirClasspathProvider = new ClasspathCqlLibraryProvider("org.hl7.fhir");
+        CqlLibraryProvider fhirClasspathProvider = new ClasspathCqlLibraryProvider();
         provider = new PriorityCqlLibraryProvider(provider, fhirClasspathProvider);
         CqlToElmTranslator translator = new CqlToElmTranslator();
         provider = new TranslatingCqlLibraryProvider(provider, translator, false);
@@ -63,7 +63,7 @@ public class MapCqlLibraryProviderZipIntegrationTest {
                 Paths.get("src/test/resources/cql/zip-structured/col_colorectal_cancer_screening_v1_0_0.zip"),
                 "deploypackage"
         );
-        CqlLibraryProvider fhirClasspathProvider = new ClasspathCqlLibraryProvider("org.hl7.fhir");
+        CqlLibraryProvider fhirClasspathProvider = new ClasspathCqlLibraryProvider();
         provider = new PriorityCqlLibraryProvider(provider, fhirClasspathProvider);
         CqlToElmTranslator translator = new CqlToElmTranslator();
         provider = new TranslatingCqlLibraryProvider(provider, translator, false);

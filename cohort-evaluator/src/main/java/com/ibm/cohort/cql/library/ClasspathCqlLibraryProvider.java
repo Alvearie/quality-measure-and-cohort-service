@@ -18,9 +18,15 @@ import org.apache.commons.io.IOUtils;
 
 public class ClasspathCqlLibraryProvider implements CqlLibraryProvider {
 
+    public static final String FHIR_HELPERS_CLASSPATH = "org.hl7.fhir";
+
     private List<String> packages;
     private Set<Format> supportedFormats = null;
-    
+
+    public ClasspathCqlLibraryProvider() {
+        this(FHIR_HELPERS_CLASSPATH);
+    }
+
     public ClasspathCqlLibraryProvider(String packageName, String... packageNames ) {
         packages = new ArrayList<>();
         packages.add( packageName );

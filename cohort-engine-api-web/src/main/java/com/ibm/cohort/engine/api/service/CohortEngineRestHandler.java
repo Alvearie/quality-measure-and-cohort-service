@@ -426,7 +426,7 @@ public class CohortEngineRestHandler {
 				libraryProvider = libraryProviderFactory.fromZipStream(zis, searchPaths);
 			}
 
-			CqlLibraryProvider fhirClasspathProvider = new ClasspathCqlLibraryProvider("org.hl7.fhir");
+			CqlLibraryProvider fhirClasspathProvider = new ClasspathCqlLibraryProvider();
 			libraryProvider = new PriorityCqlLibraryProvider(libraryProvider, fhirClasspathProvider);
 
 			CqlToElmTranslator translator = new CqlToElmTranslator();

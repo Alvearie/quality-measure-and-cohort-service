@@ -167,7 +167,7 @@ public class CohortCLI extends BaseCLI {
 				backingLibraryProvider = new MapCqlLibraryProvider(cqlLibraryMap);
 			}
 
-			CqlLibraryProvider fhirClasspathProvider = new ClasspathCqlLibraryProvider("org.hl7.fhir");
+			CqlLibraryProvider fhirClasspathProvider = new ClasspathCqlLibraryProvider();
 			backingLibraryProvider = new PriorityCqlLibraryProvider(backingLibraryProvider, fhirClasspathProvider);
 
 			CqlToElmTranslator translator = new CqlToElmTranslator();

@@ -11,18 +11,17 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
-import com.ibm.cohort.cql.evaluation.ContextNames;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
 import com.ibm.cohort.cql.evaluation.CqlEvaluator;
 import com.ibm.cohort.cql.evaluation.parameters.DatetimeParameter;
 import com.ibm.cohort.cql.evaluation.parameters.IntegerParameter;
 import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
+import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.Format;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.CodeableConcept;
@@ -219,7 +218,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", condition);
 
         FhirServerConfig fhirConfig = getFhirServerConfig();
-        CqlEvaluator evaluator = setupTestFor(patient, fhirConfig, "cql.condition", "org.hl7.fhir");
+        CqlEvaluator evaluator = setupTestFor(patient, fhirConfig, "cql.condition", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
 
         String expression = "HasActiveCondition";
 
@@ -255,7 +254,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         mockFhirResourceRetrieval(builder, condition);
 
         FhirServerConfig fhirConfig = getFhirServerConfig();
-        CqlEvaluator evaluator = setupTestFor(patient, fhirConfig,"cql.condition", "org.hl7.fhir");
+        CqlEvaluator evaluator = setupTestFor(patient, fhirConfig,"cql.condition", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
 
         Map<String,Parameter> parameters = new HashMap<>();
         parameters.put("MeasurementPeriod", new IntervalParameter( new DatetimeParameter("1999-01-01T00:00:00-05:00"), true, new DatetimeParameter("2000-01-01T00:00:00-05:00"), false ) );
@@ -443,7 +442,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         response.addParameter().setValue(new BooleanType(false));
         mockFhirResourceRetrieval("/ValueSet/5.6.7.8/$validate-code?code=1234&system=SNOMED-CT&_format=json", response);
 
-        CqlEvaluator evaluator = setupTestFor(patient, "cql.valueset", "org.hl7.fhir");
+        CqlEvaluator evaluator = setupTestFor(patient, "cql.valueset", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
         CqlEvaluationResult actual = evaluator.evaluate(
                 newDescriptor("Test", "1.0.0", Format.CQL),
                 newPatientContext("123")
@@ -502,7 +501,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         // This stub works for [Condition] c where c.code in "ValueSet"
         mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", condition);
 
-        CqlEvaluator evaluator = setupTestFor(patient, "cql.valueset", "org.hl7.fhir");
+        CqlEvaluator evaluator = setupTestFor(patient, "cql.valueset", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
 
         CqlException ex = assertThrows("Missing expected exception", CqlException.class, () -> {
             evaluator.evaluate(

@@ -23,6 +23,7 @@ import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
+import org.hl7.fhir.r4.model.codesystems.LibraryType;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -177,8 +178,8 @@ public class MeasureEvaluationSeederTest {
 
     private Library createLibrary(String elmFile) throws IOException {
         Coding libraryCoding = new Coding();
-        libraryCoding.setSystem(HapiUtils.CODE_SYSTEM_LIBRARY_TYPE);
-        libraryCoding.setCode(HapiUtils.CODE_LOGIC_LIBRARY);
+        libraryCoding.setSystem(LibraryType.LOGICLIBRARY.getSystem());
+        libraryCoding.setCode(LibraryType.LOGICLIBRARY.toCode());
 
         CodeableConcept libraryType = new CodeableConcept();
         libraryType.setCoding(Collections.singletonList(libraryCoding));

@@ -45,7 +45,7 @@ public class CqlContextFactoryTest {
         ZonedDateTime expectedEvaluationDateTime = ZonedDateTime.of(LocalDateTime.of(2001, 10, 2, 11, 12, 13), ZoneId.of("America/New_York"));
 
         PriorityCqlLibraryProvider libraryProvider = new PriorityCqlLibraryProvider(
-                new ClasspathCqlLibraryProvider("cql", "org.hl7.fhir")
+                new ClasspathCqlLibraryProvider("cql", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH)
         );
 
         CqlToElmTranslator translator = new CqlToElmTranslator();

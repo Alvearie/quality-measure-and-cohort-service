@@ -35,7 +35,7 @@ public abstract class BaseDataTypeRequirementsProcessorTest {
 
     protected CqlLibraryProvider createLibrarySourceProvider(String cqlPath, CqlToElmTranslator translator)
             throws IOException {
-        ClasspathCqlLibraryProvider cpBasedLp = new ClasspathCqlLibraryProvider("org.hl7.fhir");
+        ClasspathCqlLibraryProvider cpBasedLp = new ClasspathCqlLibraryProvider();
         cpBasedLp.setSupportedFormats(Format.CQL);
 
         MapCqlLibraryProviderFactory dirProviderFactory = new MapCqlLibraryProviderFactory();
