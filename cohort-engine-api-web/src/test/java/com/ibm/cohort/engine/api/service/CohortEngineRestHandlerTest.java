@@ -56,8 +56,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.LoggingEnum;
-import com.ibm.cohort.engine.BaseFhirTest;
 import com.ibm.cohort.engine.api.service.CohortEngineRestHandler.MethodNames;
 import com.ibm.cohort.engine.api.service.model.CohortEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
