@@ -16,24 +16,23 @@ from __future__ import absolute_import
 import unittest
 
 import swagger_client
-from swagger_client.api.cohort_evaluation_api import CohortEvaluationApi  # noqa: E501
+from swagger_client.models.cohort_result import CohortResult  # noqa: E501
 from swagger_client.rest import ApiException
 
 
-class TestCohortEvaluationApi(unittest.TestCase):
-    """CohortEvaluationApi unit test stubs"""
+class TestCohortResult(unittest.TestCase):
+    """CohortResult unit test stubs"""
 
     def setUp(self):
-        self.api = swagger_client.api.cohort_evaluation_api.CohortEvaluationApi()  # noqa: E501
+        pass
 
     def tearDown(self):
         pass
 
-    def test_evaluate_cohort(self):
-        """Test case for evaluate_cohort
-
-        Evaluates a specific define within a CQL for a set of patients  # noqa: E501
-        """
+    def testCohortResult(self):
+        """Test CohortResult"""
+        # FIXME: construct object with mandatory attributes with example values
+        # model = swagger_client.models.cohort_result.CohortResult()  # noqa: E501
         pass
 
 

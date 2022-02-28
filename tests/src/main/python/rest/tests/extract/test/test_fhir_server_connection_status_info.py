@@ -16,12 +16,12 @@ from __future__ import absolute_import
 import unittest
 
 import swagger_client
-from swagger_client.models.service_error import ServiceError  # noqa: E501
+from swagger_client.models.fhir_server_connection_status_info import FhirServerConnectionStatusInfo  # noqa: E501
 from swagger_client.rest import ApiException
 
 
-class TestServiceError(unittest.TestCase):
-    """ServiceError unit test stubs"""
+class TestFhirServerConnectionStatusInfo(unittest.TestCase):
+    """FhirServerConnectionStatusInfo unit test stubs"""
 
     def setUp(self):
         pass
@@ -29,10 +29,10 @@ class TestServiceError(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def testServiceError(self):
-        """Test ServiceError"""
+    def testFhirServerConnectionStatusInfo(self):
+        """Test FhirServerConnectionStatusInfo"""
         # FIXME: construct object with mandatory attributes with example values
-        # model = swagger_client.models.service_error.ServiceError()  # noqa: E501
+        # model = swagger_client.models.fhir_server_connection_status_info.FhirServerConnectionStatusInfo()  # noqa: E501
         pass
 
 
