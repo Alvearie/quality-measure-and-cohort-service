@@ -18,11 +18,11 @@
 		<module>../cohort-engine-api</module>
 		<module>../cohort-engine-api-web</module>
 		<module>../cohort-util</module>
-		<module>../cohort-translation</module>
 		<module>../fhir-resource-tooling</module>
 		<module>../cohort-evaluator</module>
 		<module>../cohort-model-datarow</module>
 		<module>../cohort-evaluator-spark</module>
+		<module>../cohort-evaluator-hapi-fhir</module>
 		<module>../tests</module>
 		<module>../reports</module>
 		<module>../cohort-engine-distribution</module>
@@ -1303,7 +1303,8 @@
 							</ignoredUsedUndeclaredDependencies>
 							
 							<ignoredUnusedDeclaredDependencies> 
-								<ignoredUnusedDeclaredDependency>ca.uhn.hapi.fhir:hapi-fhir-structures-r4</ignoredUnusedDeclaredDependency>	
+								<ignoredUnusedDeclaredDependency>ca.uhn.hapi.fhir:hapi-fhir-structures-r4</ignoredUnusedDeclaredDependency>
+								<ignoredUnusedDeclaredDependency>ca.uhn.hapi.fhir:hapi-fhir-client</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>org.slf4j:slf4j-simple</ignoredUnusedDeclaredDependency>			
 								<ignoredUnusedDeclaredDependency>com.github.ben-manes.caffeine:jcache</ignoredUnusedDeclaredDependency>
 								<ignoredUnusedDeclaredDependency>org.opencds.cqf:common</ignoredUnusedDeclaredDependency>

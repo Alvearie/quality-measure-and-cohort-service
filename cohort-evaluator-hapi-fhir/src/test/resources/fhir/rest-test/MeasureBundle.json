@@ -1,0 +1,24 @@
+{
+  "resourceType": "Bundle",
+  "id": "MeasureBundle-id",
+  "type": "searchset",
+  "total": 1,
+  "entry": [
+    {
+      "fullUrl": "https://localhost:9443/fhir-server/api/v4/Measure/Measure1",
+      "resource": {
+        "resourceType": "Measure",
+        "id": "Measure1-id",
+        "name": "Measure1-name",
+        "version": "1.0.0",
+        "url": "http://fake.url.com/Measure/Measure1",
+        "identifier": [{
+          "value": "Measure1-idValue",
+          "system": "Measure1-idSystem"
+        }],
+        "title": "Measure1-title",
+        "status": "active"
+      }
+    }
+  ]
+}

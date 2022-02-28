@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2020, 2021
+ * (C) Copyright IBM Corp. 2020, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -35,7 +35,7 @@ import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 
 import com.beust.jcommander.ParameterException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.helpers.CanonicalHelper;
+import com.ibm.cohort.cql.helpers.CanonicalHelper;
 import com.ibm.cohort.engine.measure.BaseMeasureTest;
 
 public class MeasureCLITest extends BaseMeasureTest {
@@ -48,7 +48,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1592-14-03");
 		mockFhirResourceRetrieval(patient);
 
-		Library library = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/test.cql");
+		Library library = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/Test-1.0.0.cql");
 
 		Measure measure = getCohortMeasure("Test", library, "Female");
 		mockFhirResourceRetrieval(measure);
@@ -87,7 +87,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1592-14-03");
 		mockFhirResourceRetrieval(patient);
 
-		Library library = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/test.cql");
+		Library library = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/Test-1.0.0.cql");
 
 		Measure measure = getCohortMeasure("Test", library, "Female");
 		mockFhirResourceRetrieval(measure);
@@ -127,7 +127,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1592-14-03");
 		mockFhirResourceRetrieval(patient);
 
-		Library library = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/test.cql");
+		Library library = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/Test-1.0.0.cql");
 
 		Measure measure = getCohortMeasure("Test", library, "Female");
 		mockFhirResourceRetrieval(measure);
@@ -165,7 +165,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1592-14-03");
 		mockFhirResourceRetrieval(patient);
 
-		Library library = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/test.cql");
+		Library library = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/Test-1.0.0.cql");
 
 		Measure measure = getCohortMeasure("Test", library, "Female");
 		mockMeasureRetrieval(measure);
@@ -184,7 +184,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 					"-d", tmpFile.getAbsolutePath(),
 					"-p", "p1:interval:decimal,1.0,100.5",
 					"-p", "p2:integer:1",
-					"-r", CanonicalHelper.toCanonicalUrl(measure),
+					"-r", CanonicalHelper.toCanonicalUrl(measure.getUrl(), measure.getVersion()),
 					"-c", patient.getId()
 			}, out);
 		} finally {
@@ -232,7 +232,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		Patient patient3 = getPatient("888", AdministrativeGender.FEMALE, "1592-14-05");
 		mockFhirResourceRetrieval(patient3);
 
-		Library library1 = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/test.cql");
+		Library library1 = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/Test-1.0.0.cql");
 
 		Measure measure = getCohortMeasure("Test", library1, "Male");
 		mockMeasureRetrieval(measure);
@@ -303,7 +303,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		
 		mockFhirResourceRetrieval(patient);
 		
-		Library library = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/test.cql");
+		Library library = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/Test-1.0.0.cql");
 		
 		expressionsByPopulationType.clear();
 		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, "Male");
@@ -356,7 +356,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		Patient patient2 = mockPatientRetrieval("456", AdministrativeGender.MALE, 45);
 		Patient patient3 = mockPatientRetrieval("789", AdministrativeGender.FEMALE, 45);
 		
-		Library library = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/test.cql");
+		Library library = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/Test-1.0.0.cql");
 		
 		expressionsByPopulationType.clear();
 		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, "Male");
@@ -408,7 +408,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		
 		Patient patient1 = mockPatientRetrieval("123", AdministrativeGender.MALE, 30);
 		
-		Library library = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/test.cql");
+		Library library = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/Test-1.0.0.cql");
 		
 		expressionsByPopulationType.clear();
 		expressionsByPopulationType.put(MeasurePopulationType.INITIALPOPULATION, "Male");
@@ -459,7 +459,7 @@ public class MeasureCLITest extends BaseMeasureTest {
 		Patient patient = getPatient("123", AdministrativeGender.MALE, "1592-14-03");
 		mockFhirResourceRetrieval(patient);
 		
-		Library library = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/test.cql");
+		Library library = mockLibraryRetrieval("Test", DEFAULT_RESOURCE_VERSION, "cql/basic/Test-1.0.0.cql");
 		
 		Measure measure = getCohortMeasure("Test", library, "Male");
 		mockFhirResourceRetrieval(measure);

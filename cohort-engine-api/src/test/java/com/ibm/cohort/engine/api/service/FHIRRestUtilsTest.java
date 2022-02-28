@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2021, 2021
+ * (C) Copyright IBM Corp. 2021, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -20,6 +20,8 @@ import java.util.List;
 
 import javax.ws.rs.core.HttpHeaders;
 
+import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
+import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
 import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
@@ -40,10 +42,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.agent.PowerMockAgent;
 import org.powermock.modules.junit4.rule.PowerMockRule;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
-import com.ibm.cohort.engine.measure.RestFhirLibraryResolutionProvider;
-import com.ibm.cohort.engine.measure.RestFhirMeasureResolutionProvider;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 
 import ca.uhn.fhir.context.FhirContext;
@@ -73,8 +71,6 @@ public class FHIRRestUtilsTest {
 	String[] authParts = new String[] { "username", "password" };
 
 	FhirContext ctx = FhirContext.forR4();
-
-	Identifier identifier;
 
 	String testMeasureDef = "{\n" +
 			"  \"resourceType\": \"Measure\",\n" +
@@ -239,23 +235,15 @@ public class FHIRRestUtilsTest {
 		FHIRRestUtils.parseAuthenticationHeaderInfo(mockHttpHeaders);
 	}
 
-	@PrepareForTest({ FHIRRestUtils.class, RestFhirLibraryResolutionProvider.class,
-			RestFhirMeasureResolutionProvider.class })
+	@PrepareForTest({ FHIRRestUtils.class })
 	@Test
-	public void testGetParametersForMeasureId() throws Exception {
-
-		RestFhirLibraryResolutionProvider mockLibraryResolutionProvider = Mockito
-				.mock(RestFhirLibraryResolutionProvider.class);
-		PowerMockito.whenNew(RestFhirLibraryResolutionProvider.class).withAnyArguments()
-				.thenReturn(mockLibraryResolutionProvider);
-		RestFhirMeasureResolutionProvider mockMeasureResolutionProvider = Mockito
-				.mock(RestFhirMeasureResolutionProvider.class);
-		PowerMockito.whenNew(RestFhirMeasureResolutionProvider.class).withAnyArguments()
-				.thenReturn(mockMeasureResolutionProvider);
-
-		when(mockMeasureResolutionProvider.resolveMeasureById(ArgumentMatchers.any()))
+	public void testGetParametersForMeasureId() {
+		String measureId = "measureId";
+		FhirResourceResolver<Measure> measureResolver = Mockito.mock(FhirResourceResolver.class);
+		Mockito.when(measureResolver.resolveById(measureId))
 				.thenReturn(createMeasure(testMeasureDef));
-		List<MeasureParameterInfo> parameterInfoList = FHIRRestUtils.getParametersForMeasureId(null, "measureId");
+
+		List<MeasureParameterInfo> parameterInfoList = FHIRRestUtils.getParametersForMeasureId(measureResolver, measureId);
 
 		MeasureParameterInfo expectedParamInfo = new MeasureParameterInfo();
 		expectedParamInfo.setname("aName");
@@ -269,23 +257,14 @@ public class FHIRRestUtilsTest {
 		assertThat(parameterInfoList, containsInAnyOrder(expectedParamInfo));
 	}
 
-	@PrepareForTest({ FHIRRestUtils.class, RestFhirLibraryResolutionProvider.class,
-			RestFhirMeasureResolutionProvider.class })
 	@Test
-	public void testGetParametersWithDefaultsForMeasureId() throws Exception {
-		RestFhirLibraryResolutionProvider mockLibraryResolutionProvider = Mockito
-				.mock(RestFhirLibraryResolutionProvider.class);
-		PowerMockito.whenNew(RestFhirLibraryResolutionProvider.class).withAnyArguments()
-				.thenReturn(mockLibraryResolutionProvider);
-		RestFhirMeasureResolutionProvider mockMeasureResolutionProvider = Mockito
-				.mock(RestFhirMeasureResolutionProvider.class);
-		PowerMockito.whenNew(RestFhirMeasureResolutionProvider.class).withAnyArguments()
-				.thenReturn(mockMeasureResolutionProvider);
-
-		when(mockMeasureResolutionProvider.resolveMeasureById(ArgumentMatchers.any()))
+	public void testGetParametersWithDefaultsForMeasureId() {
+		String measureId = "measureId";
+		FhirResourceResolver<Measure> measureResolver = Mockito.mock(FhirResourceResolver.class);
+		Mockito.when(measureResolver.resolveById(measureId))
 				.thenReturn(createMeasure(testMeasureDef));
 
-		List<MeasureParameterInfo> parameterInfoList = FHIRRestUtils.getParametersForMeasureId(null, "measureId");
+		List<MeasureParameterInfo> parameterInfoList = FHIRRestUtils.getParametersForMeasureId(measureResolver, measureId);
 
 		MeasureParameterInfo expectedParamInfo = new MeasureParameterInfo();
 		expectedParamInfo.setname("aName");
@@ -302,24 +281,24 @@ public class FHIRRestUtilsTest {
 	/**
 	 * Test the successful building of a response.
 	 */
-
-	@PrepareForTest({ FHIRRestUtils.class, RestFhirLibraryResolutionProvider.class,
-			RestFhirMeasureResolutionProvider.class })
 	@Test
-	public void testGetParametersForMeasureIdentifier() throws Exception {
-		RestFhirLibraryResolutionProvider mockLibraryResolutionProvider = Mockito
-				.mock(RestFhirLibraryResolutionProvider.class);
-		PowerMockito.whenNew(RestFhirLibraryResolutionProvider.class).withAnyArguments()
-				.thenReturn(mockLibraryResolutionProvider);
-		RestFhirMeasureResolutionProvider mockMeasureResolutionProvider = Mockito
-				.mock(RestFhirMeasureResolutionProvider.class);
-		PowerMockito.whenNew(RestFhirMeasureResolutionProvider.class).withAnyArguments()
-				.thenReturn(mockMeasureResolutionProvider);
-		when(mockMeasureResolutionProvider.resolveMeasureByIdentifier(ArgumentMatchers.any(), ArgumentMatchers.any()))
+	public void testGetParametersForMeasureIdentifier() {
+
+		String idValue = "idValue";
+		String idSystem = "idSystem";
+		Identifier identifier = new Identifier()
+				.setValue(idValue)
+				.setSystem(idSystem);
+		String version = "1.0.0";
+		FhirResourceResolver<Measure> measureResolver = Mockito.mock(FhirResourceResolver.class);
+		Mockito.when(measureResolver.resolveByIdentifier(idValue, idSystem, version))
 				.thenReturn(createMeasure(testMeasureDef));
 
-		List<MeasureParameterInfo> parameterInfoList = FHIRRestUtils.getParametersForMeasureIdentifier(measureClient,
-				identifier, "");
+		List<MeasureParameterInfo> parameterInfoList = FHIRRestUtils.getParametersForMeasureIdentifier(
+				measureResolver,
+				identifier,
+				version
+		);
 
 		MeasureParameterInfo expectedParamInfo = new MeasureParameterInfo();
 		expectedParamInfo.setname("aName");

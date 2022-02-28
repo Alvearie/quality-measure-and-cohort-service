@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2021, 2021
+ * (C) Copyright IBM Corp. 2021, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -13,14 +13,15 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.Reader;
 
+import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
+import com.ibm.cohort.cql.library.Format;
+import com.ibm.cohort.cql.provider.CqlLibrarySourceProvider;
 import org.cqframework.cql.cql2elm.CqlTranslatorException;
 import org.junit.Test;
 
 import com.ibm.cohort.cql.library.CqlLibrary;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
-import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
-import com.ibm.cohort.cql.library.DirectoryBasedCqlLibraryProvider;
 
 public class CqlToElmTranslatorTest {
     @Test
@@ -42,7 +43,7 @@ public class CqlToElmTranslatorTest {
     
     @Test
     public void testTranslationWithIncludes() throws Exception {
-        CqlLibraryProvider provider = new DirectoryBasedCqlLibraryProvider(new File("src/test/resources/cql"));
+        CqlLibraryProvider provider = new ClasspathCqlLibraryProvider("cql");
         
         CqlLibraryDescriptor descriptor = new CqlLibraryDescriptor()
                 .setLibraryId("SampleLibrary")

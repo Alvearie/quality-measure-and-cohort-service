@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2021, 2021
+ * (C) Copyright IBM Corp. 2021, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -11,14 +11,19 @@ import static com.ibm.cohort.engine.cdm.CDMConstants.PARAMETER_DEFAULT_URL;
 import java.util.List;
 import java.util.Map;
 
+import com.ibm.cohort.cql.data.CqlDataProvider;
+import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
+import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
+import com.ibm.cohort.cql.hapi.R4TranslatingLibraryLoader;
+import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Triple;
+import org.cqframework.cql.elm.execution.VersionedIdentifier;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.ParameterDefinition;
 import org.opencds.cqf.common.helpers.UsingHelper;
-import org.opencds.cqf.common.providers.LibraryResolutionProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.debug.DebugMap;
 import org.opencds.cqf.cql.engine.execution.Context;
@@ -28,16 +33,15 @@ import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.helpers.MeasurementPeriodHelper;
-import com.ibm.cohort.engine.measure.LibraryHelper;
 import com.ibm.cohort.engine.measure.R4ParameterDefinitionWithDefaultToCohortParameterConverter;
-import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 
 public class MeasureEvaluationSeeder {
 
 	private final TerminologyProvider terminologyProvider;
-	private final Map<String, DataProvider> dataProviders;
-	private final LibraryLoader libraryLoader;
-	private final LibraryResolutionProvider<Library> libraryResourceProvider;
+	private final Map<String, CqlDataProvider> dataProviders;
+	private final R4LibraryDependencyGatherer libraryDependencyGatherer;
+	private final FhirResourceResolver<Library> libraryResolver;
 
 	private boolean enableExpressionCaching;
 	private boolean debugMode = true;
@@ -46,13 +50,13 @@ public class MeasureEvaluationSeeder {
 
 	public MeasureEvaluationSeeder(
 			TerminologyProvider terminologyProvider,
-			Map<String, DataProvider> dataProviders,
-			LibraryLoader libraryLoader,
-			LibraryResolutionProvider<Library> libraryResourceProvider) {
+			Map<String, CqlDataProvider> dataProviders,
+			R4LibraryDependencyGatherer libraryDependencyGatherer,
+			FhirResourceResolver<Library> libraryResolver) {
 		this.terminologyProvider = terminologyProvider;
 		this.dataProviders = dataProviders;
-		this.libraryLoader = libraryLoader;
-		this.libraryResourceProvider = libraryResourceProvider;
+		this.libraryDependencyGatherer = libraryDependencyGatherer;
+		this.libraryResolver = libraryResolver;
 	}
 
 	public MeasureEvaluationSeeder disableDebugLogging() {
@@ -68,13 +72,20 @@ public class MeasureEvaluationSeeder {
 	}
 
 	public IMeasureEvaluationSeed create(Measure measure, String periodStart, String periodEnd, String productLine, Map<String, Parameter> parameters) {
-		List<org.cqframework.cql.elm.execution.Library> libraries = LibraryHelper.loadLibraries(measure, this.libraryLoader, this.libraryResourceProvider);
-		if( CollectionUtils.isEmpty(libraries) ) { 
+		// Gather the primary library and all of its dependencies
+		List<Library> fhirLibraries = libraryDependencyGatherer.gatherForMeasure(measure);
+
+		if( CollectionUtils.isEmpty(fhirLibraries) ) {
 			throw new IllegalArgumentException(String.format("No libraries were able to be loaded for %s", measure.getId()));
 		}
 		
 		// the "primary" library is always the first library loaded for the measure
-		org.cqframework.cql.elm.execution.Library primaryLibrary = libraries.get(0);
+		Library primaryFhirLibrary = fhirLibraries.get(0);
+		VersionedIdentifier libraryIdentifier = new VersionedIdentifier()
+				.withId(primaryFhirLibrary.getName())
+				.withVersion(primaryFhirLibrary.getVersion());
+		LibraryLoader libraryLoader = new R4TranslatingLibraryLoader(libraryResolver, new CqlToElmTranslator());
+		org.cqframework.cql.elm.execution.Library primaryLibrary = libraryLoader.load(libraryIdentifier);
 		
 		List<Triple<String, String, String>> usingDefs = UsingHelper.getUsingUrlAndVersion(primaryLibrary.getUsings());
 
@@ -86,7 +97,7 @@ public class MeasureEvaluationSeeder {
 		String lastModelUri = usingDefs.get(usingDefs.size() - 1).getRight();
 		DataProvider dataProvider = dataProviders.get(lastModelUri);
 
-		Context context = createContext(primaryLibrary, lastModelUri, dataProvider, productLine);
+		Context context = createContext(primaryLibrary, lastModelUri, dataProvider, productLine, libraryLoader);
 
 		// fhir path: Measure.extension[measureParameter][].valueParameterDefinition.extension[defaultValue]
 		measure.getExtension().stream()
@@ -113,7 +124,8 @@ public class MeasureEvaluationSeeder {
 			org.cqframework.cql.elm.execution.Library library,
 			String modelUri,
 			DataProvider dataProvider,
-			String productLine) {
+			String productLine,
+			LibraryLoader libraryLoader) {
 
 		Context context = createDefaultContext(library);
 		context.registerLibraryLoader(libraryLoader);
@@ -152,7 +164,6 @@ public class MeasureEvaluationSeeder {
 			context.setParameter(null, parameterDefinition.getName(), parameter.toCqlType());
 		}
 	}
-
 
 	public static boolean isMeasureParameter(Extension extension) {
 		return MEASURE_PARAMETER_URL.equals(extension.getUrl());

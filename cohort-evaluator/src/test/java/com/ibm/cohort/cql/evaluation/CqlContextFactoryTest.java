@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2021, 2021
+ * (C) Copyright IBM Corp. 2021, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -13,13 +13,13 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import java.io.File;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.ibm.cohort.cql.library.Format;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import org.opencds.cqf.cql.engine.execution.Context;
@@ -31,9 +31,7 @@ import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.cql.evaluation.parameters.StringParameter;
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
-import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
-import com.ibm.cohort.cql.library.DirectoryBasedCqlLibraryProvider;
 import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import com.ibm.cohort.cql.terminology.UnsupportedTerminologyProvider;
@@ -46,7 +44,9 @@ public class CqlContextFactoryTest {
         boolean expectedDebug = true;
         ZonedDateTime expectedEvaluationDateTime = ZonedDateTime.of(LocalDateTime.of(2001, 10, 2, 11, 12, 13), ZoneId.of("America/New_York"));
 
-        PriorityCqlLibraryProvider libraryProvider = new PriorityCqlLibraryProvider( new DirectoryBasedCqlLibraryProvider( new File("src/test/resources/cql") ), new ClasspathCqlLibraryProvider("org.hl7.fhir") );
+        PriorityCqlLibraryProvider libraryProvider = new PriorityCqlLibraryProvider(
+                new ClasspathCqlLibraryProvider("cql", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH)
+        );
 
         CqlToElmTranslator translator = new CqlToElmTranslator();
         TranslatingCqlLibraryProvider translatingProvider = new TranslatingCqlLibraryProvider(libraryProvider, translator);
