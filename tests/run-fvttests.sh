@@ -1,5 +1,5 @@
 #
-# (C) Copyright IBM Corp. 2021, 2021
+# (C) Copyright IBM Corp. 2021, 2022
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -98,7 +98,6 @@ runSparkTest() {
   fi
 }
 
-
 . tests/setupEnvironmentVariables.sh
 
 POD_NAME=engine-cohort-fvt-test
@@ -155,6 +154,7 @@ runTest "/bzt-configs/tests/scenarios/rest/valueSetImportAPITests.yaml"
 runTest "/bzt-configs/tests/scenarios/rest/measureEvaluationAPITests.yaml"
 runTest "/bzt-configs/tests/scenarios/rest/cohortEvaluationAPITests.yaml"
 runTest "/bzt-configs/tests/scenarios/rest/measureEvaluationUsingPatientListAPITests.yaml"
+runTest "/bzt-configs/tests/scenarios/rest/healthCheckEnhancedAPITests.yaml"
 
 # Save test results and logs to local directories. Combine results into a single xml file
 # called fvttest.xml (filename expected by the toolchain)
@@ -165,13 +165,9 @@ kubectl -n ${CLUSTER_NAMESPACE} cp "${POD_NAME}:/tmp/artifacts" "${OUTPUT_DIR}/a
 
 ######################################### START of section specific to SPARK based fvt tests ######################################################
 
-test1Args="--deploy-mode cluster --name cohortfvt-spark --class com.ibm.cohort.cql.spark.SparkCqlEvaluator local:///opt/spark/jars/cohort-evaluator-spark.jar -d /cohort-config/fvt/fvt-context-definitions.json -j /cohort-config/fvt/fvt-cql-jobs.json -m /cohort-config/fvt/fvt-model-info.xml -c /cohort-config/fvt/cql --input-format delta -i Device=s3a://cohort-data-tenant2/fvt-input-data/Device -i Observation=s3a://cohort-data-tenant2/fvt-input-data/Observation -i Patient=s3a://cohort-data-tenant2/fvt-input-data/Patient -i PatientDeviceJoin=s3a://cohort-data-tenant2/fvt-input-data/PatientDeviceJoin -i Practitioner=s3a://cohort-data-tenant2/fvt-input-data/Practitioner --overwrite-output-for-contexts -o Patient=s3a://cohort-data-tenant2/fvt-output/Patient_cohort -o Observation=s3a://cohort-data-tenant2/fvt-output/Observation_cohort -o Practitioner=s3a://cohort-data-tenant2/fvt-output/Practitioner_cohort -o Device=s3a://cohort-data-tenant2/fvt-output/Device_cohort --metadata-output-path /tmp"
-test1OutputFile="sparkFvtTest-local-configs.xml"
-runSparkTest "${test1Args}" "${test1OutputFile}"
-
-test2Args="--deploy-mode cluster --name cohortfvt-spark --class com.ibm.cohort.cql.spark.SparkCqlEvaluator local:///opt/spark/jars/cohort-evaluator-spark.jar -d s3a://cohort-config/fvt/fvt-context-definitions.json -j s3a://cohort-config/fvt/fvt-cql-jobs.json -m s3a://cohort-config/fvt/fvt-model-info.xml -c s3a://cohort-config/fvt/cql --input-format delta -i Device=s3a://cohort-data-tenant2/fvt-input-data/Device -i Observation=s3a://cohort-data-tenant2/fvt-input-data/Observation -i Patient=s3a://cohort-data-tenant2/fvt-input-data/Patient -i PatientDeviceJoin=s3a://cohort-data-tenant2/fvt-input-data/PatientDeviceJoin -i Practitioner=s3a://cohort-data-tenant2/fvt-input-data/Practitioner --overwrite-output-for-contexts -o Patient=s3a://cohort-data-tenant2/fvt-output/Patient_cohort -o Observation=s3a://cohort-data-tenant2/fvt-output/Observation_cohort -o Practitioner=s3a://cohort-data-tenant2/fvt-output/Practitioner_cohort -o Device=s3a://cohort-data-tenant2/fvt-output/Device_cohort --metadata-output-path /tmp"
-test2OutputFile="sparkFvtTest-cos-configs.xml"
-runSparkTest "${test2Args}" "${test2OutputFile}"
+sparkTestArgs="--deploy-mode cluster --name cohortfvt-spark --class com.ibm.cohort.cql.spark.SparkCqlEvaluator local:///opt/spark/jars/cohort-evaluator-spark.jar -d s3a://cohort-config/fvt/fvt-context-definitions.json -j s3a://cohort-config/fvt/fvt-cql-jobs.json -m s3a://cohort-config/fvt/fvt-model-info.xml -c s3a://cohort-config/fvt/cql --input-format delta -i Device=s3a://cohort-data-tenant2/fvt-input-data/Device -i Observation=s3a://cohort-data-tenant2/fvt-input-data/Observation -i Patient=s3a://cohort-data-tenant2/fvt-input-data/Patient -i PatientDeviceJoin=s3a://cohort-data-tenant2/fvt-input-data/PatientDeviceJoin -i Practitioner=s3a://cohort-data-tenant2/fvt-input-data/Practitioner --overwrite-output-for-contexts -o Patient=s3a://cohort-data-tenant2/fvt-output/Patient_cohort -o Observation=s3a://cohort-data-tenant2/fvt-output/Observation_cohort -o Practitioner=s3a://cohort-data-tenant2/fvt-output/Practitioner_cohort -o Device=s3a://cohort-data-tenant2/fvt-output/Device_cohort --metadata-output-path /tmp"
+sparkTestOutputFile="sparkFvtTest-cos-configs.xml"
+runSparkTest "${sparkTestArgs}" "${sparkTestOutputFile}"
 
 ########################################### END of section specific to SPARK based fvt tests ###############################################################
 
