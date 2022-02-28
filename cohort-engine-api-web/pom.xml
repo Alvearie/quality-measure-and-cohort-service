@@ -152,6 +152,18 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-evaluator</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-evaluator-hapi-fhir</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>com.ibm.watson.health.services</groupId>
 			<artifactId>service-base-os</artifactId>
 		</dependency>
@@ -206,7 +218,6 @@
 			<artifactId>httpclient</artifactId>
 		</dependency>
 
-		
 		<dependency>
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
@@ -228,21 +239,14 @@
 		</dependency>
 
 		<dependency>
-			<groupId>info.cqframework</groupId>
-			<artifactId>elm</artifactId>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
 			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-translation</artifactId>
-			<version>${project.version}</version>
 			<scope>compile</scope>
 		</dependency>
 

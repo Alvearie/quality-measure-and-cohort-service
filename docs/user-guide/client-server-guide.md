@@ -204,10 +204,10 @@ Parameter Examples:
 # Error states
 The Engine detects and throws IllegalArgumentException for the following error states:
 1) When the CqlEvaluator.evaluate(...) method is invoked without first configuring the library sources, data server, and terminology server settings.
-2) When the CqlEvaluator.evaluate(...) method is invoked without providing a library name and at least one context ID (aka patient ID).
+2) When the CqlEvaluator.evaluate(...) method is invoked without providing a library name.
 3) When the CqlEvaluator.evaluate(...) method is invoked for a CQL Library that contains parameters with no default value and no value is provided in the method's parameters map.
 4) When the CqlEvaluator.evaluate(...) method is invoked for a CQL Library that is not loaded
-5) When the CqlEvaluator.main(...) method is invoked with an invalid parameter type or interval subtype
+5) When the CqlEvaluator.evaluate(...) method is invoked with an invalid parameter type or interval subtype
 
 Connectivity issues to the FHIR server are reported through the HAPI FHIR Client library. See HAPI documentation for complete details, but an example exception would be ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException.
 

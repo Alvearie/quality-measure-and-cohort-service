@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2021
+ * (C) Copyright IBM Corp. 2021, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -50,7 +50,7 @@ public class DataTypeRequirementsProcessorTest extends BaseDataTypeRequirementsP
         String modelPath = basePath + "/modelinfo/alltypes-modelinfo-1.0.0.xml";
         Set<String> expressions = Collections.singleton("cohort");
         
-        Map<String,Set<String>> pathsByDataType = runPathTest(cqlPath, modelPath, expressions, (cld) -> cld.getLibraryId().equals("MeasureAB"));
+        Map<String,Set<String>> pathsByDataType = runPathTest(cqlPath, modelPath, expressions, x -> x.getFileName().toString().equals("MeasureAB-1.0.0.cql"));
         
         Map<String,Set<String>> expectations = new HashMap<>();
         expectations.put("A", new HashSet<>(Arrays.asList("code_col", "boolean_col")));
@@ -66,7 +66,7 @@ public class DataTypeRequirementsProcessorTest extends BaseDataTypeRequirementsP
         String modelPath = basePath + "/modelinfo/alltypes-modelinfo-1.0.0.xml";
         Set<String> expressions = Collections.singleton("cohort");
         
-        Map<String,Set<String>> pathsByDataType = runPathTest(cqlPath, modelPath, expressions, (cld) -> cld.getLibraryId().equals("Parent"));
+        Map<String,Set<String>> pathsByDataType = runPathTest(cqlPath, modelPath, expressions, x -> x.getFileName().toString().equals("Parent-1.0.0.cql"));
         
         Map<String,Set<String>> expectations = new HashMap<>();
         expectations.put("A", new HashSet<>(Arrays.asList("code_col", "boolean_col")));
@@ -115,7 +115,7 @@ public class DataTypeRequirementsProcessorTest extends BaseDataTypeRequirementsP
         String basePath = "src/test/resources";
         
         Map<String, Set<StringMatcher>> reqsByDataType = runPatternTest(basePath + "/any-column/cql",
-                basePath + "/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml", null, (cld) -> cld.getLibraryId().equals("MeasureAnyColumn"));
+                basePath + "/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml", null, x -> x.getFileName().toString().equals("MeasureAnyColumn-1.0.0.cql"));
         
         Map<String,Set<StringMatcher>> expectations = new HashMap<>();
         expectations.put("A", new HashSet<>(Arrays.asList(new PrefixStringMatcher("code_col"))));
@@ -130,7 +130,7 @@ public class DataTypeRequirementsProcessorTest extends BaseDataTypeRequirementsP
         String basePath = "src/test/resources";
         
         Map<String, Set<String>> reqsByDataType = runPathTest(basePath + "/any-column/cql",
-                basePath + "/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml", null, (cld) -> cld.getLibraryId().equals("MeasureAnyColumn"));
+                basePath + "/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml", null, x -> x.getFileName().toString().equals("MeasureAnyColumn-1.0.0.cql"));
         
         Map<String,Set<String>> expectations = new HashMap<>();
         expectations.put("A", new HashSet<>(Arrays.asList("decimal_col")));
@@ -145,7 +145,7 @@ public class DataTypeRequirementsProcessorTest extends BaseDataTypeRequirementsP
         String basePath = "src/test/resources";
         
         Map<String, Set<String>> reqsByDataType = runPathTest(basePath + "/any-column/cql",
-                basePath + "/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml", null, (cld) -> cld.getLibraryId().equals("AnyColumnChild"));
+                basePath + "/alltypes/modelinfo/alltypes-modelinfo-1.0.0.xml", null, x -> x.getFileName().toString().equals("AnyColumnChild-1.0.0.cql"));
         
         Map<String,Set<String>> expectations = new HashMap<>();
         expectations.put("A", new HashSet<>(Arrays.asList("pat_id", "decimal_col", "string_col")));

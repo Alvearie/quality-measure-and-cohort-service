@@ -32,7 +32,7 @@ culprit is the github token mentioned during setup. The recommended solution is 
 the correct permissions and reconfigure your settings.xml file. Then, attempt to rebuild the project.
 
 ## Entrypoints for Java Evaluation
-We have two primary Java classes meant to be used during CQL evaluation development: the [CqlEvaluator](https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/cohort-engine/src/main/java/com/ibm/cohort/engine/CqlEvaluator.java)
+We have two primary Java classes meant to be used during CQL evaluation development: the [CqlEvaluator](https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/cohort-evaluator/src/main/java/com/ibm/cohort/cql/evaluation/CqlEvaluator.java)
 and [MeasureEvaluator](https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/cohort-engine/src/main/java/com/ibm/cohort/engine/measure/MeasureEvaluator.java).
 
 Example usage for these classes are available in the `CohortCLI` and `MeasureCLI` (which are each described on

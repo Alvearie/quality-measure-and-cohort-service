@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2021, 2021
+ * (C) Copyright IBM Corp. 2021, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -17,9 +17,9 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
-import com.ibm.cohort.engine.parameter.DateParameter;
-import com.ibm.cohort.engine.parameter.IntervalParameter;
-import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.cohort.cql.evaluation.parameters.DateParameter;
+import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
 public class PatientListMeasureEvaluationTest {

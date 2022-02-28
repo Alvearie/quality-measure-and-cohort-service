@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2020, 2021
+ * (C) Copyright IBM Corp. 2020, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -10,19 +10,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.ibm.cohort.cql.data.CqlDataProvider;
+import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
+import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
-import org.opencds.cqf.common.providers.LibraryResolutionProvider;
-import org.opencds.cqf.cql.engine.data.DataProvider;
-import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.measure.seed.IMeasureEvaluationSeed;
 import com.ibm.cohort.engine.measure.seed.MeasureEvaluationSeeder;
-import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 
 /**
  * Provide an interface for doing quality measure evaluation against a FHIR R4
@@ -30,20 +30,24 @@ import com.ibm.cohort.engine.parameter.Parameter;
  */
 public class MeasureEvaluator {
 
-	private final MeasureResolutionProvider<Measure> measureProvider;
-	private final LibraryResolutionProvider<Library> libraryProvider;
+	private final FhirResourceResolver<Measure> measureResolver;
+	private final FhirResourceResolver<Library> libraryResolver;
+	private final R4LibraryDependencyGatherer libraryDependencyGatherer;
+
 	private final TerminologyProvider terminologyProvider;
-	private final Map<String, DataProvider> dataProviders;
+	private final Map<String, CqlDataProvider> dataProviders;
 	private MeasurementPeriodStrategy measurementPeriodStrategy;
 
 	public MeasureEvaluator(
-			MeasureResolutionProvider<Measure> measureProvider,
-			LibraryResolutionProvider<Library> libraryProvider,
+			FhirResourceResolver<Measure> measureResolver,
+			FhirResourceResolver<Library> libraryResolver,
+			R4LibraryDependencyGatherer libraryDependencyGatherer,
 			TerminologyProvider terminologyProvider,
-			Map<String, DataProvider> dataProviders
+			Map<String, CqlDataProvider> dataProviders
 	) {
-		this.measureProvider = measureProvider;
-		this.libraryProvider = libraryProvider;
+		this.measureResolver = measureResolver;
+		this.libraryResolver = libraryResolver;
+		this.libraryDependencyGatherer = libraryDependencyGatherer;
 		this.terminologyProvider = terminologyProvider;
 		this.dataProviders = dataProviders;
 	}
@@ -101,7 +105,7 @@ public class MeasureEvaluator {
 	}
 
 	public MeasureReport evaluatePatientMeasure(String measureId, String patientId, Map<String, Parameter> parameters, MeasureEvidenceOptions evidenceOptions) {
-		Measure measure = MeasureHelper.loadMeasure(measureId, measureProvider);
+		Measure measure = MeasureHelper.loadMeasure(measureId, measureResolver);
 		return evaluatePatientMeasure(measure, patientId, parameters, evidenceOptions);
 	}
 	
@@ -110,7 +114,7 @@ public class MeasureEvaluator {
 	}
 
 	public MeasureReport evaluatePatientMeasure(Identifier identifier, String version, String patientId, Map<String, Parameter> parameters, MeasureEvidenceOptions evidenceOptions) {
-		Measure measure =  MeasureHelper.loadMeasure(identifier,  version, measureProvider);
+		Measure measure =  MeasureHelper.loadMeasure(identifier,  version, measureResolver);
 		return evaluatePatientMeasure(measure, patientId, parameters, evidenceOptions);
 	}
 
@@ -148,9 +152,7 @@ public class MeasureEvaluator {
 	 */
 	public MeasureReport evaluatePatientMeasure(Measure measure, String patientId, String periodStart, String periodEnd,
 			Map<String, Parameter> parameters, MeasureEvidenceOptions evidenceOptions) {
-		LibraryLoader libraryLoader = LibraryHelper.createLibraryLoader(libraryProvider);
-
-		MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(terminologyProvider, dataProviders, libraryLoader, libraryProvider);
+		MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(terminologyProvider, dataProviders, libraryDependencyGatherer, libraryResolver);
 		seeder.disableDebugLogging();
 
 		IMeasureEvaluationSeed seed = seeder.create(measure, periodStart, periodEnd, "ProductLine", parameters);
@@ -163,7 +165,7 @@ public class MeasureEvaluator {
 			List<String> patientIds,
 			MeasureContext measureContext,
 			MeasureEvidenceOptions evidenceOptions) {
-		Measure measure = MeasureHelper.loadMeasure(measureContext, measureProvider);
+		Measure measure = MeasureHelper.loadMeasure(measureContext, measureResolver);
 
 		return evaluatePatientListMeasure(patientIds, measure, measureContext.getParameters(), evidenceOptions);
 	}
@@ -173,9 +175,7 @@ public class MeasureEvaluator {
 			Measure measure,
 			Map<String, Parameter> parameters,
 			MeasureEvidenceOptions evidenceOptions) {
-		LibraryLoader libraryLoader = LibraryHelper.createLibraryLoader(libraryProvider);
-
-		MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(terminologyProvider, dataProviders, libraryLoader, libraryProvider);
+		MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(terminologyProvider, dataProviders, libraryDependencyGatherer, libraryResolver);
 		seeder.disableDebugLogging();
 
 		Pair<String, String> period = getMeasurementPeriodStrategy().getMeasurementPeriod(measure, parameters);

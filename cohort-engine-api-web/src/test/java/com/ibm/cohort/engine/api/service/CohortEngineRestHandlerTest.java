@@ -33,6 +33,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import com.ibm.cohort.cql.evaluation.CqlDebug;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Measure;
@@ -55,7 +56,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.LoggingEnum;
 import com.ibm.cohort.engine.api.service.CohortEngineRestHandler.MethodNames;
 import com.ibm.cohort.engine.api.service.model.CohortEvaluation;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
@@ -64,9 +64,9 @@ import com.ibm.cohort.engine.api.service.model.PatientListMeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
 import com.ibm.cohort.engine.measure.Identifier;
 import com.ibm.cohort.engine.measure.MeasureContext;
-import com.ibm.cohort.engine.parameter.DateParameter;
-import com.ibm.cohort.engine.parameter.IntervalParameter;
-import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.cohort.cql.evaluation.parameters.DateParameter;
+import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import com.ibm.cohort.valueset.ValueSetUtil;
@@ -870,7 +870,7 @@ public class CohortEngineRestHandlerTest extends CohortHandlerBaseTest {
 		requestData.setDefineToRun("Female");
 		requestData.setEntrypoint("Test-1.0.0.cql");
 		requestData.setPatientIds("123");
-		requestData.setLoggingLevel(LoggingEnum.TRACE);
+		requestData.setLoggingLevel(CqlDebug.TRACE);
 
 		ObjectMapper om = new ObjectMapper();
 		String json = om.writeValueAsString(requestData);
@@ -945,7 +945,7 @@ public class CohortEngineRestHandlerTest extends CohortHandlerBaseTest {
 		requestData.setDefineToRun("DependentFemale");
 		requestData.setEntrypoint("DependencyTest-1.0.0.cql");
 		requestData.setPatientIds("123");
-		requestData.setLoggingLevel(LoggingEnum.TRACE);
+		requestData.setLoggingLevel(CqlDebug.TRACE);
 
 		ObjectMapper om = new ObjectMapper();
 		String json = om.writeValueAsString(requestData);
@@ -1015,7 +1015,7 @@ public class CohortEngineRestHandlerTest extends CohortHandlerBaseTest {
 		requestData.setDefineToRun("Female");
 		requestData.setEntrypoint("Test-bad-1.0.0.cql");
 		requestData.setPatientIds("123");
-		requestData.setLoggingLevel(LoggingEnum.TRACE);
+		requestData.setLoggingLevel(CqlDebug.TRACE);
 
 		ObjectMapper om = new ObjectMapper();
 		String json = om.writeValueAsString(requestData);
@@ -1070,7 +1070,7 @@ public class CohortEngineRestHandlerTest extends CohortHandlerBaseTest {
 		requestData.setDataServerConfig(serverConfig);
 		requestData.setTerminologyServerConfig(serverConfig);
 		requestData.setDefineToRun(null);
-		requestData.setLoggingLevel(LoggingEnum.TRACE);
+		requestData.setLoggingLevel(CqlDebug.TRACE);
 		requestData.setEntrypoint("Test-1.0.0.cql");
 		requestData.setPatientIds("123");
 
@@ -1085,6 +1085,69 @@ public class CohortEngineRestHandlerTest extends CohortHandlerBaseTest {
 		when( body.getAttachment(CohortEngineRestHandler.REQUEST_DATA_PART) ).thenReturn(request);
 		when( measurePart.getDataHandler().getName()).thenReturn("cql/basic/Test-1.0.0.cql");
 		when( measurePart.getHeader("Content-Disposition")).thenReturn("cql/basic/Test-1.0.0.cql");
+
+		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, body);
+		assertNotNull(loadResponse);
+		PowerMockito.verifyStatic(Response.class);
+		Response.status(400);
+
+		PowerMockito.verifyStatic(ServiceBaseUtility.class);
+		ServiceBaseUtility.apiSetup(Mockito.isNull(), Mockito.any(), Mockito.anyString());
+
+		// verifyStatic must be called before each verification
+		PowerMockito.verifyStatic(ServiceBaseUtility.class);
+		ServiceBaseUtility.apiCleanup(Mockito.any(), Mockito.eq(MethodNames.EVALUATE_COHORT.getName()));
+	}
+
+	@PrepareForTest({ Response.class, FHIRRestUtils.class })
+	@Test
+	public void testCohortBadVersion() throws Exception {
+		prepMocks();
+		mockResponseClasses();
+
+		// Assemble them together into a reasonable facsimile of the real request
+		IMultipartBody body = getFhirConfigFileBody();
+
+		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, "bad-version", body);
+		assertNotNull(loadResponse);
+		PowerMockito.verifyStatic(Response.class);
+		Response.status(400);
+
+		PowerMockito.verifyStatic(ServiceBaseUtility.class);
+		ServiceBaseUtility.apiSetup(Mockito.anyString(), Mockito.any(), Mockito.anyString());
+
+		// verifyStatic must be called before each verification
+		PowerMockito.verifyStatic(ServiceBaseUtility.class);
+		ServiceBaseUtility.apiCleanup(Mockito.any(), Mockito.eq(MethodNames.EVALUATE_COHORT.getName()));
+	}
+
+	@PrepareForTest({ Response.class, FHIRRestUtils.class })
+	@Test
+	public void testCohortNullBody() {
+		prepMocks();
+		mockResponseClasses();
+
+		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, null);
+		assertNotNull(loadResponse);
+		PowerMockito.verifyStatic(Response.class);
+		Response.status(400);
+
+		PowerMockito.verifyStatic(ServiceBaseUtility.class);
+		ServiceBaseUtility.apiSetup(Mockito.isNull(), Mockito.any(), Mockito.anyString());
+
+		// verifyStatic must be called before each verification
+		PowerMockito.verifyStatic(ServiceBaseUtility.class);
+		ServiceBaseUtility.apiCleanup(Mockito.any(), Mockito.eq(MethodNames.EVALUATE_COHORT.getName()));
+	}
+
+	@PrepareForTest({ Response.class, FHIRRestUtils.class })
+	@Test
+	public void testCohortNullMetadataAttachment() throws Exception {
+		prepMocks();
+		mockResponseClasses();
+
+		// Assemble them together into a reasonable facsimile of the real request
+		IMultipartBody body = getFhirConfigFileBody();
 
 		Response loadResponse = restHandler.evaluateCohort(mockRequestContext, null, body);
 		assertNotNull(loadResponse);

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2021, 2021
+ * (C) Copyright IBM Corp. 2021, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.HttpHeaders;
 
+import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Measure;
@@ -27,7 +28,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
-import com.ibm.cohort.engine.measure.RestFhirMeasureResolutionProvider;
 import com.ibm.cohort.engine.measure.seed.MeasureEvaluationSeeder;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
@@ -144,7 +144,7 @@ public class FHIRRestUtils {
 	}
 	
 	/**
-	 * @param measureClient A client that can be used to make calls to the FHIR server
+	 * @param resolver A resolver that can resolve Measure objects
 	 * @param identifier Identifier object which describes the measure
 	 * @param measureVersion The version of the measure we want to retrieve
 	 * @return A list containing parameter info for all the parameters 
@@ -154,25 +154,25 @@ public class FHIRRestUtils {
 	 * if measureVersion is an empty string, the underlying code will attempt to resolve the latest
 	 * measure version using semantic versioning
 	 */
-	public static List<MeasureParameterInfo> getParametersForMeasureIdentifier(IGenericClient measureClient, Identifier identifier, String measureVersion) {
-		Measure measure = Optional.of(new RestFhirMeasureResolutionProvider(measureClient))
-				.map(provider -> provider.resolveMeasureByIdentifier(identifier, measureVersion))
+	public static List<MeasureParameterInfo> getParametersForMeasureIdentifier(FhirResourceResolver<Measure> resolver, Identifier identifier, String measureVersion) {
+		Measure measure = Optional.of(resolver)
+				.map(provider -> provider.resolveByIdentifier(identifier.getValue(), identifier.getSystem(), measureVersion))
 				.orElseThrow(() -> new ResourceNotFoundException("Measure resource not found for identifier: " + identifier + ", version: " + measureVersion));
 
 		return getParameters(measure);
 	}
 	
 	/**
-	 * @param measureClient A client that cna be used to make calls to the FHIR server
+	 * @param resolver A resolver that can resolve Measure objects
 	 * @param measureId THe FHIR resource id used to identify the measure
 	 * @return A list containing parameter info for all the parameters
 	 * 
 	 * Get a list of MeasureParameterInfo objects which are used to return results via the REST API.
 	 * Objects describe the parameters for libraries linked to by the FHIR Measure resource id
 	 */
-	public static List<MeasureParameterInfo> getParametersForMeasureId(IGenericClient measureClient, String measureId) {
-		Measure measure = Optional.of(new RestFhirMeasureResolutionProvider(measureClient))
-				.map(provider -> provider.resolveMeasureById(measureId))
+	public static List<MeasureParameterInfo> getParametersForMeasureId(FhirResourceResolver<Measure> resolver, String measureId) {
+		Measure measure = Optional.of(resolver)
+				.map(provider -> provider.resolveById(measureId))
 				.orElseThrow(() -> new ResourceNotFoundException("Measure resource not found for id: " + measureId));
 
 		return getParameters(measure);
@@ -303,5 +303,5 @@ public class FHIRRestUtils {
 		}
 		return decodedAuth;
 	}
-	
+
 }

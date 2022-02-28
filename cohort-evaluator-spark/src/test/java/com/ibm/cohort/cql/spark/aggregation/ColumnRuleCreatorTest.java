@@ -10,11 +10,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
+import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
-import com.ibm.cohort.cql.library.DirectoryBasedCqlLibraryProvider;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
 import com.ibm.cohort.cql.util.EqualsStringMatcher;
@@ -30,7 +31,11 @@ public class ColumnRuleCreatorTest {
 		ObjectMapper mapper = new ObjectMapper();
 		CqlEvaluationRequests requests = mapper.readValue(new File("src/test/resources/alltypes/metadata/parent-child-jobs.json"), CqlEvaluationRequests.class);
 
-		TranslatingCqlLibraryProvider cqlLibraryProvider = new TranslatingCqlLibraryProvider(new DirectoryBasedCqlLibraryProvider(new File("src/test/resources/alltypes/cql")), cqlTranslator);
+		CqlLibraryProvider backingProvider = new ClasspathCqlLibraryProvider("alltypes.cql");
+		TranslatingCqlLibraryProvider cqlLibraryProvider = new TranslatingCqlLibraryProvider(
+				backingProvider,
+				cqlTranslator
+		);
 
 		ColumnRuleCreator columnRuleCreator = new ColumnRuleCreator(
 				requests.getEvaluations(),
@@ -58,7 +63,11 @@ public class ColumnRuleCreatorTest {
 		ObjectMapper mapper = new ObjectMapper();
 		CqlEvaluationRequests requests = mapper.readValue(new File("src/test/resources/alltypes/metadata/join-only.json"), CqlEvaluationRequests.class);
 
-		TranslatingCqlLibraryProvider cqlLibraryProvider = new TranslatingCqlLibraryProvider(new DirectoryBasedCqlLibraryProvider(new File("src/test/resources/alltypes/cql")), cqlTranslator);
+		CqlLibraryProvider backingProvider = new ClasspathCqlLibraryProvider("alltypes.cql");
+		TranslatingCqlLibraryProvider cqlLibraryProvider = new TranslatingCqlLibraryProvider(
+				backingProvider,
+				cqlTranslator
+		);
 
 		ColumnRuleCreator columnRuleCreator = new ColumnRuleCreator(
 				requests.getEvaluations(),
@@ -87,7 +96,10 @@ public class ColumnRuleCreatorTest {
         ObjectMapper mapper = new ObjectMapper();
         CqlEvaluationRequests requests = mapper.readValue(new File("src/test/resources/multiple-joins/metadata/cql-jobs.json"), CqlEvaluationRequests.class);
 
-        TranslatingCqlLibraryProvider cqlLibraryProvider = new TranslatingCqlLibraryProvider(new DirectoryBasedCqlLibraryProvider(new File("src/test/resources/multiple-joins/cql")), cqlTranslator);
+        TranslatingCqlLibraryProvider cqlLibraryProvider = new TranslatingCqlLibraryProvider(
+                new ClasspathCqlLibraryProvider("multiple-joins.cql"),
+                cqlTranslator
+        );
 
         ColumnRuleCreator columnRuleCreator = new ColumnRuleCreator(
             requests.getEvaluations(),

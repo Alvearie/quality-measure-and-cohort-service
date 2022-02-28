@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2021, 2021
+ * (C) Copyright IBM Corp. 2021, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -23,8 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList;
 import com.ibm.cohort.engine.api.service.model.ServiceErrorList.ErrorSource;
-import com.ibm.cohort.engine.parameter.Parameter;
 import com.ibm.watson.service.base.model.ServiceError;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;

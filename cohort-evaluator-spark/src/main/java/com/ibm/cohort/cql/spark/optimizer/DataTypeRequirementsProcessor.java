@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2021
+ * (C) Copyright IBM Corp. 2021, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import javax.xml.bind.JAXB;
 import javax.xml.namespace.QName;
 
+import com.ibm.cohort.cql.library.Format;
 import org.cqframework.cql.cql2elm.ModelManager;
 import org.hl7.elm.r1.ExpressionDef;
 import org.hl7.elm.r1.Library;
@@ -25,7 +26,6 @@ import org.hl7.elm_modelinfo.r1.ModelInfo;
 
 import com.ibm.cohort.cql.library.CqlLibrary;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
-import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.spark.optimizer.ModelUtils.TypeNode;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;

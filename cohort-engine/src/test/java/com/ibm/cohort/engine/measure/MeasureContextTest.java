@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2020, 2021
+ * (C) Copyright IBM Corp. 2020, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -21,8 +21,8 @@ import javax.validation.ValidatorFactory;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.ibm.cohort.engine.parameter.IntervalParameter;
-import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 
 public class MeasureContextTest {
 	protected static Validator validator = null;

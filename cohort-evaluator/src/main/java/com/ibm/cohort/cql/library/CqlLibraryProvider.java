@@ -1,15 +1,16 @@
 /*
- * (C) Copyright IBM Corp. 2021
+ * (C) Copyright IBM Corp. 2021, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package com.ibm.cohort.cql.library;
 
-import java.util.Collection;
-
+/**
+ * Provides a {@link CqlLibrary} when given a {@link CqlLibraryDescriptor}.
+ */
 public interface CqlLibraryProvider {
-    public Collection<CqlLibraryDescriptor> listLibraries();
 
     public CqlLibrary getLibrary(CqlLibraryDescriptor cqlResourceDescriptor);
+
 }

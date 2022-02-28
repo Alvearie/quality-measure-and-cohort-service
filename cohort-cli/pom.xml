@@ -34,6 +34,18 @@
 
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-evaluator</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-evaluator-hapi-fhir</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.ibm.cohort</groupId>
 			<artifactId>cql-engine-addons</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -43,7 +55,7 @@
 			<artifactId>fhir-client-config</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.opencds.cqf.cql</groupId>
 			<artifactId>engine</artifactId>
@@ -77,6 +89,11 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
 		
 		<dependency>
 			<groupId>org.opencds.cqf</groupId>
@@ -99,12 +116,6 @@
 			<version>${project.version}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-translation</artifactId>
-			<version>${project.version}</version>
-			<scope>compile</scope>
-		</dependency>
 		<!-- Runtime dependencies -->
 
 		<dependency>

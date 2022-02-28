@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2021, 2021
+ * (C) Copyright IBM Corp. 2021, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -10,8 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,30 +18,27 @@ import org.apache.commons.io.IOUtils;
 
 public class ClasspathCqlLibraryProvider implements CqlLibraryProvider {
 
+    public static final String FHIR_HELPERS_CLASSPATH = "org.hl7.fhir";
+
     private List<String> packages;
-    private Set<CqlLibraryDescriptor.Format> supportedFormats = null;
-    
+    private Set<Format> supportedFormats = null;
+
+    public ClasspathCqlLibraryProvider() {
+        this(FHIR_HELPERS_CLASSPATH);
+    }
+
     public ClasspathCqlLibraryProvider(String packageName, String... packageNames ) {
         packages = new ArrayList<>();
         packages.add( packageName );
         packages.addAll( Arrays.asList(packageNames) );
     }
     
-    public void setSupportedFormats(CqlLibraryDescriptor.Format... formats) {
+    public void setSupportedFormats(Format... formats) {
         this.supportedFormats = new HashSet<>(Arrays.asList(formats));
     }
     
-    public Set<CqlLibraryDescriptor.Format> getSupportedFormats() {
+    public Set<Format> getSupportedFormats() {
         return this.supportedFormats;
-    }
-    
-    
-    @Override
-    public Collection<CqlLibraryDescriptor> listLibraries() {
-        // ClassLoaders don't inherently want to list the classes they expose. It is 
-        // possible through something like guava 14+, but I'm not sure it is worth it 
-        // here to take that dependency. Library listing isn't a strict requirement
-        return Collections.emptyList();
     }
 
     @Override

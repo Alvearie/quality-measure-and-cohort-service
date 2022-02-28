@@ -41,6 +41,12 @@
 			<artifactId>xpp3</artifactId>
 			<version>1.1.4c</version>
 		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<scope>test</scope>
+		</dependency>
 		
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -71,13 +77,6 @@
 			<groupId>org.hamcrest</groupId>
 			<artifactId>hamcrest-core</artifactId>
 			<version>1.3</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-translation</artifactId>
-			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 

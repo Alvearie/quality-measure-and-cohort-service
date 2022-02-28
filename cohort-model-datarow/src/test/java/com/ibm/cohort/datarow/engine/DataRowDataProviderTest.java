@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2021, 2021
+ * (C) Copyright IBM Corp. 2021, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -16,6 +16,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
+import com.ibm.cohort.cql.library.Format;
 import org.junit.Test;
 import org.opencds.cqf.cql.engine.runtime.DateTime;
 
@@ -24,9 +26,7 @@ import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
 import com.ibm.cohort.cql.evaluation.CqlEvaluator;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
-import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
-import com.ibm.cohort.cql.library.DirectoryBasedCqlLibraryProvider;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import com.ibm.cohort.cql.terminology.UnsupportedTerminologyProvider;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
@@ -36,7 +36,7 @@ import com.ibm.cohort.datarow.model.SimpleDataRow;
 public class DataRowDataProviderTest {
     @Test
     public void testEvaluateSuccess() throws Exception {
-        CqlLibraryProvider backingProvider = new DirectoryBasedCqlLibraryProvider(new File("src/test/resources/cql"));
+        CqlLibraryProvider backingProvider = new ClasspathCqlLibraryProvider("cql");
 
         CqlToElmTranslator translator = new CqlToElmTranslator();
         try (Reader r = new FileReader(new File("src/test/resources/modelinfo/mock-modelinfo-1.0.0.xml"))) {
@@ -64,7 +64,8 @@ public class DataRowDataProviderTest {
         CqlEvaluator evaluator = new CqlEvaluator()
                 .setLibraryProvider(libraryProvider)
                 .setTerminologyProvider(terminologyProvider)
-                .setDataProvider(dataProvider);
+                .setDataProvider(dataProvider)
+                .setCacheContexts(false);
 
         CqlEvaluationResult result = evaluator.evaluate(topLevelLibrary);
         assertEquals(2, result.getExpressionResults().size());

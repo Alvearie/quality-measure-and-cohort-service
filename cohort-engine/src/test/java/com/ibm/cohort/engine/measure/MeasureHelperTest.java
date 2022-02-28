@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2020, 2020
+ * (C) Copyright IBM Corp. 2020, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -8,10 +8,13 @@ package com.ibm.cohort.engine.measure;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.Collections;
 
+import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
+import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResourceResolverFactory;
 import org.hl7.fhir.r4.model.Measure;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,38 +30,40 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 public class MeasureHelperTest extends BaseMeasureTest {
 	
 	private static final String DEFAULT_VERSION = "1.0.0";
-	
-	private MeasureResolutionProvider<Measure> provider;
+
+	private FhirResourceResolver<Measure> resolver;
 
 	@Before
 	public void setUp() {
 		FhirClientBuilderFactory factory = FhirClientBuilderFactory.newInstance();
 		FhirClientBuilder builder = factory.newFhirClientBuilder(fhirContext);
 		IGenericClient client = builder.createFhirClient(getFhirServerConfig());
-		provider = new RestFhirMeasureResolutionProvider(client);
+		resolver = R4FhirServerResourceResolverFactory.createMeasureResolver(client);
 		
 		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 	}
 	
 	@Test
 	public void testResolveByID() throws Exception {
-		Measure measure = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/test.xml"), "Female");
+		Measure measure = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/Test-1.0.0.xml"), "Female");
 		mockFhirResourceRetrieval(measure);
 		
-		Measure actual = MeasureHelper.loadMeasure(measure.getId(), provider);
+		Measure actual = MeasureHelper.loadMeasure(measure.getId(), resolver);
 		assertNotNull(actual);
+		assertEquals("Test", actual.getName());
 	}
 	
 	@Test
 	public void testResolveByCanonicalUrl() throws Exception {
-		Measure measure = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/test.xml"), "Female");
+		Measure measure = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/Test-1.0.0.xml"), "Female");
 		measure.setUrl("http://fhir.ibm.com/fhir-server/api/v4/Measure/Test-1.0.0");
 		
 		MappingBuilder builder = get(urlMatching("/Measure\\?url=.*&_format=json"));
 		mockFhirResourceRetrieval(builder,getBundle(measure));
 		
-		Measure actual = MeasureHelper.loadMeasure(measure.getUrl(), provider);
+		Measure actual = MeasureHelper.loadMeasure(measure.getUrl(), resolver);
 		assertNotNull(actual);
+		assertEquals("Test", actual.getName());
 	}
 
 	@Test
@@ -66,7 +71,7 @@ public class MeasureHelperTest extends BaseMeasureTest {
 		String identifierSystem = "system1";
 		String identifierValue = "val1";
 
-		Measure measure = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/test.xml"), "Female");
+		Measure measure = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/Test-1.0.0.xml"), "Female");
 
 		org.hl7.fhir.r4.model.Identifier identifier = new IdentifierBuilder()
 				.buildValue(identifierValue)
@@ -81,8 +86,9 @@ public class MeasureHelperTest extends BaseMeasureTest {
 				.withQueryParam("_format", new EqualToPattern("json"));
 		mockFhirResourceRetrieval(builder,getBundle(measure));
 
-		Measure actual = MeasureHelper.loadMeasure(new Identifier(identifierSystem, identifierValue), "", provider);
+		Measure actual = MeasureHelper.loadMeasure(new Identifier(identifierSystem, identifierValue), "", resolver);
 		assertNotNull(actual);
+		assertEquals("Test", actual.getName());
 	}
 
 	@Test
@@ -90,9 +96,9 @@ public class MeasureHelperTest extends BaseMeasureTest {
 		String identifierSystem = "system1";
 		String identifierValue = "val1";
 
-		Measure measure1 = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/test.xml"), "Female");
-		Measure measure2 = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/test.xml"), "Female");
-		Measure measure3 = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/test.xml"), "Female");
+		Measure measure1 = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/Test-1.0.0.xml"), "Female");
+		Measure measure2 = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/Test-1.0.0.xml"), "Female");
+		Measure measure3 = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/Test-1.0.0.xml"), "Female");
 
 		measure1.setVersion("1.0.0");
 		measure2.setVersion("2.0.0");
@@ -111,8 +117,10 @@ public class MeasureHelperTest extends BaseMeasureTest {
 				.withQueryParam("_format", new EqualToPattern("json"));
 		mockFhirResourceRetrieval(builder,getBundle(measure1, measure2, measure3));
 
-		Measure actual = MeasureHelper.loadMeasure(new Identifier(identifierSystem, identifierValue), null, provider);
+		Measure actual = MeasureHelper.loadMeasure(new Identifier(identifierSystem, identifierValue), null, resolver);
 		assertNotNull(actual);
+		assertEquals("Test", actual.getName());
+		assertEquals("2.0.0", actual.getVersion());
 	}
 
 	@Test
@@ -121,7 +129,7 @@ public class MeasureHelperTest extends BaseMeasureTest {
 		String identifierValue = "val1";
 		String measureVersion = "4.5.6";
 
-		Measure measure = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/test.xml"), "Female");
+		Measure measure = getCohortMeasure("Test", getLibrary("123", DEFAULT_VERSION, "cql/basic/Test-1.0.0.xml"), "Female");
 
 		org.hl7.fhir.r4.model.Identifier identifier = new IdentifierBuilder()
 				.buildValue(identifierValue)
@@ -138,7 +146,9 @@ public class MeasureHelperTest extends BaseMeasureTest {
 				.withQueryParam("_format", new EqualToPattern("json"));
 		mockFhirResourceRetrieval(builder,getBundle(measure));
 
-		Measure actual = MeasureHelper.loadMeasure(new Identifier(identifierSystem, identifierValue), measureVersion, provider);
+		Measure actual = MeasureHelper.loadMeasure(new Identifier(identifierSystem, identifierValue), measureVersion, resolver);
 		assertNotNull(actual);
+		assertEquals("Test", actual.getName());
+		assertEquals(measureVersion, actual.getVersion());
 	}
 }

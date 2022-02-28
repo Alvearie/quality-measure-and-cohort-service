@@ -1,0 +1,13 @@
+{
+  "resourceType": "Measure",
+  "id": "Measure2-id",
+  "name": "Measure2-name",
+  "version": "1.0.0",
+  "url": "http://fake.url.com/Measure/Measure2",
+  "identifier": [{
+    "value": "Measure2-idValue",
+    "system": "Measure2-idSystem"
+  }],
+  "title": "Measure2-title",
+  "status": "active"
+}

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2020, 2020
+ * (C) Copyright IBM Corp. 2020, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -29,6 +29,7 @@ import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.RelatedArtifact;
 import org.hl7.fhir.r4.model.RelatedArtifact.RelatedArtifactType;
 import org.hl7.fhir.r4.model.StringType;
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,7 +45,7 @@ public class CohortCLITest extends BasePatientTest {
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		setupTestFor(patient, fhirConfig, "cql/basic/test.xml");
+		setupTestFor(patient, fhirConfig, "cql.parameters");
 
 		File tmpFile = new File("target/fhir-stub.json");
 		ObjectMapper om = new ObjectMapper();
@@ -79,7 +80,7 @@ public class CohortCLITest extends BasePatientTest {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
-		setupTestFor(patient, fhirConfig, "cql/basic/test.xml");
+		setupTestFor(patient, fhirConfig, "cql.no-version");
 
 		File tmpFile = new File("target/fhir-stub.json");
 		ObjectMapper om = new ObjectMapper();
@@ -93,7 +94,7 @@ public class CohortCLITest extends BasePatientTest {
 			try (PrintStream captureOut = new PrintStream(baos)) {
 				System.setOut(captureOut);
 				CohortCLI.main(new String[] { "-d", tmpFile.getAbsolutePath(), "-t", tmpFile.getAbsolutePath(),
-						"-f", "src/test/resources/cql/basic", "-l", "test", "-e", "Female", "-e", "Male", "-e",
+						"-f", "src/test/resources/cql/no-version", "-l", "Test", "-e", "Female", "-e", "Male", "-e",
 						"Over the hill", "-c", "123" });
 			} finally {
 				System.setOut(originalOut);
@@ -114,7 +115,7 @@ public class CohortCLITest extends BasePatientTest {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
-		setupTestFor(patient, fhirConfig, "cql/basic/test.xml");
+		setupTestFor(patient, fhirConfig, "cql.multi-folder");
 
 		File tmpFile = new File("target/fhir-stub.json");
 		ObjectMapper om = new ObjectMapper();
@@ -475,7 +476,7 @@ public class CohortCLITest extends BasePatientTest {
 		patient.addExtension(new Extension("http://fakeIg.com/fake-extension", new StringType("fakeValue")));
 		mockFhirResourceRetrieval(patient);
 
-		Library root = getLibrary("test", DEFAULT_RESOURCE_VERSION, "cql/ig-test/test.cql");
+		Library root = getLibrary("test", DEFAULT_RESOURCE_VERSION, "cql/ig-test/Test-1.0.0.cql");
 		Library helpers = getLibrary("FHIRHelpers", "4.0.0", "cql/fhir-helpers/FHIRHelpers.cql", "text/cql",
 				"cql/fhir-helpers/FHIRHelpers.xml", "application/elm+json");
 
@@ -507,9 +508,48 @@ public class CohortCLITest extends BasePatientTest {
 			String output = new String(baos.toByteArray());
 			System.out.println(output);
 
-			verify(2, getRequestedFor(urlEqualTo("/Patient/" + patient.getId() + "?_format=json")));
+			verify(1, getRequestedFor(urlEqualTo("/Patient/" + patient.getId() + "?_format=json")));
 			verify(1, getRequestedFor(urlEqualTo("/Library/" + root.getId() + "?_format=json")));
 			verify(1, getRequestedFor(urlEqualTo("/Library?url=%2FLibrary%2F" + helpers.getId() + "&_format=json")));
+		} finally {
+			tmpFile.delete();
+		}
+	}
+
+	@Test
+	public void testMainNoContext() throws Exception {
+		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
+
+		FhirServerConfig fhirConfig = getFhirServerConfig();
+		setupTestFor(patient, fhirConfig, "cql.unfiltered-context");
+
+		File tmpFile = new File("target/fhir-stub.json");
+		ObjectMapper om = new ObjectMapper();
+		try (Writer w = new FileWriter(tmpFile)) {
+			w.write(om.writeValueAsString(fhirConfig));
+		}
+
+		try {
+			PrintStream originalOut = System.out;
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			try (PrintStream captureOut = new PrintStream(baos)) {
+				System.setOut(captureOut);
+				CohortCLI.main(new String[] {
+						"-d", tmpFile.getAbsolutePath(),
+						"-t", tmpFile.getAbsolutePath(),
+						"-f", "src/test/resources/cql/unfiltered-context",
+						"-l", "UnfilteredContext",
+						"-v", "1.0.0",
+						"-e", "ValidateMath"
+				});
+			} finally {
+				System.setOut(originalOut);
+			}
+
+			String output = baos.toString();
+			Assert.assertTrue(output.contains("Expression: \"ValidateMath\", Result: true"));
+
+			verify(0, getRequestedFor(urlEqualTo("/Patient/123?_format=json")));
 		} finally {
 			tmpFile.delete();
 		}
