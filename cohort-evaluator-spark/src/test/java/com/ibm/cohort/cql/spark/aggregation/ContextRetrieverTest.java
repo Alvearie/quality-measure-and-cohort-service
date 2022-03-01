@@ -993,11 +993,20 @@ public class ContextRetrieverTest extends BaseSparkTest {
 
     @SuppressWarnings({"unchecked","rawtypes"})
     private void assertOutput(List<Tuple2<Object, List<Row>>> expected, List<Tuple2<Object, List<Row>>> actual) {
-        // Sort the `actual` outer list.
-        // Even with one task, Spark likes to jumble the order of the results.
-        // There may be a need to sort the inner Row lists in the future, but there is no need right now.
+        // Sort the outer and inner lists for the equals check.
+        List<Tuple2<Object, List<Row>>> sortedExpected = new ArrayList<>(expected);
+        sortedExpected.sort(Comparator.comparing(x -> (Comparable)x._1));
+        for (Tuple2<Object, List<Row>> tuple : sortedExpected) {
+            List<Row> rows = tuple._2();
+            rows.sort(Comparator.comparing(x -> x.getAs(0)));
+        }
+
         List<Tuple2<Object, List<Row>>> sortedActual = new ArrayList<>(actual);
         sortedActual.sort(Comparator.comparing(x -> (Comparable)x._1));
+        for (Tuple2<Object, List<Row>> tuple : sortedActual) {
+            List<Row> rows = tuple._2();
+            rows.sort(Comparator.comparing(x -> x.getAs(0)));
+        }
 
         // Row.equals() does not compare schemas.
         Assert.assertEquals("Data mismatch", expected, sortedActual);
