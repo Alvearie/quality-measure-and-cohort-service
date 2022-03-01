@@ -25,7 +25,7 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Build with Maven
-        run: mvn clean install -T 4 -f cohort-parent
+        run: mvn clean install -T 2 -f cohort-parent
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
