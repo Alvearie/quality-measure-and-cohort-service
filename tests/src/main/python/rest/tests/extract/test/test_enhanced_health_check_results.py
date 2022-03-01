@@ -16,12 +16,12 @@ from __future__ import absolute_import
 import unittest
 
 import swagger_client
-from swagger_client.models.service_error import ServiceError  # noqa: E501
+from swagger_client.models.enhanced_health_check_results import EnhancedHealthCheckResults  # noqa: E501
 from swagger_client.rest import ApiException
 
 
-class TestServiceError(unittest.TestCase):
-    """ServiceError unit test stubs"""
+class TestEnhancedHealthCheckResults(unittest.TestCase):
+    """EnhancedHealthCheckResults unit test stubs"""
 
     def setUp(self):
         pass
@@ -29,10 +29,10 @@ class TestServiceError(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def testServiceError(self):
-        """Test ServiceError"""
+    def testEnhancedHealthCheckResults(self):
+        """Test EnhancedHealthCheckResults"""
         # FIXME: construct object with mandatory attributes with example values
-        # model = swagger_client.models.service_error.ServiceError()  # noqa: E501
+        # model = swagger_client.models.enhanced_health_check_results.EnhancedHealthCheckResults()  # noqa: E501
         pass
 
 
