@@ -1,0 +1,18 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+    name: cohort-data-tenant2
+    annotations:
+        ibm.io/auto-create-bucket: "true"
+        ibm.io/auto-delete-bucket: "false"
+        ibm.io/auto_cache: "true"
+        ibm.io/bucket: cohort-data-tenant2
+        ibm.io/secret-name: spark-cos-secret
+        ibm.io/set-access-policy: "true"
+spec:
+    storageClassName: ibmc-s3fs-standard-regional
+    accessModes:
+        - ReadWriteMany
+    resources:
+        requests:
+            storage: 200Mi

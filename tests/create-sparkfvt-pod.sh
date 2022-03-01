@@ -1,5 +1,5 @@
 #
-# (C) Copyright IBM Corp. 2021, 2021
+# (C) Copyright IBM Corp. 2021, 2022
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -26,6 +26,15 @@ sed -i "s_^spark\.kubernetes\.namespace .*_spark.kubernetes.namespace ${CLUSTER_
 
 #Delete the engine-spark-fvt-test from previous run before spinning off a new one
 kubectl -n ${CLUSTER_NAMESPACE} delete pod/${SPARK_POD_NAME}
+
+# Check for existence of a Persistent Volume Claim called 'cohort-data-tenant2' in the namespace and if it does not exist create it. This PVC is used for mounting a storage volume
+# called cos-files to the spark pod that will be spun off to run the tests. The results from the spark tests are stored in a folder called fvt-output under the cohort-data-tenant2 
+# COS bucket.  **See run-spark-fvt-deploy.yaml for details about the pvc and volume mounted in the pod. 
+pvc_output=$(kubectl -n ${CLUSTER_NAMESPACE} get pvc cohort-data-tenant2 2>&1)
+if [[ ${pvc_output} == *"Error"* ]]; then 
+   echo "Persistent Volume Claim(PVC) called cohort-data-tenant2 not found in ${CLUSTER_NAMESPACE} namespace. Creating the missing PVC: cohort-data-tenant2"
+   kubectl -n ${CLUSTER_NAMESPACE} apply -f ${TEST_DIR}/COS-PVC-cohort-data-tenant2.yaml
+fi
 
 # Spin off the new engine-spark-fvt-test pod to run SPARK based tests
 echo "Creating spark fvt test pod: ${SPARK_POD_NAME}"
