@@ -38,7 +38,7 @@ public class TranslationCLITest extends BasePatientTest {
 		}
 		String output = new String(baos.toByteArray());
 		String[] lines = output.split("\r?\n");
-		assertEquals(2, lines.length);
+		assertEquals("</library>", lines[lines.length - 1]);
 	}
 
 	@Test
@@ -56,6 +56,6 @@ public class TranslationCLITest extends BasePatientTest {
 		}
 		String output = new String(baos.toByteArray());
 		String[] lines = output.split("\r?\n");
-		assertEquals(2, lines.length);
+		assertEquals("</library>", lines[lines.length - 1]);
 	}
 }
