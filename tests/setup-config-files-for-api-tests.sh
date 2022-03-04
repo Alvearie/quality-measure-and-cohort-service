@@ -1,5 +1,5 @@
 #
-# (C) Copyright IBM Corp. 2021, 2021
+# (C) Copyright IBM Corp. 2021, 2022
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -362,5 +362,95 @@ sed -i \
 	-e "/\"defineToRun\"/s|:.*$|: \"InPop\",|" ${CONFIG_DIR}/LungCancerScreeningWithSNOMEDcodes-cohort-invalid-define-request-data.json
 	
 ###############################################################################################################################################################################
+
+# Generate the following variations of fhir server connection configuration json files for use by the tests specific to health_check_enhanced REST API endpoint. 
+# Some of the files are used for negative tests.
+# The files are variations of the master file called "health-check-enhanced-api-fhir-server-conn-config-base.json" checked into the GIT repository.
+# 1. health-check-enhanced-api-fhir-server-conn-config-valid-data-and-terminology.json
+# 2. health-check-enhanced-api-fhir-server-conn-config-no-terminology-config.json (This file does not have a terminologyServerConfig block)
+#
+# Following files are used for negative testing
+# 3. health-check-enhanced-api-fhir-server-conn-config-no-data-config.json (This file does not have a dataServerConfig block)
+# 4. fhir-server-conn-config-invalid_endpoint_host-dataserverconfig.json (endpoint url in dataServerConfig has an invalid hostname)
+# 5. fhir-server-conn-config-invalid_endpoint_host-terminologyserverconfig.json (endpoint url in terminologyServerConfig has an invalid hostname)
+# 6. fhir-server-conn-config-invalid_endpoint_port-dataserverconfig.json(endpoint url in dataServerConfig has an invalid port)
+# 7. fhir-server-conn-config-invalid_endpoint_port-terminologyserverconfig.json (endpoint url in terminologyServerConfig has an invalid port)
+# 8. fhir-server-conn-config-invalid_fhir_user-dataserverconfig.json (Invalid FHIR user specified in dataServerConfig)
+# 9. fhir-server-conn-config-invalid_fhir_user-terminologyserverconfig.json (Invalid FHIR user specified in terminologyServerConfig)
+#10. fhir-server-conn-config-invalid_fhir_user_password-dataserverconfig.json (Invalid FHIR user password specified in dataServerConfig)
+#11. fhir-server-conn-config-invalid_fhir_user_password-terminologyserverconfig.json (Invalid FHIR user password specified in terminologyServerConfig)
+#12. fhir-server-conn-config-invalid_tenantid-dataserverconfig.json (Invalid tenantId specified in dataServerConfig)
+#13. fhir-server-conn-config-invalid_tenantid-terminologyserverconfig.json (Invalid tenantId specified in terminologyServerConfig)
+
+# Generate health-check-enhanced-api-fhir-server-conn-config-valid-data-and-terminology.json
+cp ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-base.json ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-valid-data-and-terminology.json
+sed -i "6s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-valid-data-and-terminology.json
+sed -i "13s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-valid-data-and-terminology.json
+
+# Generate health-check-enhanced-api-fhir-server-conn-config-no-terminology-config.json
+cp ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-no-terminology.json ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-no-terminology-config.json
+sed -i "6s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-no-terminology-config.json
+
+# Generate health-check-enhanced-api-fhir-server-conn-config-no-data-config.json
+cp ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-no-data.json ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-no-data-config.json
+sed -i "6s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-no-data-config.json
+
+# Generate fhir-server-conn-config-invalid_endpoint_host-dataserverconfig.json
+cp ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-base.json ${CONFIG_DIR}/fhir-server-conn-config-invalid_endpoint_host-dataserverconfig.json
+sed -i "4s/fhir-internal.dev.svc:9443/fhir-internal.dev.sv:9443/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_endpoint_host-dataserverconfig.json
+sed -i "6s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_endpoint_host-dataserverconfig.json
+sed -i "13s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_endpoint_host-dataserverconfig.json
+
+# Generate fhir-server-conn-config-invalid_endpoint_host-terminologyserverconfig.json
+cp ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-base.json ${CONFIG_DIR}/fhir-server-conn-config-invalid_endpoint_host-terminologyserverconfig.json
+sed -i "6s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_endpoint_host-terminologyserverconfig.json
+sed -i "11s/fhir-internal.dev.svc:9443/fhir-internal.dev.sv:9443/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_endpoint_host-terminologyserverconfig.json
+sed -i "13s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_endpoint_host-terminologyserverconfig.json
+
+# Generate fhir-server-conn-config-invalid_endpoint_port-dataserverconfig.json
+cp ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-base.json ${CONFIG_DIR}/fhir-server-conn-config-invalid_endpoint_port-dataserverconfig.json
+sed -i "4s/fhir-internal.dev.svc:9443/fhir-internal.dev.svc:9444/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_endpoint_port-dataserverconfig.json
+sed -i "6s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_endpoint_port-dataserverconfig.json
+sed -i "13s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_endpoint_port-dataserverconfig.json
+
+# Generate fhir-server-conn-config-invalid_endpoint_port-terminologyserverconfig.json
+cp ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-base.json ${CONFIG_DIR}/fhir-server-conn-config-invalid_endpoint_port-terminologyserverconfig.json
+sed -i "6s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_endpoint_port-terminologyserverconfig.json
+sed -i "11s/fhir-internal.dev.svc:9443/fhir-internal.dev.svc:9444/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_endpoint_port-terminologyserverconfig.json
+sed -i "13s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_endpoint_port-terminologyserverconfig.json
+
+# Generate fhir-server-conn-config-invalid_fhir_user-dataserverconfig.json
+cp ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-base.json ${CONFIG_DIR}/fhir-server-conn-config-invalid_fhir_user-dataserverconfig.json
+sed -i "5s/\"fhiruser\"/\"fhiruser1\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_fhir_user-dataserverconfig.json
+sed -i "6s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_fhir_user-dataserverconfig.json
+sed -i "13s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_fhir_user-dataserverconfig.json
+
+# Generate fhir-server-conn-config-invalid_fhir_user-terminologyserverconfig.json
+cp ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-base.json ${CONFIG_DIR}/fhir-server-conn-config-invalid_fhir_user-terminologyserverconfig.json
+sed -i "6s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_fhir_user-terminologyserverconfig.json
+sed -i "12s/\"fhiruser\"/\"fhiruser1\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_fhir_user-terminologyserverconfig.json
+sed -i "13s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_fhir_user-terminologyserverconfig.json
+
+# Generate fhir-server-conn-config-invalid_fhir_user_password-dataserverconfig.json
+cp ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-base.json ${CONFIG_DIR}/fhir-server-conn-config-invalid_fhir_user_password-dataserverconfig.json
+sed -i "13s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_fhir_user_password-dataserverconfig.json
+
+# Generate fhir-server-conn-config-invalid_fhir_user_password-terminologyserverconfig.json
+cp ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-base.json ${CONFIG_DIR}/fhir-server-conn-config-invalid_fhir_user_password-terminologyserverconfig.json
+sed -i "6s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_fhir_user_password-terminologyserverconfig.json
+
+# Generate fhir-server-conn-config-invalid_tenantid-dataserverconfig.json
+cp ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-base.json ${CONFIG_DIR}/fhir-server-conn-config-invalid_tenantid-dataserverconfig.json
+sed -i "6s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_tenantid-dataserverconfig.json
+sed -i "7s/\"test-fvt\"/\"test-fvtt\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_tenantid-dataserverconfig.json
+sed -i "13s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_tenantid-dataserverconfig.json
+
+
+# Generate fhir-server-conn-config-invalid_tenantid-terminologyserverconfig.json
+cp ${CONFIG_DIR}/health-check-enhanced-api-fhir-server-conn-config-base.json ${CONFIG_DIR}/fhir-server-conn-config-invalid_tenantid-terminologyserverconfig.json
+sed -i "6s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_tenantid-terminologyserverconfig.json
+sed -i "13s/\"change-password\"/\"${FHIR_USER_PASS}\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_tenantid-terminologyserverconfig.json
+sed -i "14s/\"knowledge\"/\"knowledge1\"/" ${CONFIG_DIR}/fhir-server-conn-config-invalid_tenantid-terminologyserverconfig.json
+
 
 
