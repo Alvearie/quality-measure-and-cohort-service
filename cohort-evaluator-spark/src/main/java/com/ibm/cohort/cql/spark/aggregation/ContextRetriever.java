@@ -9,6 +9,7 @@ package com.ibm.cohort.cql.spark.aggregation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,11 +75,8 @@ public class ContextRetriever {
      */
     public JavaPairRDD<Object, List<Row>> retrieveContext(ContextDefinition contextDefinition) {
         List<JavaPairRDD<Object, Row>> rddList = gatherRDDs(contextDefinition);
-		if(rddList.isEmpty()){
-			throw new IllegalStateException("Provided context " + contextDefinition.getName() + " returned zero readable RDDs");
-		}
 
-        JavaPairRDD<Object, Row> allData = unionPairRDDs(rddList);
+        JavaPairRDD<Object, Row> allData = unionPairRDDs(rddList, contextDefinition.getName());
 
         JavaPairRDD<Object, List<Row>> retVal;
         boolean groupContext = contextDefinition.getRelationships() != null
@@ -160,11 +158,11 @@ public class ContextRetriever {
 
                             if (additionalDataset != null) {
                                 retVal.add(toPairRDD(additionalDataset.distinct(), JOIN_CONTEXT_VALUE_IDX));
-                            }
 
-                            additionalJoin = (additionalJoin instanceof MultiManyToMany) ? ((MultiManyToMany) additionalJoin).getWith() : null;
-                            baseDataset = additionalDataset;
-                            baseContextColumn = additionalDataset.col(JOIN_CONTEXT_VALUE_IDX);
+                                additionalJoin = (additionalJoin instanceof MultiManyToMany) ? ((MultiManyToMany) additionalJoin).getWith() : null;
+                                baseDataset = additionalDataset;
+                                baseContextColumn = additionalDataset.col(JOIN_CONTEXT_VALUE_IDX);
+                            }
                         }
                     }
                 }
@@ -283,21 +281,24 @@ public class ContextRetriever {
      * Unions multiple {@link JavaPairRDD}s into one larger {@link JavaPairRDD}.
      *
      * @param rddList The list of RDDs to union.
+     * @param context The name of the context being unioned.
      * @param <K> The key of the RDD.
      * @param <V> The value of the RDD.
      * @return A fully unioned RDD.
      */
-    private <K, V> JavaPairRDD<K, V> unionPairRDDs(List<JavaPairRDD<K, V>> rddList) {
-        JavaPairRDD<K, V> retVal = null;
-        for (JavaPairRDD<K, V> rdd : rddList) {
-            if (retVal == null) {
-                retVal = rdd;
-            }
-            else {
-                retVal = retVal.union(rdd);
-            }
+    private <K, V> JavaPairRDD<K, V> unionPairRDDs(List<JavaPairRDD<K, V>> rddList, String context) {
+        if (rddList.isEmpty()) {
+            throw new IllegalStateException(String.format("Provided context %s returned zero readable RDDs", context));
         }
-        return retVal;
+
+        Iterator<JavaPairRDD<K, V>> rdds = rddList.iterator();
+        JavaPairRDD<K, V> union = rdds.next();
+
+        while (rdds.hasNext()) {
+            union = union.union(rdds.next());
+        }
+
+        return union;
     }
 
     /**
@@ -312,9 +313,13 @@ public class ContextRetriever {
         if (path == null) {
             throw new IllegalArgumentException(String.format("No path mapping found for datatype %s", dataType));
         }
+
         Dataset<Row> dataset = datasetRetriever.readDataset(path);
-        return ( dataset != null ) ? dataset
-                .withColumn(SOURCE_FACT_IDX, functions.lit(dataType)) : null;
+        if (dataset == null) {
+            throw new IllegalArgumentException(String.format("Could not read data for %s", dataType));
+        }
+
+        return dataset.withColumn(SOURCE_FACT_IDX, functions.lit(dataType));
     }
 
 }

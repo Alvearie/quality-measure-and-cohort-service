@@ -68,8 +68,8 @@ public class ModelUtils {
                 
                 if( typeInfo.getBaseType() != null ) {
                     QName baseQName = getBaseTypeName(modelInfo, typeInfo);
-                    if( baseQName.getNamespaceURI().equals( modelInfo.getUrl() ) ) {
-                        TypeNode parentNode = typeMap.computeIfAbsent(baseQName, key -> new TypeNode(key) );
+                    if (baseQName != null && baseQName.getNamespaceURI().equals(modelInfo.getUrl())) {
+                        TypeNode parentNode = typeMap.computeIfAbsent(baseQName, key -> new TypeNode(key));
                         parentNode.getChildTypes().add(node);
                         node.getParentTypes().add(parentNode);
                     }
