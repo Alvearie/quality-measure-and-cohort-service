@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2021, 2021
+ * (C) Copyright IBM Corp. 2021, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -15,6 +15,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import org.apache.commons.io.IOUtils;
 import org.cqframework.cql.elm.execution.Library;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,8 +23,8 @@ import org.mockito.verification.VerificationMode;
 import org.opencds.cqf.cql.engine.execution.Context;
 
 import com.ibm.cohort.cql.OptimizedCqlLibraryReader;
-import com.ibm.cohort.translator.provider.InJVMCqlTranslationProvider;
 
+import java.nio.charset.StandardCharsets;
 
 public class ShortCircuitEvaluatorTest {
 
@@ -31,9 +32,8 @@ public class ShortCircuitEvaluatorTest {
 
 	@Before
 	public void setUp() throws Exception {
-		InJVMCqlTranslationProvider provider = new InJVMCqlTranslationProvider();
-		String elm = provider.translate(this.getClass().getClassLoader().getResourceAsStream("cql/short-circuit-and-or.cql"));
-		library = OptimizedCqlLibraryReader.read(elm);
+		String content = IOUtils.resourceToString("/cql/short-circuit-and-or.xml", StandardCharsets.UTF_8);
+		library = OptimizedCqlLibraryReader.read(content);
 	}
 
 	@Test

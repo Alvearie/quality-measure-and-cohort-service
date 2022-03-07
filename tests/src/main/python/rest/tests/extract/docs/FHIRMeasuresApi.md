@@ -25,9 +25,9 @@ from pprint import pprint
 
 # create an instance of the API class
 api_instance = swagger_client.FHIRMeasuresApi()
-version = '2021-07-22' # str | The release date of the version of the API you want to use. Specify dates in YYYY-MM-DD format. (default to 2021-07-22)
+version = '2022-02-18' # str | The release date of the version of the API you want to use. Specify dates in YYYY-MM-DD format. (default to 2022-02-18)
 measure_identifier_value = 'measure_identifier_value_example' # str | Used to identify the FHIR measure resource you would like the parameter information for using the Measure.Identifier.Value field.
-fhir_data_server_config = '/path/to/file.txt' # file | A configuration file containing information needed to connect to the FHIR server. See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/getting-started.md#fhir-server-configuration for more details.  Example Contents:   <pre>{     \"@class\": \"com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\",     \"endpoint\": \"https://fhir-internal.dev:9443/fhir-server/api/v4\",     \"user\": \"fhiruser\",     \"password\": \"replaceWithfhiruserPassword\",     \"logInfo\": [         \"ALL\"     ],     \"tenantId\": \"default\" }</pre>
+fhir_data_server_config = '/path/to/file.txt' # file | A configuration file containing information needed to connect to the FHIR server. See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/fhir-server-config.md for more details.  Example Contents:   <pre>{     \"@class\": \"com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\",     \"endpoint\": \"https://fhir-internal.dev:9443/fhir-server/api/v4\",     \"user\": \"fhiruser\",     \"password\": \"replaceWithfhiruserPassword\",     \"logInfo\": [         \"ALL\"     ],     \"tenantId\": \"default\" }</pre>
 measure_identifier_system = 'measure_identifier_system_example' # str | The system name used to provide a namespace for the measure identifier values. For example, if using social security numbers for the identifier values, one would use http://hl7.org/fhir/sid/us-ssn as the system value. (optional)
 measure_version = 'measure_version_example' # str |  The version of the measure to retrieve as represented by the FHIR resource Measure.version field. If a value is not provided, the underlying code will atempt to resolve the most recent version assuming a <Major>.<Minor>.<Patch> format (ie if versions 1.0.0 and 2.0.0 both exist, the code will return the 2.0.0 version) (optional)
 
@@ -43,9 +43,9 @@ except ApiException as e:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **version** | **str**| The release date of the version of the API you want to use. Specify dates in YYYY-MM-DD format. | [default to 2021-07-22]
+ **version** | **str**| The release date of the version of the API you want to use. Specify dates in YYYY-MM-DD format. | [default to 2022-02-18]
  **measure_identifier_value** | **str**| Used to identify the FHIR measure resource you would like the parameter information for using the Measure.Identifier.Value field. | 
- **fhir_data_server_config** | **file**| A configuration file containing information needed to connect to the FHIR server. See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/getting-started.md#fhir-server-configuration for more details.  Example Contents:   &lt;pre&gt;{     \&quot;@class\&quot;: \&quot;com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\&quot;,     \&quot;endpoint\&quot;: \&quot;https://fhir-internal.dev:9443/fhir-server/api/v4\&quot;,     \&quot;user\&quot;: \&quot;fhiruser\&quot;,     \&quot;password\&quot;: \&quot;replaceWithfhiruserPassword\&quot;,     \&quot;logInfo\&quot;: [         \&quot;ALL\&quot;     ],     \&quot;tenantId\&quot;: \&quot;default\&quot; }&lt;/pre&gt; | 
+ **fhir_data_server_config** | **file**| A configuration file containing information needed to connect to the FHIR server. See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/fhir-server-config.md for more details.  Example Contents:   &lt;pre&gt;{     \&quot;@class\&quot;: \&quot;com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\&quot;,     \&quot;endpoint\&quot;: \&quot;https://fhir-internal.dev:9443/fhir-server/api/v4\&quot;,     \&quot;user\&quot;: \&quot;fhiruser\&quot;,     \&quot;password\&quot;: \&quot;replaceWithfhiruserPassword\&quot;,     \&quot;logInfo\&quot;: [         \&quot;ALL\&quot;     ],     \&quot;tenantId\&quot;: \&quot;default\&quot; }&lt;/pre&gt; | 
  **measure_identifier_system** | **str**| The system name used to provide a namespace for the measure identifier values. For example, if using social security numbers for the identifier values, one would use http://hl7.org/fhir/sid/us-ssn as the system value. | [optional] 
  **measure_version** | **str**|  The version of the measure to retrieve as represented by the FHIR resource Measure.version field. If a value is not provided, the underlying code will atempt to resolve the most recent version assuming a &lt;Major&gt;.&lt;Minor&gt;.&lt;Patch&gt; format (ie if versions 1.0.0 and 2.0.0 both exist, the code will return the 2.0.0 version) | [optional] 
 
@@ -81,9 +81,9 @@ from pprint import pprint
 
 # create an instance of the API class
 api_instance = swagger_client.FHIRMeasuresApi()
-version = '2021-07-22' # str | The release date of the version of the API you want to use. Specify dates in YYYY-MM-DD format. (default to 2021-07-22)
+version = '2022-02-18' # str | The release date of the version of the API you want to use. Specify dates in YYYY-MM-DD format. (default to 2022-02-18)
 measure_id = 'measure_id_example' # str | FHIR measure resource id for the measure you would like the parameter information for using the Measure.id field.
-fhir_data_server_config = '/path/to/file.txt' # file | A configuration file containing information needed to connect to the FHIR server. See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/getting-started.md#fhir-server-configuration for more details.  Example Contents:   <pre>{     \"@class\": \"com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\",     \"endpoint\": \"https://fhir-internal.dev:9443/fhir-server/api/v4\",     \"user\": \"fhiruser\",     \"password\": \"replaceWithfhiruserPassword\",     \"logInfo\": [         \"ALL\"     ],     \"tenantId\": \"default\" }</pre>
+fhir_data_server_config = '/path/to/file.txt' # file | A configuration file containing information needed to connect to the FHIR server. See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/fhir-server-config.md for more details.  Example Contents:   <pre>{     \"@class\": \"com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\",     \"endpoint\": \"https://fhir-internal.dev:9443/fhir-server/api/v4\",     \"user\": \"fhiruser\",     \"password\": \"replaceWithfhiruserPassword\",     \"logInfo\": [         \"ALL\"     ],     \"tenantId\": \"default\" }</pre>
 
 try:
     # Get measure parameters by id
@@ -97,9 +97,9 @@ except ApiException as e:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **version** | **str**| The release date of the version of the API you want to use. Specify dates in YYYY-MM-DD format. | [default to 2021-07-22]
+ **version** | **str**| The release date of the version of the API you want to use. Specify dates in YYYY-MM-DD format. | [default to 2022-02-18]
  **measure_id** | **str**| FHIR measure resource id for the measure you would like the parameter information for using the Measure.id field. | 
- **fhir_data_server_config** | **file**| A configuration file containing information needed to connect to the FHIR server. See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/getting-started.md#fhir-server-configuration for more details.  Example Contents:   &lt;pre&gt;{     \&quot;@class\&quot;: \&quot;com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\&quot;,     \&quot;endpoint\&quot;: \&quot;https://fhir-internal.dev:9443/fhir-server/api/v4\&quot;,     \&quot;user\&quot;: \&quot;fhiruser\&quot;,     \&quot;password\&quot;: \&quot;replaceWithfhiruserPassword\&quot;,     \&quot;logInfo\&quot;: [         \&quot;ALL\&quot;     ],     \&quot;tenantId\&quot;: \&quot;default\&quot; }&lt;/pre&gt; | 
+ **fhir_data_server_config** | **file**| A configuration file containing information needed to connect to the FHIR server. See https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/docs/user-guide/fhir-server-config.md for more details.  Example Contents:   &lt;pre&gt;{     \&quot;@class\&quot;: \&quot;com.ibm.cohort.fhir.client.config.IBMFhirServerConfig\&quot;,     \&quot;endpoint\&quot;: \&quot;https://fhir-internal.dev:9443/fhir-server/api/v4\&quot;,     \&quot;user\&quot;: \&quot;fhiruser\&quot;,     \&quot;password\&quot;: \&quot;replaceWithfhiruserPassword\&quot;,     \&quot;logInfo\&quot;: [         \&quot;ALL\&quot;     ],     \&quot;tenantId\&quot;: \&quot;default\&quot; }&lt;/pre&gt; | 
 
 ### Return type
 

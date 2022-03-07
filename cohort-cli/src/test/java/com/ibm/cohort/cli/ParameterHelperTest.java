@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2020, 2021
+ * (C) Copyright IBM Corp. 2020, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -13,16 +13,16 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import com.ibm.cohort.engine.parameter.BooleanParameter;
-import com.ibm.cohort.engine.parameter.CodeParameter;
-import com.ibm.cohort.engine.parameter.DatetimeParameter;
-import com.ibm.cohort.engine.parameter.DecimalParameter;
-import com.ibm.cohort.engine.parameter.IntegerParameter;
-import com.ibm.cohort.engine.parameter.IntervalParameter;
-import com.ibm.cohort.engine.parameter.Parameter;
-import com.ibm.cohort.engine.parameter.QuantityParameter;
-import com.ibm.cohort.engine.parameter.StringParameter;
-import com.ibm.cohort.engine.parameter.TimeParameter;
+import com.ibm.cohort.cql.evaluation.parameters.BooleanParameter;
+import com.ibm.cohort.cql.evaluation.parameters.CodeParameter;
+import com.ibm.cohort.cql.evaluation.parameters.DatetimeParameter;
+import com.ibm.cohort.cql.evaluation.parameters.DecimalParameter;
+import com.ibm.cohort.cql.evaluation.parameters.IntegerParameter;
+import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
+import com.ibm.cohort.cql.evaluation.parameters.QuantityParameter;
+import com.ibm.cohort.cql.evaluation.parameters.StringParameter;
+import com.ibm.cohort.cql.evaluation.parameters.TimeParameter;
 
 public class ParameterHelperTest {
 	@Test

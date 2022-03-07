@@ -31,7 +31,7 @@ public class TranslationCLITest extends BasePatientTest {
 		try (PrintStream captureOut = new PrintStream(baos)) {
 			System.setOut(captureOut);
 			TranslationCLI.main(new String[]{
-					"-f", "src/test/resources/cql/basic/test.cql"
+					"-f", "src/test/resources/cql/basic/Test-1.0.0.cql"
 			});
 		} finally {
 			System.setOut(originalOut);
@@ -48,7 +48,7 @@ public class TranslationCLITest extends BasePatientTest {
 		try (PrintStream captureOut = new PrintStream(baos)) {
 			System.setOut(captureOut);
 			TranslationCLI.main(new String[]{
-					"-f", "src/test/resources/cql/ig-test/test.cql",
+					"-f", "src/test/resources/cql/ig-test/Test-1.0.0.cql",
 					"-i", "src/test/resources/modelinfo/ig-with-target-modelinfo-0.0.1.xml"
 			});
 		} finally {

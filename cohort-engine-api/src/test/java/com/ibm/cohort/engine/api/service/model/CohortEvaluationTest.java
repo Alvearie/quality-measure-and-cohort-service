@@ -1,6 +1,6 @@
 /*
  *
- *  * (C) Copyright IBM Corp. 2021
+ *  * (C) Copyright IBM Corp. 2021, 2022
  *  *
  *  * SPDX-License-Identifier: Apache-2.0
  *
@@ -13,13 +13,13 @@ import static org.junit.Assert.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.ibm.cohort.cql.evaluation.CqlDebug;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.LoggingEnum;
-import com.ibm.cohort.engine.parameter.DateParameter;
-import com.ibm.cohort.engine.parameter.IntervalParameter;
-import com.ibm.cohort.engine.parameter.Parameter;
+import com.ibm.cohort.cql.evaluation.parameters.DateParameter;
+import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
+import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
 public class CohortEvaluationTest {
@@ -44,7 +44,7 @@ public class CohortEvaluationTest {
 		evaluation.setTerminologyServerConfig(termServerConfig);
 		evaluation.setPatientIds("patientId");
 		evaluation.setParameters(parameterOverrides);
-		evaluation.setLoggingLevel(LoggingEnum.COVERAGE);
+		evaluation.setLoggingLevel(CqlDebug.TRACE);
 		evaluation.setEntrypoint("test-1.0.0.cql");
 		evaluation.setDefineToRun("fakeDefine");
 

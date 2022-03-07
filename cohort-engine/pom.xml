@@ -34,13 +34,14 @@
 
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cql-engine-addons</artifactId>
+			<artifactId>cohort-evaluator</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
-			<groupId>info.cqframework</groupId>
-			<artifactId>elm</artifactId>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-evaluator-hapi-fhir</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
@@ -195,12 +196,6 @@
 			<groupId>org.glassfish</groupId>
 			<artifactId>javax.el</artifactId>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-translation</artifactId>
-			<version>${project.version}</version>
-			<scope>compile</scope>
 		</dependency>
 
 	</dependencies>

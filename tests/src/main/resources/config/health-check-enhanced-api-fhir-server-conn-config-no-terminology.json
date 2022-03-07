@@ -1,0 +1,9 @@
+{
+    "dataServerConfig": {
+        "@class": "com.ibm.cohort.fhir.client.config.IBMFhirServerConfig",
+		"endpoint": "https://fhir-internal.dev.svc:9443/fhir-server/api/v4",
+		"user": "fhiruser",
+		"password": "change-password",
+		"tenantId": "test-fvt"
+    }
+}

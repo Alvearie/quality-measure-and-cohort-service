@@ -6,7 +6,6 @@ include "FHIRHelpers" version '4.0.0'
 valueset "TestExists": 'https://cts.nlm.nih.gov/fhir/ValueSet/1.2.3.4'
 valueset "TestNotExists": 'https://cts.nlm.nih.gov/fhir/ValueSet/5.6.7.8'
 
-
 context Patient
 
 define RHSRetrieveMatches:
@@ -19,4 +18,4 @@ define RHSRetrieveNotMatches:
 	not exists([Condition: TestNotExists])
 	
 define RHSInOperatorNotMatches:
-	not exists([Condition: TestNotExists])
+	not exists([Condition] c where c.code in TestNotExists)

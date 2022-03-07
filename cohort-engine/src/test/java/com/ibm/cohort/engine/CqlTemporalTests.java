@@ -1,18 +1,19 @@
 /*
- * (C) Copyright IBM Corp. 2020, 2020
+ * (C) Copyright IBM Corp. 2020, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package com.ibm.cohort.engine;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.HashMap;
 
+import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
+import com.ibm.cohort.cql.evaluation.CqlEvaluator;
+import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
+import com.ibm.cohort.cql.library.Format;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Condition;
 import org.hl7.fhir.r4.model.DateTimeType;
@@ -21,11 +22,13 @@ import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Period;
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
 import java.util.Calendar;
+import java.util.Map;
 
 public class CqlTemporalTests extends BasePatientTest {
 
@@ -48,17 +51,24 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_1.xml");
-
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), ENCOUNTER_1, fhirConfig);
 		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123&_format=json", getFhirParser(), observationIN, fhirConfig);
 
-		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
-				new HashSet<>(Arrays.asList("Observations Exist")), Arrays.asList("123"), (patientId, expression, result) -> {
-					assertEquals("Observations Exist", expression);
-					assertEquals(Boolean.TRUE, result);
-				});
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
+		String expression = "Observations Exist";
+
+		CqlEvaluationResult actual = evaluator.evaluate(
+				newDescriptor("Test1", "1.0.0", Format.ELM),
+				null,
+				newPatientContext("123"),
+				Collections.singleton(expression)
+		);
+		Map<String, Object> expected = new HashMap<>();
+		expected.put(expression, true);
+
+		Assert.assertEquals(expected, actual.getExpressionResults());
+
 	}
 
 	@Test
@@ -74,17 +84,23 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_1.xml");
-
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), ENCOUNTER_1, fhirConfig);
 		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123&_format=json", getFhirParser(), observationOUT, fhirConfig);
 
-		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
-				new HashSet<>(Arrays.asList("Observations Exist")), Arrays.asList("123"), (patientId, expression, result) -> {
-					assertEquals("Observations Exist", expression);
-					assertEquals(Boolean.FALSE, result);
-				});
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
+		String expression = "Observations Exist";
+
+		CqlEvaluationResult actual = evaluator.evaluate(
+				newDescriptor("Test1", "1.0.0", Format.ELM),
+				null,
+				newPatientContext("123"),
+				Collections.singleton(expression)
+		);
+		Map<String, Object> expected = new HashMap<>();
+		expected.put(expression, false);
+
+		Assert.assertEquals(expected, actual.getExpressionResults());
 	}
 
 	@Test
@@ -100,22 +116,23 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_2.xml");
-
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), ENCOUNTER_1, fhirConfig);
 		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123&_format=json", getFhirParser(), observation, fhirConfig);
 
-		final AtomicInteger count = new AtomicInteger(0);
-		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
-				new HashSet<>(Arrays.asList("ObservationWithin30DaysOfCondition")), Arrays.asList("123"), (patientId, expression, result) -> {
-					count.incrementAndGet();
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
+		String expression = "ObservationWithin30DaysOfCondition";
 
-					assertEquals("ObservationWithin30DaysOfCondition", expression);
-					assertEquals(Boolean.TRUE, result);
-				});
+		CqlEvaluationResult actual = evaluator.evaluate(
+				newDescriptor("Test2", "1.0.0", Format.ELM),
+				null,
+				newPatientContext("123"),
+				Collections.singleton(expression)
+		);
+		Map<String, Object> expected = new HashMap<>();
+		expected.put(expression, true);
 
-		assertEquals(1, count.get());
+		Assert.assertEquals(expected, actual.getExpressionResults());
 	}
 
 	@Test
@@ -131,32 +148,30 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_2.xml");
-
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), ENCOUNTER_1, fhirConfig);
 		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123&_format=json", getFhirParser(), observation, fhirConfig);
 
-		final AtomicInteger count = new AtomicInteger(0);
-		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
-				new HashSet<>(Arrays.asList("ObservationWithin30DaysOfCondition")), Arrays.asList("123"), (patientId, expression, result) -> {
-					count.incrementAndGet();
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
+		String expression = "ObservationWithin30DaysOfCondition";
 
-					assertEquals("ObservationWithin30DaysOfCondition", expression);
-					assertEquals(Boolean.FALSE, result);
-				});
+		CqlEvaluationResult actual = evaluator.evaluate(
+				newDescriptor("Test2", "1.0.0", Format.ELM),
+				null,
+				newPatientContext("123"),
+				Collections.singleton(expression)
+		);
+		Map<String, Object> expected = new HashMap<>();
+		expected.put(expression, false);
 
-		assertEquals(1, count.get());
+		Assert.assertEquals(expected, actual.getExpressionResults());
 	}
 
 	@Test
 	public void canFindMultipleEncountersFollowingEachOther() throws Exception {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
-
 		FhirServerConfig fhirConfig = getFhirServerConfig();
-
-		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_3.xml");
 
 		Bundle bundle = new Bundle();
 		Bundle.BundleEntryComponent firstEncounter = new Bundle.BundleEntryComponent();
@@ -165,28 +180,28 @@ public class CqlTemporalTests extends BasePatientTest {
 		secondEncounter.setResource(ENCOUNTER_2);
 		bundle.addEntry(firstEncounter);
 		bundle.addEntry(secondEncounter);
-
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), bundle, fhirConfig);
-		final AtomicInteger count = new AtomicInteger(0);
-		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
-				new HashSet<>(Arrays.asList("ValidEncounters2")), Arrays.asList("123"), (patientId, expression, result) -> {
-					count.incrementAndGet();
 
-					assertEquals("ValidEncounters2", expression);
-					assertEquals(Boolean.TRUE, result);
-				});
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
+		String expression = "ValidEncounters2";
 
-		assertEquals(1, count.get());
+		CqlEvaluationResult actual = evaluator.evaluate(
+				newDescriptor("Test3", "1.0.0", Format.ELM),
+				null,
+				newPatientContext("123"),
+				Collections.singleton(expression)
+		);
+		Map<String, Object> expected = new HashMap<>();
+		expected.put(expression, true);
+
+		Assert.assertEquals(expected, actual.getExpressionResults());
 	}
 
 	@Test
 	public void cannotFindEncountersThatDontExist() throws Exception {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
-
 		FhirServerConfig fhirConfig = getFhirServerConfig();
-
-		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_3.xml");
 
 		Bundle bundle = new Bundle();
 		Bundle.BundleEntryComponent firstEncounter = new Bundle.BundleEntryComponent();
@@ -195,41 +210,45 @@ public class CqlTemporalTests extends BasePatientTest {
 		secondEncounter.setResource(ENCOUNTER_3);
 		bundle.addEntry(firstEncounter);
 		bundle.addEntry(secondEncounter);
-
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), bundle, fhirConfig);
-		final AtomicInteger count = new AtomicInteger(0);
-		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
-				new HashSet<>(Arrays.asList("ValidEncounters2")), Arrays.asList("123"), (patientId, expression, result) -> {
-					count.incrementAndGet();
 
-					assertEquals("ValidEncounters2", expression);
-					assertEquals(Boolean.FALSE, result);
-				});
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
+		String expression = "ValidEncounters2";
 
-		assertEquals(1, count.get());
+		CqlEvaluationResult actual = evaluator.evaluate(
+				newDescriptor("Test3", "1.0.0", Format.ELM),
+				null,
+				newPatientContext("123"),
+				Collections.singleton(expression)
+		);
+		Map<String, Object> expected = new HashMap<>();
+		expected.put(expression, false);
+
+		Assert.assertEquals(expected, actual.getExpressionResults());
 	}
 
 	@Test
 	public void determineIfAnEventFollows() throws Exception {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);
 
-
 		FhirServerConfig fhirConfig = getFhirServerConfig();
-
-		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_4.xml");
 
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), ENCOUNTER_3, fhirConfig);
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
-		final AtomicInteger count = new AtomicInteger(0);
-		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
-				new HashSet<>(Arrays.asList("NotFollowedByCondition")), Arrays.asList("123"), (patientId, expression, result) -> {
-					count.incrementAndGet();
 
-					assertEquals("NotFollowedByCondition", expression);
-					assertEquals(Boolean.TRUE, result);
-				});
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
+		String expression = "NotFollowedByCondition";
 
-		assertEquals(1, count.get());
+		CqlEvaluationResult actual = evaluator.evaluate(
+				newDescriptor("Test4", "1.0.0", Format.ELM),
+				null,
+				newPatientContext("123"),
+				Collections.singleton(expression)
+		);
+		Map<String, Object> expected = new HashMap<>();
+		expected.put(expression, true);
+
+		Assert.assertEquals(expected, actual.getExpressionResults());
 	}
 
 	@Test
@@ -238,20 +257,22 @@ public class CqlTemporalTests extends BasePatientTest {
 
 		FhirServerConfig fhirConfig = getFhirServerConfig();
 
-		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_4.xml");
-
 		mockFhirResourceRetrieval("/Encounter?subject=Patient%2F123&_format=json", getFhirParser(), ENCOUNTER_1, fhirConfig);
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
-		final AtomicInteger count = new AtomicInteger(0);
-		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
-				new HashSet<>(Arrays.asList("NotFollowedByCondition")), Arrays.asList("123"), (patientId, expression, result) -> {
-					count.incrementAndGet();
 
-					assertEquals("NotFollowedByCondition", expression);
-					assertEquals(Boolean.FALSE, result);
-				});
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
+		String expression = "NotFollowedByCondition";
 
-		assertEquals(1, count.get());
+		CqlEvaluationResult actual = evaluator.evaluate(
+				newDescriptor("Test4", "1.0.0", Format.ELM),
+				null,
+				newPatientContext("123"),
+				Collections.singleton(expression)
+		);
+		Map<String, Object> expected = new HashMap<>();
+		expected.put(expression, false);
+
+		Assert.assertEquals(expected, actual.getExpressionResults());
 	}
 
 	@Test
@@ -284,20 +305,22 @@ public class CqlTemporalTests extends BasePatientTest {
 		bundle.addEntry(firstEncounter);
 		bundle.addEntry(secondEncounter);
 
-		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_5.xml");
-
 		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123&_format=json", getFhirParser(), bundle, fhirConfig);
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
-		final AtomicInteger count = new AtomicInteger(0);
-		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
-				new HashSet<>(Arrays.asList("ValidObservation within 4 days")), Arrays.asList("123"), (patientId, expression, result) -> {
-					count.incrementAndGet();
 
-					assertEquals("ValidObservation within 4 days", expression);
-					assertEquals(Boolean.TRUE, result);
-				});
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
+		String expression = "ValidObservation within 4 days";
 
-		assertEquals(1, count.get());
+		CqlEvaluationResult actual = evaluator.evaluate(
+				newDescriptor("Test5", "1.0.0", Format.ELM),
+				null,
+				newPatientContext("123"),
+				Collections.singleton(expression)
+		);
+		Map<String, Object> expected = new HashMap<>();
+		expected.put(expression, true);
+
+		Assert.assertEquals(expected, actual.getExpressionResults());
 	}
 
 	@Test
@@ -328,20 +351,22 @@ public class CqlTemporalTests extends BasePatientTest {
 		bundle.addEntry(firstEncounter);
 		bundle.addEntry(secondEncounter);
 
-		CqlEvaluator wrapper = setupTestFor(patient, fhirConfig,"cql/temporal/test_5.xml");
-
 		mockFhirResourceRetrieval("/Observation?subject=Patient%2F123&_format=json", getFhirParser(), bundle, fhirConfig);
 		mockFhirResourceRetrieval("/Condition?subject=Patient%2F123&_format=json", getFhirParser(), CONDITION_IN, fhirConfig);
-		final AtomicInteger count = new AtomicInteger(0);
-		wrapper.evaluate("Test", /* libraryVersion= */null, /* parameters= */null,
-				new HashSet<>(Arrays.asList("ValidObservation not within 4 days")), Arrays.asList("123"), (patientId, expression, result) -> {
-					count.incrementAndGet();
 
-					assertEquals("ValidObservation not within 4 days", expression);
-					assertEquals(Boolean.TRUE, result);
-				});
+		CqlEvaluator evaluator = setupTestFor(patient, "cql.temporal", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
+		String expression = "ValidObservation not within 4 days";
 
-		assertEquals(1, count.get());
+		CqlEvaluationResult actual = evaluator.evaluate(
+				newDescriptor("Test5", "1.0.0", Format.ELM),
+				null,
+				newPatientContext("123"),
+				Collections.singleton(expression)
+		);
+		Map<String, Object> expected = new HashMap<>();
+		expected.put(expression, true);
+
+		Assert.assertEquals(expected, actual.getExpressionResults());
 	}
 
 	public Condition getCondition(int year, int month, int day) {

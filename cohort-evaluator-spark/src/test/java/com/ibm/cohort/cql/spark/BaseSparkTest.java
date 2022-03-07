@@ -47,13 +47,15 @@ public abstract class BaseSparkTest implements Serializable {
         return initializeSession(Java8API.ENABLED);
     }
 
+    //  Partition settings will keep the task count down for each Spark job, which makes tests run faster.
     protected static SparkSession initializeSession(Java8API java8APIEnabled) {
         SparkSession.Builder builder = SparkSession.builder()
                 .appName("Local Application")
                 .master("local[4]")
                 .config("spark.sql.datetime.java8API.enabled", String.valueOf(java8APIEnabled.getValue()))
-                .config("spark.sql.sources.default", "delta");
-
+                .config("spark.sql.sources.default", "delta")
+                .config("spark.sql.shuffle.partitions", "8")
+                .config("spark.databricks.delta.snapshotPartitions", "8");
         return builder.getOrCreate();
     }
 }

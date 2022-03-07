@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2021, 2021
+ * (C) Copyright IBM Corp. 2021, 2022
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.ibm.cohort.cql.library.Format;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 
@@ -28,7 +29,6 @@ import com.ibm.cohort.cql.evaluation.parameters.IntegerParameter;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.cql.library.CqlLibrary;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
-import com.ibm.cohort.cql.library.CqlLibraryDescriptor.Format;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
@@ -44,7 +44,8 @@ public class CqlEvaluatorTest {
         CqlEvaluator evaluator = new CqlEvaluator()
                 .setTerminologyProvider(terminologyProvider)
                 .setDataProvider(dataProvider)
-                .setLibraryProvider(libraryProvider);
+                .setLibraryProvider(libraryProvider)
+                .setCacheContexts(false);
         
         assertSame(terminologyProvider, evaluator.getTerminologyProvider());
         assertSame(dataProvider, evaluator.getDataProvider());
@@ -74,7 +75,8 @@ public class CqlEvaluatorTest {
         CqlEvaluator evaluator = new CqlEvaluator()
                 .setTerminologyProvider(terminologyProvider)
                 .setDataProvider(dataProvider)
-                .setLibraryProvider(translatingProvider);
+                .setLibraryProvider(translatingProvider)
+                .setCacheContexts(false);
         
         int expectedMinimumAge = 17;
         
@@ -114,7 +116,8 @@ public class CqlEvaluatorTest {
         CqlEvaluator evaluator = new CqlEvaluator()
                 .setTerminologyProvider(terminologyProvider)
                 .setDataProvider(dataProvider)
-                .setLibraryProvider(translatingProvider);
+                .setLibraryProvider(translatingProvider)
+                .setCacheContexts(false);
 
         String parameterName = "MinimumAge";
         int expectedMinimumAge = 17;
@@ -182,7 +185,8 @@ public class CqlEvaluatorTest {
         CqlEvaluator evaluator = new CqlEvaluator()
                 .setTerminologyProvider(terminologyProvider)
                 .setDataProvider(dataProvider)
-                .setLibraryProvider(translatingProvider);
+                .setLibraryProvider(translatingProvider)
+                .setCacheContexts(false);
         
         CqlEvaluationResult result = evaluator.evaluate(libraryDescriptor, null, new HashSet<>(Collections.singletonList("OtherThing")));
         assertNotNull(result);
