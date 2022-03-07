@@ -43,12 +43,6 @@
 			<artifactId>cohort-evaluator-hapi-fhir</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
-		<dependency>
-			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cql-engine-addons</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 		
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
