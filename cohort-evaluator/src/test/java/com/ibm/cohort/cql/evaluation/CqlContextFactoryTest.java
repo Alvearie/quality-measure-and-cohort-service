@@ -19,7 +19,6 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.ibm.cohort.cql.library.Format;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import org.opencds.cqf.cql.engine.execution.Context;
@@ -30,8 +29,8 @@ import com.ibm.cohort.cql.evaluation.parameters.IntegerParameter;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.cql.evaluation.parameters.StringParameter;
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
-import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
+import com.ibm.cohort.cql.library.CqlVersionedIdentifier;
 import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import com.ibm.cohort.cql.terminology.UnsupportedTerminologyProvider;
@@ -51,11 +50,8 @@ public class CqlContextFactoryTest {
         CqlToElmTranslator translator = new CqlToElmTranslator();
         TranslatingCqlLibraryProvider translatingProvider = new TranslatingCqlLibraryProvider(libraryProvider, translator);
         
-        CqlLibraryDescriptor topLevelLibrary = new CqlLibraryDescriptor()
-                .setLibraryId("MyCQL")
-                .setVersion("1.0.0")
-                .setFormat(Format.ELM);
-        
+        CqlVersionedIdentifier topLevelLibraryIdentifier = new CqlVersionedIdentifier("MyCQL", "1.0.0");
+
         CqlTerminologyProvider terminologyProvider = new UnsupportedTerminologyProvider();
         
         CqlDataProvider dataProvider = mock(CqlDataProvider.class);
@@ -68,7 +64,7 @@ public class CqlContextFactoryTest {
         
         CqlContextFactory cqlContextFactory = spy(CqlContextFactory.class);
         
-        Context context = cqlContextFactory.createContext(translatingProvider, topLevelLibrary, terminologyProvider,
+        Context context = cqlContextFactory.createContext(translatingProvider, topLevelLibraryIdentifier, terminologyProvider,
                 dataProvider, expectedEvaluationDateTime, contextData, expectedParams,
                 expectedDebug ? CqlDebug.DEBUG : CqlDebug.NONE);
         
@@ -76,8 +72,8 @@ public class CqlContextFactoryTest {
         assertEquals(expectedEvaluationDateTime.toInstant(), context.getEvaluationDateTime().getDateTime().toZonedDateTime().toInstant());
         context.enterContext(contextData.getKey());
         assertEquals(contextData.getValue(), context.getCurrentContextValue());
-        assertEquals(topLevelLibrary.getLibraryId(), context.getCurrentLibrary().getIdentifier().getId());
-        assertEquals(topLevelLibrary.getVersion(), context.getCurrentLibrary().getIdentifier().getVersion());
+        assertEquals(topLevelLibraryIdentifier.getId(), context.getCurrentLibrary().getIdentifier().getId());
+        assertEquals(topLevelLibraryIdentifier.getVersion(), context.getCurrentLibrary().getIdentifier().getVersion());
         
         for( Map.Entry<String, Parameter> entry : expectedParams.entrySet() ) {
             Object actualValue = context.resolveParameterRef(null, entry.getKey());
@@ -87,7 +83,7 @@ public class CqlContextFactoryTest {
         // Once more just to check that caching is working. Using a different data provider because that is
         // how we will actually use it at runtime.
         CqlDataProvider dataProvider2 = mock(CqlDataProvider.class);
-        cqlContextFactory.createContext(translatingProvider, topLevelLibrary, terminologyProvider,
+        cqlContextFactory.createContext(translatingProvider, topLevelLibraryIdentifier, terminologyProvider,
                 dataProvider2, expectedEvaluationDateTime, contextData, expectedParams,
                 expectedDebug ? CqlDebug.DEBUG : CqlDebug.NONE);
         
@@ -99,16 +95,16 @@ public class CqlContextFactoryTest {
         CqlLibraryProvider libraryProvider = mock(CqlLibraryProvider.class);
         CqlTerminologyProvider terminologyProvider = mock(CqlTerminologyProvider.class);
         
-        CqlLibraryDescriptor topLevelLibrary = new CqlLibraryDescriptor().setLibraryId("Test").setVersion("1.0.0").setFormat(Format.ELM);
+        CqlVersionedIdentifier topLevelLibraryIdentifier = new CqlVersionedIdentifier("Test", "1.0.0");
         
         Map<String,Parameter> parameters = new HashMap<>();
         ZonedDateTime evaluationDateTime = ZonedDateTime.now();
         
         
-        CqlContextFactory.ContextCacheKey k1 = new CqlContextFactory.ContextCacheKey(libraryProvider, topLevelLibrary, terminologyProvider, null, evaluationDateTime, parameters);
+        CqlContextFactory.ContextCacheKey k1 = new CqlContextFactory.ContextCacheKey(libraryProvider, topLevelLibraryIdentifier, terminologyProvider, null, evaluationDateTime, parameters);
         assertEquals(k1, k1);
         
-        CqlContextFactory.ContextCacheKey k2 = new CqlContextFactory.ContextCacheKey(libraryProvider, topLevelLibrary, terminologyProvider, null, evaluationDateTime, parameters);
+        CqlContextFactory.ContextCacheKey k2 = new CqlContextFactory.ContextCacheKey(libraryProvider, topLevelLibraryIdentifier, terminologyProvider, null, evaluationDateTime, parameters);
         assertEquals(k1, k2);
         
         Map<ContextCacheKey,String> map = new HashMap<>();

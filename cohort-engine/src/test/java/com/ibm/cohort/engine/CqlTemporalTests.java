@@ -13,7 +13,7 @@ import java.util.HashMap;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
 import com.ibm.cohort.cql.evaluation.CqlEvaluator;
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
-import com.ibm.cohort.cql.library.Format;
+import com.ibm.cohort.cql.library.CqlVersionedIdentifier;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Condition;
 import org.hl7.fhir.r4.model.DateTimeType;
@@ -59,7 +59,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		String expression = "Observations Exist";
 
 		CqlEvaluationResult actual = evaluator.evaluate(
-				newDescriptor("Test1", "1.0.0", Format.ELM),
+				new CqlVersionedIdentifier("Test1", "1.0.0"),
 				null,
 				newPatientContext("123"),
 				Collections.singleton(expression)
@@ -92,7 +92,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		String expression = "Observations Exist";
 
 		CqlEvaluationResult actual = evaluator.evaluate(
-				newDescriptor("Test1", "1.0.0", Format.ELM),
+				new CqlVersionedIdentifier("Test1", "1.0.0"),
 				null,
 				newPatientContext("123"),
 				Collections.singleton(expression)
@@ -124,7 +124,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		String expression = "ObservationWithin30DaysOfCondition";
 
 		CqlEvaluationResult actual = evaluator.evaluate(
-				newDescriptor("Test2", "1.0.0", Format.ELM),
+				new CqlVersionedIdentifier("Test2", "1.0.0"),
 				null,
 				newPatientContext("123"),
 				Collections.singleton(expression)
@@ -156,7 +156,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		String expression = "ObservationWithin30DaysOfCondition";
 
 		CqlEvaluationResult actual = evaluator.evaluate(
-				newDescriptor("Test2", "1.0.0", Format.ELM),
+				new CqlVersionedIdentifier("Test2", "1.0.0"),
 				null,
 				newPatientContext("123"),
 				Collections.singleton(expression)
@@ -186,7 +186,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		String expression = "ValidEncounters2";
 
 		CqlEvaluationResult actual = evaluator.evaluate(
-				newDescriptor("Test3", "1.0.0", Format.ELM),
+				new CqlVersionedIdentifier("Test3", "1.0.0"),
 				null,
 				newPatientContext("123"),
 				Collections.singleton(expression)
@@ -216,7 +216,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		String expression = "ValidEncounters2";
 
 		CqlEvaluationResult actual = evaluator.evaluate(
-				newDescriptor("Test3", "1.0.0", Format.ELM),
+				new CqlVersionedIdentifier("Test3", "1.0.0"),
 				null,
 				newPatientContext("123"),
 				Collections.singleton(expression)
@@ -240,7 +240,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		String expression = "NotFollowedByCondition";
 
 		CqlEvaluationResult actual = evaluator.evaluate(
-				newDescriptor("Test4", "1.0.0", Format.ELM),
+				new CqlVersionedIdentifier("Test4", "1.0.0"),
 				null,
 				newPatientContext("123"),
 				Collections.singleton(expression)
@@ -264,7 +264,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		String expression = "NotFollowedByCondition";
 
 		CqlEvaluationResult actual = evaluator.evaluate(
-				newDescriptor("Test4", "1.0.0", Format.ELM),
+				new CqlVersionedIdentifier("Test4", "1.0.0"),
 				null,
 				newPatientContext("123"),
 				Collections.singleton(expression)
@@ -312,7 +312,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		String expression = "ValidObservation within 4 days";
 
 		CqlEvaluationResult actual = evaluator.evaluate(
-				newDescriptor("Test5", "1.0.0", Format.ELM),
+				new CqlVersionedIdentifier("Test5", "1.0.0"),
 				null,
 				newPatientContext("123"),
 				Collections.singleton(expression)
@@ -358,7 +358,7 @@ public class CqlTemporalTests extends BasePatientTest {
 		String expression = "ValidObservation not within 4 days";
 
 		CqlEvaluationResult actual = evaluator.evaluate(
-				newDescriptor("Test5", "1.0.0", Format.ELM),
+				new CqlVersionedIdentifier("Test5", "1.0.0"),
 				null,
 				newPatientContext("123"),
 				Collections.singleton(expression)
