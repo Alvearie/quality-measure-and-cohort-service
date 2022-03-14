@@ -27,12 +27,10 @@ import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.CqlTranslationResult;
 import com.ibm.cohort.cql.provider.ProviderBasedCqlLibrarySourceProvider;
 import org.apache.commons.io.IOUtils;
-import org.cqframework.cql.elm.execution.Library;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.DefaultConsole;
-import com.ibm.cohort.cql.OptimizedCqlLibraryReader;
 
 public class TranslationCLI {
 
@@ -86,10 +84,8 @@ public class TranslationCLI {
 				.setContent(content);
 		CqlTranslationResult result = translator.translate(library, new ProviderBasedCqlLibrarySourceProvider(libraryProvider));
 
-		Library translatedLibrary = OptimizedCqlLibraryReader.read(result.getMainLibrary().getContent());
-
 		out.println("Translated Library: ");
-		out.println(translatedLibrary.toString());
+		out.println(result.getMainLibrary().getContent());
 	}
 
 	public static void main(String[] args) throws Exception {
