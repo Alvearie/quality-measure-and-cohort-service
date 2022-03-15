@@ -12,8 +12,8 @@ import java.util.Objects;
 public class CqlVersionedIdentifier implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    protected String id;
-    protected String version;
+    private String id;
+    private String version;
 
     public CqlVersionedIdentifier(String id, String version) {
         this.id = id;
