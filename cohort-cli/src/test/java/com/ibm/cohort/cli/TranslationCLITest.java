@@ -23,6 +23,8 @@ import com.ibm.cohort.engine.BasePatientTest;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
 public class TranslationCLITest extends BasePatientTest {
+	
+	private static final String END_OF_TRANSLATED_LIBRARY = "</library>";
 
 	@Test
 	public void basicFunctionalityCheck() throws Exception {
@@ -38,7 +40,7 @@ public class TranslationCLITest extends BasePatientTest {
 		}
 		String output = new String(baos.toByteArray());
 		String[] lines = output.split("\r?\n");
-		assertEquals(2, lines.length);
+		assertEquals(END_OF_TRANSLATED_LIBRARY, lines[lines.length - 1]);
 	}
 
 	@Test
@@ -56,6 +58,6 @@ public class TranslationCLITest extends BasePatientTest {
 		}
 		String output = new String(baos.toByteArray());
 		String[] lines = output.split("\r?\n");
-		assertEquals(2, lines.length);
+		assertEquals(END_OF_TRANSLATED_LIBRARY, lines[lines.length - 1]);
 	}
 }
