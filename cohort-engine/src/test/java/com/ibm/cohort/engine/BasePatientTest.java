@@ -10,9 +10,7 @@ import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.evaluation.ContextNames;
 import com.ibm.cohort.cql.evaluation.CqlEvaluator;
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
-import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
-import com.ibm.cohort.cql.library.Format;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
@@ -73,13 +71,6 @@ public class BasePatientTest extends BaseFhirTest {
 		}
 
 		return evaluator;
-	}
-
-	protected CqlLibraryDescriptor newDescriptor(String id, String version, Format format) {
-		return new CqlLibraryDescriptor()
-				.setLibraryId(id)
-				.setVersion(version)
-				.setFormat(format);
 	}
 
 	protected Pair<String, String> newPatientContext(String patientId) {

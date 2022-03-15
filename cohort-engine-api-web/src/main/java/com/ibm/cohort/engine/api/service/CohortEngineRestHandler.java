@@ -942,7 +942,7 @@ public class CohortEngineRestHandler {
 		for (String patientId : patients) {
 			Pair<String, String> contextPair = new ImmutablePair<>(ContextNames.PATIENT, patientId);
 			CqlEvaluationResult result = evaluator.evaluate(
-					topLevelLibrary,
+					topLevelLibrary.getVersionedIdentifier(),
 					evaluationRequest.getParameters(),
 					contextPair,
 					expressions,

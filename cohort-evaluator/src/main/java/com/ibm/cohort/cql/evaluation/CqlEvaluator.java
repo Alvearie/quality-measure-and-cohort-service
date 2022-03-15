@@ -24,9 +24,9 @@ import org.opencds.cqf.cql.engine.execution.Context;
 
 import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
-import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryDeserializationException;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
+import com.ibm.cohort.cql.library.CqlVersionedIdentifier;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 
 public class CqlEvaluator {
@@ -66,38 +66,38 @@ public class CqlEvaluator {
     }
     
     public CqlEvaluationResult evaluate( CqlEvaluationRequest request ) {
-        return evaluate( request.getDescriptor(), request.getParameters(), Pair.of(request.getContextKey(), request.getContextValue()), request.getExpressionNames(), DEFAULT_CQL_DEBUG, null );
+        return evaluate( request.getDescriptor().getVersionedIdentifier(), request.getParameters(), Pair.of(request.getContextKey(), request.getContextValue()), request.getExpressionNames(), DEFAULT_CQL_DEBUG, null );
     }
     
     public CqlEvaluationResult evaluate( CqlEvaluationRequest request, CqlDebug debug ) {
-        return evaluate( request.getDescriptor(), request.getParameters(), Pair.of(request.getContextKey(), request.getContextValue()), request.getExpressionNames(), debug, null );
+        return evaluate( request.getDescriptor().getVersionedIdentifier(), request.getParameters(), Pair.of(request.getContextKey(), request.getContextValue()), request.getExpressionNames(), debug, null );
     }
 
     public CqlEvaluationResult evaluate( CqlEvaluationRequest request, CqlDebug debug, ZonedDateTime batchDateTime ) {
-        return evaluate( request.getDescriptor(), request.getParameters(), Pair.of(request.getContextKey(), request.getContextValue()), request.getExpressionNames(), debug, batchDateTime );
+        return evaluate( request.getDescriptor().getVersionedIdentifier(), request.getParameters(), Pair.of(request.getContextKey(), request.getContextValue()), request.getExpressionNames(), debug, batchDateTime );
     }
 
-    public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary) throws CqlLibraryDeserializationException {
-        return evaluate(topLevelLibrary, null);
+    public CqlEvaluationResult evaluate( CqlVersionedIdentifier topLevelLibraryIdentifier) throws CqlLibraryDeserializationException {
+        return evaluate(topLevelLibraryIdentifier, null);
     }
     
-    public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary, Pair<String,String> context) throws CqlLibraryDeserializationException {
-        return evaluate(topLevelLibrary, null, context, null, DEFAULT_CQL_DEBUG, null);
+    public CqlEvaluationResult evaluate( CqlVersionedIdentifier topLevelLibraryIdentifier, Pair<String,String> context) throws CqlLibraryDeserializationException {
+        return evaluate(topLevelLibraryIdentifier, null, context, null, DEFAULT_CQL_DEBUG, null);
     }
     
-    public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary, Pair<String,String> context, Set<String> expressions) throws CqlLibraryDeserializationException {
-        return evaluate(topLevelLibrary, null, context, expressions, DEFAULT_CQL_DEBUG, null);
+    public CqlEvaluationResult evaluate( CqlVersionedIdentifier topLevelLibraryIdentifier, Pair<String,String> context, Set<String> expressions) throws CqlLibraryDeserializationException {
+        return evaluate(topLevelLibraryIdentifier, null, context, expressions, DEFAULT_CQL_DEBUG, null);
     }
     
-    public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary, Map<String,Parameter> parameters, Pair<String,String> context) throws CqlLibraryDeserializationException {
-        return evaluate(topLevelLibrary, parameters, context, null, DEFAULT_CQL_DEBUG, null);
+    public CqlEvaluationResult evaluate( CqlVersionedIdentifier topLevelLibraryIdentifier, Map<String,Parameter> parameters, Pair<String,String> context) throws CqlLibraryDeserializationException {
+        return evaluate(topLevelLibraryIdentifier, parameters, context, null, DEFAULT_CQL_DEBUG, null);
     }
 
-    public CqlEvaluationResult evaluate( CqlLibraryDescriptor topLevelLibrary, Map<String,Parameter> parameters, Pair<String,String> context, Set<String> expressions) throws CqlLibraryDeserializationException {
-        return evaluate(topLevelLibrary, parameters, context, expressions, DEFAULT_CQL_DEBUG, null);
+    public CqlEvaluationResult evaluate( CqlVersionedIdentifier topLevelLibraryIdentifier, Map<String,Parameter> parameters, Pair<String,String> context, Set<String> expressions) throws CqlLibraryDeserializationException {
+        return evaluate(topLevelLibraryIdentifier, parameters, context, expressions, DEFAULT_CQL_DEBUG, null);
     }
 
-    public CqlEvaluationResult evaluate(CqlLibraryDescriptor topLevelLibrary, Map<String, Parameter> parameters,
+    public CqlEvaluationResult evaluate(CqlVersionedIdentifier topLevelLibraryIdentifier, Map<String, Parameter> parameters,
             Pair<String, String> context, Set<String> expressions, CqlDebug debug, ZonedDateTime batchDateTime)
             throws CqlLibraryDeserializationException {
         if (this.libraryProvider == null) {
@@ -109,15 +109,15 @@ public class CqlEvaluator {
         else if (this.terminologyProvider == null) {
             throw new IllegalArgumentException("Missing terminologyProvider");
         }
-        else if (topLevelLibrary == null) {
-            throw new IllegalArgumentException("Missing library");
+        else if (topLevelLibraryIdentifier == null) {
+            throw new IllegalArgumentException("Missing library identifier");
         }
 
         CqlContextFactory contextFactory = new CqlContextFactory();
         contextFactory.setExternalFunctionProvider(this.externalFunctionProvider);
         contextFactory.setCacheContexts(cacheContexts);
 
-        Context cqlContext = contextFactory.createContext(libraryProvider, topLevelLibrary,
+        Context cqlContext = contextFactory.createContext(libraryProvider, topLevelLibraryIdentifier,
                 terminologyProvider, dataProvider, batchDateTime, context, parameters, debug);
         
         if( expressions == null ) {

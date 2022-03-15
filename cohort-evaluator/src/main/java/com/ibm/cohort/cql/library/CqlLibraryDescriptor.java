@@ -13,6 +13,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class CqlLibraryDescriptor implements Serializable {
     private static final long serialVersionUID = 1L;
     
@@ -47,7 +49,11 @@ public class CqlLibraryDescriptor implements Serializable {
         return this;
     }
 
-    
+    @JsonIgnore
+    public CqlVersionedIdentifier getVersionedIdentifier() {
+        return new CqlVersionedIdentifier(libraryId, version);
+    }
+
     @Override
     public int hashCode() {
         return new HashCodeBuilder()

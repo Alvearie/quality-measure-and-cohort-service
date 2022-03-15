@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
-import com.ibm.cohort.cql.library.Format;
 import org.junit.Test;
 import org.opencds.cqf.cql.engine.runtime.DateTime;
 
@@ -25,8 +24,8 @@ import com.ibm.cohort.cql.data.CompositeCqlDataProvider;
 import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
 import com.ibm.cohort.cql.evaluation.CqlEvaluator;
-import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
+import com.ibm.cohort.cql.library.CqlVersionedIdentifier;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import com.ibm.cohort.cql.terminology.UnsupportedTerminologyProvider;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
@@ -44,8 +43,7 @@ public class DataRowDataProviderTest {
         }
         CqlLibraryProvider libraryProvider = new TranslatingCqlLibraryProvider(backingProvider, translator);
 
-        CqlLibraryDescriptor topLevelLibrary = new CqlLibraryDescriptor().setLibraryId("SampleLibrary")
-                .setVersion("1.0.0").setFormat(Format.CQL);
+        CqlVersionedIdentifier topLevelLibraryIdentifier = new CqlVersionedIdentifier("SampleLibrary", "1.0.0");
 
         CqlTerminologyProvider terminologyProvider = new UnsupportedTerminologyProvider();
 
@@ -67,7 +65,7 @@ public class DataRowDataProviderTest {
                 .setDataProvider(dataProvider)
                 .setCacheContexts(false);
 
-        CqlEvaluationResult result = evaluator.evaluate(topLevelLibrary);
+        CqlEvaluationResult result = evaluator.evaluate(topLevelLibraryIdentifier);
         assertEquals(2, result.getExpressionResults().size());
         
         Object perDefineResult = result.getExpressionResults().get("IsFemale");
