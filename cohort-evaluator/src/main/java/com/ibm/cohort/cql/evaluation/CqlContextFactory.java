@@ -27,9 +27,9 @@ import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.data.CqlSystemDataProvider;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
-import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryDeserializationException;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
+import com.ibm.cohort.cql.library.CqlVersionedIdentifier;
 import com.ibm.cohort.cql.library.ProviderBasedLibraryLoader;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 
@@ -45,19 +45,19 @@ public class CqlContextFactory {
         final public CqlLibraryProvider libraryProvider;
         final public CqlTerminologyProvider terminologyProvider;
         final public ExternalFunctionProvider externalFunctionProvider;
-        final public CqlLibraryDescriptor topLevelLibrary;
+        final public CqlVersionedIdentifier topLevelLibraryIdentifier;
         final public ZonedDateTime evaluationDateTime;
         final public Map<String,Parameter> parameters;
 
         public ContextCacheKey(
             CqlLibraryProvider libraryProvider,
-            CqlLibraryDescriptor topLevelLibrary,
+            CqlVersionedIdentifier topLevelLibraryIdentifier,
             CqlTerminologyProvider terminologyProvider,
             ExternalFunctionProvider externalFunctionProvider,
             ZonedDateTime evaluationDateTime,
             Map<String, Parameter> parameters ) {
             this.libraryProvider = libraryProvider;
-            this.topLevelLibrary = topLevelLibrary;
+            this.topLevelLibraryIdentifier = topLevelLibraryIdentifier;
             this.terminologyProvider = terminologyProvider;
             this.externalFunctionProvider = externalFunctionProvider;
             this.evaluationDateTime = evaluationDateTime;
@@ -71,7 +71,7 @@ public class CqlContextFactory {
             if( o2 instanceof ContextCacheKey ) {
                 ContextCacheKey k2 = (ContextCacheKey) o2;
 
-                isEqual = Objects.equals(topLevelLibrary, k2.topLevelLibrary) &&
+                isEqual = Objects.equals(topLevelLibraryIdentifier, k2.topLevelLibraryIdentifier) &&
                         Objects.equals( libraryProvider, k2.libraryProvider ) &&
                         Objects.equals( terminologyProvider, k2.terminologyProvider ) &&
                         Objects.equals( externalFunctionProvider, k2.externalFunctionProvider ) &&
@@ -85,7 +85,7 @@ public class CqlContextFactory {
 
         @Override
         public int hashCode() {
-            return Objects.hash(topLevelLibrary, libraryProvider, terminologyProvider, externalFunctionProvider, evaluationDateTime, parameters);
+            return Objects.hash(topLevelLibraryIdentifier, libraryProvider, terminologyProvider, externalFunctionProvider, evaluationDateTime, parameters);
         }
     }
 
@@ -132,31 +132,31 @@ public class CqlContextFactory {
     /**
      * Initialize a CQL Engine Context object with the provided settings.
      *
-     * @param libraryProvider     Provider for CQL library resources
-     * @param topLevelLibrary     Library descriptor for the top level library
-     * @param terminologyProvider Provider for CQL terminology resources
-     * @param dataProvider        Provider for data that underlies the evaluation
-     * @param evaluationDateTime  Date and time that will be considered "now" during
-     *                            CQL evaluation. If null, then ZonedDateTime.now()
-     *                            will be used each time a context object is
-     *                            initialized.
-     * @param contextData         Name-Value pair of context name + context value
-     *                            corresponding to the unique ID of an individual
-     *                            context that is being evaluated. In a Patient
-     *                            context, this would be the Patient ID, etc.
-     * @param parameters          Optional input parameters for the CQL evaluation
-     * @param debug               Debug configuration.
+     * @param libraryProvider           Provider for CQL library resources
+     * @param topLevelLibraryIdentifier Identifier for the top level library
+     * @param terminologyProvider       Provider for CQL terminology resources
+     * @param dataProvider              Provider for data that underlies the evaluation
+     * @param evaluationDateTime        Date and time that will be considered "now" during
+     *                                  CQL evaluation. If null, then ZonedDateTime.now()
+     *                                  will be used each time a context object is
+     *                                  initialized.
+     * @param contextData               Name-Value pair of context name + context value
+     *                                  corresponding to the unique ID of an individual
+     *                                  context that is being evaluated. In a Patient
+     *                                  context, this would be the Patient ID, etc.
+     * @param parameters                Optional input parameters for the CQL evaluation
+     * @param debug                     Debug configuration.
      * @return initialized Context object
      * @throws CqlLibraryDeserializationException if the specified library cannot be
      *                                            loaded
      */
-    public Context createContext(CqlLibraryProvider libraryProvider, CqlLibraryDescriptor topLevelLibrary,
+    public Context createContext(CqlLibraryProvider libraryProvider, CqlVersionedIdentifier topLevelLibraryIdentifier,
             CqlTerminologyProvider terminologyProvider, CqlDataProvider dataProvider, ZonedDateTime evaluationDateTime,
             Pair<String, String> contextData, Map<String, Parameter> parameters, CqlDebug debug)
             throws CqlLibraryDeserializationException {
         ContextCacheKey key = new ContextCacheKey(
                 libraryProvider,
-                topLevelLibrary,
+                topLevelLibraryIdentifier,
                 terminologyProvider,
                 this.externalFunctionProvider,
                 evaluationDateTime,
@@ -207,8 +207,8 @@ public class CqlContextFactory {
     protected Context createContext(ContextCacheKey contextKey) throws CqlLibraryDeserializationException {
         LibraryLoader libraryLoader = new ProviderBasedLibraryLoader(contextKey.libraryProvider);
 
-        VersionedIdentifier vid = new VersionedIdentifier().withId(contextKey.topLevelLibrary.getLibraryId())
-                .withVersion(contextKey.topLevelLibrary.getVersion());
+        VersionedIdentifier vid = new VersionedIdentifier().withId(contextKey.topLevelLibraryIdentifier.getId())
+                .withVersion(contextKey.topLevelLibraryIdentifier.getVersion());
 
         Library entryPoint = libraryLoader.load(vid);
         Context cqlContext;

@@ -18,7 +18,7 @@ import com.ibm.cohort.cql.evaluation.parameters.IntegerParameter;
 import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
-import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
+import com.ibm.cohort.cql.library.CqlVersionedIdentifier;
 import com.ibm.cohort.cql.library.Format;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -54,7 +54,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         String expression = "Female";
 
         CqlEvaluationResult actual = evaluator.evaluate(
-                newDescriptor("Test", "1.0.0", Format.ELM),
+                new CqlVersionedIdentifier("Test", "1.0.0"),
                 null,
                 newPatientContext("123"),
                 Collections.singleton(expression)
@@ -72,7 +72,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         String expression = "Female";
 
         CqlEvaluationResult actual = evaluator.evaluate(
-                newDescriptor("Test", "1.0.0", Format.ELM),
+                new CqlVersionedIdentifier("Test", "1.0.0"),
                 null,
                 newPatientContext("123"),
                 Collections.singleton(expression)
@@ -89,13 +89,8 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         CqlEvaluator evaluator = setupTestFor(patient, "cql.basic");
         String expression = "Female";
 
-        CqlLibraryDescriptor descriptor = new CqlLibraryDescriptor()
-                .setLibraryId("Test")
-                .setVersion("bad-version")
-                .setFormat(Format.ELM);
-
         evaluator.evaluate(
-                descriptor,
+                new CqlVersionedIdentifier("Test", "bad-version"),
                 null,
                 newPatientContext("123"),
                 Collections.singleton(expression)
@@ -112,7 +107,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         parameters.put("MaxAge", new IntegerParameter(40));
 
         CqlEvaluationResult actual = evaluator.evaluate(
-                newDescriptor("TestWithParams", "1.0.0", Format.ELM),
+                new CqlVersionedIdentifier("TestWithParams", "1.0.0"),
                 parameters,
                 newPatientContext("123"),
                 Collections.singleton(expression)
@@ -133,7 +128,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         parameters.put("MaxAge", new IntegerParameter(50));
 
         CqlEvaluationResult actual = evaluator.evaluate(
-                newDescriptor("TestWithParams", "1.0.0", Format.ELM),
+                new CqlVersionedIdentifier("TestWithParams", "1.0.0"),
                 parameters,
                 newPatientContext("123"),
                 Collections.singleton(expression)
@@ -151,7 +146,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         String expression = "Female";
 
         CqlEvaluationResult actual = evaluator.evaluate(
-                newDescriptor("TestWithParams", "1.0.0", Format.ELM),
+                new CqlVersionedIdentifier("TestWithParams", "1.0.0"),
                 null,
                 newPatientContext("123"),
                 Collections.singleton(expression)
@@ -172,7 +167,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         parameters.put("Unused", new IntegerParameter(100));
 
         CqlEvaluationResult actual = evaluator.evaluate(
-                newDescriptor("TestWithParams", "1.0.0", Format.ELM),
+                new CqlVersionedIdentifier("TestWithParams", "1.0.0"),
                 parameters,
                 newPatientContext("123"),
                 Collections.singleton(expression)
@@ -191,7 +186,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         String expression = "Female";
 
         CqlEvaluationResult actual = evaluator.evaluate(
-                newDescriptor("Test", "1.0.0", Format.ELM),
+                new CqlVersionedIdentifier("Test", "1.0.0"),
                 null,
                 new ImmutablePair<>("Patient", "123"),
                 Collections.singleton(expression)
@@ -223,7 +218,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         String expression = "HasActiveCondition";
 
         CqlEvaluationResult actual = evaluator.evaluate(
-                newDescriptor("TestStatusActive", "1.0.0", Format.CQL),
+                new CqlVersionedIdentifier("TestStatusActive", "1.0.0"),
                 null,
                 newPatientContext("123"),
                 Collections.singleton(expression)
@@ -262,7 +257,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         String expression = "ConditionInInterval";
 
         CqlEvaluationResult actual = evaluator.evaluate(
-                newDescriptor("TestDateQuery", "1.0.0", Format.ELM),
+                new CqlVersionedIdentifier("TestDateQuery", "1.0.0"),
                 parameters,
                 newPatientContext("123"),
                 Collections.singleton(expression)
@@ -305,7 +300,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
 
         CqlEvaluator evaluator = setupTestFor(patient, fhirConfig, "cql.basic");
         evaluator.evaluate(
-                newDescriptor("Test", "1.0.0", Format.ELM),
+                new CqlVersionedIdentifier("Test", "1.0.0"),
                 null,
                 newPatientContext("123"),
                 Collections.singleton("Female")
@@ -319,7 +314,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         String expression = "Female";
 
         evaluator.evaluate(
-                newDescriptor("NotCorrect", "1.0.0", Format.ELM),
+                new CqlVersionedIdentifier("NotCorrect", "1.0.0"),
                 null,
                 newPatientContext("123"),
                 Collections.singleton(expression)
@@ -334,7 +329,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         String expression = "QueryByGender";
 
         CqlEvaluationResult actual = evaluator.evaluate(
-                newDescriptor("TestUSCore", "1.0.0", Format.CQL),
+                new CqlVersionedIdentifier("TestUSCore", "1.0.0"),
                 null,
                 newPatientContext("123"),
                 Collections.singleton(expression)
@@ -358,7 +353,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         String expression = "IsEqual";
 
         CqlEvaluationResult actual = evaluator.evaluate(
-                newDescriptor("TestUOMCompare", "1.0.0", Format.CQL),
+                new CqlVersionedIdentifier("TestUOMCompare", "1.0.0"),
                 null,
                 newPatientContext("123"),
                 Collections.singleton(expression)
@@ -379,7 +374,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         String expression = "AreEquivalent";
 
         CqlEvaluationResult actual = evaluator.evaluate(
-                newDescriptor("TestUOMCompare", "1.0.0", Format.CQL),
+                new CqlVersionedIdentifier("TestUOMCompare", "1.0.0"),
                 null,
                 newPatientContext("123"),
                 Collections.singleton(expression)
@@ -400,7 +395,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         String expression = "UpConvert";
 
         CqlEvaluationResult actual = evaluator.evaluate(
-                newDescriptor("TestUOMCompare", "1.0.0", Format.CQL),
+                new CqlVersionedIdentifier("TestUOMCompare", "1.0.0"),
                 null,
                 newPatientContext("123"),
                 Collections.singleton(expression)
@@ -444,7 +439,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
 
         CqlEvaluator evaluator = setupTestFor(patient, "cql.valueset", ClasspathCqlLibraryProvider.FHIR_HELPERS_CLASSPATH);
         CqlEvaluationResult actual = evaluator.evaluate(
-                newDescriptor("Test", "1.0.0", Format.CQL),
+                new CqlVersionedIdentifier("Test", "1.0.0"),
                 newPatientContext("123")
         );
 
@@ -505,7 +500,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
 
         CqlException ex = assertThrows("Missing expected exception", CqlException.class, () -> {
             evaluator.evaluate(
-                    newDescriptor("TestUnsupported", "1.0.0", Format.CQL),
+                    new CqlVersionedIdentifier("TestUnsupported", "1.0.0"),
                     null,
                     newPatientContext("123"),
                     Collections.singleton(expression)
@@ -531,7 +526,7 @@ public class CqlEvaluatorIntegrationTest extends BasePatientTest {
         String expression = "LHS Starts RHS";
 
         CqlEvaluationResult actual = evaluator.evaluate(
-                newDescriptor("IntervalStartsInterval", "1.0.0", Format.CQL),
+                new CqlVersionedIdentifier("IntervalStartsInterval", "1.0.0"),
                 null,
                 newPatientContext("123"),
                 Collections.singleton(expression)

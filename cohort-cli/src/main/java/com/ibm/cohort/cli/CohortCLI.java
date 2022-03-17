@@ -35,6 +35,7 @@ import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
 import com.ibm.cohort.cql.library.CqlLibrary;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
+import com.ibm.cohort.cql.library.CqlVersionedIdentifier;
 import com.ibm.cohort.cql.library.MapCqlLibraryProvider;
 import com.ibm.cohort.cql.library.MapCqlLibraryProviderFactory;
 import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
@@ -188,10 +189,7 @@ public class CohortCLI extends BaseCLI {
 				parameters = parseParameterArguments(arguments.parameters);
 			}
 
-			CqlLibraryDescriptor libraryDescriptor = new CqlLibraryDescriptor()
-					.setLibraryId(arguments.libraryName)
-					.setVersion(arguments.libraryVersion)
-					.setFormat(Format.ELM);
+            CqlVersionedIdentifier libraryIdentifier = new CqlVersionedIdentifier(arguments.libraryName, arguments.libraryVersion);
 
 			List<Pair<String, String>> contexts;
 			if (arguments.contextIds == null || arguments.contextIds.isEmpty()) {
@@ -224,7 +222,7 @@ public class CohortCLI extends BaseCLI {
 					String contextLabel = context == null ? "null" : context.getRight();
 					out.println("Context: " + contextLabel);
 					CqlEvaluationResult result = wrapper.evaluate(
-							libraryDescriptor,
+							libraryIdentifier,
 							parameters,
 							context,
 							arguments.expressions,

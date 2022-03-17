@@ -85,7 +85,7 @@ public class CqlEvaluatorTest {
         
         Pair<String,String> context = Pair.of("Patient", "123");
         
-        CqlEvaluationResult result = evaluator.evaluate(libraryDescriptor, parameters, context);
+        CqlEvaluationResult result = evaluator.evaluate(libraryDescriptor.getVersionedIdentifier(), parameters, context);
         assertNotNull(result);
         assertEquals(3, result.getExpressionResults().size());
         assertEquals(true, result.getExpressionResults().get("Something"));
@@ -188,7 +188,7 @@ public class CqlEvaluatorTest {
                 .setLibraryProvider(translatingProvider)
                 .setCacheContexts(false);
         
-        CqlEvaluationResult result = evaluator.evaluate(libraryDescriptor, null, new HashSet<>(Collections.singletonList("OtherThing")));
+        CqlEvaluationResult result = evaluator.evaluate(libraryDescriptor.getVersionedIdentifier(), null, new HashSet<>(Collections.singletonList("OtherThing")));
         assertNotNull(result);
         assertEquals(1, result.getExpressionResults().size());
         assertEquals(false, result.getExpressionResults().get("OtherThing"));
