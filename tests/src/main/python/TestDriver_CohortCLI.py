@@ -66,7 +66,6 @@ class Test(object):
         for val in targets:
             callDetails.append("-c")
             callDetails.append(val)
-        print("callDetails: " + " ".join(callDetails))
         out = subprocess.Popen(callDetails, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         tmpout=""
         for line in out.stdout:
