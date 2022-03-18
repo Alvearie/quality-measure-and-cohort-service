@@ -44,7 +44,6 @@ class Test(object):
         for val in targets:
             callDetails.append("-c")
             callDetails.append(val)
-        print("callDetails: " + " ".join(callDetails))
         process = subprocess.Popen(callDetails, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         decodedOutput = set()
