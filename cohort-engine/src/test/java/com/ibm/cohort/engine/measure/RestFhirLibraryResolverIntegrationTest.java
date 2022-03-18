@@ -25,13 +25,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
-import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.FhirTestBase;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
-public class RestFhirLibraryResolverIntegrationTest extends BaseFhirTest {
+public class RestFhirLibraryResolverIntegrationTest extends FhirTestBase {
 
     private static final String TEST_URL = "http://somewhere.com/cds/Test|1.0.0";
     private static final String DEFAULT_VERSION = "1.0.0";

@@ -27,7 +27,7 @@ import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
-public class MeasureHelperTest extends BaseMeasureTest {
+public class MeasureHelperTest extends MeasureTestBase {
 	
 	private static final String DEFAULT_VERSION = "1.0.0";
 

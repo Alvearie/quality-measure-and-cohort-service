@@ -89,12 +89,10 @@ public class SparkCqlEvaluatorTest extends BaseSparkTest {
      * This is the code that was used to generate the test data used in the simple-job 
      * tests.
      */
-    @Test
-    @Ignore
     public void createPatientTestData() {
         int rowCount = 10;
         int groups = rowCount;
-        
+
         List<Patient> sourceData = new ArrayList<>();
         for(int i=0; i<rowCount; i++) {
             Patient pojo = Patient.randomInstance();

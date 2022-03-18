@@ -26,7 +26,7 @@ import org.hl7.fhir.r4.model.Patient;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
 
-public class BasePatientTest extends BaseFhirTest {
+public class PatientTestBase extends FhirTestBase {
 	protected CqlEvaluator setupTestFor(Patient patient, String firstPackage, String... packages) {
 		IBMFhirServerConfig fhirConfig = new IBMFhirServerConfig();
 		fhirConfig.setEndpoint("http://localhost:" + HTTP_PORT);

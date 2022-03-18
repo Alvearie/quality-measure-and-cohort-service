@@ -21,14 +21,14 @@ import org.junit.Test;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 
 import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
-import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.FhirTestBase;
 import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
-public class R4DataProviderFactoryTest extends BaseFhirTest {
+public class R4DataProviderFactoryTest extends FhirTestBase {
 
 	private static final String PATIENT_ID = "R4DataProviderFactoryTest-PatientId";
 

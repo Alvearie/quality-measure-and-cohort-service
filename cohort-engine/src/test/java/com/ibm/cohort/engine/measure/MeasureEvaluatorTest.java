@@ -86,7 +86,7 @@ import com.ibm.cohort.cql.evaluation.parameters.RatioParameter;
 import com.ibm.cohort.cql.evaluation.parameters.StringParameter;
 import com.ibm.cohort.cql.evaluation.parameters.TimeParameter;
 
-public class MeasureEvaluatorTest extends BaseMeasureTest {
+public class MeasureEvaluatorTest extends MeasureTestBase {
 
 	public static final String DEFAULT_VERSION = "1.0.0";
 	public static final String ELM_MIME_TYPE = "application/elm+xml";
@@ -295,8 +295,8 @@ public class MeasureEvaluatorTest extends BaseMeasureTest {
 		List<MeasureReport> measureReports = evaluator.evaluatePatientMeasures(patient.getId(), measureContexts);
 		assertEquals(2, measureReports.size());
 		// Make sure reports have measure references with meta version included
-		assertEquals("Measure/" + measure1Name + "/_history/" + BaseMeasureTest.MEASURE_META_VERSION_ID, measureReports.get(0).getMeasure());
-		assertEquals("Measure/" + measure2Name + "/_history/" + BaseMeasureTest.MEASURE_META_VERSION_ID, measureReports.get(1).getMeasure());
+		assertEquals("Measure/" + measure1Name + "/_history/" + MeasureTestBase.MEASURE_META_VERSION_ID, measureReports.get(0).getMeasure());
+		assertEquals("Measure/" + measure2Name + "/_history/" + MeasureTestBase.MEASURE_META_VERSION_ID, measureReports.get(1).getMeasure());
 	}
 	
 	@Test

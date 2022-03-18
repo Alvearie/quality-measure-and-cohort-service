@@ -19,13 +19,13 @@ import org.hl7.fhir.r4.model.Measure;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.FhirTestBase;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
-public class RestFhirMeasureResolverIntegrationTest extends BaseFhirTest {
+public class RestFhirMeasureResolverIntegrationTest extends FhirTestBase {
 
 	FhirResourceResolver<Measure> resolver;
 

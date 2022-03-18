@@ -95,12 +95,14 @@ public class ValueSetUtil {
 						}
 						break;
 					case "url":
+						//fallthrough
 						url = value.endsWith("/") ? value : value + "/";
 					case "definition version":
 						valueSet.setVersion(value);
 						break;
 					case "code":
 						inCodesSection = true;
+						break;
 					default:
 						break;
 				}

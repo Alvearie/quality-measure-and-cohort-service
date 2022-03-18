@@ -26,7 +26,7 @@ import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.FhirTestBase;
 import com.ibm.cohort.engine.api.service.model.EnhancedHealthCheckInput;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.watson.common.service.base.ServiceBaseUtility;
@@ -35,7 +35,7 @@ import com.ibm.watson.common.service.base.security.TenantManager;
 import com.ibm.websphere.jaxrs20.multipart.IAttachment;
 import com.ibm.websphere.jaxrs20.multipart.IMultipartBody;
 
-public class CohortHandlerBaseTest extends BaseFhirTest{
+public class CohortHandlerTestBase extends FhirTestBase {
 
 	@Mock
 	protected static HttpServletRequest mockRequestContext;
@@ -46,7 +46,7 @@ public class CohortHandlerBaseTest extends BaseFhirTest{
 	
 	protected List<String> httpHeadersList = Arrays.asList("Basic dXNlcm5hbWU6cGFzc3dvcmQ=");
 	
-	public CohortHandlerBaseTest() {
+	public CohortHandlerTestBase() {
 		// TODO Auto-generated constructor stub
 	}
 

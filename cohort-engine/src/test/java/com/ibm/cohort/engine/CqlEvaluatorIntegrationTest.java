@@ -19,7 +19,6 @@ import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
 import com.ibm.cohort.cql.library.CqlVersionedIdentifier;
-import com.ibm.cohort.cql.library.Format;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.hl7.fhir.instance.model.api.IBaseResource;
@@ -45,7 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CqlEvaluatorIntegrationTest extends BasePatientTest {
+public class CqlEvaluatorIntegrationTest extends PatientTestBase {
 
     @Test
     public void testPatientIsFemaleTrue() throws Exception {

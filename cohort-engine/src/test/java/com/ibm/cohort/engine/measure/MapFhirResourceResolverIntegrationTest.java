@@ -22,9 +22,9 @@ import org.hl7.fhir.r4.model.Measure;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.FhirTestBase;
 
-public class MapFhirResourceResolverIntegrationTest extends BaseFhirTest {
+public class MapFhirResourceResolverIntegrationTest extends FhirTestBase {
 
     private MapFhirResourceResolver<Measure, Identifier> resolver;
 

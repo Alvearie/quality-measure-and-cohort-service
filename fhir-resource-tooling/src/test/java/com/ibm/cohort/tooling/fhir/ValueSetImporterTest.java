@@ -37,10 +37,10 @@ import org.mockito.Mockito;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.FhirTestBase;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
-public class ValueSetImporterTest extends BaseFhirTest {
+public class ValueSetImporterTest extends FhirTestBase {
 
 	private final String defaultInputFile = "src/test/resources/2.16.840.1.113762.1.4.1114.7.xlsx";
 	private final String valueSetIdentifier = "2.16.840.1.113762.1.4.1114.7";

@@ -72,7 +72,7 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
-public class BaseFhirTest {
+public class FhirTestBase {
 
 	public static String DEFAULT_RESOURCE_VERSION = "1.0.0";
 	

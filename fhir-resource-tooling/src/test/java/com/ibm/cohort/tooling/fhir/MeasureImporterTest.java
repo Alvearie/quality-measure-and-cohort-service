@@ -31,11 +31,11 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.FhirTestBase;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig.LogInfo;
 
-public class MeasureImporterTest extends BaseFhirTest {
+public class MeasureImporterTest extends FhirTestBase {
 	@Test
 	public void testImportBundleSuccess200() throws Exception {
 		
