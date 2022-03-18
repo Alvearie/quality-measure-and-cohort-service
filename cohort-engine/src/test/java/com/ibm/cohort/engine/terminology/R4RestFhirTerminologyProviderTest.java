@@ -29,9 +29,9 @@ import org.opencds.cqf.cql.engine.runtime.Code;
 import org.opencds.cqf.cql.engine.terminology.CodeSystemInfo;
 import org.opencds.cqf.cql.engine.terminology.ValueSetInfo;
 
-import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.FhirTestBase;
 
-public class R4RestFhirTerminologyProviderTest extends BaseFhirTest {
+public class R4RestFhirTerminologyProviderTest extends FhirTestBase {
 	private static final String TEST_DISPLAY = "Display";
 	private static final String TEST_CODE = "425178004";
 	private static final String TEST_SYSTEM = "http://snomed.info/sct";

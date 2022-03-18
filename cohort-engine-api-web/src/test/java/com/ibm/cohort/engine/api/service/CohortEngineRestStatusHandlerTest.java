@@ -26,7 +26,7 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.FhirTestBase;
 import com.ibm.cohort.engine.api.service.model.EnhancedHealthCheckResults;
 import com.ibm.cohort.engine.api.service.model.FhirServerConnectionStatusInfo.FhirConnectionStatus;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
@@ -35,7 +35,7 @@ import com.ibm.watson.common.service.base.security.TenantManager;
 import com.ibm.watson.service.base.model.ServiceStatus;
 import com.ibm.watson.service.base.model.ServiceStatus.ServiceState;
 
-public class CohortEngineRestStatusHandlerTest extends CohortHandlerBaseTest {
+public class CohortEngineRestStatusHandlerTest extends  {
 	// Need to add below to get jacoco to work with powermockito
 	@Rule
 	public PowerMockRule rule = new PowerMockRule();
@@ -57,7 +57,7 @@ public class CohortEngineRestStatusHandlerTest extends CohortHandlerBaseTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() {
-		BaseFhirTest.setUpBeforeClass();
+		FhirTestBase.setUpBeforeClass();
 		cerSH = new CohortEngineRestStatusHandler();
 	}
 

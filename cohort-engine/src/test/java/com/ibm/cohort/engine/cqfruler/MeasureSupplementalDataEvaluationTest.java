@@ -32,9 +32,9 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.opencds.cqf.cql.engine.runtime.Code;
 
-import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.FhirTestBase;
 
-public class MeasureSupplementalDataEvaluationTest extends BaseFhirTest {
+public class MeasureSupplementalDataEvaluationTest extends FhirTestBase {
 	private static final String MALE_CODE = "M";
 	private static final String FEMALE_CODE = "F";
 	private static final String WHITE_CODE = "2106-3";

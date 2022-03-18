@@ -36,9 +36,9 @@ import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 import com.beust.jcommander.ParameterException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.cql.helpers.CanonicalHelper;
-import com.ibm.cohort.engine.measure.BaseMeasureTest;
+import com.ibm.cohort.engine.measure.MeasureTestBase;
 
-public class MeasureCLITest extends BaseMeasureTest {
+public class MeasureCLITest extends MeasureTestBase {
 	private static final String TMP_MEASURE_CONFIG_FILE_LOCATION = "target/measure-configurations.json";
 	
 	@Test

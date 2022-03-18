@@ -30,7 +30,7 @@ import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import java.util.Calendar;
 import java.util.Map;
 
-public class CqlTemporalTests extends BasePatientTest {
+public class CqlTemporalTests extends PatientTestBase {
 
 	private final Condition CONDITION_IN = getCondition(2015, 1, 10);
 

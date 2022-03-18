@@ -11,18 +11,13 @@ package com.ibm.cohort.cli;
 import static org.junit.Assert.*;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintStream;
-import java.io.Writer;
 
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.BasePatientTest;
-import com.ibm.cohort.fhir.client.config.FhirServerConfig;
+import com.ibm.cohort.engine.PatientTestBase;
 
-public class TranslationCLITest extends BasePatientTest {
+public class TranslationCLITest extends PatientTestBase {
 	
 	private static final String END_OF_TRANSLATED_LIBRARY = "</library>";
 

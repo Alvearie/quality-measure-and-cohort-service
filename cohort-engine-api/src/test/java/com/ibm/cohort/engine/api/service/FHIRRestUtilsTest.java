@@ -124,28 +124,25 @@ public class FHIRRestUtilsTest {
 	@PrepareForTest({ FHIRRestUtils.class, DefaultFhirClientBuilder.class })
 	@Test
 	public void testGetFHIRClient() throws Exception {
+		String fhirEndpoint = "fhirEndpoint";
+		FhirContext mockFhirContext = Mockito.mock(FhirContext.class);
+		PowerMockito.whenNew(FhirContext.class).withAnyArguments().thenReturn(mockFhirContext);
 
-		DefaultFhirClientBuilder mockDefaultFhirClientBuilder = Mockito.mock(DefaultFhirClientBuilder.class);
-		PowerMockito.whenNew(DefaultFhirClientBuilder.class).withAnyArguments()
-				.thenReturn(mockDefaultFhirClientBuilder);
-		when(mockDefaultFhirClientBuilder.createFhirClient(ArgumentMatchers.any())).thenReturn(null);
+		IGenericClient fhirClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, "userName", "password", "", "fhirTenantId", "", "fhirDataSourceId");
 
-		FHIRRestUtils.getFHIRClient("fhirEndpoint", "userName", "password", "", "fhirTenantId", "", "fhirDataSourceId");
-
+		assertEquals(fhirClient.getServerBase(), fhirEndpoint);
 	}
 
 	@PrepareForTest({ FHIRRestUtils.class, DefaultFhirClientBuilder.class })
 	@Test
 	public void testGetFHIRClientEmptyHeaders() throws Exception {
+		String fhirEndpoint = "fhirEndpoint";
+		FhirContext mockFhirContext = Mockito.mock(FhirContext.class);
+		PowerMockito.whenNew(FhirContext.class).withAnyArguments().thenReturn(mockFhirContext);
 
-		DefaultFhirClientBuilder mockDefaultFhirClientBuilder = Mockito.mock(DefaultFhirClientBuilder.class);
-		PowerMockito.whenNew(DefaultFhirClientBuilder.class).withAnyArguments()
-				.thenReturn(mockDefaultFhirClientBuilder);
-		when(mockDefaultFhirClientBuilder.createFhirClient(ArgumentMatchers.any())).thenReturn(null);
+		IGenericClient fhirClient = FHIRRestUtils.getFHIRClient(fhirEndpoint, "userName", "password", null, "fhirTenantId", null, "fhirDataSourceId");
 
-		FHIRRestUtils.getFHIRClient("fhirEndpoint", "userName", "password", null, "fhirTenantId", null,
-				"fhirDataSourceId");
-
+		assertEquals(fhirClient.getServerBase(), fhirEndpoint);
 	}
 
 	@PrepareForTest({ FHIRRestUtils.class, DefaultFhirClientBuilder.class })

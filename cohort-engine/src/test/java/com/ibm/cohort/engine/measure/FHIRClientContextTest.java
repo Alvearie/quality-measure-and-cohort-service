@@ -7,14 +7,14 @@
 package com.ibm.cohort.engine.measure;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
-import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.FhirTestBase;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Patient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class FHIRClientContextTest extends BaseFhirTest {
+public class FHIRClientContextTest extends FhirTestBase {
 
 	private static final String PATIENT_ID = "FHIRClientContextTest-PatientId";
 

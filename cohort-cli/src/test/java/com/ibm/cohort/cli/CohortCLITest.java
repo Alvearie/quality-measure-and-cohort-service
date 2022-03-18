@@ -33,12 +33,12 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.BasePatientTest;
+import com.ibm.cohort.engine.PatientTestBase;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
 import ca.uhn.fhir.parser.IParser;
 
-public class CohortCLITest extends BasePatientTest {
+public class CohortCLITest extends PatientTestBase {
 	@Test
 	public void testMainWithParams() throws Exception {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);

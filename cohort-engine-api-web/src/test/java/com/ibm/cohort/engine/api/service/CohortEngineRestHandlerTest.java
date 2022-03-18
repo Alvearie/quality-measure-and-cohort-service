@@ -84,7 +84,7 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
  * Junit class to test the CohortEngineRestHandler.
  */
 
-public class CohortEngineRestHandlerTest extends CohortHandlerBaseTest {
+public class CohortEngineRestHandlerTest extends CohortHandlerTestBase {
 	// Need to add below to get jacoco to work with powermockito
 	@Rule
 	public PowerMockRule rule = new PowerMockRule();

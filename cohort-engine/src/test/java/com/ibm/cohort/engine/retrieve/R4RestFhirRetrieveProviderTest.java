@@ -17,12 +17,12 @@ import org.junit.Test;
 import org.opencds.cqf.cql.engine.fhir.searchparam.SearchParameterResolver;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
-import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.FhirTestBase;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
-public class R4RestFhirRetrieveProviderTest extends BaseFhirTest {
+public class R4RestFhirRetrieveProviderTest extends FhirTestBase {
 
 	R4RestFhirRetrieveProvider provider = null;
 	

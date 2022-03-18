@@ -33,7 +33,7 @@ import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 
-public class R4MeasureEvaluatorBuilderTest extends BaseMeasureTest {
+public class R4MeasureEvaluatorBuilderTest extends MeasureTestBase {
 
 	private static final String MARITAL_STATUS_SYSTEM = "http://hl7.org/fhir/ValueSet/marital-status";
 	private static final String MARRIED = "M";

@@ -13,14 +13,14 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.FhirTestBase;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException;
 
-public class FhirClientTimeoutTest extends BaseFhirTest {
+public class FhirClientTimeoutTest extends FhirTestBase {
 
 	private static final String PATIENT_ID = "TimeoutTest-PatientId";
 	private static final int PATIENT_RETRIEVAL_DELAY_MILLIS = 200;

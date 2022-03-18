@@ -29,13 +29,13 @@ import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Type;
 import org.junit.Test;
 
-import com.ibm.cohort.engine.BaseFhirTest;
+import com.ibm.cohort.engine.FhirTestBase;
 import com.ibm.cohort.engine.cdm.CDMConstants;
 import com.ibm.cohort.engine.cqfruler.CDMContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceHelper;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
 
-public class CDMMeasureEvaluationTest extends BaseFhirTest {
+public class CDMMeasureEvaluationTest extends FhirTestBase {
 	@Test
 	public void testDefinesOnMeasureReport() {
 		MeasureReport report = new MeasureReport();
