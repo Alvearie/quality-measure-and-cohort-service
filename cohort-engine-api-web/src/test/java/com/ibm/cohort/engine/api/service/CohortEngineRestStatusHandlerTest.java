@@ -35,7 +35,7 @@ import com.ibm.watson.common.service.base.security.TenantManager;
 import com.ibm.watson.service.base.model.ServiceStatus;
 import com.ibm.watson.service.base.model.ServiceStatus.ServiceState;
 
-public class CohortEngineRestStatusHandlerTest extends  {
+public class CohortEngineRestStatusHandlerTest extends CohortHandlerTestBase {
 	// Need to add below to get jacoco to work with powermockito
 	@Rule
 	public PowerMockRule rule = new PowerMockRule();
