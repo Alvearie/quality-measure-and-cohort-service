@@ -18,6 +18,11 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+          queries: +security-extended
+          languages: java
       - name: Cache Maven packages
         uses: actions/cache@v1
         with:
@@ -28,4 +33,5 @@ jobs:
         run: mvn clean install -T 2 -f cohort-parent
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
