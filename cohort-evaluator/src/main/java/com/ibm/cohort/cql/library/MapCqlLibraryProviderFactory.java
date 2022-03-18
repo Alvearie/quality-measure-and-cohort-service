@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipInputStream;
 
 /**
@@ -39,11 +40,15 @@ public class MapCqlLibraryProviderFactory {
     }
 
     public CqlLibraryProvider fromDirectory(Path directory, String... searchPaths) throws IOException {
-        Map<CqlLibraryDescriptor, CqlLibrary> map = Files.walk(directory, FileVisitOption.FOLLOW_LINKS)
-                .filter(x -> PathHelper.isInSearchPaths(directory, x, searchPaths))
-                .filter(x -> CqlLibraryHelpers.isFileReadable(x.toString()))
-                .map(this::toCqlLibrary)
-                .collect(Collectors.toMap(CqlLibrary::getDescriptor, Function.identity()));
+        Map<CqlLibraryDescriptor, CqlLibrary> map = new HashMap<>();
+
+        try (Stream<Path> stream = Files.walk(directory, FileVisitOption.FOLLOW_LINKS)) {
+            map = stream
+                    .filter(x -> PathHelper.isInSearchPaths(directory, x, searchPaths))
+                    .filter(x -> CqlLibraryHelpers.isFileReadable(x.toString()))
+                    .map(this::toCqlLibrary)
+                    .collect(Collectors.toMap(CqlLibrary::getDescriptor, Function.identity()));
+        }
 
         return new MapCqlLibraryProvider(map);
     }

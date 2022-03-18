@@ -30,6 +30,7 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
+import java.util.stream.Stream;
 import java.util.zip.ZipInputStream;
 
 /**
@@ -60,14 +61,16 @@ public class R4QualityMeasureResolverFactory {
         ResourceFieldHandler<Measure, Identifier> measureFieldHandler = new R4MeasureResourceFieldHandler();
         MapFhirResourceResolver<Measure, Identifier> measureResolver = createResolver(measureFieldHandler);
 
-        Iterator<Path> pathStream = Files.walk(directory, FileVisitOption.FOLLOW_LINKS)
-                .filter(x -> HapiUtils.canParseFile(x.toString(), parser))
-                .filter(x -> PathHelper.isInSearchPaths(directory, x, searchPaths))
-                .iterator();
-        while(pathStream.hasNext()) {
-            Path path = pathStream.next();
-            String content = readFile(path);
-            consumeFile(path.toString(), content, libraryFieldHandler, libraryResolver, measureFieldHandler, measureResolver);
+        try (Stream<Path> stream = Files.walk(directory, FileVisitOption.FOLLOW_LINKS)) {
+            Iterator<Path> pathStream = stream
+                    .filter(x -> HapiUtils.canParseFile(x.toString(), parser))
+                    .filter(x -> PathHelper.isInSearchPaths(directory, x, searchPaths))
+                    .iterator();
+            while (pathStream.hasNext()) {
+                Path path = pathStream.next();
+                String content = readFile(path);
+                consumeFile(path.toString(), content, libraryFieldHandler, libraryResolver, measureFieldHandler, measureResolver);
+            }
         }
 
         return new R4QualityMeasureResolvers(libraryResolver, measureResolver);
