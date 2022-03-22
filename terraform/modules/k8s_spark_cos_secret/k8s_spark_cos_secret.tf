@@ -29,29 +29,3 @@ resource "kubernetes_secret" "spark_cos_secret" {
     res-conf-apikey = data.ibm_resource_key.cos_manager.credentials.apikey
   }
 }
-
-# The kubernetes persistence volume claim that is backed by COS and will
-# be used to store configuration data.
-resource "kubernetes_persistent_volume_claim" "pvc" {
-  metadata {
-    name = var.config_volume_claim_name
-    namespace = var.spark_cos_secret_namespace
-    annotations = {
-      "ibm.io/auto-create-bucket" : "true"
-      "ibm.io/auto-delete-bucket" : "false"
-      "ibm.io/auto_cache" : "true"
-      "ibm.io/bucket" : var.config_bucket_name
-      "ibm.io/secret-name" : kubernetes_secret.spark_cos_secret.metadata[0].name
-      "ibm.io/set-access-policy" : "true"
-    }
-  }
-  spec {
-    storage_class_name = "ibmc-s3fs-standard-regional"
-    access_modes       = ["ReadWriteMany"]
-    resources {
-      requests = {
-        storage = "200Mi"
-      }
-    }
-  }
-}

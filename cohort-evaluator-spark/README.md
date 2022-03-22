@@ -12,6 +12,8 @@ This project is built by the main IBM Cloud Toolchain which produces a docker im
 
 Once the project has been sucessfully built (e.g. `mvn clean install`), a sample Spark job submission is provided to test the job under the IBM Cloud Kubernetes Service. You must first download and install an appropriate Apache Spark distribution (see https://spark.apache.org/releases/spark-release-3-1-2.html) and then set an environment variable SPARK_HOME that points to the root of the install. From this project, you can then execute `mvn exec:java` to run the sample Spark submission.
 
-The example job assumes that there is configuration data mounted into the Kubernetes driver and executor pods from a Kubernetes Persistent Volume Claim (PVC). The test cluster is configured with the cohort-config PVC backed by a correspondingly named bucket in Cloud Object Store (COS). There are example templates for creating these resources under kubernetes-setup. The data for the example job is assumed to be read from COS directly via hadoop and the AWS client. This is configured by mapping credentials from a Kubernetes secret into well-known environment variables names within the Spark driver and executor pods. 
+The example job assumes that there is Cloud Object Store (COS) bucket that contains the configuration data.
+The data for the example job is assumed to be read from COS directly via hadoop and the AWS client.
+This is configured by mapping credentials from a Kubernetes secret into well-known environment variables names within the Spark driver and executor pods. 
 
 There are some Maven properties provided that can be used to override resource and file names as needed. See the pom.xml for full details.
