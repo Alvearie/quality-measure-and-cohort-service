@@ -21,6 +21,7 @@ import java.io.Writer;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Condition;
+import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Library;
@@ -550,6 +551,54 @@ public class CohortCLITest extends PatientTestBase {
 			Assert.assertTrue(output.contains("Expression: \"ValidateMath\", Result: true"));
 
 			verify(0, getRequestedFor(urlEqualTo("/Patient/123?_format=json")));
+		} finally {
+			tmpFile.delete();
+		}
+	}
+
+	@Test
+	public void testMainNonPatientContext() throws Exception {
+		Encounter encounter = new Encounter();
+		encounter.setId("123");
+		encounter.setStatus(Encounter.EncounterStatus.FINISHED);
+
+		Encounter otherEncounter = new Encounter();
+		otherEncounter.setId("234");
+		otherEncounter.setStatus(Encounter.EncounterStatus.FINISHED);
+
+		FhirServerConfig fhirConfig = getFhirServerConfig();
+		String resourcePath = "/Encounter?_count=1000&_format=json";
+		mockFhirResourceRetrieval(resourcePath, getFhirParser(), makeBundle(encounter, otherEncounter));
+		setupTestFor(encounter, fhirConfig, "cql.encounter-context");
+
+		File tmpFile = new File("target/fhir-stub.json");
+		ObjectMapper om = new ObjectMapper();
+		try (Writer w = new FileWriter(tmpFile)) {
+			w.write(om.writeValueAsString(fhirConfig));
+		}
+
+		try {
+			PrintStream originalOut = System.out;
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			try (PrintStream captureOut = new PrintStream(baos)) {
+				System.setOut(captureOut);
+				CohortCLI.main(new String[] {
+					"-d", tmpFile.getAbsolutePath(),
+					"-t", tmpFile.getAbsolutePath(),
+					"-f", "src/test/resources/cql/encounter-context",
+					"-l", "EncounterContext",
+					"-v", "1.0.0",
+					"-e", "ValidEncounterCount",
+					"-n", "Encounter"
+				});
+			} finally {
+				System.setOut(originalOut);
+			}
+
+			String output = baos.toString();
+			assertTrue(output.contains("Expression: \"ValidEncounterCount\", Result: 2"));
+
+			verify(1, getRequestedFor(urlEqualTo(resourcePath)));
 		} finally {
 			tmpFile.delete();
 		}
