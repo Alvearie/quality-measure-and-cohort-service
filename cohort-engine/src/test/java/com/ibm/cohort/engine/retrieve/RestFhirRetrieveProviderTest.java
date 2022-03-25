@@ -103,19 +103,6 @@ public class RestFhirRetrieveProviderTest extends FhirTestBase {
 		
 		verify(getRequestedFor(urlMatching("/Condition\\?code%3Ain=MyValueSet&subject=Patient%2F123&_format=json")));
 	}
-
-/*	@Test
-	public void when_search_page_size_is_set___then_count_parameter_is_included_in_url() {
-		mockFhirResourceRetrieval("/Condition?code%3Ain=MyValueSet&subject=Patient%2F123&_format=json", new Bundle());
-
-		provider.setExpandValueSets(false);
-		provider.setPageSize(3);
-		provider.retrieve("Patient", "subject", "123", "Condition",
-				null, "code", null, "MyValueSet",
-				null, null, null, null);
-
-		verify(getRequestedFor(urlMatching("/Condition\\?code%3Ain=MyValueSet&subject=Patient%2F123&_format=json")));
-	}*/
 	
 	protected ValueSet makeValueSet(String name, String system, String... codes) {
 		ValueSet vs = new ValueSet();
