@@ -127,14 +127,6 @@ variable "spark_cos_resource_key_writer" {
   description = "IBM Resource Key name for Writer role in COS configuration bucket"
   type = string
 }
-variable "config_volume_claim_name" {
-  description = "Kubernetes PVC resource name for configuration data"
-  type = string
-}
-variable "config_bucket_name" {
-  description = "COS bucket for configuration storing configuration data"
-  type = string
-}
 
 ##############################################################################
 #
