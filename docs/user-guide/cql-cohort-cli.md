@@ -66,5 +66,6 @@ Usage: cql-engine [options]
 
 !>
 Extra caution should be taken when overriding the default `--context-name`. <br>
-There are a couple of non-`FHIR` context names that are valid (`Population` and `Unspecified`), <br>
-but in general this parameter needs to be a valid `FHIR` resource. <br>
+There are a few non-`FHIR` context names that are valid as a part of the [DBCG implementation](https://github.com/DBCG/cql_engine/blob/v1.5.4/engine.fhir/src/main/java/org/opencds/cqf/cql/engine/fhir/model/FhirModelResolver.java#L93): <br>
+`Population`, `Unfiltered`, and `Unspecified`. <br>
+In general, however, this parameter needs to be a valid `FHIR` resource. <br>
