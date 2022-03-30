@@ -12,3 +12,4 @@
   - [Using the Java APIs](user-guide/java-api-dev-guide.md)
   - [FHIR Resource Tooling](user-guide/fhir-resource-tooling.md)
   - [CQL Translation CLI](user-guide/cql-translation-cli.md)
+  - [CQL Cohort CLI](user-guide/cql-cohort-cli.md)
