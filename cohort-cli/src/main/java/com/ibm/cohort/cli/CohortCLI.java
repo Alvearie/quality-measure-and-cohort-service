@@ -91,6 +91,10 @@ public class CohortCLI extends BaseCLI {
 				"--context-id" }, description = "Unique ID for one or more context objects (e.g. Patient IDs)")
 		private List<String> contextIds;
 
+		@Parameter(names = { "-n",
+				"--context-name" }, description = "Context Object Name")
+		private String contextName = ContextNames.PATIENT;
+
 		@Parameter(names = { "-p",
 				"--parameters" }, description = "Parameter value(s) in format name:type:value where value can contain additional parameterized elements separated by comma. Multiple parameters must be specified as multiple -p options", splitter = NoSplittingSplitter.class, required = false)
 		private List<String> parameters;
@@ -198,7 +202,7 @@ public class CohortCLI extends BaseCLI {
 			}
 			else {
 				contexts = arguments.contextIds.stream()
-						.map(x -> new ImmutablePair<>(ContextNames.PATIENT, x))
+						.map(x -> new ImmutablePair<>(arguments.contextName, x))
 						.collect(Collectors.toList());
 			}
 

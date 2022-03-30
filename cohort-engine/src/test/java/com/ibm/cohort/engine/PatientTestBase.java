@@ -21,6 +21,7 @@ import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hl7.fhir.r4.model.DomainResource;
 import org.hl7.fhir.r4.model.Patient;
 
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
@@ -37,10 +38,10 @@ public class PatientTestBase extends FhirTestBase {
 		return setupTestFor(patient, fhirConfig, firstPackage, packages);
 	}
 
-	protected CqlEvaluator setupTestFor(Patient patient, FhirServerConfig fhirConfig, String firstPackage, String... packages) {
+	protected CqlEvaluator setupTestFor(DomainResource resource, FhirServerConfig fhirConfig, String firstPackage, String... packages) {
 
 		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
-		mockFhirResourceRetrieval(patient);
+		mockFhirResourceRetrieval(resource);
 
 		CqlEvaluator evaluator = null;
 		if (firstPackage != null) {
