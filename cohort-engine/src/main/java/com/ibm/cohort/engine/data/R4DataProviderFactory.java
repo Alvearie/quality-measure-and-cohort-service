@@ -13,6 +13,7 @@ import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.data.DefaultCqlDataProvider;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
+import org.opencds.cqf.cql.engine.fhir.retrieve.RestFhirRetrieveProvider;
 import org.opencds.cqf.cql.engine.fhir.searchparam.SearchParameterResolver;
 import org.opencds.cqf.cql.engine.model.ModelResolver;
 import org.opencds.cqf.cql.engine.retrieve.RetrieveProvider;
@@ -20,7 +21,6 @@ import org.opencds.cqf.cql.engine.retrieve.RetrieveProvider;
 import com.ibm.cohort.engine.measure.cache.CachingRetrieveProvider;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;
-import com.ibm.cohort.engine.retrieve.R4RestFhirRetrieveProvider;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
@@ -110,9 +110,11 @@ public class R4DataProviderFactory {
 			Integer pageSize
 	) {
 		SearchParameterResolver resolver = new SearchParameterResolver(client.getFhirContext());
-		R4RestFhirRetrieveProvider baseRetrieveProvider = new R4RestFhirRetrieveProvider(resolver, client);
+		RestFhirRetrieveProvider baseRetrieveProvider = new RestFhirRetrieveProvider(resolver, client);
 		baseRetrieveProvider.setExpandValueSets(isExpandValueSets);
-		baseRetrieveProvider.setSearchPageSize(pageSize);
+		if(pageSize != null && pageSize > 0) {
+			baseRetrieveProvider.setPageSize(pageSize);
+		}
 		baseRetrieveProvider.setTerminologyProvider(terminologyProvider);
 		RetrieveProvider retrieveProvider = retrieveCacheContext != null
 				? new CachingRetrieveProvider(baseRetrieveProvider, retrieveCacheContext)

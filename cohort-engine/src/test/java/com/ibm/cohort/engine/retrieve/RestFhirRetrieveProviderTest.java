@@ -14,6 +14,7 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.junit.Before;
 import org.junit.Test;
+import org.opencds.cqf.cql.engine.fhir.retrieve.RestFhirRetrieveProvider;
 import org.opencds.cqf.cql.engine.fhir.searchparam.SearchParameterResolver;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
@@ -22,9 +23,9 @@ import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
-public class R4RestFhirRetrieveProviderTest extends FhirTestBase {
+public class RestFhirRetrieveProviderTest extends FhirTestBase {
 
-	R4RestFhirRetrieveProvider provider = null;
+	RestFhirRetrieveProvider provider = null;
 	
 	@Before
 	public void setUp() {
@@ -33,7 +34,7 @@ public class R4RestFhirRetrieveProviderTest extends FhirTestBase {
 		
 		SearchParameterResolver resolver = new SearchParameterResolver(client.getFhirContext());
 		
-		provider = new R4RestFhirRetrieveProvider(resolver, client);
+		provider = new RestFhirRetrieveProvider(resolver, client);
 		provider.setTerminologyProvider(termProvider);
 		
 		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
@@ -43,7 +44,7 @@ public class R4RestFhirRetrieveProviderTest extends FhirTestBase {
 	public void when_no_expand_value_sets_and_modifier_in_search___then_in_modifier_is_included_in_url() {
 		
 		mockFhirResourceRetrieval("/Condition?code%3Ain=MyValueSet&subject=Patient%2F123&_format=json", new Bundle());
-		
+
 		provider.setExpandValueSets(false);
 		provider.retrieve("Patient", "subject", "123", "Condition",
 				null, "code", null, "MyValueSet",
@@ -80,14 +81,15 @@ public class R4RestFhirRetrieveProviderTest extends FhirTestBase {
 	
 	@Test
 	public void when_search_page_size_is_set___then_count_parameter_is_included_in_url() {
-		mockFhirResourceRetrieval("/Condition?code%3Ain=MyValueSet&subject=Patient%2F123&_format=json", new Bundle());
+		mockFhirResourceRetrieval("/Condition?code%3Ain=MyValueSet&subject=Patient%2F123&_count=3&_format=json", new Bundle());
 		
 		provider.setExpandValueSets(false);
+		provider.setPageSize(3);
 		provider.retrieve("Patient", "subject", "123", "Condition",
 				null, "code", null, "MyValueSet",
 				null, null, null, null);
 		
-		verify(getRequestedFor(urlMatching("/Condition\\?code%3Ain=MyValueSet&subject=Patient%2F123&_format=json")));
+		verify(getRequestedFor(urlMatching("/Condition\\?code%3Ain=MyValueSet&subject=Patient%2F123&_count=3&_format=json")));
 	}
 	
 	@Test
@@ -95,7 +97,6 @@ public class R4RestFhirRetrieveProviderTest extends FhirTestBase {
 		mockFhirResourceRetrieval("/Condition?code%3Ain=MyValueSet&subject=Patient%2F123&_format=json", new Bundle());
 		
 		provider.setExpandValueSets(false);
-		provider.setSearchPageSize(null);
 		provider.retrieve("Patient", "subject", "123", "Condition",
 				null, "code", null, "MyValueSet",
 				null, null, null, null);
