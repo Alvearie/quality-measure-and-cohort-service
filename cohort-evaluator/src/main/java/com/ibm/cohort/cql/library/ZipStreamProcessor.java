@@ -16,6 +16,9 @@ import java.util.function.BiConsumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+
+import com.ibm.cohort.cql.helpers.PathHelper;
+
 /**
  * A utility to assist in processing files in a {@link ZipInputStream}.
  */
@@ -37,7 +40,7 @@ public class ZipStreamProcessor {
                     if( (ch=fileName.lastIndexOf('/')) != -1 ) {
                         prefix = fileName.substring(0, ch);
                     }
-                    passesFilter = ArrayUtils.contains(searchPaths, prefix);
+                    passesFilter = PathHelper.startsWith(prefix, searchPaths);
                 }
 
                 if (passesFilter) {

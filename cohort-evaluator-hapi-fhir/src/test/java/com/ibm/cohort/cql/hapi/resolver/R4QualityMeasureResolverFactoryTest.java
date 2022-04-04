@@ -82,7 +82,8 @@ public class R4QualityMeasureResolverFactoryTest {
         assertLibraryIdsArePresent(
                 resolvers.getLibraryResolver(),
                 "Library/Library3-id",
-                "Library/Library4-id"
+                "Library/Library4-id",
+                "Library/Library5-id"
         );
 
         assertMeasureIdsArePresent(
@@ -145,7 +146,8 @@ public class R4QualityMeasureResolverFactoryTest {
         assertLibraryIdsArePresent(
                 resolvers.getLibraryResolver(),
                 "Library/Library3-id",
-                "Library/Library4-id"
+                "Library/Library4-id",
+				"Library/Library5-id"
         );
 
         assertMeasureIdsArePresent(
@@ -213,7 +215,8 @@ public class R4QualityMeasureResolverFactoryTest {
         assertLibraryIdsArePresent(
                 resolvers.getLibraryResolver(),
                 "Library/Library3-id",
-                "Library/Library4-id"
+                "Library/Library4-id",
+				"Library/Library5-id"
         );
 
         assertMeasureIdsArePresent(
