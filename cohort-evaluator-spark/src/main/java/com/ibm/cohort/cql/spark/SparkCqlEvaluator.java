@@ -292,6 +292,12 @@ public class SparkCqlEvaluator implements Serializable {
             final LongAccumulator contextAccum = spark.sparkContext().longAccumulator("Context");
             final CollectionAccumulator<EvaluationError> errorAccumulator = spark.sparkContext().collectionAccumulator("EvaluationErrors");
 
+            PercentageListener listener = new PercentageListener(Arrays.asList(
+                    "union at ContextRetriever.java:",
+                    "save at SparkCqlEvaluator.java"
+            ));
+            spark.sparkContext().addSparkListener(listener);
+
             try {
                 spark.sparkContext().setLocalProperty("mdc." + CORRELATION_ID, MDC.get(CORRELATION_ID));
                 evaluationSummary.setCorrelationId(MDC.get(CORRELATION_ID));
