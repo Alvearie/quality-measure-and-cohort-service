@@ -20,7 +20,21 @@ public class PathHelper {
             return true;
         }
         Path prefix = root.relativize(path).getParent();
-        return prefix != null && ArrayUtils.contains(searchPaths, prefix.toString());
+        return prefix != null && startsWith(prefix.toString(), searchPaths);
+    }
+
+    public static boolean startsWith(String path, String... searchPaths) {
+        if (path == null || path.isEmpty()) {
+            return false;
+        }
+
+        for (String searchPath : searchPaths) {
+            if (path.startsWith(searchPath)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }
