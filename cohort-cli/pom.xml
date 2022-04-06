@@ -142,6 +142,12 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>info.cqframework</groupId>
+			<artifactId>cql-to-elm</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
 		<!-- Test dependencies -->
 
 		<dependency>
@@ -168,12 +174,6 @@
 		<dependency>
 			<groupId>com.github.tomakehurst</groupId>
 			<artifactId>wiremock-jre8</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>info.cqframework</groupId>
-			<artifactId>cql-to-elm</artifactId>
 			<scope>test</scope>
 		</dependency>
 
