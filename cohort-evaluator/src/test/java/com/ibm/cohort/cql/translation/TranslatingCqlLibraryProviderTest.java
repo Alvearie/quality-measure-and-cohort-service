@@ -6,7 +6,12 @@
 
 package com.ibm.cohort.cql.translation;
 
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.StringContains.containsString;
+import static org.hamcrest.text.IsEmptyString.isEmptyOrNullString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.io.FileReader;
@@ -14,6 +19,7 @@ import java.io.Reader;
 
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
 import com.ibm.cohort.cql.library.Format;
+import org.cqframework.cql.cql2elm.CqlTranslatorException;
 import org.junit.Test;
 
 import com.ibm.cohort.cql.library.CqlLibrary;
@@ -44,5 +50,25 @@ public class TranslatingCqlLibraryProviderTest {
         library = provider.getLibrary(descriptor);
         assertEquals( Format.ELM, library.getDescriptor().getFormat() );
         assertTrue( library.getContent().startsWith("<?xml") );
+    }
+
+    @Test
+    public void testTranslationWithNullCqlContexts() {
+        CqlLibraryProvider backingProvider = new ClasspathCqlLibraryProvider("cql/empty-context");
+        CqlLibraryProvider provider = new TranslatingCqlLibraryProvider(backingProvider, new CqlToElmTranslator());
+
+        CqlLibraryDescriptor emptyContext = new CqlLibraryDescriptor()
+            .setLibraryId("EmptyContext")
+            .setVersion("1.0.0")
+            .setFormat(Format.ELM);
+        Exception exception = assertThrows(CqlTranslatorException.class, () -> provider.getLibrary(emptyContext));
+        assertThat(exception.getMessage(), containsString("must specify a Context"));
+
+        CqlLibraryDescriptor emptyHelper = new CqlLibraryDescriptor()
+            .setLibraryId("EmptyHelper")
+            .setVersion("1.0.0")
+            .setFormat(Format.ELM);
+        CqlLibrary library = provider.getLibrary(emptyHelper);
+        assertThat(library.getContent(), not(isEmptyOrNullString()));
     }
 }

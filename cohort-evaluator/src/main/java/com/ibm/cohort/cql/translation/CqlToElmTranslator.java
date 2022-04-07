@@ -73,6 +73,11 @@ public class CqlToElmTranslator {
             String msg = "There were warnings during cql translation:\n"
                     + cqlTranslator.getWarnings().stream().map(Object::toString).collect(Collectors.joining("\n"));
             LOG.warn(msg);
+        } else if (!cqlTranslator.toRetrieves().isEmpty() && cqlTranslator.getTranslatedLibrary().getLibrary().getContexts() == null) {
+            // allow for null contexts when Library does not contain any retrieves
+            // e.g. Helper libraries
+
+            throw new CqlTranslatorException(String.format("CQL definition for '%s' must specify a Context", primaryLibrary.getDescriptor().getLibraryId()));
         }
         
         CqlLibrary translatedLibrary = new CqlLibrary().setDescriptor(new CqlLibraryDescriptor()
