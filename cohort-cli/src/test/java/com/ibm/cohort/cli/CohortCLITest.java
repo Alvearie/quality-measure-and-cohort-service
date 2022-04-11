@@ -8,7 +8,10 @@ package com.ibm.cohort.cli;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -18,6 +21,7 @@ import java.io.FileWriter;
 import java.io.PrintStream;
 import java.io.Writer;
 
+import org.cqframework.cql.cql2elm.CqlTranslatorException;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Condition;
@@ -599,6 +603,31 @@ public class CohortCLITest extends PatientTestBase {
 			assertTrue(output.contains("Expression: \"ValidEncounterCount\", Result: 2"));
 
 			verify(1, getRequestedFor(urlEqualTo(resourcePath)));
+		} finally {
+			tmpFile.delete();
+		}
+	}
+
+	@Test
+	public void testNullContext() throws Exception {
+		File tmpFile = new File("target/fhir-stub.json");
+		ObjectMapper om = new ObjectMapper();
+		try (Writer w = new FileWriter(tmpFile)) {
+			w.write(om.writeValueAsString(getFhirServerConfig()));
+		}
+
+		try {
+			String[] args = {
+				"-d", tmpFile.getAbsolutePath(),
+				"-t", tmpFile.getAbsolutePath(),
+				"-f", "src/test/resources/cql/empty-context",
+				"-l", "EmptyContext",
+				"-v", "1.0.0",
+				"-e", "OnePlusOne",
+			};
+
+			Exception exception = assertThrows(CqlTranslatorException.class, () -> CohortCLI.main(args));
+			assertThat(exception.getMessage(), containsString("must specify a Context"));
 		} finally {
 			tmpFile.delete();
 		}
