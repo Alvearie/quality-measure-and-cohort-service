@@ -15,6 +15,8 @@ import org.junit.Test;
 
 import com.ibm.cohort.engine.FhirTestBase;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
+import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilderFactory;
+import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
@@ -38,11 +40,10 @@ public class FhirClientTimeoutTest extends FhirTestBase {
 		FhirServerConfig fhirServerConfig = getFhirServerConfig();
 		fhirServerConfig.setSocketTimeout(CONFIG_TIMEOUT_MILLIS);
 
-		FHIRClientContext fhirClientContext = new FHIRClientContext.Builder()
-				.withDefaultClient(fhirServerConfig)
-				.build();
+		FhirClientBuilderFactory factory = new DefaultFhirClientBuilderFactory();
+		IGenericClient client = factory.newFhirClientBuilder().createFhirClient(fhirServerConfig);
 		
-		fhirClientContext.getDataClient().read()
+		client.read()
 				.resource(Patient.class)
 				.withId(PATIENT_ID)
 				.execute();
@@ -53,11 +54,10 @@ public class FhirClientTimeoutTest extends FhirTestBase {
 		FhirServerConfig fhirServerConfig = getFhirServerConfig();
 		fhirServerConfig.setSocketTimeout(CONFIG_NO_TIMEOUT_MILLIS);
 
-		FHIRClientContext fhirClientContext = new FHIRClientContext.Builder()
-				.withDefaultClient(fhirServerConfig)
-				.build();
+		FhirClientBuilderFactory factory = new DefaultFhirClientBuilderFactory();
+		IGenericClient client = factory.newFhirClientBuilder().createFhirClient(fhirServerConfig);
 
-		Patient patient = fhirClientContext.getDataClient().read()
+		Patient patient = client.read()
 				.resource(Patient.class)
 				.withId(PATIENT_ID)
 				.execute();
@@ -71,11 +71,10 @@ public class FhirClientTimeoutTest extends FhirTestBase {
 		FhirServerConfig fhirServerConfig = getFhirServerConfig();
 		fhirServerConfig.setSocketTimeout(null);
 
-		FHIRClientContext fhirClientContext = new FHIRClientContext.Builder()
-				.withDefaultClient(fhirServerConfig)
-				.build();
+		FhirClientBuilderFactory factory = new DefaultFhirClientBuilderFactory();
+		IGenericClient client = factory.newFhirClientBuilder().createFhirClient(fhirServerConfig);
 
-		Patient patient = fhirClientContext.getDataClient().read()
+		Patient patient = client.read()
 				.resource(Patient.class)
 				.withId(PATIENT_ID)
 				.execute();
