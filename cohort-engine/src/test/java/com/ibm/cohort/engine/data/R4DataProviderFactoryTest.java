@@ -12,7 +12,6 @@ import java.util.Map;
 
 import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
-import com.ibm.cohort.engine.measure.FHIRClientContext.Builder;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Patient;
 import org.junit.Assert;
@@ -25,6 +24,8 @@ import com.ibm.cohort.engine.FhirTestBase;
 import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
 import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
+import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilderFactory;
+import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 
@@ -40,10 +41,8 @@ public class R4DataProviderFactoryTest extends FhirTestBase {
 
 	@Test
 	public void createDataProviderMap_noCacheContext() {
-		IGenericClient client = new Builder()
-				.withDefaultClient(getFhirServerConfig())
-				.build()
-				.getDataClient();
+		FhirClientBuilderFactory factory = new DefaultFhirClientBuilderFactory();
+		IGenericClient client = factory.newFhirClientBuilder().createFhirClient(getFhirServerConfig());
 		CqlTerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(client);
 		Map<String, CqlDataProvider> map = R4DataProviderFactory.createDataProviderMap(
 				client,
@@ -55,10 +54,8 @@ public class R4DataProviderFactoryTest extends FhirTestBase {
 
 	@Test
 	public void createDataProviderMap_withCacheContext() throws Exception {
-		IGenericClient client = new Builder()
-				.withDefaultClient(getFhirServerConfig())
-				.build()
-				.getDataClient();
+		FhirClientBuilderFactory factory = new DefaultFhirClientBuilderFactory();
+		IGenericClient client = factory.newFhirClientBuilder().createFhirClient(getFhirServerConfig());
 		CqlTerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(client);
 		try(RetrieveCacheContext cacheContext = new DefaultRetrieveCacheContext(new CaffeineConfiguration<>())) {
 			Map<String, CqlDataProvider> map = R4DataProviderFactory.createDataProviderMap(

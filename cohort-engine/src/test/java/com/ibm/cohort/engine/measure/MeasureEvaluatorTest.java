@@ -72,6 +72,7 @@ import com.ibm.cohort.engine.cqfruler.MeasureSupplementalDataEvaluation;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
 import com.ibm.cohort.engine.measure.parameter.UnsupportedFhirTypeException;
+import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.evaluation.parameters.BooleanParameter;
 import com.ibm.cohort.cql.evaluation.parameters.CodeParameter;
 import com.ibm.cohort.cql.evaluation.parameters.ConceptParameter;
@@ -85,6 +86,13 @@ import com.ibm.cohort.cql.evaluation.parameters.QuantityParameter;
 import com.ibm.cohort.cql.evaluation.parameters.RatioParameter;
 import com.ibm.cohort.cql.evaluation.parameters.StringParameter;
 import com.ibm.cohort.cql.evaluation.parameters.TimeParameter;
+import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
+import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
+import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResourceResolverFactory;
+import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
+import com.ibm.cohort.engine.data.R4DataProviderFactory;
+import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;
+import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 
 public class MeasureEvaluatorTest extends MeasureTestBase {
 
@@ -97,12 +105,20 @@ public class MeasureEvaluatorTest extends MeasureTestBase {
 	public void setUp() {
 		super.setUp();
 
-		FHIRClientContext clientContext = new FHIRClientContext.Builder()
-				.withDefaultClient(client)
-				.build();
-		evaluator = new R4MeasureEvaluatorBuilder()
-				.withClientContext(clientContext)
-				.build();
+		CqlTerminologyProvider terminologyProvider = new R4RestFhirTerminologyProvider(client);
+		FhirResourceResolver<Measure> measureResolver = R4FhirServerResourceResolverFactory.createMeasureResolver(client);
+		FhirResourceResolver<Library> libraryResolver = R4FhirServerResourceResolverFactory.createLibraryResolver(client);
+		R4LibraryDependencyGatherer libraryDependencyGatherer = new R4LibraryDependencyGatherer(libraryResolver);
+		Map<String, CqlDataProvider> dataProviders = R4DataProviderFactory.createDataProviderMap(
+			client,
+			terminologyProvider,
+			null,
+			R4FhirModelResolverFactory.createNonCachingResolver(),
+			R4DataProviderFactory.DEFAULT_IS_EXPAND_VALUE_SETS,
+			R4DataProviderFactory.DEFAULT_PAGE_SIZE
+		);
+
+		evaluator = new MeasureEvaluator(measureResolver, libraryResolver, libraryDependencyGatherer, terminologyProvider, dataProviders);
 	}
 
 	@Test
