@@ -48,7 +48,7 @@ resource "tls_cert_request" "cert_request" {
 }
 
 # Issue the certificate signing request
-resource "kubernetes_certificate_signing_request" "csr" {
+resource "kubernetes_certificate_signing_request_v1" "csr" {
   for_each = toset(var.service_names)
 
   metadata {
