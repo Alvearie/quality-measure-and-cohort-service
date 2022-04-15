@@ -42,8 +42,8 @@ resource "tls_cert_request" "cert_request" {
   ])
 
   subject {
-    common_name  = each.key
-    organization = var.organization
+    common_name  = "system:node:${each.key}"
+    organization = "system:nodes"
   }
 }
 
@@ -56,7 +56,8 @@ resource "kubernetes_certificate_signing_request" "csr" {
   }
 
   spec {
-    usages  = ["client auth", "server auth"]
+    usages  = ["key encipherment", "digital signature", "server auth"]
+    signer_name = "kubernetes.io/kubelet-serving"
     request = tls_cert_request.cert_request[each.key].cert_request_pem
   }
   auto_approve = true
@@ -80,7 +81,7 @@ resource "kubernetes_secret" "secret" {
     }
   }
   data = {
-    "tls.crt" = kubernetes_certificate_signing_request.csr[each.key].certificate
+    "tls.crt" = kubernetes_certificate_signing_request_v1.csr[each.key].certificate
     "tls.key" = local.generate_private_key ? tls_private_key.private_key[0].private_key_pem : var.private_key_pem
   }
   type = "kubernetes.io/tls"
