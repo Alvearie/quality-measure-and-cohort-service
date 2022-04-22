@@ -434,10 +434,15 @@ public class CohortCLITest extends PatientTestBase {
 		patient.setMaritalStatus(new CodeableConcept(new Coding("http://hl7.org/fhir/ValueSet/marital-status", "M", "Married")));
 		mockFhirResourceRetrieval(patient);
 
-		Condition condition = new Condition();
-		condition.setSubject(new Reference(patient.getId()));
-		condition.setCode(new CodeableConcept(new Coding("http://snomed.com/snomed/2020", "1234", "Dummy")));
-		mockFhirResourceRetrieval("/Condition?code%3Ain=http%3A%2F%2Fsome.io%2Fcondition&subject=Patient%2F" + patient.getId() + "&_count=500&_format=json", condition);
+		Condition condition123 = new Condition();
+		condition123.setId("Condition123");
+		condition123.setSubject(new Reference(patient.getId()));
+		condition123.setCode(new CodeableConcept(new Coding("http://snomed.com/snomed/2020", "1234", "Dummy")));
+		Condition condition345 = new Condition();
+		condition345.setId("Condition345");
+		condition345.setSubject(new Reference(patient.getId()));
+		condition345.setCode(new CodeableConcept(new Coding("http://snomed.com/snomed/2020", "3456", "Dummy")));
+		mockFhirResourceRetrieval("/Condition?code%3Ain=http%3A%2F%2Fsome.io%2Fcondition&subject=Patient%2F" + patient.getId() + "&_count=500&_format=json", makeBundle(condition123, condition345));
 		
 		File tmpFile = new File("target/fhir-stub.json");
 		ObjectMapper om = new ObjectMapper();
@@ -457,7 +462,7 @@ public class CohortCLITest extends PatientTestBase {
 			}
 
 			String output = new String(baos.toByteArray());
-			assertTrue( output.contains( "Collection: 1") );
+			assertTrue( output.contains( "[Condition/Condition123, Condition/Condition345]") );
 			assertTrue( output.contains( "Patient/123") );
 			assertTrue( output.contains( "false") );
 			assertTrue( output.contains( "DateType[1978-05-06]") );

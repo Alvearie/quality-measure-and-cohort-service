@@ -13,7 +13,6 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -21,21 +20,32 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import ca.uhn.fhir.rest.client.api.IGenericClient;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hl7.fhir.r4.model.Attachment;
+import org.hl7.fhir.r4.model.Library;
+
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.internal.Console;
+import com.beust.jcommander.internal.DefaultConsole;
+import com.ibm.cohort.cli.input.NoSplittingSplitter;
+import com.ibm.cohort.cli.output.CLIPrettyPrinter;
+import com.ibm.cohort.cli.output.CqlEvaluationResultPrettyPrinter;
 import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.evaluation.ContextNames;
 import com.ibm.cohort.cql.evaluation.CqlDebug;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
 import com.ibm.cohort.cql.evaluation.CqlEvaluator;
-import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResourceResolverFactory;
-import com.ibm.cohort.cql.library.Format;
-import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
+import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
+import com.ibm.cohort.cql.hapi.resolver.R4FhirServerResourceResolverFactory;
 import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
 import com.ibm.cohort.cql.library.CqlLibrary;
 import com.ibm.cohort.cql.library.CqlLibraryDescriptor;
 import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.library.CqlVersionedIdentifier;
+import com.ibm.cohort.cql.library.Format;
 import com.ibm.cohort.cql.library.MapCqlLibraryProvider;
 import com.ibm.cohort.cql.library.MapCqlLibraryProviderFactory;
 import com.ibm.cohort.cql.library.PriorityCqlLibraryProvider;
@@ -48,18 +58,9 @@ import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;
 import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilder;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.internal.Console;
-import com.beust.jcommander.internal.DefaultConsole;
-import com.ibm.cohort.cli.input.NoSplittingSplitter;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
-import org.hl7.fhir.instance.model.api.IAnyResource;
-import org.hl7.fhir.r4.model.Attachment;
-import org.hl7.fhir.r4.model.Library;
+
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 public class CohortCLI extends BaseCLI {
 
@@ -144,6 +145,7 @@ public class CohortCLI extends BaseCLI {
 		} else {
 			FhirClientBuilderFactory factory = FhirClientBuilderFactory.newInstance();
 			FhirClientBuilder fhirClientBuilder = factory.newFhirClientBuilder();
+			CqlEvaluationResultPrettyPrinter prettyPrinter = new CLIPrettyPrinter();
 
 			readConnectionConfiguration(arguments);
 
@@ -234,42 +236,12 @@ public class CohortCLI extends BaseCLI {
 							evaluationDateTime
 					);
 
-					out.print(prettyPrintResult(result));
+					out.print(prettyPrinter.prettyPrintResult(result));
 					out.println("---");
 				}
 			}
 		}
 		return wrapper;
-	}
-
-	private String prettyPrintResult(CqlEvaluationResult result) {
-		StringBuilder builder = new StringBuilder();
-		for (Map.Entry<String,Object> entry : result.getExpressionResults().entrySet()) {
-			String expression = entry.getKey();
-			Object value = entry.getValue();
-
-			builder.append("Expression: \"").append(expression).append("\", ");
-			builder.append("Result: ").append(prettyPrintValue(value)).append('\n');
-		}
-		return builder.toString();
-	}
-
-	private String prettyPrintValue(Object value) {
-		String retVal;
-		if( value != null ) {
-			if( value instanceof IAnyResource ) {
-				IAnyResource resource = (IAnyResource) value;
-				retVal = resource.getId();
-			} else if( value instanceof Collection ) {
-				Collection<?> collection = (Collection<?>) value;
-				retVal = "Collection: " + collection.size();
-			} else {
-				retVal = value.toString();
-			}
-		} else {
-			retVal = "null";
-		}
-		return retVal;
 	}
 
 	private Map<CqlLibraryDescriptor, CqlLibrary> toCqlLibraryMap(List<Library> libraries) {
