@@ -10,6 +10,7 @@ package com.ibm.cohort.cli.output;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -81,5 +82,10 @@ public class CLIPrettyPrinterTest {
 		patient2.setId("Patient/id2");
 
 		assertEquals("[Patient/id1, Patient/id2]", prettyPrinter.prettyPrintValue(Arrays.asList(patient1, patient2)));
+	}
+
+	@Test
+	public void testResourceEmptyList() {
+		assertEquals("[]", prettyPrinter.prettyPrintValue(new ArrayList()));
 	}
 }
