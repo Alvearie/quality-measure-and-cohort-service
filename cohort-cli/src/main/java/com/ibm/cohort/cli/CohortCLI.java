@@ -118,7 +118,7 @@ public class CohortCLI extends BaseCLI {
 		@Parameter(names = { "--search-page-size" }, description = "Specifies how many records are requested per page during a FHIR search operation. The default value for servers can be quite small and setting this to a larger number will potentially improve performance.")
 		private int searchPageSize = DEFAULT_PAGE_SIZE;
 
-		@Parameter(names = { "--summarize-collections" }, description = "If set, collection sizes will be displayed in the CLI output instead of collection contents")
+		@Parameter(names = { "--summarize-collections" }, description = "If set, collection sizes will be displayed in the CLI output instead of collection contents.")
 		private boolean isSummarizeCollections;
 		
 		@Parameter(names = { "-h", "--help" }, description = "Display this help", required = false, help = true)
@@ -139,7 +139,7 @@ public class CohortCLI extends BaseCLI {
 	public CqlEvaluator runWithArgs(String[] args, PrintStream out) throws IOException {
 		Arguments arguments = new Arguments();
 		Console console = new DefaultConsole(out);
-		JCommander jc = JCommander.newBuilder().programName("cql-engine").console(console).addObject(arguments).build();
+		JCommander jc = JCommander.newBuilder().programName("cohort-cli").console(console).addObject(arguments).build();
 		jc.parse(args);
 
 		CqlEvaluator wrapper = null;

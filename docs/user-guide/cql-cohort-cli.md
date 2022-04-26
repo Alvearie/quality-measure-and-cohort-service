@@ -3,7 +3,7 @@
 The `cohort-cli` shaded jar includes a command-line utility for executing CQL files.
 
 ```
-Usage: cql-engine [options]
+Usage: cohort-cli [options]
   Options:
     -c, --context-id
       Unique ID for one or more context objects (e.g. Patient IDs)
@@ -59,6 +59,10 @@ Usage: cql-engine [options]
       Indicates which files in the file source should be processed
       Default: 'ELM'
       Possible Values: [CQL, ELM]
+    --summarize-collections
+      If set, collection sizes will be displayed in the CLI output instead of 
+      collection contents.
+      Default: false
     -t, --terminology-server
       Path to JSON configuration data for the FHIR server connection that will 
       be used to retrieve terminology.
