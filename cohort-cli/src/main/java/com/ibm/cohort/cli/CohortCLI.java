@@ -30,7 +30,8 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
 import com.ibm.cohort.cli.input.NoSplittingSplitter;
-import com.ibm.cohort.cli.output.CLIPrettyPrinter;
+import com.ibm.cohort.cli.output.CqlEvaluationResultCollectionSizePrettyPrinter;
+import com.ibm.cohort.cli.output.CqlEvaluationResultDisplayCollectionsPrettyPrinter;
 import com.ibm.cohort.cli.output.CqlEvaluationResultPrettyPrinter;
 import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.evaluation.ContextNames;
@@ -116,6 +117,9 @@ public class CohortCLI extends BaseCLI {
 		
 		@Parameter(names = { "--search-page-size" }, description = "Specifies how many records are requested per page during a FHIR search operation. The default value for servers can be quite small and setting this to a larger number will potentially improve performance.")
 		private int searchPageSize = DEFAULT_PAGE_SIZE;
+
+		@Parameter(names = { "--summarize-collections" }, description = "If set, collection sizes will be displayed in the CLI output instead of collection contents")
+		private boolean isSummarizeCollections;
 		
 		@Parameter(names = { "-h", "--help" }, description = "Display this help", required = false, help = true)
 		private boolean isDisplayHelp;
@@ -145,7 +149,9 @@ public class CohortCLI extends BaseCLI {
 		} else {
 			FhirClientBuilderFactory factory = FhirClientBuilderFactory.newInstance();
 			FhirClientBuilder fhirClientBuilder = factory.newFhirClientBuilder();
-			CqlEvaluationResultPrettyPrinter prettyPrinter = new CLIPrettyPrinter();
+			CqlEvaluationResultPrettyPrinter prettyPrinter = arguments.isSummarizeCollections ? 
+					new CqlEvaluationResultCollectionSizePrettyPrinter() : 
+					new CqlEvaluationResultDisplayCollectionsPrettyPrinter();
 
 			readConnectionConfiguration(arguments);
 

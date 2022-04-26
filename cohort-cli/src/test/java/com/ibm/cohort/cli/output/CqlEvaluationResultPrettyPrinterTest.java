@@ -9,11 +9,9 @@ package com.ibm.cohort.cli.output;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.hl7.fhir.r4.model.Patient;
@@ -21,8 +19,8 @@ import org.junit.Test;
 
 import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
 
-public class CLIPrettyPrinterTest {
-	private final CLIPrettyPrinter prettyPrinter = new CLIPrettyPrinter();
+public class CqlEvaluationResultPrettyPrinterTest {
+	private CqlEvaluationResultPrettyPrinter prettyPrinter = mock(CqlEvaluationResultPrettyPrinter.class);
 	
 	@Test
 	public void testSingleResult() {
@@ -47,10 +45,10 @@ public class CLIPrettyPrinterTest {
 	@Test
 	public void testResource() {
 		String expected = "Patient/12345";
-		
+
 		Patient patient = new Patient();
 		patient.setId(expected);
-		
+
 		assertEquals(expected, prettyPrinter.prettyPrintValue(patient));
 	}
 
@@ -64,28 +62,5 @@ public class CLIPrettyPrinterTest {
 		String expected = "123";
 
 		assertEquals(expected, prettyPrinter.prettyPrintValue(123));
-	}
-
-	@Test
-	public void testBasicList() {
-		List<Integer> integers = Arrays.asList(1, 2, 3, 4);
-
-		assertEquals("[1, 2, 3, 4]", prettyPrinter.prettyPrintValue(integers));
-	}
-
-	@Test
-	public void testResourceList() {
-		Patient patient1 = new Patient();
-		patient1.setId("Patient/id1");
-
-		Patient patient2 = new Patient();
-		patient2.setId("Patient/id2");
-
-		assertEquals("[Patient/id1, Patient/id2]", prettyPrinter.prettyPrintValue(Arrays.asList(patient1, patient2)));
-	}
-
-	@Test
-	public void testResourceEmptyList() {
-		assertEquals("[]", prettyPrinter.prettyPrintValue(new ArrayList()));
 	}
 }
