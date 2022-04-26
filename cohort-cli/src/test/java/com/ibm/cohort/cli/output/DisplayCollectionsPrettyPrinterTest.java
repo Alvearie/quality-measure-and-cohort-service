@@ -9,15 +9,15 @@ package com.ibm.cohort.cli.output;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.hl7.fhir.r4.model.Patient;
 import org.junit.Test;
 
-public class CqlEvaluationResultDisplayCollectionsPrettyPrinterTest {
-	private final CqlEvaluationResultDisplayCollectionsPrettyPrinter prettyPrinter = new CqlEvaluationResultDisplayCollectionsPrettyPrinter();
+public class DisplayCollectionsPrettyPrinterTest {
+	private final DisplayCollectionsPrettyPrinter prettyPrinter = new DisplayCollectionsPrettyPrinter();
 
 	@Test
 	public void testBasicList() {
@@ -39,6 +39,6 @@ public class CqlEvaluationResultDisplayCollectionsPrettyPrinterTest {
 
 	@Test
 	public void testResourceEmptyList() {
-		assertEquals("[]", prettyPrinter.prettyPrintValue(new ArrayList()));
+		assertEquals("[]", prettyPrinter.prettyPrintValue(Collections.emptyList()));
 	}
 }

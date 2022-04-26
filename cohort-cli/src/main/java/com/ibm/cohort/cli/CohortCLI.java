@@ -30,8 +30,8 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.internal.Console;
 import com.beust.jcommander.internal.DefaultConsole;
 import com.ibm.cohort.cli.input.NoSplittingSplitter;
-import com.ibm.cohort.cli.output.CqlEvaluationResultCollectionSizePrettyPrinter;
-import com.ibm.cohort.cli.output.CqlEvaluationResultDisplayCollectionsPrettyPrinter;
+import com.ibm.cohort.cli.output.CollectionSizePrettyPrinter;
+import com.ibm.cohort.cli.output.DisplayCollectionsPrettyPrinter;
 import com.ibm.cohort.cli.output.CqlEvaluationResultPrettyPrinter;
 import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.evaluation.ContextNames;
@@ -150,8 +150,8 @@ public class CohortCLI extends BaseCLI {
 			FhirClientBuilderFactory factory = FhirClientBuilderFactory.newInstance();
 			FhirClientBuilder fhirClientBuilder = factory.newFhirClientBuilder();
 			CqlEvaluationResultPrettyPrinter prettyPrinter = arguments.isSummarizeCollections ? 
-					new CqlEvaluationResultCollectionSizePrettyPrinter() : 
-					new CqlEvaluationResultDisplayCollectionsPrettyPrinter();
+					new CollectionSizePrettyPrinter() : 
+					new DisplayCollectionsPrettyPrinter();
 
 			readConnectionConfiguration(arguments);
 

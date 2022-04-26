@@ -9,7 +9,7 @@ package com.ibm.cohort.cli.output;
 
 import java.util.Collection;
 
-public class CqlEvaluationResultCollectionSizePrettyPrinter extends CqlEvaluationResultPrettyPrinter {
+public class CollectionSizePrettyPrinter extends CqlEvaluationResultPrettyPrinter {
 	@Override
 	protected StringBuilder handleCollection(Object value) {
 		StringBuilder sb = new StringBuilder("Collection: ");

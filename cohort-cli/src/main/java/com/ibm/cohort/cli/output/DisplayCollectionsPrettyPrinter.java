@@ -10,7 +10,7 @@ package com.ibm.cohort.cli.output;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class CqlEvaluationResultDisplayCollectionsPrettyPrinter extends CqlEvaluationResultPrettyPrinter{
+public class DisplayCollectionsPrettyPrinter extends CqlEvaluationResultPrettyPrinter{
 	@Override
 	protected StringBuilder handleCollection(Object value) {
 		StringBuilder sb = new StringBuilder();
