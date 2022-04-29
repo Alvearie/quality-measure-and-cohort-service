@@ -12,8 +12,8 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import com.ibm.cohort.engine.measure.MeasureContext;
-import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
+import com.ibm.cohort.measure.MeasureContext;
+import com.ibm.cohort.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
 import io.swagger.annotations.ApiModel;

@@ -36,13 +36,13 @@ import com.ibm.cohort.cli.input.MeasureContextProvider;
 import com.ibm.cohort.cli.input.NoSplittingSplitter;
 import com.ibm.cohort.engine.measure.MeasureContext;
 import com.ibm.cohort.engine.measure.MeasureEvaluator;
-import com.ibm.cohort.engine.data.R4DataProviderFactory;
-import com.ibm.cohort.engine.measure.cache.DefaultRetrieveCacheContext;
-import com.ibm.cohort.engine.measure.cache.RetrieveCacheContext;
+import com.ibm.cohort.cql.hapi.R4DataProviderFactory;
+import com.ibm.cohort.cql.cache.DefaultRetrieveCacheContext;
+import com.ibm.cohort.cql.cache.RetrieveCacheContext;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions.DefineReturnOptions;
-import com.ibm.cohort.engine.r4.cache.R4FhirModelResolverFactory;
-import com.ibm.cohort.engine.terminology.R4RestFhirTerminologyProvider;
+import com.ibm.cohort.cql.hapi.R4FhirModelResolverFactory;
+import com.ibm.cohort.cql.hapi.R4RestFhirTerminologyProvider;
 import com.ibm.cohort.fhir.client.config.FhirClientBuilderFactory;
 
 import ca.uhn.fhir.parser.IParser;

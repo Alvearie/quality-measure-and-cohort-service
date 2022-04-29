@@ -38,7 +38,7 @@
 		
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-engine</artifactId>
+			<artifactId>cohort-measure</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

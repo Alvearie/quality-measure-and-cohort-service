@@ -23,6 +23,7 @@
 		<module>../cohort-model-datarow</module>
 		<module>../cohort-evaluator-spark</module>
 		<module>../cohort-evaluator-hapi-fhir</module>
+		<module>../cohort-measure</module>
 		<module>../tests</module>
 		<module>../reports</module>
 		<module>../cohort-engine-distribution</module>
