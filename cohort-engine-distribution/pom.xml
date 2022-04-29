@@ -50,12 +50,6 @@
 			<version>${project.version}</version>
 			<type>war</type>
 		</dependency>
-		<dependency>
-			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-engine</artifactId>
-			<version>${project.version}</version>
-			<type>jar</type>
-		</dependency>
 		<!-- Added so we can copy the shaded (aka uber) jar into the distribution zip -->
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>

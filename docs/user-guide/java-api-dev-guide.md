@@ -1,10 +1,11 @@
 # User Guide - Using the Java APIs
 
-We release a `cohort-engine` jar containing public APIs meant to provide developers a way to write applications that
-interface with the CQL Engine's underlying logic. This page contains notes on getting your development environment
-set up to code against our Java APIs.
+We release the `cohort-evaluator`, `cohort-evaluator-hapi-fhir`, and `cohort-measure` jars containing public APIs meant
+to provide developers a way to write applications that interface with the CQL Engine's underlying logic.
+This page contains notes on getting your development environment set up to code against our Java APIs.
 
 We recommend first looking through the [getting started guide](user-guide/getting-started.md) for better understanding the prerequisites and tools being used.
+Also take a look at the [project layout](user-guide/project-layout.md) for more information on each module.
 
 ### Available Jars
 We publish our jars to [GitHub packages](https://github.com/Alvearie/quality-measure-and-cohort-service/packages/).
@@ -19,8 +20,8 @@ for configuring and building a project using our Java APIs.
 
 To access dependencies on GitHub packages, you must first create a Personal Access Token by going to https://github.com/settings/tokens and logging in with your GitHub userid. Click "Personal access tokens" in the left side menu, then click the "Generate new token" button. Under the "Select Scopes," check read:packages and click the "Generate Token" button. Copy the generated token string as it will be used in your settings.xml. For an example of settings.xml and an example of where to put your personal access token, please refer to the [getting started](dev-guide/getting-started?id=build-the-code) page of the developers's guide.
 
-Once maven is configured, you should be able to add the `cohort-engine` dependency to your project to have access to
-our CQL evaluation entrypoints. Releases of the `cohort-engine` dependency can be found on [GitHub](https://github.com/Alvearie/quality-measure-and-cohort-service/packages/471313/versions).
+Once maven is configured, you should be able to add cohort dependencies to your project to have access to our CQL evaluation entrypoints.
+All of our releases can be found on [GitHub](https://github.com/orgs/Alvearie/packages?repo_name=quality-measure-and-cohort-service).
 Clicking on any particular version will show what you need to add to your build file.
 
 [Other published dependencies](https://github.com/orgs/Alvearie/packages?repo_name=quality-measure-and-cohort-service)
@@ -33,7 +34,7 @@ the correct permissions and reconfigure your settings.xml file. Then, attempt to
 
 ## Entrypoints for Java Evaluation
 We have two primary Java classes meant to be used during CQL evaluation development: the [CqlEvaluator](https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/cohort-evaluator/src/main/java/com/ibm/cohort/cql/evaluation/CqlEvaluator.java)
-and [MeasureEvaluator](https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/cohort-engine/src/main/java/com/ibm/cohort/engine/measure/MeasureEvaluator.java).
+and [MeasureEvaluator](https://github.com/Alvearie/quality-measure-and-cohort-service/blob/main/cohort-measure/src/main/java/com/ibm/cohort/measure/MeasureEvaluator.java).
 
 Example usage for these classes are available in the `CohortCLI` and `MeasureCLI` (which are each described on
 the [getting started](user-guide/getting-started.md) page).

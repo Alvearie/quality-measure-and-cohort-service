@@ -53,18 +53,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>info.cqframework</groupId>
-			<artifactId>quick</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>info.cqframework</groupId>
-			<artifactId>qdm</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-
-		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
@@ -98,17 +86,48 @@
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
 		</dependency>
-	
+
+		<dependency>
+			<groupId>javax.cache</groupId>
+			<artifactId>cache-api</artifactId>
+		</dependency>
+
+		<!--
+			Runtime dependencies
+		-->
+		<dependency>
+			<groupId>info.cqframework</groupId>
+			<artifactId>quick</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>info.cqframework</groupId>
+			<artifactId>qdm</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!--
+			Test dependencies
+		-->
+		<dependency>
+			<groupId>org.opencds.cqf.cql</groupId>
+			<artifactId>engine.jaxb</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>org.hibernate.validator</groupId>
 			<artifactId>hibernate-validator</artifactId>
 			<scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.glassfish</groupId>
 			<artifactId>javax.el</artifactId>
 			<scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
@@ -136,6 +155,12 @@
 		<dependency>
 			<groupId>org.hamcrest</groupId>
 			<artifactId>hamcrest-library</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>jcache</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

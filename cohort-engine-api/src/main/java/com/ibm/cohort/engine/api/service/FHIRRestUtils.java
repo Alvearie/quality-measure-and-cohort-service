@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import javax.ws.rs.core.HttpHeaders;
 
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
+import com.ibm.cohort.measure.seed.MeasureEvaluationSeeder;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Measure;
@@ -28,7 +29,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.engine.api.service.model.MeasureParameterInfo;
-import com.ibm.cohort.engine.measure.seed.MeasureEvaluationSeeder;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.cohort.fhir.client.config.IBMFhirServerConfig;
 

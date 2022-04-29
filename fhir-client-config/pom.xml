@@ -50,17 +50,18 @@
 			<artifactId>commons-collections</artifactId>
 		</dependency>
 
-		
-		<!-- Runtime dependencies -->
-		
+		<!--
+			Runtime dependencies
+		-->
 		<dependency>
 			<groupId>ca.uhn.hapi.fhir</groupId>
 			<artifactId>hapi-fhir-structures-r4</artifactId>
 			<scope>runtime</scope>
 		</dependency>
 		
-		<!-- Test dependencies -->
-		
+		<!--
+			Test dependencies
+		-->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

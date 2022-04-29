@@ -10,6 +10,7 @@ import static org.junit.Assert.assertEquals;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.ibm.cohort.cql.hapi.FhirTestBase;
 import org.hl7.fhir.r4.model.CapabilityStatement;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Patient;
@@ -26,7 +27,6 @@ import org.powermock.modules.junit4.rule.PowerMockRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ibm.cohort.engine.FhirTestBase;
 import com.ibm.cohort.engine.api.service.model.EnhancedHealthCheckResults;
 import com.ibm.cohort.engine.api.service.model.FhirServerConnectionStatusInfo.FhirConnectionStatus;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;

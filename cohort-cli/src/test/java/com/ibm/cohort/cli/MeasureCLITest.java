@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.ibm.cohort.measure.MeasureTestBase;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
 import org.hl7.fhir.r4.model.Library;
@@ -36,10 +37,10 @@ import org.opencds.cqf.common.evaluation.MeasurePopulationType;
 import com.beust.jcommander.ParameterException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.cql.helpers.CanonicalHelper;
-import com.ibm.cohort.engine.measure.MeasureTestBase;
 
 public class MeasureCLITest extends MeasureTestBase {
 	private static final String TMP_MEASURE_CONFIG_FILE_LOCATION = "target/measure-configurations.json";
+	private static final String DEFAULT_RESOURCE_VERSION = "1.0.0";
 	
 	@Test
 	public void testCohortMeasureSinglePatientJsonInput() throws Exception {

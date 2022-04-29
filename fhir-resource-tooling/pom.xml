@@ -72,12 +72,16 @@
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
 
+		<!--
+			Compile dependencies
+		-->
 		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-s3</artifactId>
 			<version>1.12.138</version>
 			<scope>compile</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-core</artifactId>
@@ -92,8 +96,9 @@
 			<scope>compile</scope>
 		</dependency>
 
-		<!-- Runtime dependencies -->
-		
+		<!--
+			Runtime dependencies
+		-->
 		<dependency>
 			<groupId>ca.uhn.hapi.fhir</groupId>
 			<artifactId>hapi-fhir-structures-r4</artifactId>
@@ -106,8 +111,9 @@
 			<scope>runtime</scope>
 		</dependency>
 		
-		<!-- Test dependencies -->
-		
+		<!--
+			Test dependencies
+		-->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -119,18 +125,19 @@
 			<artifactId>wiremock-jre8</artifactId>
 			<scope>test</scope>
 		</dependency>
-		
-		<dependency>
-			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-engine</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
+
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-evaluator-hapi-fhir</artifactId>
+			<version>${project.version}</version>
+			<classifier>tests</classifier>
+			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

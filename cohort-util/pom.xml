@@ -20,7 +20,6 @@
 	</scm>
 
 	<dependencies>
-
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
@@ -53,16 +52,18 @@
 			<artifactId>commons-collections</artifactId>
 		</dependency>
 		
-		<!-- Runtime dependencies -->
-		
+		<!--
+			Runtime dependencies
+		-->
 		<dependency>
 			<groupId>ca.uhn.hapi.fhir</groupId>
 			<artifactId>hapi-fhir-structures-r4</artifactId>
 			<scope>runtime</scope>
 		</dependency>
 		
-		<!-- Test dependencies -->
-			
+		<!--
+			Test dependencies
+		-->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
@@ -86,7 +87,6 @@
 			<artifactId>hapi-fhir-client</artifactId>
 			<scope>test</scope>
 		</dependency>
-
-    </dependencies>
+	</dependencies>
 
 </project>
