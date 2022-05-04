@@ -17,15 +17,12 @@ import java.util.List;
  * @param <T> The resource type to handle fields from.
  * @param <I> The identifier type found on {@link T}.
  */
-public interface ResourceFieldHandler<T, I> extends VersionFieldHandler<T> {
+public interface ResourceFieldHandler<T, I> extends VersionFieldHandler<T>, IdFieldHandler<T> {
 
     Class<T> getSupportedClass();
 
     @Override
     String getVersion(T resource);
-
-    String getId(T resource);
-    void setId(String id, T resource);
 
     String getName(T resource);
     String getUrl(T resource);

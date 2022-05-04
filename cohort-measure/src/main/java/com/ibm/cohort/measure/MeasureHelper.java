@@ -6,21 +6,25 @@
 package com.ibm.cohort.measure;
 
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
-import org.hl7.fhir.r4.model.Measure;
 
-public class MeasureHelper {
-	
+public class MeasureHelper<T> {
+
+	private final FhirResourceResolver<T> resolver;
+
+	public MeasureHelper(FhirResourceResolver<T> resolver) {
+		this.resolver = resolver;
+	}
+
 	/**
 	 * Provide a search path for resolving a FHIR Measure resource from the given string. The search
 	 * path tries to understand the provided resourceID first as a direct mapping to a FHIR resource
 	 * and, if not, it tries to resolve it as the canonical URL of a FHIR resource.
 	 * 
 	 * @param resourceID String matching one of the expected lookup strategies
-	 * @param resolver Resolver implementation for the various lookup strategies
 	 * @return Resolved FHIR Measure resource
 	 */
-	public static Measure loadMeasure(String resourceID, FhirResourceResolver<Measure> resolver ) {
-		Measure result = null;
+	public T loadMeasure(String resourceID) {
+		T result = null;
 		
 		if( resourceID != null ) {
 			if( resourceID.startsWith("Measure/") || ! resourceID.contains("/") ) {
@@ -37,8 +41,8 @@ public class MeasureHelper {
 		return result;
 	}
 
-	public static Measure loadMeasure(Identifier identifier, String version, FhirResourceResolver<Measure> resolver) {
-		Measure result;
+	public T loadMeasure(Identifier identifier, String version) {
+		T result;
 
 		result = resolver.resolveByIdentifier(identifier.getValue(), identifier.getSystem(), version);
 
@@ -49,13 +53,13 @@ public class MeasureHelper {
 		return result;
 	}
 
-	public static Measure loadMeasure(MeasureContext context, FhirResourceResolver<Measure> resolver) {
-		Measure result = null;
+	public T loadMeasure(MeasureContext context) {
+		T result = null;
 
 		if (context.getMeasureId() != null) {
-			result = loadMeasure(context.getMeasureId(), resolver);
+			result = loadMeasure(context.getMeasureId());
 		} else if (context.getIdentifier() != null) {
-			result = loadMeasure(context.getIdentifier(), context.getVersion(), resolver);
+			result = loadMeasure(context.getIdentifier(), context.getVersion());
 		}
 
 		if (result == null) {

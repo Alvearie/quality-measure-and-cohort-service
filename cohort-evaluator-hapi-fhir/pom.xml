@@ -38,6 +38,11 @@
 			<version>${project.version}</version>
 		</dependency>
 
+		<dependency>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-measure</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.opencds.cqf.cql</groupId>

@@ -10,46 +10,33 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.ibm.cohort.cql.data.CqlDataProvider;
-import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
-import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hl7.fhir.r4.model.Library;
-import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.MeasureReport;
-import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
-import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
-import com.ibm.cohort.engine.measure.seed.IMeasureEvaluationSeed;
-import com.ibm.cohort.engine.measure.seed.MeasureEvaluationSeeder;
+import com.ibm.cohort.measure.evidence.MeasureEvidenceOptions;
+import com.ibm.cohort.measure.seed.IMeasureEvaluationSeed;
+import com.ibm.cohort.measure.seed.MeasureEvaluationSeeder;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 
 /**
  * Provide an interface for doing quality measure evaluation against a FHIR R4
  * server.
  */
-public class MeasureEvaluator {
+public class MeasureEvaluator<L, M, PD, I> {
 
-	private final FhirResourceResolver<Measure> measureResolver;
-	private final FhirResourceResolver<Library> libraryResolver;
-	private final R4LibraryDependencyGatherer libraryDependencyGatherer;
-
-	private final TerminologyProvider terminologyProvider;
-	private final Map<String, CqlDataProvider> dataProviders;
+	private final MeasureEvaluationSeeder<L, M, PD, I> seeder;
+//	private final FhirResourceResolver<M> measureResolver;
+	private final MeasureHelper<M> measureHelper;
 	private MeasurementPeriodStrategy measurementPeriodStrategy;
 
 	public MeasureEvaluator(
-			FhirResourceResolver<Measure> measureResolver,
-			FhirResourceResolver<Library> libraryResolver,
-			R4LibraryDependencyGatherer libraryDependencyGatherer,
-			TerminologyProvider terminologyProvider,
-			Map<String, CqlDataProvider> dataProviders
+			MeasureEvaluationSeeder<L, M, PD, I> seeder,
+			MeasureHelper<M> measureHelper
+//			FhirResourceResolver<M> measureResolver
 	) {
-		this.measureResolver = measureResolver;
-		this.libraryResolver = libraryResolver;
-		this.libraryDependencyGatherer = libraryDependencyGatherer;
-		this.terminologyProvider = terminologyProvider;
-		this.dataProviders = dataProviders;
+		this.seeder = seeder;
+		this.measureHelper = measureHelper;
+//		this.measureResolver = measureResolver;
 	}
 
 	public void setMeasurementPeriodStrategy(MeasurementPeriodStrategy strategy) {
@@ -105,7 +92,7 @@ public class MeasureEvaluator {
 	}
 
 	public MeasureReport evaluatePatientMeasure(String measureId, String patientId, Map<String, Parameter> parameters, MeasureEvidenceOptions evidenceOptions) {
-		Measure measure = MeasureHelper.loadMeasure(measureId, measureResolver);
+		M measure = measureHelper.loadMeasure(measureId);
 		return evaluatePatientMeasure(measure, patientId, parameters, evidenceOptions);
 	}
 	
@@ -114,12 +101,12 @@ public class MeasureEvaluator {
 	}
 
 	public MeasureReport evaluatePatientMeasure(Identifier identifier, String version, String patientId, Map<String, Parameter> parameters, MeasureEvidenceOptions evidenceOptions) {
-		Measure measure =  MeasureHelper.loadMeasure(identifier,  version, measureResolver);
+		M measure =  measureHelper.loadMeasure(identifier,  version);
 		return evaluatePatientMeasure(measure, patientId, parameters, evidenceOptions);
 	}
 
-	public MeasureReport evaluatePatientMeasure(Measure measure, String patientId, Map<String, Parameter> parameters, MeasureEvidenceOptions evidenceOptions) {
-		Pair<String, String> period = getMeasurementPeriodStrategy().getMeasurementPeriod(measure, parameters);
+	public MeasureReport evaluatePatientMeasure(M measure, String patientId, Map<String, Parameter> parameters, MeasureEvidenceOptions evidenceOptions) {
+		Pair<String, String> period = getMeasurementPeriodStrategy().getMeasurementPeriod(parameters);
 		return evaluatePatientMeasure(measure, patientId, period.getLeft(), period.getRight(), parameters, evidenceOptions);
 	}
 
@@ -150,10 +137,10 @@ public class MeasureEvaluator {
 	 *                        into the MeasureReport
 	 * @return FHIR MeasureReport
 	 */
-	public MeasureReport evaluatePatientMeasure(Measure measure, String patientId, String periodStart, String periodEnd,
+	public MeasureReport evaluatePatientMeasure(M measure, String patientId, String periodStart, String periodEnd,
 			Map<String, Parameter> parameters, MeasureEvidenceOptions evidenceOptions) {
-		MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(terminologyProvider, dataProviders, libraryDependencyGatherer, libraryResolver);
-		seeder.disableDebugLogging();
+//		MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(terminologyProvider, dataProviders, libraryDependencyGatherer, libraryResolver);
+//		seeder.disableDebugLogging();
 
 		IMeasureEvaluationSeed seed = seeder.create(measure, periodStart, periodEnd, "ProductLine", parameters);
 
@@ -165,20 +152,20 @@ public class MeasureEvaluator {
 			List<String> patientIds,
 			MeasureContext measureContext,
 			MeasureEvidenceOptions evidenceOptions) {
-		Measure measure = MeasureHelper.loadMeasure(measureContext, measureResolver);
+		M measure = measureHelper.loadMeasure(measureContext);
 
 		return evaluatePatientListMeasure(patientIds, measure, measureContext.getParameters(), evidenceOptions);
 	}
 
 	public MeasureReport evaluatePatientListMeasure(
 			List<String> patientIds,
-			Measure measure,
+			M measure,
 			Map<String, Parameter> parameters,
 			MeasureEvidenceOptions evidenceOptions) {
-		MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(terminologyProvider, dataProviders, libraryDependencyGatherer, libraryResolver);
+//		MeasureEvaluationSeeder seeder = new MeasureEvaluationSeeder(terminologyProvider, dataProviders, libraryDependencyGatherer, libraryResolver);
 		seeder.disableDebugLogging();
 
-		Pair<String, String> period = getMeasurementPeriodStrategy().getMeasurementPeriod(measure, parameters);
+		Pair<String, String> period = getMeasurementPeriodStrategy().getMeasurementPeriod(parameters);
 
 		IMeasureEvaluationSeed seed = seeder.create(measure, period.getLeft(), period.getRight(), "ProductLine", parameters);
 

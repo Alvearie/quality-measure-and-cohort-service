@@ -14,7 +14,6 @@ import java.util.Map;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hl7.fhir.r4.model.Measure;
 import org.opencds.cqf.cql.engine.runtime.DateTime;
 
 import com.ibm.cohort.cql.evaluation.parameters.DateParameter;
@@ -119,7 +118,7 @@ public class DefaultMeasurementPeriodStrategy implements MeasurementPeriodStrate
 	}
 
 	@Override
-	public Pair<String, String> getMeasurementPeriod(Measure measure, Map<String,Parameter> parameterOverrides) {
+	public Pair<String, String> getMeasurementPeriod(Map<String,Parameter> parameterOverrides) {
 		Pair<String,String> result = null;
 		
 		if( parameterOverrides != null ) { 

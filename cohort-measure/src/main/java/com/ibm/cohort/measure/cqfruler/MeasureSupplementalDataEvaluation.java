@@ -14,17 +14,27 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.hl7.fhir.r4.model.CanonicalType;
-import org.hl7.fhir.r4.model.CodeableConcept;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.Extension;
-import org.hl7.fhir.r4.model.IntegerType;
-import org.hl7.fhir.r4.model.Measure;
-import org.hl7.fhir.r4.model.MeasureReport;
-import org.hl7.fhir.r4.model.Observation;
-import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.Reference;
-import org.hl7.fhir.r4.model.StringType;
+import com.ibm.cohort.measure.ObservationStatus;
+import com.ibm.cohort.measure.wrapper.WrapperFactory;
+import com.ibm.cohort.measure.wrapper.element.CodeableConceptWrapper;
+import com.ibm.cohort.measure.wrapper.element.CodingWrapper;
+import com.ibm.cohort.measure.wrapper.element.ExtensionWrapper;
+import com.ibm.cohort.measure.wrapper.element.MeasureSupplementalDataWrapper;
+import com.ibm.cohort.measure.wrapper.element.ReferenceWrapper;
+import com.ibm.cohort.measure.wrapper.resource.MeasureReportWrapper;
+import com.ibm.cohort.measure.wrapper.resource.ObservationWrapper;
+import com.ibm.cohort.measure.wrapper.resource.PatientWrapper;
+//import org.hl7.fhir.r4.model.CanonicalType;
+//import org.hl7.fhir.r4.model.CodeableConcept;
+//import org.hl7.fhir.r4.model.Coding;
+//import org.hl7.fhir.r4.model.Extension;
+//import org.hl7.fhir.r4.model.IntegerType;
+//import org.hl7.fhir.r4.model.Measure;
+//import org.hl7.fhir.r4.model.MeasureReport;
+//import org.hl7.fhir.r4.model.Observation;
+//import org.hl7.fhir.r4.model.Patient;
+//import org.hl7.fhir.r4.model.Reference;
+//import org.hl7.fhir.r4.model.StringType;
 import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.runtime.Code;
 
@@ -38,22 +48,23 @@ public class MeasureSupplementalDataEvaluation {
 	
 	private MeasureSupplementalDataEvaluation() {}
 	
-	public static void populateSDEAccumulators(Context context, Patient patient,
+	public static void populateSDEAccumulators(Context context, PatientWrapper patient,
 			Map<String, Map<String, Integer>> sdeAccumulators,
-			List<Measure.MeasureSupplementalDataComponent> sde) {
+			List<MeasureSupplementalDataWrapper> sde,
+			WrapperFactory wrapperFactory) {
 		
-		context.setContextValue(MeasureEvaluation.PATIENT, patient.getIdElement().getIdPart());
+		context.setContextValue(MeasureEvaluation.PATIENT, patient.getId());
 		
 		List<Object> sdeList = sde.stream()
-				.map(sdeItem -> context.resolveExpressionRef(sdeItem.getCriteria().getExpression()).evaluate(context))
+				.map(sdeItem -> context.resolveExpressionRef(sdeItem.getExpression()).evaluate(context))
 				.collect(Collectors.toList());
 		if (!sdeList.isEmpty()) {
 			for (int i = 0; i < sdeList.size(); i++) {
 				Object sdeListItem = sdeList.get(i);
 				if (null != sdeListItem) {
-					String sdeAccumulatorKey = sde.get(i).getCode().getText();
+					String sdeAccumulatorKey = sde.get(i).getCode();
 					if (null == sdeAccumulatorKey || sdeAccumulatorKey.length() < 1) {
-						sdeAccumulatorKey = sde.get(i).getCriteria().getExpression();
+						sdeAccumulatorKey = sde.get(i).getExpression();
 					}
 					Map<String, Integer> sdeItemMap = sdeAccumulators.get(sdeAccumulatorKey);
 					String code = null;
@@ -63,8 +74,9 @@ public class MeasureSupplementalDataEvaluation {
 						code = ((Code) sdeListItem).getCode();
 						break;
 					case "ArrayList":
-						if (!((ArrayList<?>) sdeListItem).isEmpty()) {
-							code = ((Coding) ((ArrayList<?>) sdeListItem).get(0)).getCode();
+						ArrayList<?> rawList = (ArrayList<?>) sdeListItem;
+						if (!rawList.isEmpty()) {
+							code = wrapperFactory.wrapCoding(rawList.get(0)).getCode();
 						}
 						break;
 					default: 
@@ -92,15 +104,16 @@ public class MeasureSupplementalDataEvaluation {
 		}
 	}
 
-	public static MeasureReport processAccumulators(MeasureReport report,
-			Map<String, Map<String, Integer>> sdeAccumulators, boolean isSingle, List<Patient> patients) {
-		List<Reference> newRefList = new ArrayList<>();
+	public static MeasureReportWrapper processAccumulators(MeasureReportWrapper report,
+			Map<String, Map<String, Integer>> sdeAccumulators, boolean isSingle, List<PatientWrapper> patients,
+			WrapperFactory wrapperFactory) {
+		List<ReferenceWrapper> newRefList = new ArrayList<>();
 		sdeAccumulators.forEach((sdeKey, sdeAccumulator) -> {
 			sdeAccumulator.forEach((sdeAccumulatorKey, sdeAccumulatorValue) -> {
-				Observation obs = new Observation();
-				obs.setStatus(Observation.ObservationStatus.FINAL);
+				ObservationWrapper obs = wrapperFactory.newObservation();
+				obs.setStatus(ObservationStatus.FINAL);
 				obs.setId(UUID.randomUUID().toString());
-				Coding valueCoding = new Coding();
+				CodingWrapper valueCoding = wrapperFactory.newCoding();
 				if (sdeKey.equalsIgnoreCase(SDE_SEX)) {
 					valueCoding.setCode(sdeAccumulatorKey);
 				} else {
@@ -108,23 +121,25 @@ public class MeasureSupplementalDataEvaluation {
 					patients.forEach((pt) -> {
 						pt.getExtension().forEach((ptExt) -> {
 							if (ptExt.getUrl().contains(coreCategory)) {
-								String code = ((Coding) ptExt.getExtension().get(0).getValue()).getCode();
+								CodingWrapper coding = (CodingWrapper) ptExt.getExtension().get(0).getValue();
+								String code = coding.getCode();
 								if (code.equalsIgnoreCase(sdeAccumulatorKey)) {
 									valueCoding
-											.setSystem(((Coding) ptExt.getExtension().get(0).getValue()).getSystem());
+											.setSystem(coding.getSystem());
 									valueCoding.setCode(code);
 									valueCoding
-											.setDisplay(((Coding) ptExt.getExtension().get(0).getValue()).getDisplay());
+											.setDisplay(coding.getDisplay());
 								}
 							}
 						});
 					});
 				}
-				CodeableConcept obsCodeableConcept = new CodeableConcept();
-				Extension obsExtension = new Extension()
-						.setUrl(CQF_MEASUREINFO_URL);
-				Extension extExtMeasure = new Extension().setUrl(MEASURE)
-						.setValue(new CanonicalType(CQFMEASURES_URL + report.getMeasure()));
+				CodeableConceptWrapper obsCodeableConcept = wrapperFactory.newCodeableConcept();
+				ExtensionWrapper obsExtension = wrapperFactory.newExtension();
+				obsExtension.setUrl(CQF_MEASUREINFO_URL);
+				ExtensionWrapper extExtMeasure = wrapperFactory.newExtension();
+				extExtMeasure.setUrl(MEASURE);
+				extExtMeasure.setValue(new CanonicalType(CQFMEASURES_URL + report.getMeasure()));
 				obsExtension.addExtension(extExtMeasure);
 				Extension extExtPop = new Extension().setUrl(POPULATION_ID).setValue(new StringType(sdeKey));
 				obsExtension.addExtension(extExtPop);

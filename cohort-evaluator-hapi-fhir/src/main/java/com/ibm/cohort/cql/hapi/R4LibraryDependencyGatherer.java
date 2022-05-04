@@ -8,6 +8,7 @@ package com.ibm.cohort.cql.hapi;
 
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
 import com.ibm.cohort.cql.helpers.CanonicalHelper;
+import com.ibm.cohort.measure.LibraryDependencyGatherer;
 import org.hl7.fhir.r4.model.Attachment;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.Coding;
@@ -26,7 +27,7 @@ import java.util.Set;
  * Gathers all logic {@link Library} dependencies for a specified
  * {@link Library} id or all logic libraries referenced by a {@link Measure}.
  */
-public class R4LibraryDependencyGatherer {
+public class R4LibraryDependencyGatherer implements LibraryDependencyGatherer<Library, Measure> {
 
     private final FhirResourceResolver<Library> libraryResolver;
 

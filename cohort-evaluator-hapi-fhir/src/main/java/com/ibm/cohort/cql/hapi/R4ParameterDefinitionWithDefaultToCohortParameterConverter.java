@@ -8,6 +8,7 @@ package com.ibm.cohort.cql.hapi;
 
 import java.util.stream.Collectors;
 
+import com.ibm.cohort.measure.ParameterConverter;
 import org.hl7.fhir.r4.model.Base64BinaryType;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.CodeableConcept;
@@ -47,12 +48,10 @@ import com.ibm.cohort.cql.evaluation.parameters.TimeParameter;
  * Expected types to handle derived from this definition:
  * https://pages.github.ibm.com/watson-health-fhir-server/ig-common-data-model/StructureDefinition-parameter-definition-with-default.html
  */
-public class R4ParameterDefinitionWithDefaultToCohortParameterConverter {
+public class R4ParameterDefinitionWithDefaultToCohortParameterConverter implements ParameterConverter<ParameterDefinition> {
 
-	private R4ParameterDefinitionWithDefaultToCohortParameterConverter() {
-	}
-
-	public static Parameter toCohortParameter(ParameterDefinition parameterDefinition) {
+	@Override
+	public Parameter toCohortParameter(ParameterDefinition parameterDefinition) {
 		Extension defaultValueExtension = parameterDefinition.getExtensionByUrl(CDMConstants.PARAMETER_DEFAULT_URL);
 
 		Parameter parameter = null;
@@ -63,7 +62,7 @@ public class R4ParameterDefinitionWithDefaultToCohortParameterConverter {
 		return parameter;
 	}
 
-	public static Parameter toCohortParameter(Extension extension) {
+	public Parameter toCohortParameter(Extension extension) {
 		Parameter parameter;
 
 		Type extensionValue = extension.getValue();
@@ -132,31 +131,31 @@ public class R4ParameterDefinitionWithDefaultToCohortParameterConverter {
 		return parameter;
 	}
 
-	private static CodeParameter convertCoding(Coding coding) {
+	private CodeParameter convertCoding(Coding coding) {
 		return new CodeParameter().setValue(coding.getCode())
 				.setSystem(coding.getSystem())
 				.setDisplay(coding.getDisplay())
 				.setVersion(coding.getVersion());
 	}
 
-	private static ConceptParameter convertCodeableConcept(CodeableConcept codeableConcept) {
+	private ConceptParameter convertCodeableConcept(CodeableConcept codeableConcept) {
 		ConceptParameter conceptParameter = new ConceptParameter();
 		conceptParameter.setDisplay(codeableConcept.getText());
 
 		conceptParameter.setCodes(
 				codeableConcept.getCoding()
 						.stream()
-						.map(R4ParameterDefinitionWithDefaultToCohortParameterConverter::convertCoding)
+						.map(this::convertCoding)
 						.collect(Collectors.toList()));
 
 		return conceptParameter;
 	}
 
-	private static DatetimeParameter convertDateTimeType(DateTimeType dateTimeType) {
+	private DatetimeParameter convertDateTimeType(DateTimeType dateTimeType) {
 		return new DatetimeParameter(dateTimeType.getValueAsString());
 	}
 
-	private static QuantityParameter convertQuantity(Quantity fhirQuantity) {
+	private QuantityParameter convertQuantity(Quantity fhirQuantity) {
 		return new QuantityParameter(fhirQuantity.getValue().toString(), fhirQuantity.getUnit());
 	}
 }

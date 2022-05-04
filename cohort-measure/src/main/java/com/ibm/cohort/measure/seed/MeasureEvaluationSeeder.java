@@ -12,16 +12,14 @@ import java.util.List;
 import java.util.Map;
 
 import com.ibm.cohort.cql.data.CqlDataProvider;
+import com.ibm.cohort.cql.fhir.handler.ResourceFieldHandler;
 import com.ibm.cohort.cql.fhir.resolver.FhirResourceResolver;
-import com.ibm.cohort.cql.hapi.R4LibraryDependencyGatherer;
-import com.ibm.cohort.cql.hapi.R4TranslatingLibraryLoader;
-import com.ibm.cohort.cql.translation.CqlToElmTranslator;
+import com.ibm.cohort.measure.LibraryDependencyGatherer;
+import com.ibm.cohort.measure.ParameterConverter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
 import org.hl7.fhir.r4.model.Extension;
-import org.hl7.fhir.r4.model.Library;
-import org.hl7.fhir.r4.model.Measure;
 import org.hl7.fhir.r4.model.ParameterDefinition;
 import org.opencds.cqf.common.helpers.UsingHelper;
 import org.opencds.cqf.cql.engine.data.DataProvider;
@@ -31,17 +29,25 @@ import org.opencds.cqf.cql.engine.execution.LibraryLoader;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
 
-import com.ibm.cohort.engine.cqfruler.CDMContext;
-import com.ibm.cohort.engine.helpers.MeasurementPeriodHelper;
-import com.ibm.cohort.engine.measure.R4ParameterDefinitionWithDefaultToCohortParameterConverter;
+import com.ibm.cohort.measure.cqfruler.CDMContext;
+import com.ibm.cohort.measure.helpers.MeasurementPeriodHelper;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
 
-public class MeasureEvaluationSeeder {
+/*
+ * KWAS BIG TODO: Handle extensions somehow???
+ *           Need a parameter definition handler or something...it can't fit the existing resource field handler.
+ *           Rename resourcefieldhandler to knowledgeresourcefieldhandler maybe???
+ */
+public class MeasureEvaluationSeeder<L, M, PD, I> {
 
 	private final TerminologyProvider terminologyProvider;
 	private final Map<String, CqlDataProvider> dataProviders;
-	private final R4LibraryDependencyGatherer libraryDependencyGatherer;
-	private final FhirResourceResolver<Library> libraryResolver;
+	private final LibraryDependencyGatherer<L, M> libraryDependencyGatherer;
+	private final FhirResourceResolver<L> libraryResolver;
+	private final ParameterConverter<PD> parameterConverter;
+	private final LibraryLoader libraryLoader;
+	private final ResourceFieldHandler<L, I> libraryHandler;
+	private final ResourceFieldHandler<M, I> measureHandler;
 
 	private boolean enableExpressionCaching;
 	private boolean debugMode = true;
@@ -51,12 +57,20 @@ public class MeasureEvaluationSeeder {
 	public MeasureEvaluationSeeder(
 			TerminologyProvider terminologyProvider,
 			Map<String, CqlDataProvider> dataProviders,
-			R4LibraryDependencyGatherer libraryDependencyGatherer,
-			FhirResourceResolver<Library> libraryResolver) {
+			LibraryDependencyGatherer<L, M> libraryDependencyGatherer,
+			FhirResourceResolver<L> libraryResolver,
+			ParameterConverter<PD> parameterConverter,
+			LibraryLoader libraryLoader,
+			ResourceFieldHandler<L, I> libraryHandler,
+			ResourceFieldHandler<M, I> measureHandler) {
 		this.terminologyProvider = terminologyProvider;
 		this.dataProviders = dataProviders;
 		this.libraryDependencyGatherer = libraryDependencyGatherer;
 		this.libraryResolver = libraryResolver;
+		this.parameterConverter = parameterConverter;
+		this.libraryLoader = libraryLoader;
+		this.libraryHandler = libraryHandler;
+		this.measureHandler = measureHandler;
 	}
 
 	public MeasureEvaluationSeeder disableDebugLogging() {
@@ -71,20 +85,19 @@ public class MeasureEvaluationSeeder {
 		return this;
 	}
 
-	public IMeasureEvaluationSeed create(Measure measure, String periodStart, String periodEnd, String productLine, Map<String, Parameter> parameters) {
+	public IMeasureEvaluationSeed<M> create(M measure, String periodStart, String periodEnd, String productLine, Map<String, Parameter> parameters) {
 		// Gather the primary library and all of its dependencies
-		List<Library> fhirLibraries = libraryDependencyGatherer.gatherForMeasure(measure);
+		List<L> fhirLibraries = libraryDependencyGatherer.gatherForMeasure(measure);
 
 		if( CollectionUtils.isEmpty(fhirLibraries) ) {
-			throw new IllegalArgumentException(String.format("No libraries were able to be loaded for %s", measure.getId()));
+			throw new IllegalArgumentException(String.format("No libraries were able to be loaded for %s", measureHandler.getId(measure)));
 		}
 		
 		// the "primary" library is always the first library loaded for the measure
-		Library primaryFhirLibrary = fhirLibraries.get(0);
+		L primaryFhirLibrary = fhirLibraries.get(0);
 		VersionedIdentifier libraryIdentifier = new VersionedIdentifier()
-				.withId(primaryFhirLibrary.getName())
-				.withVersion(primaryFhirLibrary.getVersion());
-		LibraryLoader libraryLoader = new R4TranslatingLibraryLoader(libraryResolver, new CqlToElmTranslator());
+				.withId(libraryHandler.getName(primaryFhirLibrary))
+				.withVersion(libraryHandler.getVersion(primaryFhirLibrary));
 		org.cqframework.cql.elm.execution.Library primaryLibrary = libraryLoader.load(libraryIdentifier);
 		
 		List<Triple<String, String, String>> usingDefs = UsingHelper.getUsingUrlAndVersion(primaryLibrary.getUsings());
@@ -99,6 +112,9 @@ public class MeasureEvaluationSeeder {
 
 		Context context = createContext(primaryLibrary, lastModelUri, dataProvider, productLine, libraryLoader);
 
+		/*
+		 * KWAS TODO: Somehow handle CDM extensions in a sane way
+		 */
 		// fhir path: Measure.extension[measureParameter][].valueParameterDefinition.extension[defaultValue]
 		measure.getExtension().stream()
 				.filter(MeasureEvaluationSeeder::isMeasureParameter)
@@ -117,7 +133,7 @@ public class MeasureEvaluationSeeder {
 		Interval measurementPeriod = createMeasurePeriod(periodStart, periodEnd);
 		context.setParameter(null, MEASUREMENT_PERIOD, measurementPeriod);
 
-		return new CustomMeasureEvaluationSeed(measure, context, measurementPeriod, dataProvider);
+		return new CustomMeasureEvaluationSeed<>(measure, context, measurementPeriod, dataProvider);
 	}
 
 	protected Context createContext(
@@ -158,8 +174,8 @@ public class MeasureEvaluationSeeder {
 							MeasurementPeriodHelper.getPeriodEnd(periodEnd), true);
 	}
 
-	private void setDefaultValue(Context context, ParameterDefinition parameterDefinition) {
-		Parameter parameter = R4ParameterDefinitionWithDefaultToCohortParameterConverter.toCohortParameter(parameterDefinition);
+	private void setDefaultValue(Context context, PD parameterDefinition) {
+		Parameter parameter = parameterConverter.toCohortParameter(parameterDefinition);
 		if (parameter != null) {
 			context.setParameter(null, parameterDefinition.getName(), parameter.toCqlType());
 		}

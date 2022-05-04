@@ -5,19 +5,18 @@
  */
 package com.ibm.cohort.measure.seed;
 
-import org.hl7.fhir.r4.model.Measure;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.runtime.Interval;
 
-public class CustomMeasureEvaluationSeed implements IMeasureEvaluationSeed {
+public class CustomMeasureEvaluationSeed<M> implements IMeasureEvaluationSeed<M> {
 
-	private final Measure measure;
+	private final M measure;
 	private final Context context;
 	private final Interval measurementPeriod;
 	private final DataProvider dataProvider;
 
-	public CustomMeasureEvaluationSeed(Measure measure, Context context, Interval measurementPeriod, DataProvider dataProvider) {
+	public CustomMeasureEvaluationSeed(M measure, Context context, Interval measurementPeriod, DataProvider dataProvider) {
 		this.measure = measure;
 		this.context = context;
 		this.measurementPeriod = measurementPeriod;
@@ -25,7 +24,7 @@ public class CustomMeasureEvaluationSeed implements IMeasureEvaluationSeed {
 	}
 
 	@Override
-	public Measure getMeasure() {
+	public M getMeasure() {
 		return measure;
 	}
 
