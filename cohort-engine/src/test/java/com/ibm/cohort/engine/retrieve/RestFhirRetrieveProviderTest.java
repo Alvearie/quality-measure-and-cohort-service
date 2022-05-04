@@ -14,6 +14,7 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.junit.Before;
 import org.junit.Test;
+import org.opencds.cqf.cql.engine.fhir.retrieve.R4FhirQueryGenerator;
 import org.opencds.cqf.cql.engine.fhir.retrieve.RestFhirRetrieveProvider;
 import org.opencds.cqf.cql.engine.fhir.searchparam.SearchParameterResolver;
 import org.opencds.cqf.cql.engine.terminology.TerminologyProvider;
@@ -28,7 +29,7 @@ public class RestFhirRetrieveProviderTest extends FhirTestBase {
 	RestFhirRetrieveProvider provider = null;
 	
 	@Before
-	public void setUp() {
+	public void setUp() throws Exception {
 		IGenericClient client = newClient();
 		TerminologyProvider termProvider = new R4RestFhirTerminologyProvider(client);
 		
@@ -36,7 +37,8 @@ public class RestFhirRetrieveProviderTest extends FhirTestBase {
 		
 		provider = new RestFhirRetrieveProvider(resolver, client);
 		provider.setTerminologyProvider(termProvider);
-		
+		provider.setFhirQueryGenerator(new R4FhirQueryGenerator(resolver, termProvider, null));
+
 		mockFhirResourceRetrieval("/metadata?_format=json", getCapabilityStatement());
 	}
 	

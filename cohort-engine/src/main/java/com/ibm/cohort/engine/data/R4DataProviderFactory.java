@@ -13,6 +13,9 @@ import com.ibm.cohort.cql.data.CqlDataProvider;
 import com.ibm.cohort.cql.data.DefaultCqlDataProvider;
 import com.ibm.cohort.cql.terminology.CqlTerminologyProvider;
 import org.opencds.cqf.cql.engine.data.DataProvider;
+import org.opencds.cqf.cql.engine.fhir.exception.FhirVersionMisMatchException;
+import org.opencds.cqf.cql.engine.fhir.retrieve.BaseFhirQueryGenerator;
+import org.opencds.cqf.cql.engine.fhir.retrieve.FhirQueryGeneratorFactory;
 import org.opencds.cqf.cql.engine.fhir.retrieve.RestFhirRetrieveProvider;
 import org.opencds.cqf.cql.engine.fhir.searchparam.SearchParameterResolver;
 import org.opencds.cqf.cql.engine.model.ModelResolver;
@@ -111,6 +114,12 @@ public class R4DataProviderFactory {
 	) {
 		SearchParameterResolver resolver = new SearchParameterResolver(client.getFhirContext());
 		RestFhirRetrieveProvider baseRetrieveProvider = new RestFhirRetrieveProvider(resolver, client);
+		try {
+			BaseFhirQueryGenerator queryGenerator = FhirQueryGeneratorFactory.create(modelResolver, resolver, terminologyProvider);
+			baseRetrieveProvider.setFhirQueryGenerator(queryGenerator);
+		} catch (FhirVersionMisMatchException e) {
+			throw new IllegalArgumentException("Unsupported FHIR version", e);
+		}
 		baseRetrieveProvider.setExpandValueSets(isExpandValueSets);
 		if(pageSize != null && pageSize > 0) {
 			baseRetrieveProvider.setPageSize(pageSize);
