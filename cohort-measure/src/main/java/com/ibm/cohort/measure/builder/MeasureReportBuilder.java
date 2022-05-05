@@ -6,15 +6,12 @@
 
 package com.ibm.cohort.measure.builder;
 
-import java.util.List;
-
 //import org.hl7.fhir.exceptions.FHIRException;
 //import org.hl7.fhir.r4.model.DateTimeType;
 //import org.hl7.fhir.r4.model.MeasureReport;
 //import org.hl7.fhir.r4.model.Period;
 //import org.hl7.fhir.r4.model.Reference;
-import com.ibm.cohort.measure.MeasureReportType;
-import org.opencds.cqf.cql.engine.runtime.Interval;
+
 
 public interface MeasureReportBuilder {
 

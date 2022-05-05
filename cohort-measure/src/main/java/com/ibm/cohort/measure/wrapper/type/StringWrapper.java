@@ -8,7 +8,7 @@ package com.ibm.cohort.measure.wrapper.type;
 
 import com.ibm.cohort.measure.wrapper.BaseWrapper;
 
-public interface CanonicalWrapper extends BaseWrapper {
+public interface StringWrapper extends BaseWrapper {
 
     void setValue(String value);
 

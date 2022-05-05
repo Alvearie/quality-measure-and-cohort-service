@@ -6,13 +6,16 @@
 
 package com.ibm.cohort.measure.wrapper.resource;
 
-import com.ibm.cohort.measure.ObservationStatus;
-import com.ibm.cohort.measure.wrapper.element.ElementWrapper;
+import com.ibm.cohort.measure.wrapper.enums.ObservationStatus;
+import com.ibm.cohort.measure.wrapper.BaseWrapper;
+import com.ibm.cohort.measure.wrapper.element.CodeableConceptWrapper;
 
 public interface ObservationWrapper extends DomainResourceWrapper {
 
     void setStatus(ObservationStatus status);
 
-    void setValue(ElementWrapper element);
+    void setValue(BaseWrapper element);
+
+    void setCode(CodeableConceptWrapper codeableConcept);
 
 }

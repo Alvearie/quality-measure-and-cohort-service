@@ -8,8 +8,8 @@ package com.ibm.cohort.measure.wrapper.type;
 
 import com.ibm.cohort.measure.wrapper.BaseWrapper;
 
-public interface CanonicalWrapper extends BaseWrapper {
+public interface BooleanWrapper extends BaseWrapper {
 
-    void setValue(String value);
+    void setValue(boolean value);
 
 }

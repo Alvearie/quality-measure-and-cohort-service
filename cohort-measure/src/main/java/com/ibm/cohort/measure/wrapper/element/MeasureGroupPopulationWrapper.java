@@ -14,7 +14,7 @@ public interface MeasureGroupPopulationWrapper extends ElementWrapper {
 
     String getExpression();
 
-    String getCode();
-    void setCode(String code);
+    CodeableConceptWrapper getCode();
+    void setCode(CodeableConceptWrapper code);
 
 }

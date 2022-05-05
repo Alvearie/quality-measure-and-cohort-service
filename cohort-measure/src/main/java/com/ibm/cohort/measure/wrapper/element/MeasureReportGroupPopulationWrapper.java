@@ -8,8 +8,12 @@ package com.ibm.cohort.measure.wrapper.element;
 
 public interface MeasureReportGroupPopulationWrapper extends ElementWrapper {
 
-    void setCode(String code);
 
+    CodeableConceptWrapper getCode();
+    void setCode(CodeableConceptWrapper code);
+
+    // KWAS TODO: can I use primitives???
+    int getCount();
     void setCount(int count);
 
     void setSubjectResults(ReferenceWrapper referenceBuilder);

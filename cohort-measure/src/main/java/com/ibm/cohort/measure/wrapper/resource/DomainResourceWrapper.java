@@ -17,4 +17,7 @@ public interface DomainResourceWrapper extends ResourceWrapper {
 
     List<ExtensionWrapper> getExtension();
 
+    // KWAS TODO: Implement as helper in a base class?
+    List<ExtensionWrapper> getExtensionsByUrl(String url);
+
 }

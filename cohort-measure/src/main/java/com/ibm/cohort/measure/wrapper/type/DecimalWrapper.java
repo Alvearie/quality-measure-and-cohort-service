@@ -8,8 +8,10 @@ package com.ibm.cohort.measure.wrapper.type;
 
 import com.ibm.cohort.measure.wrapper.BaseWrapper;
 
-public interface CanonicalWrapper extends BaseWrapper {
+import java.math.BigDecimal;
 
-    void setValue(String value);
+public interface DecimalWrapper extends BaseWrapper {
+
+    void setValue(BigDecimal value);
 
 }

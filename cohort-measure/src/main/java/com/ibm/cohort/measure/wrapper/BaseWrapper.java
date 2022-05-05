@@ -10,4 +10,6 @@ public interface BaseWrapper {
 
     Object getNativeObject();
 
+    String fhirType();
+
 }

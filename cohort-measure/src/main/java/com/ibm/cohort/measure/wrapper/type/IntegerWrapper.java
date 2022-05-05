@@ -8,8 +8,9 @@ package com.ibm.cohort.measure.wrapper.type;
 
 import com.ibm.cohort.measure.wrapper.BaseWrapper;
 
-public interface CanonicalWrapper extends BaseWrapper {
+public interface IntegerWrapper extends BaseWrapper {
 
-    void setValue(String value);
+    // KWAS TODO: nullable???
+    void setValue(int value);
 
 }

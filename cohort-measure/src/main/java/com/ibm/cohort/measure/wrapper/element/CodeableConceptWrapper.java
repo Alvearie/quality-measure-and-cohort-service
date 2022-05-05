@@ -6,8 +6,17 @@
 
 package com.ibm.cohort.measure.wrapper.element;
 
+import java.util.List;
+
 public interface CodeableConceptWrapper extends ElementWrapper {
 
-    void setCoding(CodingWrapper coding);
+    List<CodingWrapper> getCoding();
+    void setCoding(List<CodingWrapper> coding);
+    void addCoding(CodingWrapper coding);
+
+    // KWAS TODO: Implement as a helper method on a base class?
+    boolean hasCoding(String system, String code);
+
+    void setText(String text);
 
 }

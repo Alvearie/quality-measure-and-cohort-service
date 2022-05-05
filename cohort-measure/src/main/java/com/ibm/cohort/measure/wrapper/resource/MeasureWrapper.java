@@ -8,6 +8,7 @@ package com.ibm.cohort.measure.wrapper.resource;
 
 import com.ibm.cohort.measure.wrapper.element.MeasureGroupWrapper;
 import com.ibm.cohort.measure.wrapper.element.MeasureSupplementalDataWrapper;
+import com.ibm.cohort.measure.wrapper.element.ReferenceWrapper;
 
 import java.util.List;
 

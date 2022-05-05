@@ -19,6 +19,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.opencds.cqf.cql.engine.model.ModelResolver;
 
+// KWAS TODO: This depends on FHIR?  how?
 public class CachingModelResolverDecoratorTest {
 
 	private TestCachingModelResolverDecorator modelResolver;

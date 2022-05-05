@@ -19,6 +19,21 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.ibm.cohort.measure.wrapper.BaseWrapper;
+import com.ibm.cohort.measure.wrapper.WrapperFactory;
+import com.ibm.cohort.measure.wrapper.element.ExtensionWrapper;
+import com.ibm.cohort.measure.wrapper.element.MeasureGroupPopulationWrapper;
+import com.ibm.cohort.measure.wrapper.element.MeasureGroupWrapper;
+import com.ibm.cohort.measure.wrapper.element.MeasureReportGroupPopulationWrapper;
+import com.ibm.cohort.measure.wrapper.element.MeasureReportGroupWrapper;
+import com.ibm.cohort.measure.wrapper.element.ParameterDefinitionWrapper;
+import com.ibm.cohort.measure.wrapper.enums.MeasureReportType;
+import com.ibm.cohort.measure.wrapper.enums.ParameterUse;
+import com.ibm.cohort.measure.wrapper.resource.MeasureReportWrapper;
+import com.ibm.cohort.measure.wrapper.resource.MeasureWrapper;
+import com.ibm.cohort.measure.wrapper.resource.ResourceWrapper;
+import com.ibm.cohort.measure.wrapper.type.BooleanWrapper;
+import com.ibm.cohort.measure.wrapper.type.StringWrapper;
 import org.cqframework.cql.elm.execution.VersionedIdentifier;
 import org.hl7.fhir.instance.model.api.IBaseDatatype;
 //import org.hl7.fhir.r4.model.BooleanType;
@@ -30,6 +45,7 @@ import org.hl7.fhir.instance.model.api.IBaseDatatype;
 //import org.hl7.fhir.r4.model.Type;
 //import org.hl7.fhir.r4.model.codesystems.MeasureScoring;
 import org.opencds.cqf.common.evaluation.MeasurePopulationType;
+import org.opencds.cqf.common.evaluation.MeasureScoring;
 import org.opencds.cqf.cql.engine.data.DataProvider;
 import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.runtime.Interval;
@@ -91,11 +107,11 @@ public class CDMMeasureEvaluation {
 		}
 
 		public static StandardReportResults fromMeasureReportGroup(
-				MeasureReport.MeasureReportGroupComponent reportGroup) {
+				MeasureReportGroupWrapper reportGroup) {
 			StandardReportResults idx = new StandardReportResults();
-			for (MeasureReport.MeasureReportGroupPopulationComponent pop : reportGroup.getPopulation()) {
+			for (MeasureReportGroupPopulationWrapper pop : reportGroup.getPopulation()) {
 				MeasurePopulationType standardType = MeasurePopulationType
-						.fromCode(pop.getCode().getCodingFirstRep().getCode());
+						.fromCode(pop.getCode().getCoding().get(0).getCode());
 				if (standardType != null) {
 					idx.put(standardType, pop.getCount() > 0);
 				}
@@ -105,9 +121,11 @@ public class CDMMeasureEvaluation {
 	}
 
 	private MeasureEvaluation evaluation;
+	private WrapperFactory wrapperFactory;
 
-	public CDMMeasureEvaluation(DataProvider provider, Interval measurementPeriod) {
-		evaluation = new MeasureEvaluation(provider, measurementPeriod);
+	public CDMMeasureEvaluation(DataProvider provider, Interval measurementPeriod, WrapperFactory wrapperFactory) {
+		this.wrapperFactory = wrapperFactory;
+		this.evaluation = new MeasureEvaluation(provider, measurementPeriod, wrapperFactory);
 	}
 
 	/**
@@ -122,17 +140,17 @@ public class CDMMeasureEvaluation {
 	 * @param type  Type of report to be generated
 	 * @return MeasureReport with population components filled out.
 	 */
-	public MeasureReport evaluatePatientMeasure(Measure measure, Context context, List<String> patientIds, MeasureEvidenceOptions evidenceOptions, Map<String, Parameter> parameterMap, MeasureReport.MeasureReportType type) {
+	public MeasureReportWrapper evaluatePatientMeasure(MeasureWrapper measure, Context context, List<String> patientIds, MeasureEvidenceOptions evidenceOptions, Map<String, Parameter> parameterMap, MeasureReportType type) {
 		context.setExpressionCaching(true);
 
 		boolean includeEvaluatedResources = (evidenceOptions != null) ? evidenceOptions.isIncludeEvaluatedResources() : false;
 
-		MeasureReport report;
+		MeasureReportWrapper report;
 		switch (type) {
 			case INDIVIDUAL:
 				report = evaluation.evaluatePatientMeasure(measure, context, patientIds.get(0), includeEvaluatedResources);
 				break;
-			case SUBJECTLIST:
+			case SUBJECT_LIST:
 				report = evaluation.evaluatePatientListMeasure(measure, context, patientIds, includeEvaluatedResources);
 				break;
 			default:
@@ -141,25 +159,25 @@ public class CDMMeasureEvaluation {
 
 		setReportMeasureToMeasureId(report, measure);
 
-		MeasureScoring scoring = MeasureScoring.fromCode(measure.getScoring().getCodingFirstRep().getCode());
+		MeasureScoring scoring = MeasureScoring.fromCode(measure.getScoringCode());
 		switch (scoring) {
 			case PROPORTION:
 			case RATIO:
 				// implement custom logic for CDM care-gaps
-				Iterator<Measure.MeasureGroupComponent> it = measure.getGroup().iterator();
+				Iterator<MeasureGroupWrapper> it = measure.getGroup().iterator();
 				for (int i = 0; it.hasNext(); i++) {
-					Measure.MeasureGroupComponent group = it.next();
-					MeasureReport.MeasureReportGroupComponent reportGroup = report.getGroup().get(i);
+					MeasureGroupWrapper group = it.next();
+					MeasureReportGroupWrapper reportGroup = report.getGroup().get(i);
 					boolean evaluateCareGaps = isEligibleForCareGapEvaluation(reportGroup);
 
-					for (Measure.MeasureGroupPopulationComponent pop : group.getPopulation()) {
+					for (MeasureGroupPopulationWrapper pop : group.getPopulation()) {
 						if (pop.getCode().hasCoding(CDMConstants.CDM_CODE_SYSTEM_MEASURE_POPULATION_TYPE, CDMConstants.CARE_GAP)) {
 							Boolean result = Boolean.FALSE;
 							if (evaluateCareGaps) {
-								result = evaluateCriteria(context, pop.getCriteria().getExpression());
+								result = evaluateCriteria(context, pop.getExpression());
 							}
 
-							MeasureReport.MeasureReportGroupPopulationComponent output = new MeasureReport.MeasureReportGroupPopulationComponent();
+							MeasureReportGroupPopulationWrapper output = wrapperFactory.newMeasureReportGroupPopulation();
 							output.setId(pop.getId()); // need this to differentiate between multiple instances of care-gap
 							output.setCode(pop.getCode());
 							output.setCount(result ? 1 : 0);
@@ -180,13 +198,13 @@ public class CDMMeasureEvaluation {
 			addDefineEvaluationToReport(report, defineContext, defineReturnOptions);
 		}
 
-		List<Extension> parameterExtensions = getParameterExtensions(measure, context, parameterMap);
+		List<ExtensionWrapper> parameterExtensions = getParameterExtensions(measure, context, parameterMap);
 		parameterExtensions.forEach(report::addExtension);
 
 		return report;
 	}
 	
-	protected static void addDefineEvaluationToReport(MeasureReport report, CDMContext defineContext, DefineReturnOptions defineOption) {
+	protected void addDefineEvaluationToReport(MeasureReportWrapper report, CDMContext defineContext, DefineReturnOptions defineOption) {
 		if(DefineReturnOptions.NONE == defineOption) {
 			return;
 		}
@@ -194,23 +212,24 @@ public class CDMMeasureEvaluation {
 		for(Entry<VersionedIdentifier, Map<String, Object>> libraryCache : defineContext.getEntriesInCache()) {
 			for(Entry<String, Object> defineResult : libraryCache.getValue().entrySet()) {
 				
-				List<Type> values = MeasureEvidenceHelper.getFhirTypes(defineResult.getValue());
+				List<BaseWrapper> values = MeasureEvidenceHelper.getFhirTypes(defineResult.getValue(), wrapperFactory);
 				
 				if (shouldAddDefineResult(defineOption, values)) {
 					
-					Extension evidence = new Extension();
+					ExtensionWrapper evidence = wrapperFactory.newExtension();
 					evidence.setUrl(CDMConstants.EVIDENCE_URL);
-					
-					StringType key = new StringType(MeasureEvidenceHelper.createEvidenceKey(libraryCache.getKey(), defineResult.getKey()));
-					
-					Extension textExtension = new Extension();
+
+					StringWrapper key = wrapperFactory.newString();
+					key.setValue(MeasureEvidenceHelper.createEvidenceKey(libraryCache.getKey(), defineResult.getKey()));
+
+					ExtensionWrapper textExtension = wrapperFactory.newExtension();
 					textExtension.setUrl(CDMConstants.EVIDENCE_TEXT_URL);
 					textExtension.setValue(key);
 					
 					evidence.addExtension(textExtension);
 					
-					for(Type value : values) {
-						Extension valueExtension = new Extension();
+					for(BaseWrapper value : values) {
+						ExtensionWrapper valueExtension = wrapperFactory.newExtension();
 						valueExtension.setUrl(CDMConstants.EVIDENCE_VALUE_URL);
 						valueExtension.setValue(value);
 						evidence.addExtension(valueExtension);
@@ -222,7 +241,7 @@ public class CDMMeasureEvaluation {
 		}
 	}
 	
-	protected static List<Extension> getParameterExtensions(Measure measure, Context context, Map<String, Parameter> parameterMap) {
+	protected List<ExtensionWrapper> getParameterExtensions(MeasureWrapper measure, Context context, Map<String, Parameter> parameterMap) {
 		Set<String> parameterNames = new HashSet<>();
 		
 		// Check for special parameters we handle elsewhere
@@ -238,9 +257,9 @@ public class CDMMeasureEvaluation {
 			parameterNames.addAll(parameterMap.keySet());
 		}
 		
-		List<Extension> parameterExtensions = measure.getExtensionsByUrl(CDMConstants.MEASURE_PARAMETER_URL);
-		for (Extension e : parameterExtensions) {
-			ParameterDefinition parameterDefinition = (ParameterDefinition) e.getValue();
+		List<ExtensionWrapper> parameterExtensions = measure.getExtensionsByUrl(CDMConstants.MEASURE_PARAMETER_URL);
+		for (ExtensionWrapper e : parameterExtensions) {
+			ParameterDefinitionWrapper parameterDefinition = (ParameterDefinitionWrapper) e.getValue();
 			parameterNames.add(parameterDefinition.getName());
 		}
 		
@@ -250,26 +269,26 @@ public class CDMMeasureEvaluation {
 				.collect(Collectors.toList());
 	}
 	
-	protected static Extension createParameterExtension(Context context, String parameterName) {
+	protected ExtensionWrapper createParameterExtension(Context context, String parameterName) {
 		Object parameterValue = context.resolveParameterRef(null, parameterName);
 
-		Extension innerExtension = new Extension();
+		ExtensionWrapper innerExtension = wrapperFactory.newExtension();
 		innerExtension.setUrl(PARAMETER_VALUE_URL);
-		IBaseDatatype fhirParameterValue = CQLToFHIRMeasureReportHelper.getFhirTypeValue(parameterValue);
+		BaseWrapper fhirParameterValue = CQLToFHIRMeasureReportHelper.getFhirTypeValue(parameterValue);
 
-		Extension outerExtension = null;
+		ExtensionWrapper outerExtension = null;
 
 		// Do not create an extension for unsupported types
 		if (fhirParameterValue != null) {
 			innerExtension.setValue(fhirParameterValue);
 
-			ParameterDefinition parameterDefinition = new ParameterDefinition();
+			ParameterDefinitionWrapper parameterDefinition = wrapperFactory.newParameterDefinition();
 			parameterDefinition.setName(parameterName);
-			parameterDefinition.setUse(ParameterDefinition.ParameterUse.IN);
+			parameterDefinition.setUse(ParameterUse.IN);
 			parameterDefinition.setExtension(Collections.singletonList(innerExtension));
 			parameterDefinition.setType(fhirParameterValue.fhirType());
 
-			outerExtension = new Extension();
+			outerExtension = wrapperFactory.newExtension();
 			outerExtension.setUrl(MEASURE_PARAMETER_VALUE_URL);
 			outerExtension.setValue(parameterDefinition);
 		}
@@ -296,7 +315,7 @@ public class CDMMeasureEvaluation {
 	 * @param report MeasureReport on which to set the measure reference
 	 * @param measure Measure providing the id to normalize and set on the report
 	 */
-	protected static void setReportMeasureToMeasureId(MeasureReport report, Measure measure) {
+	protected static void setReportMeasureToMeasureId(MeasureReportWrapper report, MeasureWrapper measure) {
 		int startOfId = measure.getId().indexOf("Measure/");
 
 		if (startOfId < 0) {
@@ -306,14 +325,14 @@ public class CDMMeasureEvaluation {
 		}
 	}
 
-	private static boolean shouldAddDefineResult(DefineReturnOptions defineOption, List<Type> values) {
+	private static boolean shouldAddDefineResult(DefineReturnOptions defineOption, List<BaseWrapper> values) {
 		if(!values.isEmpty()) {
 			if(DefineReturnOptions.ALL == defineOption) {
 				return true;
 			}
 			else if(DefineReturnOptions.BOOLEAN == defineOption
 					&& values.size() == 1
-					&& values.get(0) instanceof BooleanType) {
+					&& values.get(0) instanceof BooleanWrapper) {
 				return true;
 			}
 		}
@@ -321,26 +340,27 @@ public class CDMMeasureEvaluation {
 		return false;
 	}
 	
-	protected static void addBooleanDefineEvaluationToReport(MeasureReport report, CDMContext defineContext) {
+	protected void addBooleanDefineEvaluationToReport(MeasureReportWrapper report, CDMContext defineContext) {
 		for(Entry<VersionedIdentifier, Map<String, Object>> libraryCache : defineContext.getEntriesInCache()) {
 			for(Entry<String, Object> defineResult : libraryCache.getValue().entrySet()) {
+
+				BaseWrapper value = wrapperFactory.wrapObject(defineResult.getValue());
 				
-				Type value = MeasureEvidenceHelper.getFhirType(defineResult.getValue());
-				
-				if (value instanceof BooleanType) {
+				if (value instanceof BooleanWrapper) {
 					
-					Extension evidence = new Extension();
+					ExtensionWrapper evidence = wrapperFactory.newExtension();
 					evidence.setUrl(CDMConstants.EVIDENCE_URL);
 					
-					StringType key = new StringType(MeasureEvidenceHelper.createEvidenceKey(libraryCache.getKey(), defineResult.getKey()));
+					StringWrapper key = wrapperFactory.newString();
+					key.setValue(MeasureEvidenceHelper.createEvidenceKey(libraryCache.getKey(), defineResult.getKey()));
 					
-					Extension textExtension = new Extension();
+					ExtensionWrapper textExtension = wrapperFactory.newExtension();
 					textExtension.setUrl(CDMConstants.EVIDENCE_TEXT_URL);
 					textExtension.setValue(key);
 					
 					evidence.addExtension(textExtension);
 					
-					Extension valueExtension = new Extension();
+					ExtensionWrapper valueExtension = wrapperFactory.newExtension();
 					valueExtension.setUrl(CDMConstants.EVIDENCE_VALUE_URL);
 					valueExtension.setValue(value);
 					evidence.addExtension(valueExtension);
@@ -361,7 +381,7 @@ public class CDMMeasureEvaluation {
 	 *                    patient quality measure reporting.
 	 * @return true when care gaps should be evaluated, otherwise false.
 	 */
-	private boolean isEligibleForCareGapEvaluation(MeasureReport.MeasureReportGroupComponent reportGroup) {
+	private boolean isEligibleForCareGapEvaluation(MeasureReportGroupWrapper reportGroup) {
 		boolean isEligibleForCareGap = false;
 		StandardReportResults results = StandardReportResults.fromMeasureReportGroup(reportGroup);
 		// Logic for the numerator exclusion, denominator exclusion, and denominator

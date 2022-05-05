@@ -16,7 +16,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
-import com.ibm.cohort.measure.MeasureReportType;
+import com.ibm.cohort.measure.wrapper.enums.MeasureReportType;
 import com.ibm.cohort.measure.wrapper.element.ListEntryWrapper;
 import com.ibm.cohort.measure.wrapper.element.MeasureGroupPopulationWrapper;
 import com.ibm.cohort.measure.wrapper.element.MeasureGroupWrapper;
@@ -65,16 +65,12 @@ public class MeasureEvaluation {
     private DataProvider provider;
     private Interval measurementPeriod;
 
-//    private final IdFieldHandler<R> resourceHandler;
-//    private final PatientFieldHandler<P> patientHandler;
-//    private final MeasureReportFieldHandler<MR> measureReportHandler;
-//    private final MeasureFieldHandler<M, I> measureHandler;
-
     private final WrapperFactory wrapperFactory;
 
-    public MeasureEvaluation(DataProvider provider, Interval measurementPeriod) {
+    public MeasureEvaluation(DataProvider provider, Interval measurementPeriod, WrapperFactory wrapperFactory) {
         this.provider = provider;
         this.measurementPeriod = measurementPeriod;
+        this.wrapperFactory = wrapperFactory;
     }
 
     public MeasureReportWrapper evaluatePatientMeasure(MeasureWrapper measure, Context context, String patientId) {
@@ -93,7 +89,7 @@ public class MeasureEvaluation {
         PatientWrapper patient = null;
         if (patientRetrieve.iterator().hasNext()) {
             Object rawPatient = patientRetrieve.iterator().next();
-            patient = wrapperFactory.wrapResource(rawPatient);
+            patient = wrapperFactory.wrapObject(rawPatient);
         }
 
         boolean isSingle = true;
@@ -117,7 +113,7 @@ public class MeasureEvaluation {
 			Iterable<Object> patientRetrieve = provider.retrieve(PATIENT, "id", patientId, PATIENT, null, null, null, null, null, null, null, null);
 			if (patientRetrieve.iterator().hasNext()) {
                 Object rawPatient = patientRetrieve.iterator().next();
-                PatientWrapper patientWrapper = wrapperFactory.wrapResource(rawPatient);
+                PatientWrapper patientWrapper = wrapperFactory.wrapObject(rawPatient);
                 patients.add(patientWrapper);
 			}
 		}
@@ -152,7 +148,7 @@ public class MeasureEvaluation {
         Iterable<Object> iterableResult = (Iterable<Object>)result;
         List<ResourceWrapper> retVal = new ArrayList<>();
         for (Object object : iterableResult) {
-            retVal.add(wrapperFactory.wrapResource(object));
+            retVal.add(wrapperFactory.wrapObject(object));
         }
 
         return retVal;
@@ -283,7 +279,7 @@ public class MeasureEvaluation {
             Map<String, PatientWrapper> denominatorExceptionPatients = null;
 
             for (MeasureGroupPopulationWrapper pop : group.getPopulation()) {
-                MeasurePopulationType populationType = MeasurePopulationType.fromCode(pop.getCode());
+                MeasurePopulationType populationType = MeasurePopulationType.fromCode(pop.getCode().getCoding().get(0).getCode());
                 if (populationType != null) {
                     switch (populationType) {
                         case INITIALPOPULATION:
@@ -386,7 +382,7 @@ public class MeasureEvaluation {
                                 }
                             }
                         }
-                        MeasureSupplementalDataEvaluation.populateSDEAccumulators(context, patient, sdeAccumulators, sde);
+                        MeasureSupplementalDataEvaluation.populateSDEAccumulators(context, patient, sdeAccumulators, sde, wrapperFactory);
                     }
 
                     // Calculate actual measure score, Count(numerator) / Count(denominator)
@@ -405,7 +401,7 @@ public class MeasureEvaluation {
                                 null);
                         populateResourceMap(context, MeasurePopulationType.INITIALPOPULATION, resources,
                                 codeToResourceMap, includeEvaluatedResources);
-                        MeasureSupplementalDataEvaluation.populateSDEAccumulators(context, patient, sdeAccumulators, sde);
+                        MeasureSupplementalDataEvaluation.populateSDEAccumulators(context, patient, sdeAccumulators, sde, wrapperFactory);
                     }
 
                     break;
@@ -466,7 +462,7 @@ public class MeasureEvaluation {
             retVal.setEvaluatedResource(evaluatedResourceIds);
         }
         if (MapUtils.isNotEmpty(sdeAccumulators)) {
-            retVal = MeasureSupplementalDataEvaluation.processAccumulators(retVal, sdeAccumulators, isSingle, patients);
+            retVal = MeasureSupplementalDataEvaluation.processAccumulators(retVal, sdeAccumulators, isSingle, patients, wrapperFactory);
         }
 
         return retVal;
@@ -489,7 +485,7 @@ public class MeasureEvaluation {
         Set<String> codeHashSet = codeToResourceMap.get((type.toCode()));
 
         for (Object o : context.getEvaluatedResources()) {
-            ResourceWrapper resourceWrapper = wrapperFactory.wrapResource(o);
+            ResourceWrapper resourceWrapper = wrapperFactory.wrapObject(o);
             if (resourceWrapper != null) {
                 String id = (resourceWrapper.getResourceType() != null ? (resourceWrapper.getResourceType() + "/")
                         : "") + resourceWrapper.getId();

@@ -19,4 +19,6 @@ public interface CodingWrapper extends ElementWrapper {
     String getDisplay();
     void setDisplay(String display);
 
+    void setVersion(String version);
+
 }

@@ -6,12 +6,14 @@
 
 package com.ibm.cohort.measure.wrapper.element;
 
+import com.ibm.cohort.measure.wrapper.BaseWrapper;
+
 public interface ExtensionWrapper extends ElementWrapper {
 
     String getUrl();
     void setUrl(String url);
 
-    ElementWrapper getValue();
-//    void setValue(ElementWrapper value);
+    BaseWrapper getValue();
+    void setValue(BaseWrapper value);
 
 }

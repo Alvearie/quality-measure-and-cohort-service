@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.ibm.cohort.measure.ObservationStatus;
+import com.ibm.cohort.measure.wrapper.enums.ObservationStatus;
 import com.ibm.cohort.measure.wrapper.WrapperFactory;
 import com.ibm.cohort.measure.wrapper.element.CodeableConceptWrapper;
 import com.ibm.cohort.measure.wrapper.element.CodingWrapper;
@@ -24,17 +24,9 @@ import com.ibm.cohort.measure.wrapper.element.ReferenceWrapper;
 import com.ibm.cohort.measure.wrapper.resource.MeasureReportWrapper;
 import com.ibm.cohort.measure.wrapper.resource.ObservationWrapper;
 import com.ibm.cohort.measure.wrapper.resource.PatientWrapper;
-//import org.hl7.fhir.r4.model.CanonicalType;
-//import org.hl7.fhir.r4.model.CodeableConcept;
-//import org.hl7.fhir.r4.model.Coding;
-//import org.hl7.fhir.r4.model.Extension;
-//import org.hl7.fhir.r4.model.IntegerType;
-//import org.hl7.fhir.r4.model.Measure;
-//import org.hl7.fhir.r4.model.MeasureReport;
-//import org.hl7.fhir.r4.model.Observation;
-//import org.hl7.fhir.r4.model.Patient;
-//import org.hl7.fhir.r4.model.Reference;
-//import org.hl7.fhir.r4.model.StringType;
+import com.ibm.cohort.measure.wrapper.type.CanonicalWrapper;
+import com.ibm.cohort.measure.wrapper.type.IntegerWrapper;
+import com.ibm.cohort.measure.wrapper.type.StringWrapper;
 import org.opencds.cqf.cql.engine.execution.Context;
 import org.opencds.cqf.cql.engine.runtime.Code;
 
@@ -76,7 +68,8 @@ public class MeasureSupplementalDataEvaluation {
 					case "ArrayList":
 						ArrayList<?> rawList = (ArrayList<?>) sdeListItem;
 						if (!rawList.isEmpty()) {
-							code = wrapperFactory.wrapCoding(rawList.get(0)).getCode();
+							CodingWrapper coding = wrapperFactory.wrapObject(rawList.get(0));
+							code = coding.getCode();
 						}
 						break;
 					default: 
@@ -139,22 +132,34 @@ public class MeasureSupplementalDataEvaluation {
 				obsExtension.setUrl(CQF_MEASUREINFO_URL);
 				ExtensionWrapper extExtMeasure = wrapperFactory.newExtension();
 				extExtMeasure.setUrl(MEASURE);
-				extExtMeasure.setValue(new CanonicalType(CQFMEASURES_URL + report.getMeasure()));
+				CanonicalWrapper canonicalWrapper = wrapperFactory.newCanonical();
+				canonicalWrapper.setValue(CQFMEASURES_URL + report.getMeasure());
+				extExtMeasure.setValue(canonicalWrapper);
 				obsExtension.addExtension(extExtMeasure);
-				Extension extExtPop = new Extension().setUrl(POPULATION_ID).setValue(new StringType(sdeKey));
+				ExtensionWrapper extExtPop = wrapperFactory.newExtension();
+				extExtPop.setUrl(POPULATION_ID);
+				StringWrapper string = wrapperFactory.newString();
+				string.setValue(sdeKey);
+				extExtPop.setValue(string);
 				obsExtension.addExtension(extExtPop);
 				obs.addExtension(obsExtension);
-				obs.setValue(new IntegerType(sdeAccumulatorValue));
+				IntegerWrapper integer = wrapperFactory.newInteger();
+				integer.setValue(sdeAccumulatorValue);
+				obs.setValue(integer);
 				if (!isSingle) {
 					valueCoding.setCode(sdeAccumulatorKey);
 					obsCodeableConcept.setCoding(Collections.singletonList(valueCoding));
 					obs.setCode(obsCodeableConcept);
 				} else {
-					obs.setCode(new CodeableConcept().setText(sdeKey));
+					CodeableConceptWrapper sdeCodeableConcept = wrapperFactory.newCodeableConcept();
+					sdeCodeableConcept.setText(sdeKey);
+					obs.setCode(sdeCodeableConcept);
 					obsCodeableConcept.setCoding(Collections.singletonList(valueCoding));
 					obs.setValue(obsCodeableConcept);
 				}
-				newRefList.add(new Reference("#" + obs.getId()));
+				ReferenceWrapper reference = wrapperFactory.newReference();
+				reference.setReference("#" + obs.getId());
+				newRefList.add(reference);
 				report.addContained(obs);
 			});
 		});

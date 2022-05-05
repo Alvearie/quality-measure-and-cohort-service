@@ -8,8 +8,10 @@ package com.ibm.cohort.measure.wrapper.type;
 
 import com.ibm.cohort.measure.wrapper.BaseWrapper;
 
-public interface CanonicalWrapper extends BaseWrapper {
+import java.time.LocalTime;
 
-    void setValue(String value);
+public interface TimeWrapper extends BaseWrapper {
+
+    void setValue(LocalTime value);
 
 }

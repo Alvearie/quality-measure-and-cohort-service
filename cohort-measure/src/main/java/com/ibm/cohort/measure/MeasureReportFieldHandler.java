@@ -6,6 +6,8 @@
 
 package com.ibm.cohort.measure;
 
+import com.ibm.cohort.measure.wrapper.enums.MeasureReportType;
+
 public interface MeasureReportFieldHandler<T> {
 
     MeasureReportType getSubjectListType();

@@ -17,5 +17,7 @@ public interface ElementWrapper extends BaseWrapper {
     void setId(String id);
 
     List<ExtensionWrapper> getExtension();
+    void setExtension(List<ExtensionWrapper> extensions);
+    void addExtension(ExtensionWrapper extension);
 
 }

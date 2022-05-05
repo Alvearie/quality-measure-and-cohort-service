@@ -7,15 +7,28 @@
 package com.ibm.cohort.measure;
 
 import java.math.BigDecimal;
-import java.time.ZoneId;
-import java.util.TimeZone;
+import java.time.ZonedDateTime;
 
-import org.hl7.fhir.instance.model.api.IBaseDatatype;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.DateTimeType;
-import org.hl7.fhir.r4.model.Period;
-import org.opencds.cqf.cql.engine.fhir.converter.FhirTypeConverter;
-import org.opencds.cqf.cql.engine.fhir.converter.FhirTypeConverterFactory;
+//import org.hl7.fhir.instance.model.api.IBaseDatatype;
+//import org.hl7.fhir.r4.model.Coding;
+//import org.hl7.fhir.r4.model.DateTimeType;
+//import org.hl7.fhir.r4.model.Period;
+import com.ibm.cohort.measure.wrapper.BaseWrapper;
+import com.ibm.cohort.measure.wrapper.WrapperFactory;
+import com.ibm.cohort.measure.wrapper.element.CodeableConceptWrapper;
+import com.ibm.cohort.measure.wrapper.element.CodingWrapper;
+import com.ibm.cohort.measure.wrapper.element.PeriodWrapper;
+import com.ibm.cohort.measure.wrapper.element.QuantityWrapper;
+import com.ibm.cohort.measure.wrapper.element.RangeWrapper;
+import com.ibm.cohort.measure.wrapper.element.RatioWrapper;
+import com.ibm.cohort.measure.wrapper.type.BooleanWrapper;
+import com.ibm.cohort.measure.wrapper.type.CodeWrapper;
+import com.ibm.cohort.measure.wrapper.type.DateTimeWrapper;
+import com.ibm.cohort.measure.wrapper.type.DateWrapper;
+import com.ibm.cohort.measure.wrapper.type.DecimalWrapper;
+import com.ibm.cohort.measure.wrapper.type.IntegerWrapper;
+import com.ibm.cohort.measure.wrapper.type.StringWrapper;
+import com.ibm.cohort.measure.wrapper.type.TimeWrapper;
 import org.opencds.cqf.cql.engine.runtime.Code;
 import org.opencds.cqf.cql.engine.runtime.Concept;
 import org.opencds.cqf.cql.engine.runtime.Date;
@@ -27,9 +40,6 @@ import org.opencds.cqf.cql.engine.runtime.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.uhn.fhir.context.FhirVersionEnum;
-import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
-
 /**
  * This class is meant to handle converting CQL types to FHIR representations for use on
  * a MeasureReport. This class may introduce special conversion behaviors intended only
@@ -40,9 +50,15 @@ public class CQLToFHIRMeasureReportHelper {
 
 	private static final Logger logger = LoggerFactory.getLogger(CQLToFHIRMeasureReportHelper.class);
 
-	private static final FhirTypeConverter converter = new FhirTypeConverterFactory().create(FhirVersionEnum.R4);
+//	private static final FhirTypeConverter converter = new FhirTypeConverterFactory().create(FhirVersionEnum.R4);
 
-	public static IBaseDatatype getFhirTypeValue(Object value) {
+	private final WrapperFactory wrapperFactory;
+
+	public CQLToFHIRMeasureReportHelper(WrapperFactory wrapperFactory) {
+		this.wrapperFactory = wrapperFactory;
+	}
+
+	public BaseWrapper getFhirTypeValue(Object value) {
 		if (value instanceof Interval) {
 			return getFhirTypeForInterval((Interval) value);
 		}
@@ -51,20 +67,25 @@ public class CQLToFHIRMeasureReportHelper {
 		}
 	}
 
-	private static IBaseDatatype getFhirTypeForInterval(Interval interval) {
+	private BaseWrapper getFhirTypeForInterval(Interval interval) {
 		Object low =  interval.getLow();
 		Object high = interval.getHigh();
 
 		if (low instanceof DateTime) {
 			// Handle DateTime conversion to force UTC timezone
-			Period period = new Period();
+			PeriodWrapper period = wrapperFactory.newPeriod();
 
-			period.setStartElement(createDateTimeType((DateTime) low));
-			period.setEndElement(createDateTimeType((DateTime) high));
+			period.setStart(low.toString());
+			period.setEnd(high.toString());
 			return period;
 		}
 		else if (low instanceof Quantity) {
-			return converter.toFhirRange(interval);
+			RangeWrapper range = wrapperFactory.newRange();
+
+			range.setLow(convertQuantity((Quantity) low));
+			range.setHigh(convertQuantity((Quantity) high));
+
+			return range;
 		}
 		else  {
 			logger.warn("Support not implemented for Interval parameters of type {} on a MeasureReport", low.getClass());
@@ -72,38 +93,66 @@ public class CQLToFHIRMeasureReportHelper {
 		}
 	}
 	
-	private static IBaseDatatype getFhirTypeForNonInterval(Object value) {
+	private BaseWrapper getFhirTypeForNonInterval(Object value) {
 		if(value instanceof String) {
-			return converter.toFhirString((String) value);
+			StringWrapper string = wrapperFactory.newString();
+			string.setValue((String) value);
+			return string;
 		}
 		else if (value instanceof BigDecimal) {
-			return converter.toFhirDecimal((BigDecimal) value);
+			DecimalWrapper decimal = wrapperFactory.newDecimal();
+			decimal.setValue((BigDecimal) value);
+			return decimal;
 		}
 		else if (value instanceof Integer) {
-			return converter.toFhirInteger((Integer) value);
+			IntegerWrapper integer = wrapperFactory.newInteger();
+			integer.setValue((Integer) value);
+			return integer;
 		}
 		else if (value instanceof Time) {
-			return converter.toFhirTime((Time) value);
+			TimeWrapper time = wrapperFactory.newTime();
+			time.setValue(((Time)value).getTime());
+			return time;
 		}
 		else if (value instanceof Code) {
-			return (Coding) converter.toFhirCoding((Code) value);
+			Code code = (Code)value;
+			return convertCode(code);
 		}
 		else if (value instanceof Boolean) {
-			return converter.toFhirBoolean((Boolean) value);
+			BooleanWrapper bool = wrapperFactory.newBoolean();
+			bool.setValue((Boolean)value);
+			return bool;
 		}
 		else if (value instanceof Concept) {
-			return converter.toFhirCodeableConcept((Concept) value);
+			Concept concept = (Concept)value;
+			CodeableConceptWrapper codeableConcept = wrapperFactory.newCodeableConcept();
+			codeableConcept.setText(concept.getDisplay());
+			if (concept.getCodes() != null) {
+				for (Code c : concept.getCodes()) {
+					codeableConcept.addCoding(convertCode(c));
+				}
+			}
+			return codeableConcept;
 		}
 		else if (value instanceof DateTime) {
-			return createDateTimeType((DateTime) value);
+			DateTimeWrapper dateTime = wrapperFactory.newDateTime();
+			dateTime.setValue(value.toString());
+			return dateTime;
 		}
 		else if (value instanceof Quantity) {
-			return converter.toFhirQuantity((Quantity) value);
+			Quantity quantity = (Quantity)value;
+			return convertQuantity(quantity);
 		}
 		else if (value instanceof Ratio) {
-			return converter.toFhirRatio((Ratio) value);
+			Ratio cqlRatio = (Ratio)value;
+			RatioWrapper ratio = wrapperFactory.newRatio();
+			ratio.setNumerator(convertQuantity(cqlRatio.getNumerator()));
+			ratio.setDenominator(convertQuantity(cqlRatio.getDenominator()));
+			return ratio;
 		}
 		else if (value instanceof Date) {
+			DateWrapper date = wrapperFactory.newDate();
+
 			return converter.toFhirDate((Date) value);
 		}
 		else {
@@ -112,7 +161,28 @@ public class CQLToFHIRMeasureReportHelper {
 		}
 	}
 	
-	private static DateTimeType createDateTimeType(DateTime dateTime) {
-		return  new DateTimeType(dateTime.toJavaDate(), TemporalPrecisionEnum.MILLI, TimeZone.getTimeZone(ZoneId.of("Z")));
+//	private ZonedDateTime createZonedDateTime(DateTime dateTime) {
+//		return dateTime.getDateTime().toZonedDateTime();
+//	}
+
+	private CodingWrapper convertCode(Code code) {
+		CodingWrapper coding = wrapperFactory.newCoding();
+		coding.setSystem(code.getSystem());
+		coding.setCode(code.getCode());
+		coding.setDisplay(code.getDisplay());
+		coding.setVersion(code.getVersion());
+		return coding;
+	}
+
+	private QuantityWrapper convertQuantity(Quantity quantity) {
+		QuantityWrapper retVal = wrapperFactory.newQuantity();
+
+		// KWAS TODO: This is copied from the DBCG R4 converter...do we care?
+		retVal.setSystem("http://unitsofmeasure.org");
+
+		retVal.setCode(quantity.getUnit());
+		retVal.setValue(quantity.getValue());
+
+		return retVal;
 	}
 }

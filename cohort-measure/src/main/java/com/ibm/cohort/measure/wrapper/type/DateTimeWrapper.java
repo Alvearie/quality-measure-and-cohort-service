@@ -8,7 +8,9 @@ package com.ibm.cohort.measure.wrapper.type;
 
 import com.ibm.cohort.measure.wrapper.BaseWrapper;
 
-public interface CanonicalWrapper extends BaseWrapper {
+import java.time.ZonedDateTime;
+
+public interface DateTimeWrapper extends BaseWrapper {
 
     void setValue(String value);
 

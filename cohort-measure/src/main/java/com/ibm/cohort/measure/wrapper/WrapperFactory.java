@@ -12,10 +12,24 @@ import com.ibm.cohort.measure.wrapper.element.ExtensionWrapper;
 import com.ibm.cohort.measure.wrapper.element.ListEntryWrapper;
 import com.ibm.cohort.measure.wrapper.element.MeasureReportGroupPopulationWrapper;
 import com.ibm.cohort.measure.wrapper.element.MeasureReportGroupWrapper;
+import com.ibm.cohort.measure.wrapper.element.ParameterDefinitionWrapper;
+import com.ibm.cohort.measure.wrapper.element.PeriodWrapper;
+import com.ibm.cohort.measure.wrapper.element.RatioWrapper;
 import com.ibm.cohort.measure.wrapper.element.ReferenceWrapper;
 import com.ibm.cohort.measure.wrapper.resource.ListWrapper;
 import com.ibm.cohort.measure.wrapper.resource.MeasureReportWrapper;
 import com.ibm.cohort.measure.wrapper.resource.ObservationWrapper;
+import com.ibm.cohort.measure.wrapper.type.BooleanWrapper;
+import com.ibm.cohort.measure.wrapper.type.CanonicalWrapper;
+import com.ibm.cohort.measure.wrapper.type.CodeWrapper;
+import com.ibm.cohort.measure.wrapper.type.DateTimeWrapper;
+import com.ibm.cohort.measure.wrapper.type.DateWrapper;
+import com.ibm.cohort.measure.wrapper.type.DecimalWrapper;
+import com.ibm.cohort.measure.wrapper.type.IntegerWrapper;
+import com.ibm.cohort.measure.wrapper.element.QuantityWrapper;
+import com.ibm.cohort.measure.wrapper.element.RangeWrapper;
+import com.ibm.cohort.measure.wrapper.type.StringWrapper;
+import com.ibm.cohort.measure.wrapper.type.TimeWrapper;
 
 /*
  * KWAS TODO WHAT HAPPENS WHEN AN INCOMPATIBLE OBJECT IS PASSED???
@@ -24,17 +38,7 @@ import com.ibm.cohort.measure.wrapper.resource.ObservationWrapper;
  */
 public interface WrapperFactory {
 
-    <T extends BaseWrapper> T wrapResource(Object resource);
-
-//    ResourceWrapper wrapResource(Object resource);
-//
-//    PatientWrapper wrapPatient(Object patient);
-//
-//    KnowledgeResourceWrapper wrapKnowledgeResource(Object knowledgeResource);
-//
-//    MeasureGroupPopulationWrapper wrapMeasureGroupPopulation(Object measureGroupPopulation);
-//
-//    CodingWrapper wrapCoding(Object coding);
+    <T extends BaseWrapper> T wrapObject(Object resource);
 
     MeasureReportGroupWrapper newMeasureReportGroup();
 
@@ -55,5 +59,32 @@ public interface WrapperFactory {
     CodeableConceptWrapper newCodeableConcept();
 
     ExtensionWrapper newExtension();
+
+    ParameterDefinitionWrapper newParameterDefinition();
+
+    PeriodWrapper newPeriod();
+
+    QuantityWrapper newQuantity();
+
+    RangeWrapper newRange();
+
+    RatioWrapper newRatio();
+
+    // Types
+    CanonicalWrapper newCanonical();
+
+    DecimalWrapper newDecimal();
+
+    TimeWrapper newTime();
+
+    BooleanWrapper newBoolean();
+
+    DateTimeWrapper newDateTime();
+
+    StringWrapper newString();
+
+    IntegerWrapper newInteger();
+
+    DateWrapper newDate();
 
 }
