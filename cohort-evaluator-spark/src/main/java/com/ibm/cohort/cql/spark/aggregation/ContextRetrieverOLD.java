@@ -21,7 +21,6 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.functions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +37,7 @@ import scala.Tuple2;
  * Given a {@link DatasetRetriever} and mappings from datatype to path,
  * this class and process any number of contexts.
  */
-public class ContextRetriever {
+public class ContextRetrieverOLD {
     private static final Logger LOG = LoggerFactory.getLogger(ContextRetriever.class);
     
     /**
@@ -61,7 +60,7 @@ public class ContextRetriever {
      * @param datatypeToColumnMatchers Map of data type to required columns to use when building each context.
      *                                 When null is passed in, no column filtering is performed.   
      */
-    public ContextRetriever(Map<String, String> inputPaths, DatasetRetriever datasetRetriever, Map<String, Set<StringMatcher>> datatypeToColumnMatchers) {
+    public ContextRetrieverOLD(Map<String, String> inputPaths, DatasetRetriever datasetRetriever, Map<String, Set<StringMatcher>> datatypeToColumnMatchers) {
         this.inputPaths = inputPaths;
         this.datasetRetriever = datasetRetriever;
         this.datatypeToColumnMatchers = datatypeToColumnMatchers;
@@ -127,20 +126,81 @@ public class ContextRetriever {
         List<Relationship> relationships = contextDefinition.getRelationships() == null
                 ? Collections.emptyList()
                 : contextDefinition.getRelationships();
-
-        SparkSession sparkSession = SparkSession.getActiveSession().get();
         for (Relationship relationship : relationships) {
-            // select primary.primekey as SPECIAL, thistype.* from primary 
-            StringBuilder sb = new StringBuilder("select ");
-            sb = sb.append(relationship.getName()).append(".*, ")
-                    .append('\'').append(relationship.getName()).append('\'').append(" as ").append(SOURCE_FACT_IDX).append(", ")
-                    .append(primaryDataType).append('.').append(primaryKeyColumn).append(" as ").append(JOIN_CONTEXT_VALUE_IDX)
-                    .append(" from ").append(primaryDataType).append(' ')
-                    .append(relationship.getJoinClause());
-
-            Dataset<Row> result = sparkSession.sql(sb.toString());
-            retVal.add(toPairRDD(result, JOIN_CONTEXT_VALUE_IDX));
-            int x = 0;
+//            String primaryJoinColumn = join.getPrimaryDataTypeColumn() == null
+//                    ? primaryKeyColumn
+//                    : join.getPrimaryDataTypeColumn();
+//            String relatedDataType = join.getRelatedDataType();
+//            String relatedColumnName = join.getRelatedKeyColumn();
+//            Dataset<Row> relatedDataset = readDataset(relatedDataType);
+//            if( relatedDataset != null ) {
+//                Dataset<Row> joinedDataset;
+//    
+//                if (join.getClass() == OneToMany.class) {
+//                    Column joinCriteria = primaryDataset.col(primaryJoinColumn)
+//                            .equalTo(relatedDataset.col(relatedColumnName));
+//                    joinedDataset = primaryDataset.join(relatedDataset, joinCriteria);
+//                } else if (join instanceof ManyToMany) {
+//                    ManyToMany manyToMany = (ManyToMany) join;
+//                    String assocDataType = manyToMany.getAssociationDataType();
+//                    Dataset<Row> assocDataset = readDataset(assocDataType);
+//                    String assocPrimaryColumnName = manyToMany.getAssociationOneKeyColumn();
+//                    String assocRelatedColumnName = manyToMany.getAssociationManyKeyColumn();
+//    
+//                    Column primaryJoinCriteria = primaryDataset.col(primaryJoinColumn)
+//                            .equalTo(assocDataset.col(assocPrimaryColumnName));
+//                    joinedDataset = primaryDataset.join(assocDataset, primaryJoinCriteria);
+//    
+//                    Column relatedJoinCriteria = joinedDataset.col(assocRelatedColumnName)
+//                            .equalTo(relatedDataset.col(relatedColumnName));
+//                    joinedDataset = joinedDataset.join(relatedDataset, relatedJoinCriteria);
+//
+//                    if (manyToMany instanceof MultiManyToMany) {
+//                        Column baseContextColumn = joinContextColumn;
+//                        Dataset<Row> baseDataset = joinedDataset;
+//                        ManyToMany additionalJoin = ((MultiManyToMany) join).getWith();
+//
+//                        while (additionalJoin != null) {
+//                            Dataset<Row> additionalDataset = gather(additionalJoin, baseDataset, baseContextColumn);
+//
+//                            if (additionalDataset != null) {
+//                                retVal.add(toPairRDD(additionalDataset.distinct(), JOIN_CONTEXT_VALUE_IDX));
+//
+//                                additionalJoin = (additionalJoin instanceof MultiManyToMany) ? ((MultiManyToMany) additionalJoin).getWith() : null;
+//                                baseDataset = additionalDataset;
+//                                baseContextColumn = additionalDataset.col(JOIN_CONTEXT_VALUE_IDX);
+//                            }
+//                        }
+//                    }
+//                }
+//                else {
+//                    throw new IllegalArgumentException("Unexpected Join Type: " + join.getClass().getName());
+//                }
+//                
+//                if (StringUtils.isNotEmpty(join.getWhereClause())) {
+//                    joinedDataset = joinedDataset.where(join.getWhereClause());
+//                }
+//    
+//                List<Column> retainedColumns = Arrays.stream(relatedDataset.columns())
+//                        .map(relatedDataset::col)
+//                        .collect(Collectors.toCollection(ArrayList::new));
+//                retainedColumns.add(joinContextColumn);
+//                Column[] columnArray = retainedColumns.toArray(new Column[0]);
+//                joinedDataset = joinedDataset.select(columnArray);
+//
+//                UnaryOperator<Dataset<Row>> datasetTransformationFunction = datatypeToColumnMatchers == null ? UnaryOperator.identity() : new ColumnFilterFunction(datatypeToColumnMatchers.get(relatedDataType));
+//
+//                joinedDataset = datasetTransformationFunction.apply(joinedDataset);
+//                
+//                if (joinedDataset != null) {
+//                    retVal.add(toPairRDD(joinedDataset, JOIN_CONTEXT_VALUE_IDX));
+//                }
+//                else {
+//                    LOG.info("No data was read for context {}, datatype {}. This happens naturally when CQL-based column filtering is enabled and no data is required from the specified datatype.", contextDefinition.getName(), relatedDataType);
+//                }
+//            } else {
+//                LOG.info("No data was read for context {}, datatype {}.", contextDefinition.getName(), relatedDataType);
+//            }
         }
 
         return retVal;

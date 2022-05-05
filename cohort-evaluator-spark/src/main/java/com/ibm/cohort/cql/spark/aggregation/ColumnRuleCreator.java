@@ -62,39 +62,6 @@ public class ColumnRuleCreator {
 
 		Set<StringMatcher> contextFields = pathsByDataType.computeIfAbsent(context.getPrimaryDataType(), dt -> new HashSet<>() );
 		contextFields.add(new EqualsStringMatcher(context.getPrimaryKeyColumn()));
-		if( context.getRelationships() != null ) {
-			for( Join join : context.getRelationships() ) {
-				Set<StringMatcher> joinFields = pathsByDataType.get(join.getRelatedDataType());
-				if( joinFields != null ) {
-					joinFields.add(new EqualsStringMatcher(join.getRelatedKeyColumn()));
-					joinFields.add(new EqualsStringMatcher(ContextRetriever.JOIN_CONTEXT_VALUE_IDX));
-
-					// if the join key is not the primary key of the primary data table, then we need to add in the alternate key
-					if( join.getPrimaryDataTypeColumn() != null ) {
-						contextFields.add(new EqualsStringMatcher(join.getPrimaryDataTypeColumn()));
-					}
-
-					if( join instanceof ManyToMany) {
-						ManyToMany manyToMany = (ManyToMany) join;
-						Set<StringMatcher> associationFields = pathsByDataType.computeIfAbsent(manyToMany.getAssociationDataType(), dt -> new HashSet<>());
-						associationFields.add(new EqualsStringMatcher(manyToMany.getAssociationOneKeyColumn()));
-						associationFields.add(new EqualsStringMatcher(manyToMany.getAssociationManyKeyColumn()));
-					}
-
-					if (join instanceof MultiManyToMany) {
-						ManyToMany with = ((MultiManyToMany) join).getWith();
-
-						while (with != null) {
-							Set<StringMatcher> relatedFields = pathsByDataType.computeIfAbsent(with.getRelatedDataType(), dt -> new HashSet<>());
-							relatedFields.add(new EqualsStringMatcher(with.getRelatedKeyColumn()));
-							relatedFields.add(new EqualsStringMatcher(ContextRetriever.JOIN_CONTEXT_VALUE_IDX));
-
-							with = (with instanceof MultiManyToMany) ? ((MultiManyToMany) with).getWith() : null;
-						}
-					}
-				}
-			}
-		}
 
 		pathsByDataType.values().forEach((matcherSet -> {
 			matcherSet.add(new EqualsStringMatcher(ContextRetriever.SOURCE_FACT_IDX));
