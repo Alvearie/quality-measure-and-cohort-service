@@ -679,107 +679,111 @@ public class ContextRetrieverTest extends BaseSparkTest {
         assertOutput(expected, actual);
     }
 
-//    @Test
-//    public void retrieveContext_multipleJoin() {
-//        Dataset<Row> primaryDataset = newDataset(
-//                primaryInputSchema,
-//                RowFactory.create(1, 1, "primary1"),
-//                RowFactory.create(2, 2, "primary2"),
-//                RowFactory.create(3, 3, "primary3"),
-//                RowFactory.create(4, 4, "primary4"),
-//                RowFactory.create(5, 5, "primary5")
-//        );
-//
-//        Dataset<Row> directRelatedDataset = newDataset(
-//                directRelatedInputSchema,
-//                RowFactory.create(1, "direct11"),
-//                RowFactory.create(1, "direct12"),
-//                RowFactory.create(1, "direct13"),
-//                RowFactory.create(2, "direct21"),
-//                RowFactory.create(2, "direct22"),
-//                RowFactory.create(3, "direct31"),
-//                RowFactory.create(98, "unrelated1"),
-//                RowFactory.create(99, "unrelated2")
-//        );
-//
-//        Dataset<Row> assocDataset = newDataset(
-//                assocInputSchema,
-//                RowFactory.create(2, 21),
-//                RowFactory.create(3, 31),
-//                RowFactory.create(3, 32),
-//                RowFactory.create(4, 32),
-//                RowFactory.create(4, 41),
-//                RowFactory.create(4, 42),
-//                RowFactory.create(4, 43),
-//                RowFactory.create(98, 198),
-//                RowFactory.create(99, 199)
-//        );
-//
-//        Dataset<Row> indirectRelatedDataset = newDataset(
-//                indirectRelatedInputSchema,
-//                RowFactory.create(21, "indirect21"),
-//                RowFactory.create(31, "indirect31"),
-//                RowFactory.create(32, "indirect32"),
-//                RowFactory.create(41, "indirect41"),
-//                RowFactory.create(42, "indirect42"),
-//                RowFactory.create(43, "indirect43"),
-//                RowFactory.create(198, "unrelated1"),
-//                RowFactory.create(199, "unrelated2")
-//        );
-//
-//        Map<String, Dataset<Row>> datasets = new HashMap<>();
-//        datasets.put(PRIMARY_PATH, primaryDataset);
-//        datasets.put(DIRECT_RELATED_PATH, directRelatedDataset);
-//        datasets.put(ASSOC_PATH, assocDataset);
-//        datasets.put(INDIRECT_RELATED_PATH, indirectRelatedDataset);
-//
-//        DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
-//        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
-//
-//        ContextDefinition contextDefinition = newContextDefinition(
-//                PRIMARY_NAME,
-//                PRIMARY_DATA_TYPE,
-//                PRIMARY_KEY_COLUMN,
-//                Arrays.asList(directJoin, indirectJoin)
-//        );
-//
-//        List<Tuple2<Object, List<Row>>> actual = contextRetriever.retrieveContext(contextDefinition).collect();
-//
-//        List<Tuple2<Object, List<Row>>> expected = Arrays.asList(
-//                new Tuple2<>(1, Arrays.asList(
-//                        newRow(primaryOutputSchema, 1, 1, "primary1", PRIMARY_DATA_TYPE),
-//                        newRow(directRelatedOutputSchema, 1, "direct11", DIRECT_RELATED_DATA_TYPE, 1),
-//                        newRow(directRelatedOutputSchema, 1, "direct12", DIRECT_RELATED_DATA_TYPE, 1),
-//                        newRow(directRelatedOutputSchema, 1, "direct13", DIRECT_RELATED_DATA_TYPE, 1)
-//                )),
-//                new Tuple2<>(2, Arrays.asList(
-//                        newRow(primaryOutputSchema, 2, 2, "primary2", PRIMARY_DATA_TYPE),
-//                        newRow(directRelatedOutputSchema, 2, "direct21", DIRECT_RELATED_DATA_TYPE, 2),
-//                        newRow(directRelatedOutputSchema, 2, "direct22", DIRECT_RELATED_DATA_TYPE, 2),
-//                        newRow(indirectRelatedOutputSchema, 21, "indirect21", INDIRECT_RELATED_DATA_TYPE, 2)
-//                )),
-//                new Tuple2<>(3, Arrays.asList(
-//                        newRow(primaryOutputSchema, 3, 3, "primary3", PRIMARY_DATA_TYPE),
-//                        newRow(directRelatedOutputSchema, 3, "direct31", DIRECT_RELATED_DATA_TYPE, 3),
-//                        newRow(indirectRelatedOutputSchema, 31, "indirect31", INDIRECT_RELATED_DATA_TYPE, 3),
-//                        newRow(indirectRelatedOutputSchema, 32, "indirect32", INDIRECT_RELATED_DATA_TYPE, 3)
-//                )),
-//                new Tuple2<>(4, Arrays.asList(
-//                        newRow(primaryOutputSchema, 4, 4, "primary4", PRIMARY_DATA_TYPE),
-//                        newRow(indirectRelatedOutputSchema, 32, "indirect32", INDIRECT_RELATED_DATA_TYPE, 4),
-//                        newRow(indirectRelatedOutputSchema, 41, "indirect41", INDIRECT_RELATED_DATA_TYPE, 4),
-//                        newRow(indirectRelatedOutputSchema, 42, "indirect42", INDIRECT_RELATED_DATA_TYPE, 4),
-//                        newRow(indirectRelatedOutputSchema, 43, "indirect43", INDIRECT_RELATED_DATA_TYPE, 4)
-//                )),
-//                new Tuple2<>(5, Arrays.asList(
-//                        newRow(primaryOutputSchema, 5, 5, "primary5", PRIMARY_DATA_TYPE)
-//                ))
-//        );
-//
-//        assertOutput(expected, actual);
-//    }
-//
-//
+    @Test
+    public void retrieveContext_multipleJoin() {
+        Dataset<Row> primaryDataset = newDataset(
+                primaryInputSchema,
+                RowFactory.create(1, 1, "primary1"),
+                RowFactory.create(2, 2, "primary2"),
+                RowFactory.create(3, 3, "primary3"),
+                RowFactory.create(4, 4, "primary4"),
+                RowFactory.create(5, 5, "primary5")
+        );
+        primaryDataset.createOrReplaceTempView(PRIMARY_DATA_TYPE);
+
+        Dataset<Row> directRelatedDataset = newDataset(
+                directRelatedInputSchema,
+                RowFactory.create(1, "direct11"),
+                RowFactory.create(1, "direct12"),
+                RowFactory.create(1, "direct13"),
+                RowFactory.create(2, "direct21"),
+                RowFactory.create(2, "direct22"),
+                RowFactory.create(3, "direct31"),
+                RowFactory.create(98, "unrelated1"),
+                RowFactory.create(99, "unrelated2")
+        );
+        directRelatedDataset.createOrReplaceTempView(DIRECT_RELATED_DATA_TYPE);
+
+        Dataset<Row> assocDataset = newDataset(
+                assocInputSchema,
+                RowFactory.create(2, 21),
+                RowFactory.create(3, 31),
+                RowFactory.create(3, 32),
+                RowFactory.create(4, 32),
+                RowFactory.create(4, 41),
+                RowFactory.create(4, 42),
+                RowFactory.create(4, 43),
+                RowFactory.create(98, 198),
+                RowFactory.create(99, 199)
+        );
+        assocDataset.createOrReplaceTempView(ASSOC_DATA_TYPE);
+
+        Dataset<Row> indirectRelatedDataset = newDataset(
+                indirectRelatedInputSchema,
+                RowFactory.create(21, "indirect21"),
+                RowFactory.create(31, "indirect31"),
+                RowFactory.create(32, "indirect32"),
+                RowFactory.create(41, "indirect41"),
+                RowFactory.create(42, "indirect42"),
+                RowFactory.create(43, "indirect43"),
+                RowFactory.create(198, "unrelated1"),
+                RowFactory.create(199, "unrelated2")
+        );
+        indirectRelatedDataset.createOrReplaceTempView(INDIRECT_RELATED_DATA_TYPE);
+
+        Map<String, Dataset<Row>> datasets = new HashMap<>();
+        datasets.put(PRIMARY_PATH, primaryDataset);
+        datasets.put(DIRECT_RELATED_PATH, directRelatedDataset);
+        datasets.put(ASSOC_PATH, assocDataset);
+        datasets.put(INDIRECT_RELATED_PATH, indirectRelatedDataset);
+
+        DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
+        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
+
+        ContextDefinition contextDefinition = newContextDefinition(
+                PRIMARY_NAME,
+                PRIMARY_DATA_TYPE,
+                PRIMARY_KEY_COLUMN,
+                Arrays.asList(directJoin, indirectJoin)
+        );
+
+        List<Tuple2<Object, List<Row>>> actual = contextRetriever.retrieveContext(contextDefinition).collect();
+
+        List<Tuple2<Object, List<Row>>> expected = Arrays.asList(
+                new Tuple2<>(1, Arrays.asList(
+                        newRow(primaryOutputSchema, 1, 1, "primary1", PRIMARY_DATA_TYPE),
+                        newRow(directRelatedOutputSchema, 1, "direct11", DIRECT_RELATED_DATA_TYPE, 1),
+                        newRow(directRelatedOutputSchema, 1, "direct12", DIRECT_RELATED_DATA_TYPE, 1),
+                        newRow(directRelatedOutputSchema, 1, "direct13", DIRECT_RELATED_DATA_TYPE, 1)
+                )),
+                new Tuple2<>(2, Arrays.asList(
+                        newRow(primaryOutputSchema, 2, 2, "primary2", PRIMARY_DATA_TYPE),
+                        newRow(directRelatedOutputSchema, 2, "direct21", DIRECT_RELATED_DATA_TYPE, 2),
+                        newRow(directRelatedOutputSchema, 2, "direct22", DIRECT_RELATED_DATA_TYPE, 2),
+                        newRow(indirectRelatedOutputSchema, 21, "indirect21", INDIRECT_RELATED_DATA_TYPE, 2)
+                )),
+                new Tuple2<>(3, Arrays.asList(
+                        newRow(primaryOutputSchema, 3, 3, "primary3", PRIMARY_DATA_TYPE),
+                        newRow(directRelatedOutputSchema, 3, "direct31", DIRECT_RELATED_DATA_TYPE, 3),
+                        newRow(indirectRelatedOutputSchema, 31, "indirect31", INDIRECT_RELATED_DATA_TYPE, 3),
+                        newRow(indirectRelatedOutputSchema, 32, "indirect32", INDIRECT_RELATED_DATA_TYPE, 3)
+                )),
+                new Tuple2<>(4, Arrays.asList(
+                        newRow(primaryOutputSchema, 4, 4, "primary4", PRIMARY_DATA_TYPE),
+                        newRow(indirectRelatedOutputSchema, 32, "indirect32", INDIRECT_RELATED_DATA_TYPE, 4),
+                        newRow(indirectRelatedOutputSchema, 41, "indirect41", INDIRECT_RELATED_DATA_TYPE, 4),
+                        newRow(indirectRelatedOutputSchema, 42, "indirect42", INDIRECT_RELATED_DATA_TYPE, 4),
+                        newRow(indirectRelatedOutputSchema, 43, "indirect43", INDIRECT_RELATED_DATA_TYPE, 4)
+                )),
+                new Tuple2<>(5, Arrays.asList(
+                        newRow(primaryOutputSchema, 5, 5, "primary5", PRIMARY_DATA_TYPE)
+                ))
+        );
+
+        assertOutput(expected, actual);
+    }
+
+
 //    @Test
 //    public void retrieveContext_multipleIndirectJoins() {
 //        Dataset<Row> primaryDataset = newDataset(
