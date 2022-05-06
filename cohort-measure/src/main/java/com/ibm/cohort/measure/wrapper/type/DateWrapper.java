@@ -6,7 +6,9 @@
 
 package com.ibm.cohort.measure.wrapper.type;
 
-public interface DateWrapper {
+import com.ibm.cohort.measure.wrapper.BaseWrapper;
+
+public interface DateWrapper extends BaseWrapper {
 
     void setValue(String value);
 

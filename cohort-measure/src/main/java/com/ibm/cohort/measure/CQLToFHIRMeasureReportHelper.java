@@ -22,7 +22,6 @@ import com.ibm.cohort.measure.wrapper.element.QuantityWrapper;
 import com.ibm.cohort.measure.wrapper.element.RangeWrapper;
 import com.ibm.cohort.measure.wrapper.element.RatioWrapper;
 import com.ibm.cohort.measure.wrapper.type.BooleanWrapper;
-import com.ibm.cohort.measure.wrapper.type.CodeWrapper;
 import com.ibm.cohort.measure.wrapper.type.DateTimeWrapper;
 import com.ibm.cohort.measure.wrapper.type.DateWrapper;
 import com.ibm.cohort.measure.wrapper.type.DecimalWrapper;
@@ -151,19 +150,16 @@ public class CQLToFHIRMeasureReportHelper {
 			return ratio;
 		}
 		else if (value instanceof Date) {
+			Date cqlDate = (Date)value;
 			DateWrapper date = wrapperFactory.newDate();
-
-			return converter.toFhirDate((Date) value);
+			date.setValue(cqlDate.toString());
+			return date;
 		}
 		else {
 			logger.warn("Support not implemented for parameters of type {} on a MeasureReport", value.getClass());
 			return null;
 		}
 	}
-	
-//	private ZonedDateTime createZonedDateTime(DateTime dateTime) {
-//		return dateTime.getDateTime().toZonedDateTime();
-//	}
 
 	private CodingWrapper convertCode(Code code) {
 		CodingWrapper coding = wrapperFactory.newCoding();

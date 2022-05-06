@@ -10,6 +10,7 @@ public interface BaseWrapper {
 
     Object getNativeObject();
 
+    // KWAS TODO is this needed here
     String fhirType();
 
 }

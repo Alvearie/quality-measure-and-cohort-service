@@ -21,7 +21,6 @@ import com.ibm.cohort.measure.wrapper.resource.MeasureReportWrapper;
 import com.ibm.cohort.measure.wrapper.resource.ObservationWrapper;
 import com.ibm.cohort.measure.wrapper.type.BooleanWrapper;
 import com.ibm.cohort.measure.wrapper.type.CanonicalWrapper;
-import com.ibm.cohort.measure.wrapper.type.CodeWrapper;
 import com.ibm.cohort.measure.wrapper.type.DateTimeWrapper;
 import com.ibm.cohort.measure.wrapper.type.DateWrapper;
 import com.ibm.cohort.measure.wrapper.type.DecimalWrapper;
@@ -40,19 +39,21 @@ public interface WrapperFactory {
 
     <T extends BaseWrapper> T wrapObject(Object resource);
 
-    MeasureReportGroupWrapper newMeasureReportGroup();
-
-    MeasureReportGroupPopulationWrapper newMeasureReportGroupPopulation();
-
+    // Resources
     ListWrapper newList();
-
-    ListEntryWrapper newListEntry();
-
-    ReferenceWrapper newReference();
 
     MeasureReportWrapper newMeasureReport();
 
     ObservationWrapper newObservation();
+
+    // Elements
+    MeasureReportGroupWrapper newMeasureReportGroup();
+
+    MeasureReportGroupPopulationWrapper newMeasureReportGroupPopulation();
+
+    ListEntryWrapper newListEntry();
+
+    ReferenceWrapper newReference();
 
     CodingWrapper newCoding();
 

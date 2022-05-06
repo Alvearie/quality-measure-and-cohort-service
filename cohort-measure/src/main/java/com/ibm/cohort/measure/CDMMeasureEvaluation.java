@@ -274,7 +274,8 @@ public class CDMMeasureEvaluation {
 
 		ExtensionWrapper innerExtension = wrapperFactory.newExtension();
 		innerExtension.setUrl(PARAMETER_VALUE_URL);
-		BaseWrapper fhirParameterValue = CQLToFHIRMeasureReportHelper.getFhirTypeValue(parameterValue);
+		CQLToFHIRMeasureReportHelper helper = new CQLToFHIRMeasureReportHelper(wrapperFactory);
+		BaseWrapper fhirParameterValue = helper.getFhirTypeValue(parameterValue);
 
 		ExtensionWrapper outerExtension = null;
 
