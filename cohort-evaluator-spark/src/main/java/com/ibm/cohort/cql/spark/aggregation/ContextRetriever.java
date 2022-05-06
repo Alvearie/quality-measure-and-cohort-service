@@ -146,38 +146,6 @@ public class ContextRetriever {
         return retVal;
     }
 
-    private Dataset<Row> gather(
-        ManyToMany join,
-        Dataset<Row> leftDataset,
-        Column joinContextColumn) {
-        List<Column> retainedColumns = new ArrayList<>();
-
-        String rightDataType = join.getRelatedDataType();
-
-        Dataset<Row> rightDataset = readDataset(rightDataType);
-
-        Arrays.stream(rightDataset.columns())
-            .map(rightDataset::col)
-            .forEach(retainedColumns::add);
-        retainedColumns.add(joinContextColumn);
-
-        Column withJoinCriteria =
-            leftDataset.col(join.getAssociationManyKeyColumn()).equalTo(
-                rightDataset.col(join.getRelatedKeyColumn()));
-        Dataset<Row> joinedDataset = leftDataset.join(rightDataset, withJoinCriteria);
-
-        joinedDataset = joinedDataset.select(retainedColumns.toArray(new Column[0]));
-
-        if (StringUtils.isNotEmpty(join.getWhereClause())) {
-            joinedDataset = joinedDataset.where(join.getWhereClause());
-        }
-
-        UnaryOperator<Dataset<Row>> datasetTransformationFunction = datatypeToColumnMatchers == null ? UnaryOperator.identity() : new ColumnFilterFunction(datatypeToColumnMatchers.get(rightDataType));
-        joinedDataset = datasetTransformationFunction.apply(joinedDataset);
-
-        return joinedDataset;
-    }
-
     /**
      * Given a set of rows that are indexed by context value, reorganize the data so
      * that all rows related to the same context are grouped into a single pair.
