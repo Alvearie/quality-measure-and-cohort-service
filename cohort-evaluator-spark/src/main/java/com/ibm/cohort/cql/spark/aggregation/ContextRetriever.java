@@ -110,6 +110,10 @@ public class ContextRetriever {
         String primaryKeyColumn = contextDefinition.getPrimaryKeyColumn();
         String primaryDataType = contextDefinition.getPrimaryDataType();
         
+        // TODO: Figure out how to register temp views in one central place.
+        // TODO: Figure out column filtering so we only select columns needed in CQL.
+        // TODO: Check which tests fail due to ContextDefinition changes. Fix those tests.
+        
         // I think reading the primary dataset starts off as select * from primaryDataType
         // along with any extra columns that are needed
         Dataset<Row> primaryDataset = readDataset(primaryDataType);
