@@ -10,12 +10,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
-import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.cohort.cql.evaluation.CqlEvaluationRequests;
+import com.ibm.cohort.cql.library.ClasspathCqlLibraryProvider;
+import com.ibm.cohort.cql.library.CqlLibraryProvider;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.cql.translation.TranslatingCqlLibraryProvider;
 import com.ibm.cohort.cql.util.EqualsStringMatcher;
@@ -81,9 +81,9 @@ public class ColumnRuleCreatorTest {
 		Map<String, Set<StringMatcher>> actual = columnRuleCreator.getDataRequirementsForContext(context);
 
         Map<String,Set<StringMatcher>> expected = new HashMap<>();
-        expected.put("A", new HashSet<>(Arrays.asList(new EqualsStringMatcher(ContextRetriever.SOURCE_FACT_IDX), new EqualsStringMatcher("id_col"), new EqualsStringMatcher("pat_id"))));
-        expected.put("B", new HashSet<>(Arrays.asList(new EqualsStringMatcher(ContextRetriever.SOURCE_FACT_IDX), new EqualsStringMatcher("string"), new EqualsStringMatcher(ContextRetriever.JOIN_CONTEXT_VALUE_IDX))));
-        expected.put("C", new HashSet<>(Arrays.asList(new EqualsStringMatcher(ContextRetriever.SOURCE_FACT_IDX), new EqualsStringMatcher("pat_id"), new EqualsStringMatcher(ContextRetriever.JOIN_CONTEXT_VALUE_IDX))));
+        expected.put("A", new HashSet<>(Arrays.asList(new EqualsStringMatcher(ContextRetriever.SOURCE_FACT_IDX), new EqualsStringMatcher("id_col"))));
+        expected.put("B", new HashSet<>(Arrays.asList(new EqualsStringMatcher(ContextRetriever.SOURCE_FACT_IDX), new EqualsStringMatcher(ContextRetriever.JOIN_CONTEXT_VALUE_IDX))));
+        expected.put("C", new HashSet<>(Arrays.asList(new EqualsStringMatcher(ContextRetriever.SOURCE_FACT_IDX), new EqualsStringMatcher(ContextRetriever.JOIN_CONTEXT_VALUE_IDX))));
 
         assertEquals( expected, actual );
     }

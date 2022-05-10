@@ -4,20 +4,16 @@
 		"primaryDataType": "A",
 		"primaryKeyColumn": "id_col",
 		"relationships": [{
-			"type": "OneToMany",
-			"relatedDataType": "B",
-			"relatedKeyColumn": "string"
+			"name": "B",
+			"joinClause": "inner join B on A.id_col = B.string"
 		},
 		{
-			"type": "OneToMany",
-			"relatedDataType": "C",
-			"relatedKeyColumn": "pat_id",
-			"primaryDataTypeColumn": "pat_id"
+			"name": "C",
+			"joinClause": "inner join C on A.pat_id = C.pat_id"
 		},
 		{
-			"type": "OneToMany",
-			"relatedDataType": "D",
-			"relatedKeyColumn": "pat_id"
+			"name": "D",
+			"joinClause": "inner join D on D.pat_id = A.pat_id"
 		}]
 	}]
 }
