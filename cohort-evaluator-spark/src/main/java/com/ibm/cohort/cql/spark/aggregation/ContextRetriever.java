@@ -75,6 +75,12 @@ public class ContextRetriever {
      * @return A {@link JavaPairRDD} linking contextValue to a {@link List} of {@link Row}s
      */
     public JavaPairRDD<Object, List<Row>> retrieveContext(ContextDefinition contextDefinition) {
+        // TRY temp view creation here.
+        for (String dataType : inputPaths.keySet()) {
+            Dataset<Row> ds = readDataset(dataType);
+            ds.createOrReplaceTempView(dataType);
+        }
+        
         List<JavaPairRDD<Object, Row>> rddList = gatherRDDs(contextDefinition);
 
         JavaPairRDD<Object, Row> allData = unionPairRDDs(rddList, contextDefinition.getName());
@@ -132,7 +138,6 @@ public class ContextRetriever {
             // select primary.primekey as SPECIAL, thistype.* from primary 
             StringBuilder sb = new StringBuilder("select ");
             sb = sb.append(relationship.getName()).append(".*, ")
-                    .append('\'').append(relationship.getName()).append('\'').append(" as ").append(SOURCE_FACT_IDX).append(", ")
                     .append(primaryDataType).append('.').append(primaryKeyColumn).append(" as ").append(JOIN_CONTEXT_VALUE_IDX)
                     .append(" from ").append(primaryDataType).append(' ')
                     .append(relationship.getJoinClause());

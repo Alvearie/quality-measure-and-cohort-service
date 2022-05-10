@@ -48,6 +48,10 @@ public class ContextRetrieverTest extends BaseSparkTest {
     private static final String ASSOC_RIGHT_COLUMN = "assocRightColumn";
     private static final String ASSOC_PATH = "assocPath";
 
+    // Secondary association table used or multiple joins in one join clause
+    private static final String ASSOC_DATA_TYPE_2 = "assocDataType2";
+    private static final String ASSOC_PATH_2 = "assocPath2";
+
     // The related table in a many to many join
     private static final String INDIRECT_RELATED_DATA_TYPE = "indirectRelatedDataType";
     private static final String INDIRECT_RELATED_KEY_COLUMN = "indirectRelatedKeyColumn";
@@ -84,6 +88,7 @@ public class ContextRetrieverTest extends BaseSparkTest {
     private final Map<String, String> inputPaths = new HashMap<String, String>(){{
         put(PRIMARY_DATA_TYPE, PRIMARY_PATH);
         put(ASSOC_DATA_TYPE, ASSOC_PATH);
+        put(ASSOC_DATA_TYPE_2, ASSOC_PATH_2);
         put(INDIRECT_RELATED_DATA_TYPE, INDIRECT_RELATED_PATH);
         put(SECONDARY_INDIRECT_RELATED_DATA_TYPE, SECONDARY_INDIRECT_RELATED_PATH);
         put(TERTIARY_INDIRECT_RELATED_DATA_TYPE, TERTIARY_INDIRECT_RELATED_PATH);
@@ -212,7 +217,7 @@ public class ContextRetrieverTest extends BaseSparkTest {
         datasets.put(PRIMARY_PATH, primaryDataset);
 
         DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
-        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
+        ContextRetriever contextRetriever = new ContextRetriever(getInputPathsForTypes(PRIMARY_DATA_TYPE), datasetRetriever, null);
 
         ContextDefinition contextDefinition = newContextDefinition(
                 null
@@ -239,7 +244,6 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 RowFactory.create(3, 3, "primary3"),
                 RowFactory.create(4, 4, "primary4")
         );
-		primaryDataset.createOrReplaceTempView(PRIMARY_DATA_TYPE);
 
         Dataset<Row> directRelatedDataset = newDataset(
                 directRelatedInputSchema,
@@ -252,14 +256,13 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 RowFactory.create(98, "unrelated1"),
                 RowFactory.create(99, "unrelated2")
         );
-		directRelatedDataset.createOrReplaceTempView(DIRECT_RELATED_DATA_TYPE);
 
         Map<String, Dataset<Row>> datasets = new HashMap<>();
         datasets.put(PRIMARY_PATH, primaryDataset);
         datasets.put(DIRECT_RELATED_PATH, directRelatedDataset);
 
         DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
-        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
+        ContextRetriever contextRetriever = new ContextRetriever(getInputPathsForTypes(PRIMARY_DATA_TYPE, DIRECT_RELATED_DATA_TYPE), datasetRetriever, null);
 
         ContextDefinition contextDefinition = newContextDefinition(
                 Collections.singletonList(directRelationship)
@@ -300,7 +303,6 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 RowFactory.create(3, 1, "primary3"),
                 RowFactory.create(4, 1, "primary4")
         );
-        primaryDataset.createOrReplaceTempView(PRIMARY_DATA_TYPE);
 
         Dataset<Row> directRelatedDataset = newDataset(
                 directRelatedInputSchema,
@@ -313,14 +315,13 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 RowFactory.create(98, "unrelated1"),
                 RowFactory.create(99, "unrelated2")
         );
-        directRelatedDataset.createOrReplaceTempView(DIRECT_RELATED_DATA_TYPE);
 
         Map<String, Dataset<Row>> datasets = new HashMap<>();
         datasets.put(PRIMARY_PATH, primaryDataset);
         datasets.put(DIRECT_RELATED_PATH, directRelatedDataset);
 
         DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
-        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
+        ContextRetriever contextRetriever = new ContextRetriever(getInputPathsForTypes(PRIMARY_DATA_TYPE, DIRECT_RELATED_DATA_TYPE), datasetRetriever, null);
         Relationship relationship = newRelationship(
                 DIRECT_RELATED_DATA_TYPE,
                 "inner join " + DIRECT_RELATED_DATA_TYPE + " on " + DIRECT_RELATED_DATA_TYPE + "." + DIRECT_RELATED_KEY_COLUMN + " = " + PRIMARY_DATA_TYPE + "." + PRIMARY_KEY_COLUMN + " and " + PRIMARY_ALT_KEY_COLUMN + " = 1"
@@ -360,7 +361,6 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 RowFactory.create(3, 3, "primary3"),
                 RowFactory.create(4, 4, "primary4")
         );
-        primaryDataset.createOrReplaceTempView(PRIMARY_DATA_TYPE);
 
         Dataset<Row> directRelatedDataset = newDataset(
                 directRelatedInputSchemaWithFilterColumn,
@@ -373,14 +373,13 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 RowFactory.create(98, "unrelated1", "valid"),
                 RowFactory.create(99, "unrelated2", "valid")
         );
-        directRelatedDataset.createOrReplaceTempView(DIRECT_RELATED_DATA_TYPE);
 
         Map<String, Dataset<Row>> datasets = new HashMap<>();
         datasets.put(PRIMARY_PATH, primaryDataset);
         datasets.put(DIRECT_RELATED_PATH, directRelatedDataset);
 
         DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
-        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
+        ContextRetriever contextRetriever = new ContextRetriever(getInputPathsForTypes(PRIMARY_DATA_TYPE, DIRECT_RELATED_DATA_TYPE), datasetRetriever, null);
 
         Relationship relationship = newRelationship(
                 DIRECT_RELATED_DATA_TYPE,
@@ -425,7 +424,6 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 RowFactory.create(4, 30, "primary4"),
                 RowFactory.create(5, 40, "primary5")
         );
-        primaryDataset.createOrReplaceTempView(PRIMARY_DATA_TYPE);
 
         Dataset<Row> directRelatedDataset = newDataset(
                 directRelatedInputSchema,
@@ -437,14 +435,13 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 RowFactory.create(98, "unrelated1"),
                 RowFactory.create(99, "unrelated2")
         );
-        directRelatedDataset.createOrReplaceTempView(DIRECT_RELATED_DATA_TYPE);
 
         Map<String, Dataset<Row>> datasets = new HashMap<>();
         datasets.put(PRIMARY_PATH, primaryDataset);
         datasets.put(DIRECT_RELATED_PATH, directRelatedDataset);
 
         DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
-        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
+        ContextRetriever contextRetriever = new ContextRetriever(getInputPathsForTypes(PRIMARY_DATA_TYPE, DIRECT_RELATED_DATA_TYPE), datasetRetriever, null);
 
         ContextDefinition contextDefinition = newContextDefinition(
                 Collections.singletonList(directRelationshipWithAltKey)
@@ -489,7 +486,6 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 RowFactory.create(3, 3, "primary3"),
                 RowFactory.create(4, 4, "primary4")
         );
-        primaryDataset.createOrReplaceTempView(PRIMARY_DATA_TYPE);
 
         Dataset<Row> assocDataset = newDataset(
                 assocInputSchema,
@@ -503,7 +499,6 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 RowFactory.create(98, 198),
                 RowFactory.create(99, 199)
         );
-        assocDataset.createOrReplaceTempView(ASSOC_DATA_TYPE);
 
         Dataset<Row> indirectRelatedDataset = newDataset(
                 indirectRelatedInputSchema,
@@ -516,7 +511,6 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 RowFactory.create(198, "unrelated1"),
                 RowFactory.create(199, "unrelated2")
         );
-        indirectRelatedDataset.createOrReplaceTempView(INDIRECT_RELATED_DATA_TYPE);
 
         Map<String, Dataset<Row>> datasets = new HashMap<>();
         datasets.put(PRIMARY_PATH, primaryDataset);
@@ -524,7 +518,7 @@ public class ContextRetrieverTest extends BaseSparkTest {
         datasets.put(INDIRECT_RELATED_PATH, indirectRelatedDataset);
 
         DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
-        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
+        ContextRetriever contextRetriever = new ContextRetriever(getInputPathsForTypes(PRIMARY_DATA_TYPE, ASSOC_DATA_TYPE, INDIRECT_RELATED_DATA_TYPE), datasetRetriever, null);
 
         ContextDefinition contextDefinition = newContextDefinition(
                 Collections.singletonList(indirectRelationship)
@@ -566,7 +560,6 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 RowFactory.create(3, 3, "primary3"),
                 RowFactory.create(4, 4, "primary4")
         );
-        primaryDataset.createOrReplaceTempView(PRIMARY_DATA_TYPE);
 
         Dataset<Row> assocDataset = newDataset(
                 assocInputSchema,
@@ -580,7 +573,6 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 RowFactory.create(98, 198),
                 RowFactory.create(99, 199)
         );
-        assocDataset.createOrReplaceTempView(ASSOC_DATA_TYPE);
 
         Dataset<Row> indirectRelatedDataset = newDataset(
                 indirectRelatedInputSchemaWithFilterColumn,
@@ -593,7 +585,6 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 RowFactory.create(198, "unrelated1", "valid"),
                 RowFactory.create(199, "unrelated2", "valid")
         );
-        indirectRelatedDataset.createOrReplaceTempView(INDIRECT_RELATED_DATA_TYPE);
 
         Map<String, Dataset<Row>> datasets = new HashMap<>();
         datasets.put(PRIMARY_PATH, primaryDataset);
@@ -601,7 +592,7 @@ public class ContextRetrieverTest extends BaseSparkTest {
         datasets.put(INDIRECT_RELATED_PATH, indirectRelatedDataset);
 
         DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
-        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
+        ContextRetriever contextRetriever = new ContextRetriever(getInputPathsForTypes(PRIMARY_DATA_TYPE, ASSOC_DATA_TYPE, INDIRECT_RELATED_DATA_TYPE), datasetRetriever, null);
 
         Relationship relationship = newRelationship(
                 INDIRECT_RELATED_DATA_TYPE,
@@ -693,7 +684,7 @@ public class ContextRetrieverTest extends BaseSparkTest {
         datasets.put(INDIRECT_RELATED_PATH, indirectRelatedDataset);
 
         DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
-        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
+        ContextRetriever contextRetriever = new ContextRetriever(getInputPathsForTypes(PRIMARY_DATA_TYPE, DIRECT_RELATED_DATA_TYPE, ASSOC_DATA_TYPE, INDIRECT_RELATED_DATA_TYPE), datasetRetriever, null);
 
         ContextDefinition contextDefinition = newContextDefinition(
                 Arrays.asList(directRelationship, indirectRelationship)
@@ -816,7 +807,7 @@ public class ContextRetrieverTest extends BaseSparkTest {
         datasets.put(TERTIARY_INDIRECT_RELATED_PATH, tertiaryIndirectRelatedDataset);
 
         DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
-        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
+        ContextRetriever contextRetriever = new ContextRetriever(getInputPathsForTypes(PRIMARY_DATA_TYPE, DIRECT_RELATED_DATA_TYPE, ASSOC_DATA_TYPE, INDIRECT_RELATED_DATA_TYPE, SECONDARY_INDIRECT_RELATED_DATA_TYPE, TERTIARY_INDIRECT_RELATED_DATA_TYPE), datasetRetriever, null);
 
         Relationship indirectRelationship = newRelationship(
             INDIRECT_RELATED_DATA_TYPE,
@@ -893,7 +884,6 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 RowFactory.create(4, 4, "primary4"),
                 RowFactory.create(5, 5, "primary5")
         );
-        primaryDataset.createOrReplaceTempView(PRIMARY_DATA_TYPE);
 
         Dataset<Row> assocDataset = newDataset(
                 assocInputSchema,
@@ -907,7 +897,6 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 RowFactory.create(98, 198),
                 RowFactory.create(99, 199)
         );
-        assocDataset.createOrReplaceTempView(ASSOC_DATA_TYPE);
 
         Dataset<Row> assocDataset2 = newDataset(
                 assocInputSchema,
@@ -917,7 +906,6 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 RowFactory.create(98, 198),
                 RowFactory.create(99, 199)
         );
-        assocDataset2.createOrReplaceTempView(ASSOC_DATA_TYPE + "2");
 
         Dataset<Row> indirectRelatedDataset = newDataset(
                 indirectRelatedInputSchema,
@@ -927,19 +915,19 @@ public class ContextRetrieverTest extends BaseSparkTest {
                 RowFactory.create(198, "unrelated1"),
                 RowFactory.create(199, "unrelated2")
         );
-        indirectRelatedDataset.createOrReplaceTempView(INDIRECT_RELATED_DATA_TYPE);
 
         Map<String, Dataset<Row>> datasets = new HashMap<>();
         datasets.put(PRIMARY_PATH, primaryDataset);
         datasets.put(ASSOC_PATH, assocDataset);
+        datasets.put(ASSOC_PATH_2, assocDataset2);
         datasets.put(INDIRECT_RELATED_PATH, indirectRelatedDataset);
 
         DatasetRetriever datasetRetriever = new TestDatasetRetriever(datasets);
-        ContextRetriever contextRetriever = new ContextRetriever(inputPaths, datasetRetriever, null);
+        ContextRetriever contextRetriever = new ContextRetriever(getInputPathsForTypes(PRIMARY_DATA_TYPE, ASSOC_DATA_TYPE, ASSOC_DATA_TYPE_2, INDIRECT_RELATED_DATA_TYPE), datasetRetriever, null);
 
         Relationship indirectRelationship = newRelationship(
                 INDIRECT_RELATED_DATA_TYPE,
-                "inner join " + ASSOC_DATA_TYPE + " on " + PRIMARY_DATA_TYPE + "." + PRIMARY_KEY_COLUMN + " = " + ASSOC_DATA_TYPE + "." + ASSOC_LEFT_COLUMN + " inner join " + ASSOC_DATA_TYPE + "2" + " on " + ASSOC_DATA_TYPE + "." + ASSOC_RIGHT_COLUMN + " = " + ASSOC_DATA_TYPE + "2" + "." + ASSOC_LEFT_COLUMN + " inner join " + INDIRECT_RELATED_DATA_TYPE + " on " + ASSOC_DATA_TYPE + "2." + ASSOC_RIGHT_COLUMN + " = " + INDIRECT_RELATED_DATA_TYPE + "." + INDIRECT_RELATED_KEY_COLUMN
+                "inner join " + ASSOC_DATA_TYPE + " on " + PRIMARY_DATA_TYPE + "." + PRIMARY_KEY_COLUMN + " = " + ASSOC_DATA_TYPE + "." + ASSOC_LEFT_COLUMN + " inner join " + ASSOC_DATA_TYPE_2 + " on " + ASSOC_DATA_TYPE + "." + ASSOC_RIGHT_COLUMN + " = " + ASSOC_DATA_TYPE_2 + "." + ASSOC_LEFT_COLUMN + " inner join " + INDIRECT_RELATED_DATA_TYPE + " on " + ASSOC_DATA_TYPE + "2." + ASSOC_RIGHT_COLUMN + " = " + INDIRECT_RELATED_DATA_TYPE + "." + INDIRECT_RELATED_KEY_COLUMN
         );
 
         ContextDefinition contextDefinition = newContextDefinition(
@@ -1032,4 +1020,11 @@ public class ContextRetrieverTest extends BaseSparkTest {
         return retVal;
     }
 
+    private Map<String, String> getInputPathsForTypes(String... dataTypes) {
+        Map<String, String> inputPathMap = new HashMap<>();
+        for (String type : dataTypes) {
+            inputPathMap.put(type, inputPaths.get(type));
+        }
+        return inputPathMap;
+    }
 }
