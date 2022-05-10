@@ -118,7 +118,7 @@ public class ColumnRuleCreatorTest {
         expected.put("concept", new HashSet<>(Arrays.asList(new EqualsStringMatcher(ContextRetriever.SOURCE_FACT_IDX),
                                                             new EqualsStringMatcher("concept_id"), new EqualsStringMatcher("concept_code"), new EqualsStringMatcher("concept_name"), new EqualsStringMatcher("vocabulary_id"),
                                                             new EqualsStringMatcher(ContextRetriever.JOIN_CONTEXT_VALUE_IDX))));
-        expected.put("observation", new HashSet<>(Arrays.asList(new EqualsStringMatcher(ContextRetriever.SOURCE_FACT_IDX), new EqualsStringMatcher("observation_concept_id"), new EqualsStringMatcher("person_id"), new EqualsStringMatcher(ContextRetriever.JOIN_CONTEXT_VALUE_IDX))));
+        expected.put("observation", new HashSet<>(Arrays.asList(new EqualsStringMatcher(ContextRetriever.SOURCE_FACT_IDX), new EqualsStringMatcher("observation_concept_id"), new EqualsStringMatcher(ContextRetriever.JOIN_CONTEXT_VALUE_IDX))));
 
         assertEquals( expected, actual );
     }

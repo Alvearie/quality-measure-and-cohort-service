@@ -62,6 +62,14 @@ public class ColumnRuleCreator {
 
 		Set<StringMatcher> contextFields = pathsByDataType.computeIfAbsent(context.getPrimaryDataType(), dt -> new HashSet<>() );
 		contextFields.add(new EqualsStringMatcher(context.getPrimaryKeyColumn()));
+		if( context.getRelationships() != null ) {
+			for( Relationship relationship : context.getRelationships() ) {
+				Set<StringMatcher> joinFields = pathsByDataType.get(relationship.getName());
+				if( joinFields != null ) {
+					joinFields.add(new EqualsStringMatcher(ContextRetriever.JOIN_CONTEXT_VALUE_IDX));
+				}
+			}
+		}
 
 		pathsByDataType.values().forEach((matcherSet -> {
 			matcherSet.add(new EqualsStringMatcher(ContextRetriever.SOURCE_FACT_IDX));
