@@ -119,11 +119,6 @@ public class ContextRetriever {
         Dataset<Row> primaryDataset = readDataset(primaryDataType);
         retVal.add(toPairRDD(primaryDataset, primaryKeyColumn));
 
-        // We need to retain the original context value from the primary datatype.
-        // This is done by adding a "placeholder column" that selects the context value.
-        // This is needed for when we retain only the columns from the related dataset.
-        Column joinContextColumn = primaryDataset.col(primaryKeyColumn).as(JOIN_CONTEXT_VALUE_IDX);
-
         // This entire block likely goes away and becomes a single sql statement.
         // The join/where clause logic should be pretty straightforward.
         // Column filtering will take some thought to get right. Have to look at the column matchers
