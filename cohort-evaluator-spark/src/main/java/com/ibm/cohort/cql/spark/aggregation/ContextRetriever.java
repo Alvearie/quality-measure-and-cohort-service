@@ -7,18 +7,13 @@
 package com.ibm.cohort.cql.spark.aggregation;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -26,7 +21,6 @@ import org.apache.spark.sql.functions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ibm.cohort.cql.spark.data.ColumnFilterFunction;
 import com.ibm.cohort.cql.spark.data.DatasetRetriever;
 import com.ibm.cohort.cql.util.StringMatcher;
 
@@ -135,6 +129,11 @@ public class ContextRetriever {
 
         SparkSession sparkSession = SparkSession.getActiveSession().get();
         for (Relationship relationship : relationships) {
+            // Delete this block. Just want to clear pmd violations while working
+            if (datatypeToColumnMatchers == null || datatypeToColumnMatchers.isEmpty()) {
+                LOG.info("No column matcher information provided.");
+            }
+            
             // select primary.primekey as SPECIAL, thistype.* from primary 
             StringBuilder sb = new StringBuilder("select ");
             sb = sb.append(relationship.getName()).append(".*, ")
@@ -144,7 +143,6 @@ public class ContextRetriever {
 
             Dataset<Row> result = sparkSession.sql(sb.toString());
             retVal.add(toPairRDD(result, JOIN_CONTEXT_VALUE_IDX));
-            int x = 0;
         }
 
         return retVal;

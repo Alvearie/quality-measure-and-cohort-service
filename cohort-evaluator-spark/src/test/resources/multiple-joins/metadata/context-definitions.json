@@ -15,7 +15,7 @@
         },
         {
           "name": "observation",
-          "joinClause": "innner join observation on person.person_id = observation.person_id"
+          "joinClause": "inner join observation on person.person_id = observation.person_id"
         }
       ]
     }
