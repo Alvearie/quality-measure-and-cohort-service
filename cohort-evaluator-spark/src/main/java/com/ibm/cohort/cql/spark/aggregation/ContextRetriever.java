@@ -8,20 +8,26 @@ package com.ibm.cohort.cql.spark.aggregation;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.functions;
+import org.apache.spark.sql.types.Metadata;
+import org.apache.spark.sql.types.StructType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ibm.cohort.cql.spark.data.DatasetRetriever;
+import com.ibm.cohort.cql.spark.data.MetadataUtils;
 import com.ibm.cohort.cql.util.StringMatcher;
 
 import scala.Tuple2;
@@ -110,9 +116,7 @@ public class ContextRetriever {
         String primaryKeyColumn = contextDefinition.getPrimaryKeyColumn();
         String primaryDataType = contextDefinition.getPrimaryDataType();
         
-        // TODO: Figure out how to register temp views in one central place.
         // TODO: Figure out column filtering so we only select columns needed in CQL.
-        // TODO: Check which tests fail due to ContextDefinition changes. Fix those tests.
         
         // I think reading the primary dataset starts off as select * from primaryDataType
         // along with any extra columns that are needed
@@ -129,15 +133,34 @@ public class ContextRetriever {
 
         SparkSession sparkSession = SparkSession.getActiveSession().get();
         for (Relationship relationship : relationships) {
-            // Delete this block. Just want to clear pmd violations while working
-            if (datatypeToColumnMatchers == null || datatypeToColumnMatchers.isEmpty()) {
-                LOG.info("No column matcher information provided.");
+            StringBuilder sb = new StringBuilder("select ");
+
+            String relationshipName = relationship.getName();
+
+            boolean skipFilter = false;
+            if (datatypeToColumnMatchers != null && !datatypeToColumnMatchers.isEmpty()) {
+                Set<StringMatcher> stringMatchers = datatypeToColumnMatchers.get(relationshipName);
+                if (stringMatchers != null && !stringMatchers.isEmpty()) {
+                    Set<String> columnNames = getColumnsToKeep(stringMatchers, sparkSession.sql("select * from " + relationshipName).schema());
+                    String select = String.join(" ", columnNames.stream().map(col -> relationshipName + "." + col + ",").collect(Collectors.toList()));
+                    sb = sb.append(select);
+
+                }
+                else {
+                    skipFilter = true;
+                }
+            }
+            else {
+                skipFilter = true;
+            }
+            
+            if (skipFilter) {
+                sb = sb.append(relationshipName).append(".*, ");
             }
             
             // select primary.primekey as SPECIAL, thistype.* from primary 
-            StringBuilder sb = new StringBuilder("select ");
-            sb = sb.append(relationship.getName()).append(".*, ")
-                    .append(primaryDataType).append('.').append(primaryKeyColumn).append(" as ").append(JOIN_CONTEXT_VALUE_IDX)
+
+            sb = sb.append(primaryDataType).append('.').append(primaryKeyColumn).append(" as ").append(JOIN_CONTEXT_VALUE_IDX)
                     .append(" from ").append(primaryDataType).append(' ')
                     .append(relationship.getJoinClause());
 
@@ -145,6 +168,40 @@ public class ContextRetriever {
             retVal.add(toPairRDD(result, JOIN_CONTEXT_VALUE_IDX));
         }
 
+        return retVal;
+    }
+    
+    private Set<String> getColumnsToKeep(Set<StringMatcher> columnNameMatchers, StructType schema) {
+        Set<String> retVal = new HashSet<>();
+        
+        for( StringMatcher colNameMatcher : columnNameMatchers) {
+            try {
+                Stream.of(schema.fieldNames())
+                        .filter( fn -> colNameMatcher.test(fn) )
+                        .collect(Collectors.toSet())
+                        .forEach( col -> {
+                            retVal.add(col);
+
+                            Metadata metadata = MetadataUtils.getColumnMetadata(schema, col);
+                            if( metadata != null ) {
+                                if( MetadataUtils.isCodeCol(metadata) ) {
+                                    String systemCol = MetadataUtils.getSystemCol(metadata);
+                                    if( systemCol != null ) {
+                                        retVal.add( systemCol ) ;
+                                    }
+
+                                    String displayCol = MetadataUtils.getDisplayCol(metadata);
+                                    if( displayCol != null ) {
+                                        retVal.add( displayCol );
+                                    }
+                                }
+                            }
+                        });
+            } catch( Throwable th ) {
+                LOG.error("Failed to resolve column %s of data type %s", th);
+                throw th;
+            }
+        }
         return retVal;
     }
 
