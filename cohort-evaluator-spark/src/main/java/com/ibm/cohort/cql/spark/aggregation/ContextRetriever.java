@@ -75,7 +75,6 @@ public class ContextRetriever {
      * @return A {@link JavaPairRDD} linking contextValue to a {@link List} of {@link Row}s
      */
     public JavaPairRDD<Object, List<Row>> retrieveContext(ContextDefinition contextDefinition) {
-        // TRY temp view creation here.
         for (String dataType : inputPaths.keySet()) {
             Dataset<Row> ds = readDataset(dataType);
             ds.createOrReplaceTempView(dataType);
@@ -115,35 +114,32 @@ public class ContextRetriever {
 
         String primaryKeyColumn = contextDefinition.getPrimaryKeyColumn();
         String primaryDataType = contextDefinition.getPrimaryDataType();
-        
-        // TODO: Figure out column filtering so we only select columns needed in CQL.
-        
-        // I think reading the primary dataset starts off as select * from primaryDataType
-        // along with any extra columns that are needed
+
         Dataset<Row> primaryDataset = readDataset(primaryDataType);
         retVal.add(toPairRDD(primaryDataset, primaryKeyColumn));
 
-        // This entire block likely goes away and becomes a single sql statement.
-        // The join/where clause logic should be pretty straightforward.
-        // Column filtering will take some thought to get right. Have to look at the column matchers
-        // and figure out if they are ultimately just column names or what.
         List<Relationship> relationships = contextDefinition.getRelationships() == null
                 ? Collections.emptyList()
                 : contextDefinition.getRelationships();
 
         SparkSession sparkSession = SparkSession.getActiveSession().get();
         for (Relationship relationship : relationships) {
+            // TODO: Extract this logic into a query builder class
             StringBuilder sb = new StringBuilder("select ");
 
             String relationshipName = relationship.getName();
 
             boolean skipFilter = false;
+            // When datatypeToColumnMatchers is populated for this relationship,
+            // only select the required columns needed to running CQLs for this run
+            // of the engine.
+            // TODO: clean this block up
             if (datatypeToColumnMatchers != null && !datatypeToColumnMatchers.isEmpty()) {
                 Set<StringMatcher> stringMatchers = datatypeToColumnMatchers.get(relationshipName);
                 if (stringMatchers != null && !stringMatchers.isEmpty()) {
                     Set<String> columnNames = getColumnsToKeep(stringMatchers, sparkSession.sql("select * from " + relationshipName).schema());
-                    String select = String.join(" ", columnNames.stream().map(col -> relationshipName + "." + col + ",").collect(Collectors.toList()));
-                    sb = sb.append(select);
+                    String select = columnNames.stream().map(col -> relationshipName + "." + col + ",").collect(Collectors.joining(" "));
+                    sb.append(select);
 
                 }
                 else {
@@ -155,14 +151,16 @@ public class ContextRetriever {
             }
             
             if (skipFilter) {
-                sb = sb.append(relationshipName).append(".*, ");
+                sb.append(relationshipName).append(".*, ");
             }
             
-            // select primary.primekey as SPECIAL, thistype.* from primary 
-
-            sb = sb.append(primaryDataType).append('.').append(primaryKeyColumn).append(" as ").append(JOIN_CONTEXT_VALUE_IDX)
-                    .append(" from ").append(primaryDataType).append(' ')
-                    .append(relationship.getJoinClause());
+            // We have to populate JOIN_CONTEXT_VALUE_IDX with the primary data type key
+            // for use elsewhere in the engine.
+            sb.append(primaryDataType).append('.').append(primaryKeyColumn).append(" as ").append(JOIN_CONTEXT_VALUE_IDX);
+            
+            // Joining for a context always starts with the primary data type as the left-most table
+            // before applying the rest of the specified join query.
+            sb.append(" from ").append(primaryDataType).append(' ').append(relationship.getJoinClause());
 
             Dataset<Row> result = sparkSession.sql(sb.toString());
             retVal.add(toPairRDD(result, JOIN_CONTEXT_VALUE_IDX));
@@ -171,6 +169,7 @@ public class ContextRetriever {
         return retVal;
     }
     
+    // TODO: This logic should live somwhere else.
     private Set<String> getColumnsToKeep(Set<StringMatcher> columnNameMatchers, StructType schema) {
         Set<String> retVal = new HashSet<>();
         
