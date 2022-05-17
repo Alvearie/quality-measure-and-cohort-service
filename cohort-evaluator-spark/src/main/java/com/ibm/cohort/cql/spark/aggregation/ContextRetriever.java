@@ -124,33 +124,28 @@ public class ContextRetriever {
 
         SparkSession sparkSession = SparkSession.getActiveSession().get();
         for (Relationship relationship : relationships) {
-            // TODO: Extract this logic into a query builder class
             StringBuilder sb = new StringBuilder("select ");
 
             String relationshipName = relationship.getName();
 
-            boolean skipFilter = false;
+            boolean selectAllColumns = true;
+            
             // When datatypeToColumnMatchers is populated for this relationship,
             // only select the required columns needed to running CQLs for this run
             // of the engine.
-            // TODO: clean this block up
             if (datatypeToColumnMatchers != null && !datatypeToColumnMatchers.isEmpty()) {
                 Set<StringMatcher> stringMatchers = datatypeToColumnMatchers.get(relationshipName);
                 if (stringMatchers != null && !stringMatchers.isEmpty()) {
-                    Set<String> columnNames = getColumnsToKeep(stringMatchers, sparkSession.sql("select * from " + relationshipName).schema());
+                    Set<String> columnNames = createNecessaryColumnSet(stringMatchers, sparkSession.sql("select * from " + relationshipName).schema());
                     String select = columnNames.stream().map(col -> relationshipName + "." + col + ",").collect(Collectors.joining(" "));
                     sb.append(select);
-
+                    selectAllColumns = false;
                 }
-                else {
-                    skipFilter = true;
-                }
-            }
-            else {
-                skipFilter = true;
             }
             
-            if (skipFilter) {
+            // When there is no entry in datatypeToColumnMatchers for this relationship,
+            // then select all the columns for this relationship
+            if (selectAllColumns) {
                 sb.append(relationshipName).append(".*, ");
             }
             
@@ -168,9 +163,19 @@ public class ContextRetriever {
 
         return retVal;
     }
-    
-    // TODO: This logic should live somwhere else.
-    private Set<String> getColumnsToKeep(Set<StringMatcher> columnNameMatchers, StructType schema) {
+
+    /**
+     * Creates a {@link Set} of {@link StringMatcher} containing all the column names required
+     * to calculate the configured CQLs for this run of the engine.
+     *
+     * @param columnNameMatchers The {@link Set<StringMatcher>} containing the rules on
+     *                           which columns to keep.
+     * @param schema             The {@link StructType} containing the columns to be compared
+     *                           against the rules in columnNameMatchers
+     * @return A {@link Set} of {@link String}s containing all columns in the provided
+     * {@link StructType} that matched one or more rules in the provided {@link Set} of {@link StringMatcher}.
+     */
+    private Set<String> createNecessaryColumnSet(Set<StringMatcher> columnNameMatchers, StructType schema) {
         Set<String> retVal = new HashSet<>();
         
         for( StringMatcher colNameMatcher : columnNameMatchers) {
