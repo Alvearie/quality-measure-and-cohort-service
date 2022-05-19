@@ -18,7 +18,7 @@ import com.ibm.cohort.cql.hapi.R4ParameterDefinitionWithDefaultToCohortParameter
 import com.ibm.cohort.cql.hapi.R4TranslatingLibraryLoader;
 import com.ibm.cohort.cql.translation.CqlToElmTranslator;
 import com.ibm.cohort.measure.cqfruler.CDMContext;
-import com.ibm.cohort.measure.helpers.MeasurementPeriodHelper;
+import com.ibm.cohort.measure.MeasurementPeriodHelper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cqframework.cql.elm.execution.VersionedIdentifier;

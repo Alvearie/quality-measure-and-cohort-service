@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package com.ibm.cohort.measure.helpers;
+package com.ibm.cohort.measure;
 
 import java.time.ZoneOffset;
 
