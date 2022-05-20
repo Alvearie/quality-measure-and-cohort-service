@@ -7,7 +7,7 @@ function readd_tests(){
   echo "./tests/run-tests.sh regtest.xml" >>run-regrtests.sh
 }
 
-if [ "$UMBRELLA_REPO_PATH" == "https://github.ibm.com/watson-health-cohorting/wh-cohorting-umbrella" ]; then
+if [ "$UMBRELLA_REPO_PATH" == "https://github.com/watson-health-cohorting/wh-cohorting-umbrella" ]; then
   if [ -f ./application.version ]; then
     APPLICATION_VERSION="$(cat application.version)"
   else
