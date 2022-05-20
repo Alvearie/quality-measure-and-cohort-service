@@ -10,11 +10,11 @@ import static org.junit.Assert.assertEquals;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.ibm.cohort.measure.MeasureContext;
+import com.ibm.cohort.measure.evidence.MeasureEvidenceOptions;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.measure.MeasureContext;
-import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.cql.evaluation.parameters.DateParameter;
 import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;

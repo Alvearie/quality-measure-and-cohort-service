@@ -17,7 +17,7 @@ kubectl -n <kubernetes-namespace> port-forward service/<fhir-service> 9443:9443
 
 ## Choose an interaction model
 
-There are lots of ways to do CQL evaluation in client-server mode. The simplest place to get started is to use the [command-line interface](#command-line-interface). If your application needs a standard-agnostic REST API to work with, you might choose to deploy the cohort-services API project (cohort-engine-api-web) or the provided Docker image. Alternatively, you might choose to integrate the cohort-engine APIs directly into your application. The choice is up to you.
+There are lots of ways to do CQL evaluation in client-server mode. The simplest place to get started is to use the [command-line interface](#command-line-interface). If your application needs a standard-agnostic REST API to work with, you might choose to deploy the cohort-services API project (cohort-engine-api-web) or the provided Docker image. Alternatively, you might choose to integrate the cohort-evaluator APIs directly into your application. The choice is up to you.
 
 ### Command-line interface
 

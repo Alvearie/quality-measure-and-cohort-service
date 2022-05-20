@@ -26,12 +26,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
+import com.ibm.cohort.cql.hapi.FhirTestBase;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.FhirTestBase;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig.LogInfo;
 

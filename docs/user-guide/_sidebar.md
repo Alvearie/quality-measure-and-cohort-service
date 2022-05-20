@@ -1,6 +1,7 @@
 - User Guide
 
   - [Getting Started](user-guide/getting-started.md)
+  - [Project Layout](user-guide/project-layout.md)
   - [Deployment Models](user-guide/deployment-models.md)
     - [Client-Server Mode](user-guide/client-server-guide.md)
     - [Server-Only Mode using IBM FHIR](user-guide/server-only-guide.md)

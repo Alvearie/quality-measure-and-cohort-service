@@ -17,28 +17,13 @@
 	<name>cohort-engine-api</name>
 
 	<properties>
-	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<dependencies>
 		<dependency>
-			<groupId>com.ibm.watson.health.services</groupId>
-			<artifactId>service-base-os</artifactId>
-		</dependency>
-		
-		<dependency>
-			<groupId>jakarta.ws.rs</groupId>
-			<artifactId>jakarta.ws.rs-api</artifactId>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.ibm.watson.health.services</groupId>
-			<artifactId>service-model-os</artifactId>
-		</dependency>
-		
-		<dependency>
 			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-engine</artifactId>
+			<artifactId>cohort-measure</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -47,66 +32,94 @@
 			<artifactId>cohort-evaluator</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
 			<artifactId>fhir-client-config</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-util</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.ibm.watson.health.services</groupId>
+			<artifactId>service-base-os</artifactId>
+			<exclusions>
+				<exclusion>
+					<!--
+						Exclude `hamcrest-all` because `service-base-os`
+						has a _compile_ dependency on it for some reason.
+						I looked at the source and found that it _should_ be a
+						test dependency upstream.
+					-->
+					<groupId>org.hamcrest</groupId>
+					<artifactId>hamcrest-all</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>jakarta.ws.rs</groupId>
+			<artifactId>jakarta.ws.rs-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.ibm.watson.health.services</groupId>
+			<artifactId>service-model-os</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-annotations</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>ca.uhn.hapi.fhir</groupId>
 			<artifactId>hapi-fhir-base</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>ca.uhn.hapi.fhir</groupId>
 			<artifactId>org.hl7.fhir.r4</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.opencds.cqf</groupId>
 			<artifactId>common</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>io.swagger</groupId>
 			<artifactId>swagger-annotations</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
 		
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>cohort-util</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		
-		<!-- Runtime dependencies -->
-		
+		<!--
+			Runtime dependencies
+		-->
 		<dependency>
 			<groupId>ca.uhn.hapi.fhir</groupId>
 			<artifactId>hapi-fhir-structures-r4</artifactId>
@@ -120,8 +133,9 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Test dependencies -->
-		
+		<!--
+			Test dependencies
+		-->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -160,16 +174,14 @@
 
 		<dependency>
 			<groupId>org.hamcrest</groupId>
-			<artifactId>hamcrest-all</artifactId>
-			<version>1.3</version>
+			<artifactId>hamcrest-library</artifactId>
 			<scope>test</scope>
 		</dependency>
 
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-core</artifactId>
-            <version>1.3</version>
-            <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-core</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>

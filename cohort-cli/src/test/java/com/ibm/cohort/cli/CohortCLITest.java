@@ -21,6 +21,7 @@ import java.io.FileWriter;
 import java.io.PrintStream;
 import java.io.Writer;
 
+import com.ibm.cohort.cql.hapi.PatientTestBase;
 import org.cqframework.cql.cql2elm.CqlTranslatorException;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
@@ -38,12 +39,13 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.PatientTestBase;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
 import ca.uhn.fhir.parser.IParser;
 
 public class CohortCLITest extends PatientTestBase {
+	private static final String DEFAULT_RESOURCE_VERSION = "1.0.0";
+
 	@Test
 	public void testMainWithParams() throws Exception {
 		Patient patient = getPatient("123", Enumerations.AdministrativeGender.FEMALE, null);

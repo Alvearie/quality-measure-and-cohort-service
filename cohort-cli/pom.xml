@@ -25,13 +25,6 @@
 	</scm>
 
 	<dependencies>
-
-		<dependency>
-			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-engine</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
 			<artifactId>cohort-evaluator</artifactId>
@@ -41,6 +34,12 @@
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
 			<artifactId>cohort-evaluator-hapi-fhir</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-measure</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		
@@ -110,8 +109,9 @@
 			<version>${project.version}</version>
 		</dependency>
 
-		<!-- Runtime dependencies -->
-
+		<!--
+			Runtime dependencies
+		-->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
@@ -148,11 +148,21 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Test dependencies -->
+		<!--
+			Test dependencies
+		-->
+		<dependency>
+			<groupId>com.ibm.cohort</groupId>
+			<artifactId>cohort-evaluator-hapi-fhir</artifactId>
+			<version>${project.version}</version>
+			<classifier>tests</classifier>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>com.ibm.cohort</groupId>
-			<artifactId>cohort-engine</artifactId>
+			<artifactId>cohort-measure</artifactId>
 			<version>${project.version}</version>
 			<classifier>tests</classifier>
 			<type>test-jar</type>
@@ -182,8 +192,7 @@
 			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
 		</dependency>
-
-    </dependencies>
+	</dependencies>
 
 	<build>
 		<plugins>

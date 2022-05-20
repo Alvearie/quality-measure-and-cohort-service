@@ -21,7 +21,7 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>${project.groupId}</groupId>
+			<groupId>com.ibm.cohort</groupId>
 			<artifactId>cohort-evaluator</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -30,7 +30,10 @@
 			<groupId>org.opencds.cqf.cql</groupId>
 			<artifactId>engine</artifactId>
 		</dependency>
-		
+
+		<!--
+			Test dependencies
+		-->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>

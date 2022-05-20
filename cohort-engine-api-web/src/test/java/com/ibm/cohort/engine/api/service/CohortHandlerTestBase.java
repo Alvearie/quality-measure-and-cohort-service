@@ -21,12 +21,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
+import com.ibm.cohort.cql.hapi.FhirTestBase;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.FhirTestBase;
 import com.ibm.cohort.engine.api.service.model.EnhancedHealthCheckInput;
 import com.ibm.cohort.fhir.client.config.DefaultFhirClientBuilder;
 import com.ibm.watson.common.service.base.ServiceBaseUtility;

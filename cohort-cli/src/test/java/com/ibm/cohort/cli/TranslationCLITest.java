@@ -13,9 +13,8 @@ import static org.junit.Assert.*;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
+import com.ibm.cohort.cql.hapi.PatientTestBase;
 import org.junit.Test;
-
-import com.ibm.cohort.engine.PatientTestBase;
 
 public class TranslationCLITest extends PatientTestBase {
 	

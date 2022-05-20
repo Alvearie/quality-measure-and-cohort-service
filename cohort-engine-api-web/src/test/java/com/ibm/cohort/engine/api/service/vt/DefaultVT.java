@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.ibm.cohort.cql.evaluation.CqlDebug;
+import com.ibm.cohort.measure.MeasureContext;
+import com.ibm.cohort.measure.evidence.MeasureEvidenceOptions;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 
@@ -62,8 +64,6 @@ import com.ibm.cohort.engine.api.service.model.CohortEvaluation;
 import com.ibm.cohort.engine.api.service.model.CohortResult;
 import com.ibm.cohort.engine.api.service.model.MeasureEvaluation;
 import com.ibm.cohort.engine.api.service.model.PatientListMeasureEvaluation;
-import com.ibm.cohort.engine.measure.MeasureContext;
-import com.ibm.cohort.engine.measure.evidence.MeasureEvidenceOptions;
 import com.ibm.cohort.cql.evaluation.parameters.DateParameter;
 import com.ibm.cohort.cql.evaluation.parameters.IntervalParameter;
 import com.ibm.cohort.cql.evaluation.parameters.Parameter;
@@ -255,7 +255,7 @@ public class DefaultVT extends ServiceVTBase {
 		requestData.setTerminologyServerConfig(termServerConfig);
 		// This is a patient ID that is assumed to exist in the target FHIR server
 		requestData.setPatientId(VALID_PATIENT_ID);
-		requestData.setMeasureContext(new MeasureContext(null, parameterOverrides, new com.ibm.cohort.engine.measure.Identifier(identifier.getSystem(), identifier.getValue()), measure.getVersion()));
+		requestData.setMeasureContext(new MeasureContext(null, parameterOverrides, new com.ibm.cohort.measure.Identifier(identifier.getSystem(), identifier.getValue()), measure.getVersion()));
 		requestData.setEvidenceOptions(new MeasureEvidenceOptions(false,MeasureEvidenceOptions.DefineReturnOptions.NONE));
 		
 		ObjectMapper om = new ObjectMapper();

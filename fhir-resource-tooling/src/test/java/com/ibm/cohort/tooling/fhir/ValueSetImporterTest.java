@@ -30,6 +30,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.UUID;
 
+import com.ibm.cohort.cql.hapi.FhirTestBase;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.junit.Test;
@@ -37,7 +38,6 @@ import org.mockito.Mockito;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.cohort.engine.FhirTestBase;
 import com.ibm.cohort.fhir.client.config.FhirServerConfig;
 
 public class ValueSetImporterTest extends FhirTestBase {
