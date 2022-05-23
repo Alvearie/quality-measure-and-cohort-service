@@ -1,13 +1,10 @@
 # Project Layout
 This project is made up of multiple modules that supply various features for different methods of cohort execution.
-
-This is a simplified dependency diagram for the project.
-Transitive dependencies are omitted even when a module directly depends on said transitive dependency.
-
 Each module has a README that briefly describes its purpose in the project.
 
 ## Dependency Diagram
 ![Dependency Diagram](dependency-diagram.png)
+
 The above diagram showcases a simplified view of the dependencies between each module within the project.
 All "transitive" dependency usages are omitted to keep the diagram easily readable.
 
