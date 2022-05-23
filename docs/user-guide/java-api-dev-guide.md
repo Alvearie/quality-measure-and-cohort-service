@@ -5,7 +5,7 @@ to provide developers a way to write applications that interface with the CQL En
 This page contains notes on getting your development environment set up to code against our Java APIs.
 
 We recommend first looking through the [getting started guide](user-guide/getting-started.md) for better understanding the prerequisites and tools being used.
-Also take a look at the [project layout](user-guide/project-layout.md) for more information on each module.
+The [project layout](user-guide/project-layout.md) page should help decide which modules make sense for your usecase.
 
 ### Available Jars
 We publish our jars to [GitHub packages](https://github.com/Alvearie/quality-measure-and-cohort-service/packages/).
