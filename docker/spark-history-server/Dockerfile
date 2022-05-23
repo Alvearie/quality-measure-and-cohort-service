@@ -6,7 +6,7 @@
 
 # The official ubi8 image from redhat's registry is one of the few accepted base images for Alvearie
 ARG BASE_IMAGE=registry.access.redhat.com/ubi8
-ARG BASE_IMAGE_VERSION=8.5-226
+ARG BASE_IMAGE_VERSION=8.6-754
 
 ARG SPARK_VERSION=spark-3.1.2
 ARG SPARK_DIST=bin-hadoop3.2
