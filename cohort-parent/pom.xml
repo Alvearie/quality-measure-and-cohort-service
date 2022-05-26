@@ -1433,12 +1433,36 @@
 						<excludeVulnerabilityId>sonatype-2020-0926</excludeVulnerabilityId>
 						
 						<!-- Additional vulnerabilities we will want to try to resolve when work resumes on cohort engine -->
-						<!-- This one is for logback-classic - Deserialization of Untrusted Data [CVE-2021-42550] -->
-						<excludeVulnerabilityId>sonatype-2021-4517</excludeVulnerabilityId>
 						
+						<!-- These are pulled in by service-base-os 1.1.0-SNAPSHOT -->
 						<!--  These 2 are against logback-core -->
 						<excludeVulnerabilityId>sonatype-2021-1175</excludeVulnerabilityId>
 						<excludeVulnerabilityId>sonatype-2021-1446</excludeVulnerabilityId>
+						<!-- This one is for logback-classic - Deserialization of Untrusted Data [CVE-2021-42550] -->
+						<excludeVulnerabilityId>sonatype-2021-4517</excludeVulnerabilityId>
+						
+						<!--  Issues in spark-core_2.12 3.1.2 -->
+						<excludeVulnerabilityId>CVE-2021-38296</excludeVulnerabilityId>
+						<excludeVulnerabilityId>sonatype-2022-2430</excludeVulnerabilityId>
+						<excludeVulnerabilityId>sonatype-2022-1694</excludeVulnerabilityId>
+						
+						<!--  These are pulled in by spark-kubernetes_2.12 3.1.2 -->
+						<!--  Issues in kubernetes-client -->
+						<excludeVulnerabilityId>CVE-2021-20218</excludeVulnerabilityId>
+						
+						<!--  These are pulled in by spark-sql_2.12 3.1.2 -->
+						<!--  Issues in jersey-media-jaxb 2.30 -->
+						<excludeVulnerabilityId>sonatype-2016-0687</excludeVulnerabilityId>
+						<!--  Issues in okhttp 2.7.5 -->
+						<excludeVulnerabilityId>CVE-2021-0341</excludeVulnerabilityId>
+						<excludeVulnerabilityId>sonatype-2018-0035</excludeVulnerabilityId>
+						
+						<!--  These are pulled in by hadooop-common 3.2.0 -->
+						<!--  Issues in woodstox-core 5.0.3 -->
+						<excludeVulnerabilityId>sonatype-2018-0624</excludeVulnerabilityId>
+						<!--  Issues in protobuf-java 2.5.0 -->
+						<excludeVulnerabilityId>CVE-2021-22569</excludeVulnerabilityId>
+						<excludeVulnerabilityId>CVE-2022-26612</excludeVulnerabilityId>
 						
 					</excludeVulnerabilityIds>
 
