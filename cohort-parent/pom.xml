@@ -1432,6 +1432,14 @@
 						<excludeVulnerabilityId>sonatype-2021-4682</excludeVulnerabilityId>
 						<excludeVulnerabilityId>sonatype-2020-0926</excludeVulnerabilityId>
 						
+						<!-- Additional vulnerabilities we will want to try to resolve when work resumes on cohort engine -->
+						<!-- This one is for logback-classic - Deserialization of Untrusted Data [CVE-2021-42550] -->
+						<excludeVulnerabilityId>sonatype-2021-4517</excludeVulnerabilityId>
+						
+						<!--  These 2 are against logback-core -->
+						<excludeVulnerabilityId>sonatype-2021-1175</excludeVulnerabilityId>
+						<excludeVulnerabilityId>sonatype-2021-1446</excludeVulnerabilityId>
+						
 					</excludeVulnerabilityIds>
 
 					<excludeCoordinates>
