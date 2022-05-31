@@ -1409,7 +1409,6 @@
 					</execution>
 				</executions>
 				<configuration>
-					<fail>false</fail>
 					<excludeVulnerabilityIds>
 						<!--  As of 5/23/2022 OSS index is no longer supporting prior vulnerability ids to identify each vulnerabilty - CVE-based ids are used instead -->
 						
