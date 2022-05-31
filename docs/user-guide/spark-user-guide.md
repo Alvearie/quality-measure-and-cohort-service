@@ -184,68 +184,84 @@ CQL defines a number of features that work specifically with terminology data an
 
 ### Context Definitions
 
-The data tables that are used as input to the Spark CQL Evaluator application are assumed to be large, unsorted datasets. The first step to CQL evaluation is loading the datasets and then grouping records together into related data. The CQL specification calls these groupings contexts (e.g. context Patient). Any number of evaluation contexts are supported, but each context causes data to be reread from storage and regrouped. These are potentially very expensive operations, so care should be taken when deciding on the aggregation contexts that will be used.
+The data tables that are used as input to the Spark CQL Evaluator application are assumed to be large, unsorted datasets.
+The first step to CQL evaluation is loading the datasets and then grouping records together into related data.
+The CQL specification calls these groupings contexts (e.g. context Patient). Any number of evaluation contexts are supported,
+but each context causes data to be reread from storage and regrouped. These are potentially very expensive operations,
+so care should be taken when deciding on the aggregation contexts that will be used.
 
-Aggregation contexts are defined in a JSON-formatted configuration file that we typically call `context-definitions.json` though the name isn't prescribed. In the `context-definitions.json` file, you define a primary data type and all of the relationships to related data that will be needed for CQL evaluation. Each record of the primary data type should be uniquely keyed and the related data types can be joined in using one-to-many or many-to-many semantics. In the one-to-many join scenario, data for a related data type is assumed to have a direct foreign key to the primary data type table. In the many-to-many join scenario, data for a related data type is assumed to be once removed from the primary data type table. Join logic is performed first on an "association" table and then again via a different key value on the true related data type.
+Aggregation contexts are defined in a JSON-formatted configuration file that we typically call `context-definitions.json`,
+though the name isn't prescribed. In the `context-definitions.json` file you define one or more contexts where each context
+contains a primary data type and zero or more relationships to related data types needed for CQL evaluation for the context.
+Each record of the primary data type should be uniquely keyed and the related data types can be joined in using a join
+clause that specifies either joining directly between two data types, or joining with one or more association tables
+between the primary and related data types.
 
-Both one-to-many and many-to-many joins may specify an optional `whereClause` field which is used to limit which 
-rows are included in the results of a join. For example, we may wish to join the primary data type to a related data
-type only where a particular column is equal to a given value. In that case, the join in the context definition could
-specify `"whereClause": "a_column = 'a_value'"`. The join would be performed as normal, and then filtered down to
-only the cases for which the `whereClause` is true. This feature is meant to cover some advanced use cases and will
-likely not be needed for a majority of joins.
-
-An example context-definitions.json file might look like this..
+An example context-definitions.json file might look like this:
 ```json
 {
-        "contextDefinitions": [{
-                "name": "Patient",
-                "primaryDataType": "Patient",
-                "primaryKeyColumn": "patient_id",
-				"relationships":[{
-					"type": "OneToMany",
-					"relatedDataType": "Observation",
-					"relatedKeyColumn": "patient_id"
-				},{
-					"type": "OneToMany",
-					"relatedDataType": "Condition",
-					"relatedKeyColumn": "patient_id"
-				}]
-        },{
-                "name": "Claim",
-                "primaryDataType": "Claim",
-                "primaryKeyColumn": "claim_id",
-				"relationships": [{
-					"type": "ManyToMany",
-					"associationDataType": "PatientClaim",
-					"associationOneKeyColumn": "claim_id",
-					"associationManyKeyColumn": "patient_id",
-					"relatedDataType": "Patient",
-					"relatedKeyColumn": "patient_id"
-				}]
-        },{
-                 "name": "Encounter",
-                 "primaryDataType": "Patient",
-                 "primaryKeyColumn": "patient_id",
-                 "relationships":[{
-                     "type": "OneToMany",
-                     "relatedDataType": "Encounter",
-                     "relatedKeyColumn": "patient_id",
-                     "whereClause": "status = 'COMPLETE'"
-                 }]
-         }]
+  "contextDefinitions" : [
+    {
+      "name" : "Patient",
+      "primaryDataType" : "Patient",
+      "primaryKeyColumn" : "patient_id",
+      "relationships" : [
+        {
+          "name" : "Observation",
+          "joinClause" : "inner join Observation on Patient.patient_id = Observation.patient_id"
+        },
+        {
+          "name" : "Condition",
+          "joinClause" : "inner join Condition on Patient.patient_id = Condition.patient_id"
+        }
+      ]
+    },
+    {
+      "name" : "Claim",
+      "primaryDataType" : "Claim",
+      "primaryKeyColumn" : "claim_id",
+      "relationships" : [
+        {
+          "name" : "Patient",
+          "joinClause" : "inner join PatientClaim on Claim.claim_id = PatientClaim.claim_id inner join Patient on PatientClaim.patient_id = Patient.patient_id"
+        }
+      ]
+    },
+    {
+      "name" : "Encounter",
+      "primaryDataType" : "Patient",
+      "primaryKeyColumn" : "patient_id",
+      "relationships" : [
+        {
+          "name" : "Encounter",
+          "joinClause" : "inner join Encounter on Patient.patient_id = Encounter.patient_id where Encounter.status = 'COMPLETE'"
+        }
+      ]
+    }
+  ]
 }
 ```
 
-The `.contextDefinitions[].name` field is user assigned and will be referenced below in the cql-jobs.json `.evalutions[].contextKey` field. The `primaryDataType`, `associationDataType`, and `relatedDataType` columns must match up with the names of input files provided in the `-i` program options. For example, `"primaryDataType" : "Claim"` would correspond to `-i Claim=file:///path/to/Claim` in the program options.
+Note that when specifying a `joinClause` the Spark engine generates the `SELECT` and `FROM` portions of the query that
+will be run when building each context. Because each context groups data around the primary data type's primary key column,
+each join that is eventually run by the engine has the form `SELECT <someColumns> FROM <primaryDataType> <joinClause>`.
+For example, the `Encounter` block in the json above would result in the engine running a query similar to
+`select Encounter.* from Patient inner join Encounter on Patient.patient_id = Encounter.patient_id where Encounter.status = 'COMPLETE'`.
 
-For the initial pilot implementation of the Spark application, join logic is limited to the one-to-many and many-to-many scenarios described above. More complex join logic involving compound primary keys (more than one column required to uniquely identify a record) or related data beyond a single table relationship (with or without an association table in between) are unsupported. These will come in a future release.
+The `.contextDefinitions[].name` field is user assigned and will be referenced below in the cql-jobs.json
+`.evalutions[].contextKey` field. The `primaryDataType` and `.contextDefinitions[].relationships[].name` columns must
+match up with the names of input files provided in the `-i` program options. Likewise, table names in each `joinClause`
+must also match up with the `-i` program options. For example, `"primaryDataType" : "Claim"` would correspond
+to `-i Claim=file:///path/to/Claim` in the program options. A `joinClause` of
+`inner join PatientClaim on Claim.claim_id = PatientClaim.claim_id inner join Patient on PatientClaim.patient_id = Patient.patient_id`
+corresponds to arguments `-i PatientClaim=file:///path/to/PatientClaim -i Patient=file:///path/to/Patient`.
 
 If the user wishes to limit which aggregation contexts are evaluated during an application run, there is a program option `-a` that can be used to specify one or more contextKey values for the aggregation contexts that should be evaluated.
 
 #### Advanced Joins
 
-When using normalized data, you might encounter a need to join on mutiple tables to create the desired context.
+When using normalized data, you might encounter a need to join on multiple tables to create the desired context.
+In this case, you can still specify logic for multiple joins in a single `joinClause` for a `relationship`.
 
 Let's consider how we would need to set up a Context Definition to support using standardized valuesets within the OMOP data model.
 
@@ -290,9 +306,33 @@ entity "**vocabulary**" {
 Because we need the triplet of `concept_id`, `vocabulary_id`, and `vocabulary_version` to query the terminology provider,
 we have to join across both the `concept` and `vocabulary` tables.
 
-And we would use the `with` field within a `MultiManyToMany` join to represent this relationship:
+This would result in the following context definition:
 
-[MultiManyToMany example ContextDefinition](context-definition/example-multi-many-to-many.json ':include :type=json')
+```json
+{
+  "contextDefinitions": [
+    {
+      "name": "person",
+      "primaryDataType": "person",
+      "primaryKeyColumn": "person_id",
+      "relationships": [
+        {
+          "name": "concept",
+          "joinClause": "inner join observation on person.person_id = observation.person_id inner join concept on observation.observation_concept_id = concept.concept_id"
+        },
+        {
+          "name": "vocabulary",
+          "joinClause": "inner join observation on person.person_id = observation.person_id inner join concept on observation.observation_concept_id = concept.concept_id inner join vocabulary on concept.vocabulary_id = vocabulary.vocabulary_id"
+        },
+        {
+          "name": "observation",
+          "joinClause": "inner join observation on person.person_id = observation.person_id"
+        }
+      ]
+    }
+  ]
+}
+```
 
 
 ### CQL and ModelInfo

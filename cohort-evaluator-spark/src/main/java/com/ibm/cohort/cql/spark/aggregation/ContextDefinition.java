@@ -16,7 +16,7 @@ public class ContextDefinition {
     private String primaryDataType;
     private String primaryKeyColumn;
     
-    private List<Join> relationships;
+    private List<Relationship> relationships;
 
     public String getName() {
         return name;
@@ -42,11 +42,11 @@ public class ContextDefinition {
         this.primaryKeyColumn = primaryKeyColumn;
     }
 
-    public List<Join> getRelationships() {
+    public List<Relationship> getRelationships() {
         return relationships;
     }
 
-    public void setRelationships(List<Join> relationships) {
+    public void setRelationships(List<Relationship> relationships) {
         this.relationships = relationships;
     }
 

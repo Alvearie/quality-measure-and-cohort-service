@@ -7,26 +7,27 @@
 package com.ibm.cohort.cql.spark.aggregation;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.functions;
+import org.apache.spark.sql.types.Metadata;
+import org.apache.spark.sql.types.StructType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ibm.cohort.cql.spark.data.ColumnFilterFunction;
 import com.ibm.cohort.cql.spark.data.DatasetRetriever;
+import com.ibm.cohort.cql.spark.data.MetadataUtils;
 import com.ibm.cohort.cql.util.StringMatcher;
 
 import scala.Tuple2;
@@ -74,6 +75,11 @@ public class ContextRetriever {
      * @return A {@link JavaPairRDD} linking contextValue to a {@link List} of {@link Row}s
      */
     public JavaPairRDD<Object, List<Row>> retrieveContext(ContextDefinition contextDefinition) {
+        for (String dataType : inputPaths.keySet()) {
+            Dataset<Row> ds = readDataset(dataType);
+            ds.createOrReplaceTempView(dataType);
+        }
+        
         List<JavaPairRDD<Object, Row>> rddList = gatherRDDs(contextDefinition);
 
         JavaPairRDD<Object, Row> allData = unionPairRDDs(rddList, contextDefinition.getName());
@@ -108,127 +114,99 @@ public class ContextRetriever {
 
         String primaryKeyColumn = contextDefinition.getPrimaryKeyColumn();
         String primaryDataType = contextDefinition.getPrimaryDataType();
+
         Dataset<Row> primaryDataset = readDataset(primaryDataType);
         retVal.add(toPairRDD(primaryDataset, primaryKeyColumn));
 
-        // We need to retain the original context value from the primary datatype.
-        // This is done by adding a "placeholder column" that selects the context value.
-        // This is needed for when we retain only the columns from the related dataset.
-        Column joinContextColumn = primaryDataset.col(primaryKeyColumn).as(JOIN_CONTEXT_VALUE_IDX);
-
-        List<Join> joins = contextDefinition.getRelationships() == null
+        List<Relationship> relationships = contextDefinition.getRelationships() == null
                 ? Collections.emptyList()
                 : contextDefinition.getRelationships();
-        for (Join join : joins) {
-            String primaryJoinColumn = join.getPrimaryDataTypeColumn() == null
-                    ? primaryKeyColumn
-                    : join.getPrimaryDataTypeColumn();
-            String relatedDataType = join.getRelatedDataType();
-            String relatedColumnName = join.getRelatedKeyColumn();
-            Dataset<Row> relatedDataset = readDataset(relatedDataType);
-            if( relatedDataset != null ) {
-                Dataset<Row> joinedDataset;
-    
-                if (join.getClass() == OneToMany.class) {
-                    Column joinCriteria = primaryDataset.col(primaryJoinColumn)
-                            .equalTo(relatedDataset.col(relatedColumnName));
-                    joinedDataset = primaryDataset.join(relatedDataset, joinCriteria);
-                } else if (join instanceof ManyToMany) {
-                    ManyToMany manyToMany = (ManyToMany) join;
-                    String assocDataType = manyToMany.getAssociationDataType();
-                    Dataset<Row> assocDataset = readDataset(assocDataType);
-                    String assocPrimaryColumnName = manyToMany.getAssociationOneKeyColumn();
-                    String assocRelatedColumnName = manyToMany.getAssociationManyKeyColumn();
-    
-                    Column primaryJoinCriteria = primaryDataset.col(primaryJoinColumn)
-                            .equalTo(assocDataset.col(assocPrimaryColumnName));
-                    joinedDataset = primaryDataset.join(assocDataset, primaryJoinCriteria);
-    
-                    Column relatedJoinCriteria = joinedDataset.col(assocRelatedColumnName)
-                            .equalTo(relatedDataset.col(relatedColumnName));
-                    joinedDataset = joinedDataset.join(relatedDataset, relatedJoinCriteria);
 
-                    if (manyToMany instanceof MultiManyToMany) {
-                        Column baseContextColumn = joinContextColumn;
-                        Dataset<Row> baseDataset = joinedDataset;
-                        ManyToMany additionalJoin = ((MultiManyToMany) join).getWith();
+        SparkSession sparkSession = SparkSession.getActiveSession().get();
+        for (Relationship relationship : relationships) {
+            StringBuilder sb = new StringBuilder("select ");
 
-                        while (additionalJoin != null) {
-                            Dataset<Row> additionalDataset = gather(additionalJoin, baseDataset, baseContextColumn);
+            String relationshipName = relationship.getName();
 
-                            if (additionalDataset != null) {
-                                retVal.add(toPairRDD(additionalDataset.distinct(), JOIN_CONTEXT_VALUE_IDX));
-
-                                additionalJoin = (additionalJoin instanceof MultiManyToMany) ? ((MultiManyToMany) additionalJoin).getWith() : null;
-                                baseDataset = additionalDataset;
-                                baseContextColumn = additionalDataset.col(JOIN_CONTEXT_VALUE_IDX);
-                            }
-                        }
-                    }
+            boolean selectAllColumns = true;
+            
+            // When datatypeToColumnMatchers is populated for this relationship,
+            // only select the required columns needed to running CQLs for this run
+            // of the engine.
+            if (datatypeToColumnMatchers != null && !datatypeToColumnMatchers.isEmpty()) {
+                Set<StringMatcher> stringMatchers = datatypeToColumnMatchers.get(relationshipName);
+                if (stringMatchers != null && !stringMatchers.isEmpty()) {
+                    Set<String> columnNames = createNecessaryColumnSet(stringMatchers, sparkSession.sql("select * from " + relationshipName).schema());
+                    String select = columnNames.stream().map(col -> relationshipName + "." + col + ",").collect(Collectors.joining(" "));
+                    sb.append(select);
+                    selectAllColumns = false;
                 }
-                else {
-                    throw new IllegalArgumentException("Unexpected Join Type: " + join.getClass().getName());
-                }
-                
-                if (StringUtils.isNotEmpty(join.getWhereClause())) {
-                    joinedDataset = joinedDataset.where(join.getWhereClause());
-                }
-    
-                List<Column> retainedColumns = Arrays.stream(relatedDataset.columns())
-                        .map(relatedDataset::col)
-                        .collect(Collectors.toCollection(ArrayList::new));
-                retainedColumns.add(joinContextColumn);
-                Column[] columnArray = retainedColumns.toArray(new Column[0]);
-                joinedDataset = joinedDataset.select(columnArray);
-
-                UnaryOperator<Dataset<Row>> datasetTransformationFunction = datatypeToColumnMatchers == null ? UnaryOperator.identity() : new ColumnFilterFunction(datatypeToColumnMatchers.get(relatedDataType));
-
-                joinedDataset = datasetTransformationFunction.apply(joinedDataset);
-                
-                if (joinedDataset != null) {
-                    retVal.add(toPairRDD(joinedDataset, JOIN_CONTEXT_VALUE_IDX));
-                }
-                else {
-                    LOG.info("No data was read for context {}, datatype {}. This happens naturally when CQL-based column filtering is enabled and no data is required from the specified datatype.", contextDefinition.getName(), relatedDataType);
-                }
-            } else {
-                LOG.info("No data was read for context {}, datatype {}.", contextDefinition.getName(), relatedDataType);
             }
+            
+            // When there is no entry in datatypeToColumnMatchers for this relationship,
+            // then select all the columns for this relationship
+            if (selectAllColumns) {
+                sb.append(relationshipName).append(".*, ");
+            }
+            
+            // We have to populate JOIN_CONTEXT_VALUE_IDX with the primary data type key
+            // for use elsewhere in the engine.
+            sb.append(primaryDataType).append('.').append(primaryKeyColumn).append(" as ").append(JOIN_CONTEXT_VALUE_IDX);
+            
+            // Joining for a context always starts with the primary data type as the left-most table
+            // before applying the rest of the specified join query.
+            sb.append(" from ").append(primaryDataType).append(' ').append(relationship.getJoinClause());
+
+            Dataset<Row> result = sparkSession.sql(sb.toString());
+            retVal.add(toPairRDD(result, JOIN_CONTEXT_VALUE_IDX));
         }
 
         return retVal;
     }
 
-    private Dataset<Row> gather(
-        ManyToMany join,
-        Dataset<Row> leftDataset,
-        Column joinContextColumn) {
-        List<Column> retainedColumns = new ArrayList<>();
+    /**
+     * Creates a {@link Set} of {@link StringMatcher} containing all the column names required
+     * to calculate the configured CQLs for this run of the engine.
+     *
+     * @param columnNameMatchers The {@link Set<StringMatcher>} containing the rules on
+     *                           which columns to keep.
+     * @param schema             The {@link StructType} containing the columns to be compared
+     *                           against the rules in columnNameMatchers
+     * @return A {@link Set} of {@link String}s containing all columns in the provided
+     * {@link StructType} that matched one or more rules in the provided {@link Set} of {@link StringMatcher}.
+     */
+    private Set<String> createNecessaryColumnSet(Set<StringMatcher> columnNameMatchers, StructType schema) {
+        Set<String> retVal = new HashSet<>();
+        
+        for( StringMatcher colNameMatcher : columnNameMatchers) {
+            try {
+                Stream.of(schema.fieldNames())
+                        .filter( fn -> colNameMatcher.test(fn) )
+                        .collect(Collectors.toSet())
+                        .forEach( col -> {
+                            retVal.add(col);
 
-        String rightDataType = join.getRelatedDataType();
+                            Metadata metadata = MetadataUtils.getColumnMetadata(schema, col);
+                            if( metadata != null ) {
+                                if( MetadataUtils.isCodeCol(metadata) ) {
+                                    String systemCol = MetadataUtils.getSystemCol(metadata);
+                                    if( systemCol != null ) {
+                                        retVal.add( systemCol ) ;
+                                    }
 
-        Dataset<Row> rightDataset = readDataset(rightDataType);
-
-        Arrays.stream(rightDataset.columns())
-            .map(rightDataset::col)
-            .forEach(retainedColumns::add);
-        retainedColumns.add(joinContextColumn);
-
-        Column withJoinCriteria =
-            leftDataset.col(join.getAssociationManyKeyColumn()).equalTo(
-                rightDataset.col(join.getRelatedKeyColumn()));
-        Dataset<Row> joinedDataset = leftDataset.join(rightDataset, withJoinCriteria);
-
-        joinedDataset = joinedDataset.select(retainedColumns.toArray(new Column[0]));
-
-        if (StringUtils.isNotEmpty(join.getWhereClause())) {
-            joinedDataset = joinedDataset.where(join.getWhereClause());
+                                    String displayCol = MetadataUtils.getDisplayCol(metadata);
+                                    if( displayCol != null ) {
+                                        retVal.add( displayCol );
+                                    }
+                                }
+                            }
+                        });
+            } catch( Throwable th ) {
+                LOG.error("Failed to resolve column %s of data type %s", th);
+                throw th;
+            }
         }
-
-        UnaryOperator<Dataset<Row>> datasetTransformationFunction = datatypeToColumnMatchers == null ? UnaryOperator.identity() : new ColumnFilterFunction(datatypeToColumnMatchers.get(rightDataType));
-        joinedDataset = datasetTransformationFunction.apply(joinedDataset);
-
-        return joinedDataset;
+        return retVal;
     }
 
     /**

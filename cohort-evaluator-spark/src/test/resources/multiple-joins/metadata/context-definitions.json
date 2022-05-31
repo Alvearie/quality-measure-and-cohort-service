@@ -6,25 +6,16 @@
       "primaryKeyColumn": "person_id",
       "relationships": [
         {
-          "type": "MultiManyToMany",
-          "associationDataType": "observation",
-          "associationOneKeyColumn": "person_id",
-          "associationManyKeyColumn": "observation_concept_id",
-          "relatedDataType": "concept",
-          "relatedKeyColumn": "concept_id",
-          "with": {
-            "type": "ManyToMany",
-            "associationDataType": "concept",
-            "associationOneKeyColumn": "concept_id",
-            "associationManyKeyColumn": "vocabulary_id",
-            "relatedDataType": "vocabulary",
-            "relatedKeyColumn": "vocabulary_id"
-          }
+          "name": "concept",
+          "joinClause": "inner join observation on person.person_id = observation.person_id inner join concept on observation.observation_concept_id = concept.concept_id"
         },
         {
-          "type": "OneToMany",
-          "relatedDataType": "observation",
-          "relatedKeyColumn": "person_id"
+          "name": "vocabulary",
+          "joinClause": "inner join observation on person.person_id = observation.person_id inner join concept on observation.observation_concept_id = concept.concept_id inner join vocabulary on concept.vocabulary_id = vocabulary.vocabulary_id"
+        },
+        {
+          "name": "observation",
+          "joinClause": "inner join observation on person.person_id = observation.person_id"
         }
       ]
     }

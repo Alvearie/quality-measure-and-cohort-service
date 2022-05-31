@@ -16,14 +16,12 @@
       "primaryKeyColumn": "id",
       "relationships": [
         {
-          "type": "OneToMany",
-          "relatedDataType": "Type1",
-          "relatedKeyColumn": "id"
+          "name": "Type1",
+          "joinClause": "inner join Type1 on Patient.id = Type1.id"
         },
         {
-          "type": "OneToMany",
-          "relatedDataType": "Type2",
-          "relatedKeyColumn": "id"
+          "name": "Type2",
+          "joinClause": "inner join Type2 on Patient.id = Type2.id"
         }
       ]
     }
