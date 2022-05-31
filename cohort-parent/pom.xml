@@ -1464,6 +1464,9 @@
 						<excludeVulnerabilityId>CVE-2021-22569</excludeVulnerabilityId>
 						<excludeVulnerabilityId>CVE-2022-26612</excludeVulnerabilityId>
 						
+						<!--  These are required by current 2.12 version of Scala -->
+						<excludeVulnerabilityId>CVE-2020-36518</excludeVulnerabilityId>
+						
 					</excludeVulnerabilityIds>
 
 					<excludeCoordinates>
