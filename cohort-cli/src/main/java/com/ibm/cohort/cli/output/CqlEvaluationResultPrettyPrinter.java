@@ -8,9 +8,11 @@
 package com.ibm.cohort.cli.output;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.hl7.fhir.instance.model.api.IAnyResource;
+import org.opencds.cqf.cql.engine.runtime.Tuple;
 
 import com.ibm.cohort.cql.evaluation.CqlEvaluationResult;
 
@@ -40,7 +42,29 @@ public abstract class CqlEvaluationResultPrettyPrinter {
 				sb.append(resource.getId());
 			} else if( value instanceof Collection) {
 				sb.append(handleCollection(value));
-			} else {
+			} else if ( value instanceof Tuple) {
+				// Tuple logic adapted from org.opencds.cqf.cql.engine.runtime.Tuple.toString()
+				HashMap<String, Object> elements = ((Tuple)value).getElements();
+				if (elements.isEmpty()) {
+					sb.append("Tuple { : }");
+				} else {
+					sb.append("Tuple {");
+					int numEntries = elements.entrySet().size();
+					int current = 0;
+					for (Map.Entry<String, Object> entry : elements.entrySet()) {
+						sb.append(" \"").append(entry.getKey()).append("\": ");
+						prettyPrintValue(sb, entry.getValue());
+						if (current < numEntries - 1) {
+							sb.append(", ");
+						}
+						current++;
+					}
+					sb.append(" }");
+				}
+			} else if ( value instanceof String ) {
+				sb.append('"').append(value).append('"');
+			}
+			else {
 				sb.append(value);
 			}
 		} else {

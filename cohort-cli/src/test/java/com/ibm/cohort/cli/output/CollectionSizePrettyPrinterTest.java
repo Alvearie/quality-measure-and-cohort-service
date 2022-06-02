@@ -11,10 +11,12 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.hl7.fhir.r4.model.Patient;
 import org.junit.Test;
+import org.opencds.cqf.cql.engine.runtime.Tuple;
 
 public class CollectionSizePrettyPrinterTest {
 	private final CollectionSizePrettyPrinter prettyPrinter = new CollectionSizePrettyPrinter();
@@ -40,5 +42,23 @@ public class CollectionSizePrettyPrinterTest {
 	@Test
 	public void testResourceEmptyList() {
 		assertEquals("Collection: 0", prettyPrinter.prettyPrintValue(Collections.emptyList()));
+	}
+
+	@Test
+	public void testTupleWithList() {
+		Patient patient1 = new Patient();
+		patient1.setId("Patient/id1");
+
+		Patient patient2 = new Patient();
+		patient2.setId("Patient/id2");
+
+		Tuple tuple = new Tuple();
+
+		LinkedHashMap<String, Object> elements = new LinkedHashMap<>();
+		elements.put("definition", "stuff");
+		elements.put("value", Arrays.asList(patient1, patient2));
+		tuple.setElements(elements);
+
+		assertEquals("Tuple { \"definition\": \"stuff\",  \"value\": Collection: 2 }", prettyPrinter.prettyPrintValue(tuple));
 	}
 }
